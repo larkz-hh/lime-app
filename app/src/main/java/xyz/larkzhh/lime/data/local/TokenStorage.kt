@@ -4,6 +4,9 @@ import com.tencent.mmkv.MMKV
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * 本地 Token 存储管理器
+ */
 @Singleton
 class TokenStorage @Inject constructor() {
 
