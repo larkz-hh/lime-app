@@ -4,6 +4,8 @@ import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,9 +16,13 @@ import javax.inject.Inject
 
 /// 登录页面 UI 状态
 data class LoginUiState(
-    val username: String = "",
+    val email: String = "",
     val password: String = "",
+    val code: String = "",
+    val isCodeMode: Boolean = false,
     val passwordVisible: Boolean = false,
+    val sendCodeCountdown: Int = 0,
+    val isSendingCode: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isSuccess: Boolean = false,
@@ -24,13 +30,13 @@ data class LoginUiState(
 
 /// 注册页面 UI 状态
 data class RegisterUiState(
-    val username: String = "",
     val email: String = "",
     val password: String = "",
-    val confirmPassword: String = "",
+    val code: String = "",
     val phone: String = "",
     val passwordVisible: Boolean = false,
-    val confirmPasswordVisible: Boolean = false,
+    val sendCodeCountdown: Int = 0,
+    val isSendingCode: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isSuccess: Boolean = false,
@@ -51,27 +57,68 @@ class AuthViewModel @Inject constructor(
     private val _registerState = MutableStateFlow(RegisterUiState())
     val registerState: StateFlow<RegisterUiState> = _registerState.asStateFlow()
 
+    private var loginCountdownJob: Job? = null
+    private var registerCountdownJob: Job? = null
+
     // 判断登录状态
     fun isLoggedIn(): Boolean = authRepository.isLoggedIn()
 
     /**
      * 登录
      */
-    /// 用户名更改
-    fun onLoginUsernameChange(value: String) =
-        _loginState.update { it.copy(username = value, errorMessage = null) }// 清除错误提示
+    /// 邮箱更改
+    fun onLoginEmailChange(value: String) =
+        _loginState.update { it.copy(email = value, errorMessage = null) }
     /// 密码更改
     fun onLoginPasswordChange(value: String) =
         _loginState.update { it.copy(password = value, errorMessage = null) }
+    /// 验证码更改
+    fun onLoginCodeChange(value: String) =
+        _loginState.update { it.copy(code = value, errorMessage = null) }
     /// 切换密码显示状态
     fun onLoginPasswordVisibilityToggle() =
         _loginState.update { it.copy(passwordVisible = !it.passwordVisible) }
+    /// 切换登录方式
+    fun onLoginModeChange(isCodeMode: Boolean) =
+        _loginState.update { it.copy(isCodeMode = isCodeMode, errorMessage = null) }
+
+    /// 发送验证码
+    fun sendLoginCode() {
+        val email = _loginState.value.email
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            _loginState.update { it.copy(errorMessage = "请输入有效的邮箱地址") }
+            return
+        }
+        viewModelScope.launch {
+            _loginState.update { it.copy(isSendingCode = true, errorMessage = null) }
+            try {
+                authRepository.sendCode(email).getOrThrow()
+                startLoginCountdown()
+            } catch (e: Exception) {
+                _loginState.update { it.copy(errorMessage = e.message ?: "发送失败") }
+            } finally {
+                _loginState.update { it.copy(isSendingCode = false) }
+            }
+        }
+    }
+
+    /// 倒计时
+    private fun startLoginCountdown() {
+        loginCountdownJob?.cancel()
+        loginCountdownJob = viewModelScope.launch {
+            for (i in 60 downTo 1) {
+                _loginState.update { it.copy(sendCodeCountdown = i) }
+                delay(1000)
+            }
+            _loginState.update { it.copy(sendCodeCountdown = 0) }
+        }
+    }
 
     /// 提交登录
     fun login() {
-        val username = _loginState.value.username
-        val password = _loginState.value.password
-        val validationError = validateLogin(username, password)
+        val s = _loginState.value
+        val validationError = if (s.isCodeMode) validateLoginWithCode(s.email, s.code)
+                              else validateLoginWithPassword(s.email, s.password)
         if (validationError != null) {
             _loginState.update { it.copy(errorMessage = validationError) }
             return
@@ -79,7 +126,11 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _loginState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                authRepository.login(username, password).getOrThrow()
+                if (s.isCodeMode) {
+                    authRepository.login(email = s.email, code = s.code).getOrThrow()
+                } else {
+                    authRepository.login(email = s.email, password = s.password).getOrThrow()
+                }
                 _loginState.update { it.copy(isLoading = false, isSuccess = true) }
             } catch (e: Exception) {
                 _loginState.update { it.copy(isLoading = false, errorMessage = e.message ?: "登录失败") }
@@ -93,41 +144,67 @@ class AuthViewModel @Inject constructor(
     /**
      * 注册
      */
-    /// 用户名更改
-    fun onRegisterUsernameChange(value: String) =
-        _registerState.update { it.copy(username = value, errorMessage = null) }
     /// 邮箱更改
     fun onRegisterEmailChange(value: String) =
         _registerState.update { it.copy(email = value, errorMessage = null) }
     /// 密码更改
     fun onRegisterPasswordChange(value: String) =
         _registerState.update { it.copy(password = value, errorMessage = null) }
-    /// 再次确认密码更改
-    fun onRegisterConfirmPasswordChange(value: String) =
-        _registerState.update { it.copy(confirmPassword = value, errorMessage = null) }
+    /// 验证码更改
+    fun onRegisterCodeChange(value: String) =
+        _registerState.update { it.copy(code = value, errorMessage = null) }
     /// 手机号更改
     fun onRegisterPhoneChange(value: String) =
         _registerState.update { it.copy(phone = value, errorMessage = null) }
-
-    /// 密码显示更改
+    /// 切换密码显示状态
     fun onRegisterPasswordVisibilityToggle() =
         _registerState.update { it.copy(passwordVisible = !it.passwordVisible) }
-    fun onRegisterConfirmPasswordVisibilityToggle() =
-        _registerState.update { it.copy(confirmPasswordVisible = !it.confirmPasswordVisible) }
+
+    /// 发送验证码
+    fun sendRegisterCode() {
+        val email = _registerState.value.email
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            _registerState.update { it.copy(errorMessage = "请输入有效的邮箱地址") }
+            return
+        }
+        viewModelScope.launch {
+            _registerState.update { it.copy(isSendingCode = true, errorMessage = null) }
+            try {
+                authRepository.sendCode(email).getOrThrow()
+                startRegisterCountdown()
+            } catch (e: Exception) {
+                _registerState.update { it.copy(errorMessage = e.message ?: "发送失败") }
+            } finally {
+                _registerState.update { it.copy(isSendingCode = false) }
+            }
+        }
+    }
+
+    /// 倒计时
+    private fun startRegisterCountdown() {
+        registerCountdownJob?.cancel()
+        registerCountdownJob = viewModelScope.launch {
+            for (i in 60 downTo 1) {
+                _registerState.update { it.copy(sendCodeCountdown = i) }
+                delay(1000)
+            }
+            _registerState.update { it.copy(sendCodeCountdown = 0) }
+        }
+    }
 
     /// 提交注册
     fun register() {
         val s = _registerState.value
-        val validationError = validateRegister(s.username, s.email, s.password, s.confirmPassword, s.phone)
+        val validationError = validateRegister(s.email, s.password, s.code, s.phone)
         if (validationError != null) {
             _registerState.update { it.copy(errorMessage = validationError) }
             return
         }
         viewModelScope.launch {
             _registerState.update { it.copy(isLoading = true, errorMessage = null) }
-            val phone = _registerState.value.phone.ifEmpty { null }
+            val phone = s.phone.ifEmpty { null }
             try {
-                authRepository.register(s.username, s.password, s.email, phone).getOrThrow()
+                authRepository.register(s.email, s.password, s.code, phone).getOrThrow()
                 _registerState.update { it.copy(isLoading = false, isSuccess = true) }
             } catch (e: Exception) {
                 _registerState.update { it.copy(isLoading = false, errorMessage = e.message ?: "注册失败") }
@@ -142,44 +219,42 @@ class AuthViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             authRepository.logout()
-            _loginState.value = LoginUiState()// 重置为初始值
+            _loginState.value = LoginUiState()
             _registerState.value = RegisterUiState()
         }
     }
 
     /**
-     * 校验登录表单输入
-     * @param username 用户名
-     * @param password 密码
-     * @return 失败返回错误提示，通过返回 null
+     * 校验登录表单（密码模式）
      */
-    private fun validateLogin(username: String, password: String): String? {
-        if (username.isBlank()) return "请输入用户名"
+    private fun validateLoginWithPassword(email: String, password: String): String? {
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return "请输入有效的邮箱地址"
         if (password.isBlank()) return "请输入密码"
         return null
     }
 
     /**
+     * 校验登录表单（验证码模式）
+     */
+    private fun validateLoginWithCode(email: String, code: String): String? {
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return "请输入有效的邮箱地址"
+        if (code.isBlank()) return "请输入验证码"
+        return null
+    }
+
+    /**
      * 校验注册表单输入
-     * @param username 用户名
      * @param email 邮箱地址
      * @param password 密码
-     * @param confirmPassword 确认密码
+     * @param code 邮箱验证码
      * @param phone 手机号
      * @return 失败返回错误提示，通过返回 null
      */
-    private fun validateRegister(
-        username: String,
-        email: String,
-        password: String,
-        confirmPassword: String,
-        phone: String,
-    ): String? {
-        if (username.length !in 3..20) return "用户名需为 3-20 个字符"
+    private fun validateRegister(email: String, password: String, code: String, phone: String): String? {
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return "请输入有效的邮箱地址"
         if (password.length !in 6..32) return "密码需为 6-32 个字符"
         if (!password.any { it.isLetter() } || !password.any { it.isDigit() }) return "密码必须同时包含字母和数字"
-        if (password != confirmPassword) return "两次输入的密码不一致"
+        if (code.isBlank()) return "请输入邮箱验证码"
         if (phone.isNotEmpty() && !Regex("^1\\d{10}$").matches(phone)) return "手机号格式不正确"
         return null
     }
