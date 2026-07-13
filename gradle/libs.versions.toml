@@ -24,6 +24,11 @@ coroutines = "1.9.0"
 serialization = "1.7.3"
 mlkitTranslate = "17.0.3"
 lottie = "6.7.1"
+media3 = "1.6.0"
+accompanist = "0.37.3"
+workManager = "2.10.1"
+ucrop = "2.2.9"
+splashscreen = "1.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -83,6 +88,25 @@ mlkit-translate = { group = "com.google.mlkit", name = "translate", version.ref 
 
 # Lottie
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
+
+# Media3 ExoPlayer
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
+
+# Accompanist
+accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
+
+# WorkManager
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workManager" }
+
+# Serialization JSON runtime
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
+
+# Image Crop
+ucrop = { group = "com.github.yalantis", name = "ucrop", version.ref = "ucrop" }
+
+# Splash Screen
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agpUser" }

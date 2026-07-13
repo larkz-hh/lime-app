@@ -95,6 +95,25 @@ dependencies {
     // Lottie Compose
     implementation(libs.lottie.compose)
 
+    // Media3 ExoPlayer
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
+
+    // Permissions
+    implementation(libs.accompanist.permissions)
+
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
+
+    // Serialization JSON runtime
+    implementation(libs.kotlinx.serialization.json)
+
+    // Image Crop
+    implementation(libs.ucrop)
+
+    // Splash Screen
+    implementation(libs.androidx.core.splashscreen)
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
