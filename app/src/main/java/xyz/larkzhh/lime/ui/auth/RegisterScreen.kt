@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -30,12 +30,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -82,10 +82,8 @@ fun RegisterScreen(
                 expandedHeight = 56.dp,
                 //windowInsets = TopAppBarDefaults.windowInsets,
                 windowInsets = WindowInsets(0.dp),
-
-                )
+            )
         },
-        //contentWindowInsets = WindowInsets(0.dp),
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -112,23 +110,7 @@ fun RegisterScreen(
 
             Spacer(Modifier.height(28.dp))
 
-            /// 用户名
-            OutlinedTextField(
-                value = state.username,
-                onValueChange = viewModel::onRegisterUsernameChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("用户名") },
-                placeholder = { Text("3-20 个字符") },
-                leadingIcon = { Icon(Icons.Filled.Person, contentDescription = "用户名") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                isError = state.errorMessage != null,
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            // Email
+            // 邮箱
             OutlinedTextField(
                 value = state.email,
                 onValueChange = viewModel::onRegisterEmailChange,
@@ -146,7 +128,7 @@ fun RegisterScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            /// 密码
+            // 密码
             OutlinedTextField(
                 value = state.password,
                 onValueChange = viewModel::onRegisterPasswordChange,
@@ -173,35 +155,51 @@ fun RegisterScreen(
             )
 
             Spacer(Modifier.height(12.dp))
-
-            /// 再次确认密码
-            OutlinedTextField(
-                value = state.confirmPassword,
-                onValueChange = viewModel::onRegisterConfirmPasswordChange,
+            
+            // 验证码输入框
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("确认密码") },
-                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = "确认密码") },
-                trailingIcon = {
-                    IconButton(onClick = viewModel::onRegisterConfirmPasswordVisibilityToggle) {
-                        Icon(
-                            imageVector = if (state.confirmPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                            contentDescription = if (state.confirmPasswordVisible) "隐藏密码" else "显示密码",
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                OutlinedTextField(
+                    value = state.code,
+                    onValueChange = viewModel::onRegisterCodeChange,
+                    modifier = Modifier.weight(1f),
+                    label = { Text("邮箱验证码") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next,
+                    ),
+                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                    isError = state.errorMessage != null,
+                )
+                Spacer(Modifier.width(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        focusManager.clearFocus()
+                        viewModel.sendRegisterCode()
+                    },
+                    enabled = state.sendCodeCountdown == 0 && !state.isSendingCode,
+                    modifier = Modifier.height(56.dp),
+                ) {
+                    when {
+                        state.isSendingCode -> CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
                         )
+                        state.sendCodeCountdown > 0 -> Text(
+                            "${state.sendCodeCountdown}s",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        else -> Text("获取验证码", style = MaterialTheme.typography.bodySmall)
                     }
-                },
-                visualTransformation = if (state.confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Next,
-                ),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                isError = state.errorMessage != null,
-            )
+                }
+            }
 
             Spacer(Modifier.height(12.dp))
 
-            /// 手机号码
+            // 手机号（可选）
             OutlinedTextField(
                 value = state.phone,
                 onValueChange = viewModel::onRegisterPhoneChange,
@@ -222,7 +220,7 @@ fun RegisterScreen(
                 isError = state.errorMessage != null,
             )
 
-            /// 错误信息
+            // 错误信息
             AnimatedVisibility(visible = state.errorMessage != null) {
                 Text(
                     text = state.errorMessage ?: "",
@@ -236,7 +234,7 @@ fun RegisterScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            /// 注册按钮
+            // 注册按钮
             Button(
                 onClick = {
                     focusManager.clearFocus()
@@ -260,7 +258,7 @@ fun RegisterScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            /// 登录页返回
+            // 返回登录
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,

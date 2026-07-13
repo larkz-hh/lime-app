@@ -136,7 +136,7 @@ fun AppNavGraph() {
             }
             composable(Screen.Register.route) {
                 AuthScreen(
-                    showTopBar = showBottomBarOnAuth,
+                    showTopBar = false,
                     onBack = { navController.popBackStack() },
                 ) {
                     RegisterScreen(

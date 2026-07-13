@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -19,8 +20,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Eco
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -28,8 +29,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -110,18 +114,37 @@ fun LoginScreen(
                 color = MaterialTheme.colorScheme.secondary,
             )
 
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(32.dp))
 
-            /// 账号
-            OutlinedTextField(
-                value = state.username,
-                onValueChange = viewModel::onLoginUsernameChange,
+            // 登录方式切换
+            TabRow(
+                selectedTabIndex = if (state.isCodeMode) 1 else 0,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("用户名") },
-                leadingIcon = { Icon(Icons.Filled.Person, contentDescription = "用户名") },
+            ) {
+                Tab(
+                    selected = !state.isCodeMode,
+                    onClick = { viewModel.onLoginModeChange(false) },
+                    text = { Text("密码登录") },
+                )
+                Tab(
+                    selected = state.isCodeMode,
+                    onClick = { viewModel.onLoginModeChange(true) },
+                    text = { Text("验证码登录") },
+                )
+            }
+
+            Spacer(Modifier.height(20.dp))
+
+            // 邮箱
+            OutlinedTextField(
+                value = state.email,
+                onValueChange = viewModel::onLoginEmailChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("邮箱") },
+                leadingIcon = { Icon(Icons.Filled.Email, contentDescription = "邮箱") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
+                    keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next,
                 ),
                 keyboardActions = KeyboardActions(
@@ -132,37 +155,85 @@ fun LoginScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            /// 密码
-            OutlinedTextField(
-                value = state.password,
-                onValueChange = viewModel::onLoginPasswordChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("密码") },
-                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = "密码") },
-                trailingIcon = {
-                    IconButton(onClick = viewModel::onLoginPasswordVisibilityToggle) {
-                        Icon(
-                            imageVector = if (state.passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                            contentDescription = if (state.passwordVisible) "隐藏密码" else "显示密码",
-                        )
-                    }
-                },
-                visualTransformation = if (state.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done,
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        focusManager.clearFocus()
-                        viewModel.login()
+            if (!state.isCodeMode) {
+                // 密码登录
+                OutlinedTextField(
+                    value = state.password,
+                    onValueChange = viewModel::onLoginPasswordChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("密码") },
+                    leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = "密码") },
+                    trailingIcon = {
+                        IconButton(onClick = viewModel::onLoginPasswordVisibilityToggle) {
+                            Icon(
+                                imageVector = if (state.passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                contentDescription = if (state.passwordVisible) "隐藏密码" else "显示密码",
+                            )
+                        }
                     },
-                ),
-                isError = state.errorMessage != null,
-            )
+                    visualTransformation = if (state.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done,
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            focusManager.clearFocus()
+                            viewModel.login()
+                        },
+                    ),
+                    isError = state.errorMessage != null,
+                )
+            } else {
+                // 验证码登录
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    OutlinedTextField(
+                        value = state.code,
+                        onValueChange = viewModel::onLoginCodeChange,
+                        modifier = Modifier.weight(1f),
+                        label = { Text("验证码") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done,
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                viewModel.login()
+                            },
+                        ),
+                        isError = state.errorMessage != null,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            focusManager.clearFocus()
+                            viewModel.sendLoginCode()
+                        },
+                        enabled = state.sendCodeCountdown == 0 && !state.isSendingCode,
+                        modifier = Modifier.height(56.dp),
+                    ) {
+                        when {
+                            state.isSendingCode -> CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                            )
+                            state.sendCodeCountdown > 0 -> Text(
+                                "${state.sendCodeCountdown}s",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            else -> Text("获取验证码", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            }
 
-            /// 错误提示
+            // 错误提示
             AnimatedVisibility(visible = state.errorMessage != null) {
                 Text(
                     text = state.errorMessage ?: "",
@@ -176,7 +247,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            /// 登录按钮
+            // 登录按钮
             Button(
                 onClick = {
                     focusManager.clearFocus()
@@ -185,7 +256,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                enabled = !state.isLoading,// 提交时禁用
+                enabled = !state.isLoading,
             ) {
                 if (state.isLoading) {
                     CircularProgressIndicator(
@@ -200,7 +271,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            /// 注册页跳转
+            // 注册页跳转
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
