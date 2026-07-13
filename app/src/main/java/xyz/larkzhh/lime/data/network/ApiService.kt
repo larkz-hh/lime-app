@@ -6,12 +6,17 @@ import xyz.larkzhh.lime.data.network.model.ApiResponse
 import xyz.larkzhh.lime.data.network.model.LoginRequest
 import xyz.larkzhh.lime.data.network.model.RefreshTokenRequest
 import xyz.larkzhh.lime.data.network.model.RegisterRequest
+import xyz.larkzhh.lime.data.network.model.SendCodeRequest
 import xyz.larkzhh.lime.data.network.model.TokenData
 
 /**
  * 认证 API 接口
  */
 interface ApiService {
+
+    /// 发送验证码
+    @POST("api/auth/send-code")
+    suspend fun sendCode(@Body request: SendCodeRequest): ApiResponse<Unit>
 
     /// 登录
     @POST("api/auth/login")

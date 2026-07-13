@@ -18,17 +18,23 @@ data class TokenData(
     val expiresIn: Long,
 )
 
-/// 登录
+/// 发送验证码
+data class SendCodeRequest(
+    val email: String,
+)
+
+/// 登录（password 与 code 二选一）
 data class LoginRequest(
-    val username: String,
-    val password: String,
+    val email: String,
+    val password: String? = null,
+    val code: String? = null,
 )
 
 /// 注册
 data class RegisterRequest(
-    val username: String,
-    val password: String,
     val email: String,
+    val password: String,
+    val code: String,
     val phone: String? = null,
 )
 
