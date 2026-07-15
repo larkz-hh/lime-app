@@ -2,12 +2,10 @@ package xyz.larkzhh.lime.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
@@ -17,16 +15,12 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.VideoLabel
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -84,13 +78,11 @@ fun AppNavGraph() {
     val authViewModel: AuthViewModel = hiltViewModel()
     val startDestination = Screen.Home.route
     var pendingRedirect by remember { mutableStateOf<String?>(null) }
-    var showBottomBarOnAuth by remember { mutableStateOf(false) }
 
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = currentRoute in bottomNavRoutes
-        || (currentRoute in authRoutes && showBottomBarOnAuth)
 
     Scaffold(
         bottomBar = {
@@ -99,10 +91,9 @@ fun AppNavGraph() {
                     navController = navController,
                     currentRoute = currentRoute,
                     isLoggedIn = authViewModel.isLoggedIn(),
-                    onRequireLogin = { targetRoute, showBar ->
+                    onRequireLogin = { targetRoute ->
                         pendingRedirect = targetRoute
-                        showBottomBarOnAuth = showBar
-                        if (currentRoute !in authRoutes) {// 防重
+                        if (currentRoute !in authRoutes) {
                             navController.navigate(Screen.Login.route)
                         }
                     },
@@ -116,42 +107,33 @@ fun AppNavGraph() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Login.route) {
-                AuthScreen(
-                    showTopBar = !showBottomBarOnAuth,// 没有底部导航栏显示顶部栏
+                LoginScreen(
+                    onLoginSuccess = {
+                        val target = pendingRedirect ?: Screen.Home.route
+                        pendingRedirect = null
+                        navController.navigate(target) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateToRegister = {
+                        navController.navigate(Screen.Register.route)
+                    },
                     onBack = { navController.popBackStack() },
-                ) {
-                    LoginScreen(
-                        onLoginSuccess = {
-                            val target = pendingRedirect ?: Screen.Home.route
-                            pendingRedirect = null// 清空暂存状态
-                            navController.navigate(target) {
-                                popUpTo(Screen.Login.route) { inclusive = true }
-                            }
-                        },
-                        onNavigateToRegister = {
-                            navController.navigate(Screen.Register.route)
-                        },
-                    )
-                }
+                )
             }
             composable(Screen.Register.route) {
-                AuthScreen(
-                    showTopBar = false,
-                    onBack = { navController.popBackStack() },
-                ) {
-                    RegisterScreen(
-                        onRegisterSuccess = {
-                            val target = pendingRedirect ?: Screen.Home.route
-                            pendingRedirect = null
-                            navController.navigate(target) {
-                                popUpTo(Screen.Login.route) { inclusive = true }
-                            }
-                        },
-                        onNavigateToLogin = {
-                            navController.popBackStack()
-                        },
-                    )
-                }
+                RegisterScreen(
+                    onRegisterSuccess = {
+                        val target = pendingRedirect ?: Screen.Home.route
+                        pendingRedirect = null
+                        navController.navigate(target) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateToLogin = {
+                        navController.popBackStack()
+                    },
+                )
             }
             composable(Screen.Home.route) { HomeScreen(navController) }
             composable(Screen.Video.route) { VideoScreen(navController) }
@@ -171,52 +153,12 @@ fun AppNavGraph() {
     }
 }
 
-/**
- * 认证页面。
- * 来自发布页，显示顶部返回栏
- * 来自消息、我页，不显示
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AuthScreen(
-    showTopBar: Boolean,
-    onBack: () -> Unit,
-    content: @Composable () -> Unit,
-) {
-    if (showTopBar) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "返回",
-                            )
-                        }
-                    },
-                    expandedHeight = 56.dp,
-                    windowInsets = WindowInsets(0.dp),
-                )
-            },
-            //contentWindowInsets = WindowInsets(0.dp),
-        ) { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding)) {
-                content()
-            }
-        }
-    } else {
-        content()
-    }
-}
-
 @Composable
 private fun BottomNavBar(
     navController: NavHostController,
     currentRoute: String?,
     isLoggedIn: Boolean,
-    onRequireLogin: (String, Boolean) -> Unit,
+    onRequireLogin: (String) -> Unit,
 ) {
     val items = listOf(
         BottomNavItem.Home,
@@ -235,7 +177,7 @@ private fun BottomNavBar(
                     selected = false,
                     onClick = {
                         if (!isLoggedIn) {
-                            onRequireLogin(Screen.Publish.route, false)
+                            onRequireLogin(Screen.Publish.route)
                         } else {
                             navController.navigate(Screen.Publish.route)
                         }
@@ -266,7 +208,7 @@ private fun BottomNavBar(
                     selected = selected,
                     onClick = {
                         if (requiresAuth && !isLoggedIn) {
-                            onRequireLogin(item.screen.route, true)
+                            onRequireLogin(item.screen.route)
                         } else {
                             navController.navigate(item.screen.route) {
                                 popUpTo(Screen.Home.route) { saveState = true }// 保存状态

@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.domain.repository.AuthRepository
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 /// 登录页面 UI 状态
 data class LoginUiState(
@@ -108,7 +109,7 @@ class AuthViewModel @Inject constructor(
         loginCountdownJob = viewModelScope.launch {
             for (i in 60 downTo 1) {
                 _loginState.update { it.copy(sendCodeCountdown = i) }
-                delay(1000)
+                delay(1000.milliseconds)
             }
             _loginState.update { it.copy(sendCodeCountdown = 0) }
         }
@@ -186,7 +187,7 @@ class AuthViewModel @Inject constructor(
         registerCountdownJob = viewModelScope.launch {
             for (i in 60 downTo 1) {
                 _registerState.update { it.copy(sendCodeCountdown = i) }
-                delay(1000)
+                delay(1000.milliseconds)
             }
             _registerState.update { it.copy(sendCodeCountdown = 0) }
         }
