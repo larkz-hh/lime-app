@@ -11,6 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.AuthInterceptor
 import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Singleton
 
 /**
@@ -21,6 +22,10 @@ import javax.inject.Singleton
 object NetworkModule {
 
     private const val BASE_URL = "http://192.168.124.31:8080/"
+
+    @Provides
+    @Named("base_url")
+    fun provideBaseUrl(): String = BASE_URL
 
     @Provides
     @Singleton
