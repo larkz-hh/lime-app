@@ -1,6 +1,7 @@
 package xyz.larkzhh.lime.data.network
 
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
 import xyz.larkzhh.lime.data.network.model.ApiResponse
 import xyz.larkzhh.lime.data.network.model.LoginRequest
@@ -8,6 +9,7 @@ import xyz.larkzhh.lime.data.network.model.RefreshTokenRequest
 import xyz.larkzhh.lime.data.network.model.RegisterRequest
 import xyz.larkzhh.lime.data.network.model.SendCodeRequest
 import xyz.larkzhh.lime.data.network.model.TokenData
+import xyz.larkzhh.lime.data.network.model.UserData
 
 /**
  * 认证 API 接口
@@ -33,4 +35,8 @@ interface ApiService {
     /// 登出
     @POST("api/auth/logout")
     suspend fun logout(): ApiResponse<Unit>
+
+    /// 获取当前用户信息
+    @GET("api/user/me")
+    suspend fun getMe(): ApiResponse<UserData>
 }
