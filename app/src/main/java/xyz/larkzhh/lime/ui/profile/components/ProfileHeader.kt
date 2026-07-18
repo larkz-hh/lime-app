@@ -1,0 +1,293 @@
+package xyz.larkzhh.lime.ui.profile.components
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.data.network.model.UserData
+import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
+import xyz.larkzhh.lime.ui.theme.LimeDark
+import xyz.larkzhh.lime.ui.theme.LimeGray
+import xyz.larkzhh.lime.ui.theme.LimePrimary
+import xyz.larkzhh.lime.ui.theme.LimePrimaryLight
+import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
+
+
+@Composable
+fun ProfileHeader(uiState: ProfileUiState) {
+    val user = (uiState as? ProfileUiState.Success)?.user
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                // 背景渐变
+                brush = Brush.verticalGradient(
+                    colors = listOf(LimePrimaryLight, LimePrimaryPale)
+                )
+            )
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+
+            // 顶部工具栏 — statusBarsPadding 让内容在状态栏图标下方
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(vertical = 2.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = { /* TODO: 打开抽屉 */ }) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "菜单",
+                        tint = LimeDark,
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(
+                        onClick = { /* TODO: 编辑主页 */ },
+                        shape = RoundedCornerShape(20.dp),
+                        border = BorderStroke(1.dp, LimePrimary),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                        modifier = Modifier.height(34.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = LimePrimary),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text("编辑主页", style = MaterialTheme.typography.labelMedium)
+                    }
+                    Spacer(Modifier.width(4.dp))
+                    IconButton(onClick = { /* TODO: 扫一扫 */ }) {
+                        Icon(
+                            imageVector = Icons.Default.QrCodeScanner,
+                            contentDescription = "扫一扫",
+                            tint = LimeDark,
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            /// 头像与昵称
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AvatarSection(avatarUrl = user?.avatar)
+                Spacer(Modifier.width(16.dp))
+                UserInfoSection(user = user)
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // 关注/粉丝/获赞与收藏
+            Row(horizontalArrangement = Arrangement.Start) {
+                StatItem(count = "0", label = "关注")
+                Spacer(Modifier.width(28.dp))
+                StatItem(count = "0", label = "粉丝")
+                Spacer(Modifier.width(28.dp))
+                StatItem(count = "0", label = "获赞与收藏")
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // 个人简介
+            Text(
+                text = user?.bio?.takeIf { it.isNotBlank() } ?: "这个人是懒猪猪，还没有填写简介~",
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (user?.bio?.isNotBlank() == true) LimeDark else LimeGray,
+                maxLines = 3,
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            // 浏览记录/群聊
+            Row(modifier = Modifier.fillMaxWidth()) {
+                QuickCard(
+                    icon = Icons.Default.History,
+                    label = "浏览记录",
+                    subtitle = "看过的笔记",
+                    modifier = Modifier.weight(1f),
+                    onClick = { /* TODO */ },
+                )
+                Spacer(Modifier.width(12.dp))
+                QuickCard(
+                    icon = Icons.Default.Groups,
+                    label = "群聊",
+                    subtitle = "查看详情",
+                    modifier = Modifier.weight(1f),
+                    onClick = { /* TODO */ },
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+/// 头像区域
+@Composable
+private fun AvatarSection(avatarUrl: String?) {
+    Box(
+        modifier = Modifier
+            .size(76.dp)
+            .clip(CircleShape)
+            .background(Color(0xFFD4EAE0))
+            .clickable { /* TODO: 选择头像 */ },
+        contentAlignment = Alignment.Center,
+    ) {
+        if (avatarUrl != null) {
+            AsyncImage(
+                model = avatarUrl,
+                contentDescription = "头像",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CameraAlt,
+                    contentDescription = null,
+                    tint = LimeGray,
+                    modifier = Modifier.size(26.dp),
+                )
+                Text(
+                    text = "上传头像",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = LimeGray,
+                )
+            }
+        }
+    }
+}
+
+/// 昵称与号码
+@Composable
+private fun UserInfoSection(user: UserData?) {
+    Column {
+        Text(
+            text = user?.nickname ?: "未设置昵称",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = LimeDark,
+        )
+        // 号码
+        if (user != null) {
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = "ID: ${user.handle}",
+                style = MaterialTheme.typography.bodySmall,
+                color = LimeGray,
+            )
+        }
+    }
+}
+
+/// 数字标签
+@Composable
+private fun StatItem(count: String, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = count,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = LimeDark,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = LimeGray,
+        )
+    }
+}
+
+/// 快捷入口卡片
+@Composable
+private fun QuickCard(
+    icon: ImageVector,
+    label: String,
+    subtitle: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.7f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = LimePrimary,
+                modifier = Modifier.size(22.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Column {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = LimeDark,
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = LimeGray,
+                )
+            }
+        }
+    }
+}

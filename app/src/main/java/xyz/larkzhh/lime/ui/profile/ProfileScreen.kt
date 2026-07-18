@@ -30,6 +30,7 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,12 +43,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import xyz.larkzhh.lime.ui.theme.LimeGray
+import xyz.larkzhh.lime.ui.profile.components.ProfileHeader
+import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileViewModel
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 @Composable
 fun ProfileScreen(navController: NavHostController) {
-       Text("我")
+       val viewModel: ProfileViewModel = hiltViewModel()
+       val uiState by viewModel.uiState.collectAsState()
+
+       Column(
+              modifier = Modifier
+                     .fillMaxSize()
+                     .background(LimeLightGray)
+       ) {
+              ProfileHeader(uiState = uiState)// 头部区域
+       }
 }
