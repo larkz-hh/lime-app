@@ -21,6 +21,7 @@ import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
 import xyz.larkzhh.lime.ui.detail.DetailScreen
 import xyz.larkzhh.lime.ui.home.HomeScreen
 import xyz.larkzhh.lime.ui.message.MessageScreen
+import xyz.larkzhh.lime.ui.profile.EditProfileScreen
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
 import xyz.larkzhh.lime.ui.publish.PublishScreen
 import xyz.larkzhh.lime.ui.video.VideoScreen
@@ -104,6 +105,7 @@ fun AppNavGraph() {
             composable(Screen.Publish.route) { PublishScreen(navController) }
             composable(Screen.Message.route) { MessageScreen(navController) }
             composable(Screen.Profile.route) { ProfileScreen(navController) }
+            composable(Screen.EditProfile.route) { EditProfileScreen(navController) }
             composable(
                 route = Screen.Detail.ROUTE,
                 arguments = listOf(navArgument("noteId") { type = NavType.StringType })

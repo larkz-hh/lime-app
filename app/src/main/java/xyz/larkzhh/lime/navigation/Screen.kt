@@ -13,4 +13,5 @@ sealed class Screen(val route: String) {
         const val ROUTE = "detail/{noteId}"
         fun createRoute(noteId: String) = "detail/$noteId"
     }
+    object EditProfile : Screen("edit_profile")
 }
