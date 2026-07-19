@@ -1,14 +1,19 @@
 package xyz.larkzhh.lime.data.network
 
+import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Part
 import xyz.larkzhh.lime.data.network.model.ApiResponse
 import xyz.larkzhh.lime.data.network.model.LoginRequest
 import xyz.larkzhh.lime.data.network.model.RefreshTokenRequest
 import xyz.larkzhh.lime.data.network.model.RegisterRequest
 import xyz.larkzhh.lime.data.network.model.SendCodeRequest
 import xyz.larkzhh.lime.data.network.model.TokenData
+import xyz.larkzhh.lime.data.network.model.UpdateProfileRequest
 import xyz.larkzhh.lime.data.network.model.UserData
 
 /**
@@ -39,4 +44,18 @@ interface ApiService {
     /// 获取当前用户信息
     @GET("api/user/me")
     suspend fun getMe(): ApiResponse<UserData>
+
+    /// 修改个人资料
+    @PUT("api/user/me")
+    suspend fun updateMe(@Body request: UpdateProfileRequest): ApiResponse<UserData>
+
+    /// 上传、更换头像
+    @Multipart
+    @POST("api/user/me/avatar")
+    suspend fun uploadAvatar(@Part file: MultipartBody.Part): ApiResponse<UserData>
+
+    /// 上传、更换背景图
+    @Multipart
+    @POST("api/user/me/background")
+    suspend fun uploadBackground(@Part file: MultipartBody.Part): ApiResponse<UserData>
 }
