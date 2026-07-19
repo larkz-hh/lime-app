@@ -54,7 +54,11 @@ import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 
 
 @Composable
-fun ProfileHeader(uiState: ProfileUiState) {
+fun ProfileHeader(
+    uiState: ProfileUiState,
+    onEditProfile: () -> Unit,
+    onEditAvatar: () -> Unit,
+) {
     val user = (uiState as? ProfileUiState.Success)?.user
 
     Box(
@@ -87,7 +91,7 @@ fun ProfileHeader(uiState: ProfileUiState) {
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedButton(
-                        onClick = { /* TODO: 编辑主页 */ },
+                        onClick = onEditProfile,
                         shape = RoundedCornerShape(20.dp),
                         border = BorderStroke(1.dp, LimePrimary),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
@@ -117,7 +121,7 @@ fun ProfileHeader(uiState: ProfileUiState) {
 
             /// 头像与昵称
             Row(verticalAlignment = Alignment.CenterVertically) {
-                AvatarSection(avatarUrl = user?.avatar)
+                AvatarSection(avatarUrl = user?.avatar, onClick = onEditAvatar)
                 Spacer(Modifier.width(16.dp))
                 UserInfoSection(user = user)
             }
@@ -171,13 +175,13 @@ fun ProfileHeader(uiState: ProfileUiState) {
 
 /// 头像区域
 @Composable
-private fun AvatarSection(avatarUrl: String?) {
+private fun AvatarSection(avatarUrl: String?, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(76.dp)
             .clip(CircleShape)
             .background(Color(0xFFD4EAE0))
-            .clickable { /* TODO: 选择头像 */ },
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         if (avatarUrl != null) {
