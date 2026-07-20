@@ -30,10 +30,7 @@ interface AuthRepository {
      * @return 注册结果
      */
     suspend fun register(email: String, password: String, code: String, phone: String?): Result<Unit>
-    /**
-     * 刷新访问令牌
-     * @return 刷新结果
-     */
+    /// 刷新访问令牌
     suspend fun refreshToken(): Result<TokenData>
     /// 用户登出
     suspend fun logout()
