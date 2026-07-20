@@ -15,6 +15,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.model.UpdateProfileRequest
+import xyz.larkzhh.lime.domain.repository.UserRepository
 import javax.inject.Inject
 
 data class EditFormState(
@@ -46,6 +47,7 @@ sealed class EditProfileUiState {
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
     private val apiService: ApiService,
+    private val userRepository: UserRepository,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -56,13 +58,29 @@ class EditProfileViewModel @Inject constructor(
         loadUser()
     }
 
-    /// 加载资料
+    /// 加载资料（优先读取缓存，无缓存时走网络）
     private fun loadUser() {
+        val cached = userRepository.userFlow.value
+        if (cached != null) {
+            _uiState.value = EditProfileUiState.Ready(
+                form = EditFormState(
+                    nickname = cached.nickname,
+                    bio = cached.bio ?: "",
+                    gender = cached.gender ?: 0,
+                    birthday = cached.birthday ?: "",
+                    region = cached.region ?: "",
+                    avatarUrl = cached.avatar,
+                    backgroundUrl = cached.backgroundImage,
+                )
+            )
+            return
+        }
         viewModelScope.launch {
             _uiState.value = EditProfileUiState.Loading
             try {
                 val response = apiService.getMe()
                 if (response.code == 200 && response.data != null) {
+                    userRepository.updateUser(response.data)
                     val user = response.data
                     _uiState.value = EditProfileUiState.Ready(
                         form = EditFormState(
@@ -102,6 +120,7 @@ class EditProfileViewModel @Inject constructor(
                 val part = uriToMultipart(uri, "file")
                 val response = apiService.uploadAvatar(part)
                 if (response.code == 200 && response.data != null) {
+                    userRepository.updateUser(response.data)
                     updateForm { it.copy(avatarUrl = response.data.avatar) }
                 } else {
                     // 服务器返回非 200，回滚预览
@@ -126,6 +145,7 @@ class EditProfileViewModel @Inject constructor(
                 val part = uriToMultipart(uri, "file")
                 val response = apiService.uploadBackground(part)
                 if (response.code == 200 && response.data != null) {
+                    userRepository.updateUser(response.data)
                     updateForm { it.copy(backgroundUrl = response.data.backgroundImage) }
                 } else {
                     updateForm { it.copy(backgroundUrl = originalUrl) }
@@ -164,6 +184,8 @@ class EditProfileViewModel @Inject constructor(
                 )
                 val response = apiService.updateMe(request)
                 if (response.code == 200) {
+                    // 拉取完整数据更新缓存
+                    userRepository.refreshUser()
                     _uiState.value = state.copy(isSaving = false, done = true)
                 } else {
                     _uiState.value = state.copy(isSaving = false, error = response.message)
