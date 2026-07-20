@@ -36,6 +36,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -79,7 +81,9 @@ fun ProfileHeader(
             AsyncImage(
                 model = backgroundUrl,
                 contentDescription = null,
-                modifier = Modifier.matchParentSize(),
+                modifier = Modifier
+                    .matchParentSize()
+                    .blur(1.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded),
                 contentScale = ContentScale.Crop,
             )
             Box(
@@ -167,7 +171,8 @@ fun ProfileHeader(
             Text(
                 text = user?.bio?.takeIf { it.isNotBlank() } ?: "这个人是懒猪猪，还没有填写简介~",
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (user?.bio?.isNotBlank() == true) LimeDark else LimeGray,
+                //color = if (user?.bio?.isNotBlank() == true) LimeDark else LimeGray,
+                color = LimePrimaryPale,
                 maxLines = 3,
             )
 
@@ -244,7 +249,7 @@ private fun UserInfoSection(user: UserData?) {
             text = user?.nickname ?: "未设置昵称",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = LimeDark,
+            color = LimePrimaryPale,
         )
         // 号码
         if (user != null) {
@@ -266,7 +271,7 @@ private fun StatItem(count: String, label: String) {
             text = count,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = LimeDark,
+            color = LimePrimaryPale,
         )
         Text(
             text = label,
@@ -289,7 +294,7 @@ private fun QuickCard(
         onClick = onClick,
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.7f)),
+        colors = CardDefaults.cardColors(containerColor = Color.Gray.copy(alpha = 0.5f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
@@ -299,7 +304,7 @@ private fun QuickCard(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = LimePrimary,
+                tint = LimePrimaryPale,
                 modifier = Modifier.size(22.dp),
             )
             Spacer(Modifier.width(8.dp))
@@ -308,7 +313,7 @@ private fun QuickCard(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
-                    color = LimeDark,
+                    color = LimePrimaryPale,
                 )
                 Text(
                     text = subtitle,
