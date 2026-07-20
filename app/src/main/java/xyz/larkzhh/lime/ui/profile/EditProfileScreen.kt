@@ -140,11 +140,21 @@ fun EditProfileScreen(navController: NavHostController) {
                 },
                 actions = {
                     val ready = uiState as? EditProfileUiState.Ready
+                    // 上传时禁用保存，防止 ViewModel 被提前销毁导致上传协程取消
+                    val canSave = ready != null && !ready.isSaving && !ready.isUploading
                     TextButton(
                         onClick = { viewModel.saveProfile() },
-                        enabled = ready != null && !ready.isSaving,
+                        enabled = canSave,
                     ) {
-                        Text("保存", color = LimePrimary, fontWeight = FontWeight.Medium)
+                        if (ready?.isUploading == true) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = LimePrimary,
+                                strokeWidth = 2.dp,
+                            )
+                        } else {
+                            Text("保存", color = LimePrimary, fontWeight = FontWeight.Medium)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),

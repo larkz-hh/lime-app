@@ -33,6 +33,7 @@ sealed class EditProfileUiState {
     data class Ready(
         val form: EditFormState,
         val isSaving: Boolean = false,
+        val isUploading: Boolean = false, // 头像、背景图上中
         val error: String? = null,
         val done: Boolean = false,
         val uploadError: String? = null,
@@ -112,8 +113,11 @@ class EditProfileViewModel @Inject constructor(
     fun uploadAvatar(uri: Uri) {
         val currentState = _uiState.value as? EditProfileUiState.Ready ?: return
         val originalUrl = currentState.form.avatarUrl// 原始url
-        // 本地 URI 显示预览
-        updateForm { it.copy(avatarUrl = uri.toString()) }
+        // 本地 URI 显示预览，锁定保存按钮
+        _uiState.value = currentState.copy(
+            form = currentState.form.copy(avatarUrl = uri.toString()),
+            isUploading = true,
+        )
 
         viewModelScope.launch {
             try {
@@ -130,6 +134,11 @@ class EditProfileViewModel @Inject constructor(
             } catch (e: Exception) {
                 updateForm { it.copy(avatarUrl = originalUrl) }
                 setUploadError("头像上传失败：${e.message ?: "网络错误"}")
+            } finally {
+                // 解除保存按钮锁定
+                (_uiState.value as? EditProfileUiState.Ready)?.let {
+                    _uiState.value = it.copy(isUploading = false)
+                }
             }
         }
     }
@@ -138,7 +147,11 @@ class EditProfileViewModel @Inject constructor(
     fun uploadBackground(uri: Uri) {
         val currentState = _uiState.value as? EditProfileUiState.Ready ?: return
         val originalUrl = currentState.form.backgroundUrl
-        updateForm { it.copy(backgroundUrl = uri.toString()) }
+        // 本地 URI 显示预览，并锁定保存按钮
+        _uiState.value = currentState.copy(
+            form = currentState.form.copy(backgroundUrl = uri.toString()),
+            isUploading = true,
+        )
 
         viewModelScope.launch {
             try {
@@ -154,6 +167,10 @@ class EditProfileViewModel @Inject constructor(
             } catch (e: Exception) {
                 updateForm { it.copy(backgroundUrl = originalUrl) }
                 setUploadError("背景图上传失败：${e.message ?: "网络错误"}")
+            } finally {
+                (_uiState.value as? EditProfileUiState.Ready)?.let {
+                    _uiState.value = it.copy(isUploading = false)
+                }
             }
         }
     }
