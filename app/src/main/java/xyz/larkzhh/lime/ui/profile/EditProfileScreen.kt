@@ -1,6 +1,8 @@
 package xyz.larkzhh.lime.ui.profile
 
+import android.app.Activity
 import android.app.DatePickerDialog
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -62,13 +64,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
+import com.yalantis.ucrop.UCrop
 import xyz.larkzhh.lime.ui.profile.viewmodel.EditProfileUiState
 import xyz.larkzhh.lime.ui.profile.viewmodel.EditProfileViewModel
 import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
+import java.io.File
 import java.util.Calendar
+import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,8 +85,32 @@ fun EditProfileScreen(navController: NavHostController) {
     val avatarLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { viewModel.uploadAvatar(it) }
     }
+
+    /// 接收裁剪结果后上传
+    val bgCropLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            UCrop.getOutput(result.data!!)?.let { viewModel.uploadBackground(it) }
+        }// 提取出裁剪后保存在本地沙盒的 Uri
+    }
+
+    /// 选图后跳转裁剪页
     val bgLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let { viewModel.uploadBackground(it) }
+        if (uri != null) {
+            val dest = Uri.fromFile(File(context.cacheDir, "bg_crop_tmp.jpg"))
+            val intent = UCrop.of(uri, dest)
+                .withOptions(UCrop.Options().apply {
+                    setToolbarTitle("截取背景图")
+                    setCompressionQuality(90)
+                    setFreeStyleCropEnabled(true)// 允许自由比例裁剪
+                    setToolbarColor(0xFFFFFFFF.toInt())
+                    setStatusBarColor(0xFF1A1A1A.toInt())
+                    setActiveControlsWidgetColor(0xFF4A9B6F.toInt())
+                })
+                .getIntent(context)
+            bgCropLauncher.launch(intent)
+        }
     }
 
     var showNicknameDialog by remember { mutableStateOf(false) }

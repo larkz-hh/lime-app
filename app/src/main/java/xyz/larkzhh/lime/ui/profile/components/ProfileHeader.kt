@@ -60,17 +60,41 @@ fun ProfileHeader(
     onEditAvatar: () -> Unit,
 ) {
     val user = (uiState as? ProfileUiState.Success)?.user
+    val backgroundUrl = user?.backgroundImage
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                // 背景渐变
-                brush = Brush.verticalGradient(
-                    colors = listOf(LimePrimaryLight, LimePrimaryPale)
-                )
+            .then(
+                if (backgroundUrl == null)
+                    Modifier.background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(LimePrimaryLight, LimePrimaryPale)
+                        )
+                    )
+                else Modifier
             )
     ) {
+        if (backgroundUrl != null) {
+            AsyncImage(
+                model = backgroundUrl,
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+            )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.25f),
+                                Color.Black.copy(alpha = 0.50f),
+                            )
+                        )
+                    )
+            )
+        }
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
 
             // 顶部工具栏 — statusBarsPadding 让内容在状态栏图标下方
