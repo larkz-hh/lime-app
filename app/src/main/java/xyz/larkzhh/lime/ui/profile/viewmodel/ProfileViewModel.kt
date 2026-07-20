@@ -49,7 +49,10 @@ class ProfileViewModel @Inject constructor(
      */
     fun loadUser() {
         viewModelScope.launch {
-            _uiState.value = ProfileUiState.Loading
+            // 只有首次加载才Loading，刷新时保持原有内容静默更新
+            if (_uiState.value !is ProfileUiState.Success) {
+                _uiState.value = ProfileUiState.Loading
+            }
             try {
                 val response = apiService.getMe()
                 _uiState.value = if (response.code == 200 && response.data != null) {
