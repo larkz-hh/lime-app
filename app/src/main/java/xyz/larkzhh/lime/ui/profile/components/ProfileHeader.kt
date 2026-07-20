@@ -53,6 +53,7 @@ import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryLight
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
+import java.time.LocalDate
 
 
 @Composable
@@ -175,6 +176,26 @@ fun ProfileHeader(
                 color = LimePrimaryPale,
                 maxLines = 3,
             )
+            Spacer(Modifier.height(16.dp))
+
+            // 性别、年龄、地区标签
+            val age = user?.birthday?.let { calculateAge(it) }
+            val genderIcon: Pair<String, Color>? = when (user?.gender) {
+                1 -> "♂" to Color(0xFF5B9BD5)
+                2 -> "♀" to Color(0xFFE91E8C)
+                else -> null
+            }
+            val ageText = age?.let { "${it}岁" }
+            val showAgeGenderChip = ageText != null || genderIcon != null
+            if (showAgeGenderChip || user?.region?.isNotBlank() == true) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // 性别、年龄一个标签
+                    if (showAgeGenderChip) InfoChip(text = ageText, genderIcon = genderIcon)
+                    // 地区一个标签
+                    if (user?.region?.isNotBlank() == true) InfoChip(text = user.region)
+                }
+                Spacer(Modifier.height(12.dp))
+            }
 
             Spacer(Modifier.height(16.dp))
 
@@ -280,6 +301,46 @@ private fun StatItem(count: String, label: String) {
         )
     }
 }
+
+/// 年龄、地区标签
+@Composable
+private fun InfoChip(text: String? = null, genderIcon: Pair<String, Color>? = null) {
+    Row(
+        modifier = Modifier
+            .background(Color.Gray.copy(alpha = 0.5f), shape = RoundedCornerShape(20.dp))
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        if (genderIcon != null) {
+            Text(
+                text = genderIcon.first,
+                style = MaterialTheme.typography.labelSmall,
+                color = genderIcon.second,
+            )
+        }
+        if (text != null) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White,
+            )
+        }
+    }
+}
+
+/// 根据生日字符串计算周岁
+private fun calculateAge(birthday: String): Int? = runCatching {
+//    val parts = birthday.split("-")
+    val birth = LocalDate.parse(birthday)
+    val today = LocalDate.now()
+//    val birth = LocalDate.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+//    var age = today.year - birth.year
+//    if (today.monthValue < birth.monthValue ||
+//        (today.monthValue == birth.monthValue && today.dayOfMonth < birth.dayOfMonth)) age--
+    val age = java.time.temporal.ChronoUnit.YEARS.between(birth, today).toInt()
+    age.takeIf { it >= 0 }
+}.getOrNull()
 
 /// 快捷入口卡片
 @Composable
