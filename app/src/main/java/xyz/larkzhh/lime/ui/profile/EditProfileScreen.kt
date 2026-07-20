@@ -1,7 +1,6 @@
 package xyz.larkzhh.lime.ui.profile
 
 import android.app.Activity
-import android.app.DatePickerDialog
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -72,8 +71,7 @@ import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import java.io.File
-import java.util.Calendar
-import androidx.core.graphics.toColorInt
+import xyz.larkzhh.lime.ui.profile.components.WheelDatePicker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,6 +115,7 @@ fun EditProfileScreen(navController: NavHostController) {
     var showBioDialog by remember { mutableStateOf(false) }
     var showGenderDialog by remember { mutableStateOf(false) }
     var showRegionDialog by remember { mutableStateOf(false) }
+    var showBirthdayPicker by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -288,28 +287,7 @@ fun EditProfileScreen(navController: NavHostController) {
                             label = "生日",
                             value = form.birthday.ifBlank { "未设置" },
                             valueColor = if (form.birthday.isBlank()) LimeGray else LimeDark,
-                            onClick = {
-                                val cal = Calendar.getInstance()
-                                if (form.birthday.isNotBlank()) {
-                                    val parts = form.birthday.split("-")
-                                    if (parts.size == 3) {
-                                        runCatching {
-                                            cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
-                                        }
-                                    }
-                                }
-                                DatePickerDialog(
-                                    context,
-                                    { _, year, month, day ->
-                                        viewModel.onBirthdayChange(
-                                            "$year-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}"
-                                        )
-                                    },
-                                    cal.get(Calendar.YEAR),
-                                    cal.get(Calendar.MONTH),
-                                    cal.get(Calendar.DAY_OF_MONTH),
-                                ).show()
-                            },
+                            onClick = { showBirthdayPicker = true },
                         )
                         HorizontalDivider(modifier = Modifier.padding(start = 16.dp), color = LimeLightGray)
                         FormRow(
@@ -421,6 +399,18 @@ fun EditProfileScreen(navController: NavHostController) {
                         confirmButton = {},
                         dismissButton = {
                             TextButton(onClick = { showGenderDialog = false }) { Text("取消") }
+                        },
+                    )
+                }
+
+                // 生日滚轮选择器
+                if (showBirthdayPicker) {
+                    WheelDatePicker(
+                        initialDate = form.birthday,
+                        onDismiss = { showBirthdayPicker = false },
+                        onConfirm = { date: String ->
+                            viewModel.onBirthdayChange(date)
+                            showBirthdayPicker = false
                         },
                     )
                 }
