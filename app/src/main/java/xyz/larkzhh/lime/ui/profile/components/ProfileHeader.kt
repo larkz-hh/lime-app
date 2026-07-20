@@ -1,12 +1,10 @@
 package xyz.larkzhh.lime.ui.profile.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,13 +23,11 @@ import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -115,32 +111,32 @@ fun ProfileHeader(
                     Icon(
                         imageVector = Icons.Default.Menu,
                         contentDescription = "菜单",
-                        tint = LimeDark,
+                        tint = LimePrimaryPale,
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedButton(
-                        onClick = onEditProfile,
-                        shape = RoundedCornerShape(20.dp),
-                        border = BorderStroke(1.dp, LimePrimary),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                        modifier = Modifier.height(34.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = LimePrimary),
+                    Row(
+                        modifier = Modifier
+                            .background(Color.Gray.copy(alpha = 0.5f), shape = RoundedCornerShape(20.dp))
+                            .clickable(onClick = onEditProfile)
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = null,
+                            tint = LimePrimaryPale,
                             modifier = Modifier.size(14.dp),
                         )
-                        Spacer(Modifier.width(4.dp))
-                        Text("编辑主页", style = MaterialTheme.typography.labelMedium)
+                        Text("编辑主页", style = MaterialTheme.typography.labelMedium, color = LimePrimaryPale)
                     }
                     Spacer(Modifier.width(4.dp))
                     IconButton(onClick = { /* TODO: 扫一扫 */ }) {
                         Icon(
                             imageVector = Icons.Default.QrCodeScanner,
                             contentDescription = "扫一扫",
-                            tint = LimeDark,
+                            tint = LimePrimaryPale,
                         )
                     }
                 }
