@@ -151,5 +151,12 @@ class PublishViewModel @Inject constructor(
         }
     }
 
+    /// 重排图片顺序
+    fun reorderImages(fromIndex: Int, toIndex: Int) {
+        val list = _publishState.value.selectedUris.toMutableList()
+        list.add(toIndex, list.removeAt(fromIndex))
+        _publishState.update { it.copy(selectedUris = list) }
+    }
+
     fun clearSuccess() = _publishState.update { it.copy(isSuccess = false) }
 }
