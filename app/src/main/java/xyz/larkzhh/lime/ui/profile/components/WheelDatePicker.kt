@@ -43,6 +43,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import kotlin.math.abs
 import xyz.larkzhh.lime.ui.theme.LimePrimary
+import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 private val ITEM_H = 52.dp  // 每个选项项的高度
 private const val VISIBLE = 7 // 可见行数（奇数）
@@ -89,7 +90,7 @@ fun WheelDatePicker(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = Color(0xFFF2F2F2),
+        containerColor = LimeWhite,
     ) {
         Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 32.dp)) {
 

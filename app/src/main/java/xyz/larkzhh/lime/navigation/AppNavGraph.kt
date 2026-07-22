@@ -32,6 +32,8 @@ import xyz.larkzhh.lime.ui.profile.ProfileScreen
 import xyz.larkzhh.lime.ui.publish.PhotoPickerScreen
 import xyz.larkzhh.lime.ui.publish.PublishScreen
 import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
+import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
+import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.ui.video.VideoScreen
 
 
@@ -156,6 +158,7 @@ fun AppNavGraph() {
         ModalBottomSheet(
             onDismissRequest = { showPublishSheet = false },
             sheetState = sheetState,
+            containerColor = LimeWhite
         ) {
             PublishBottomSheet(
                 onAlbum = {

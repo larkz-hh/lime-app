@@ -117,7 +117,7 @@ fun PublishScreen(
                             modifier = Modifier
                                 .size(90.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f))
                                 .clickable {
                                     viewModel.addMore()// 同步当前已选
                                     navController.popBackStack()// 返回
@@ -127,15 +127,15 @@ fun PublishScreen(
                             Icon(
                                 Icons.Filled.Add,
                                 contentDescription = "添加图片",
-                                modifier = Modifier.size(32.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.24f),
                             )
                         }
                     }
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            //HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             // 标题输入
             OutlinedTextField(
@@ -145,7 +145,7 @@ fun PublishScreen(
                     Text(
                         "添加标题",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.32f),
                     )
                 },
                 modifier = Modifier
@@ -159,7 +159,7 @@ fun PublishScreen(
                 ),
             )
 
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            //HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             // 正文输入
             OutlinedTextField(
@@ -168,7 +168,7 @@ fun PublishScreen(
                 placeholder = {
                     Text(
                         "添加正文",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.24f),
                     )
                 },
                 modifier = Modifier
