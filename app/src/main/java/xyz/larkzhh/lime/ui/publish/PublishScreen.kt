@@ -9,11 +9,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,18 +31,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -57,6 +63,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -69,6 +76,7 @@ import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PublishScreen(
     navController: NavHostController,
@@ -92,7 +100,16 @@ fun PublishScreen(
     LaunchedEffect(publishState.isDraftSuccess) {
         if (publishState.isDraftSuccess) {
             viewModel.clearDraftSuccess()
-            Toasty.normal(context, "存草稿成功", Toast.LENGTH_SHORT).show()
+            Toasty.custom(
+                context,
+                "存草稿成功",
+                null,
+                android.graphics.Color.BLACK,
+                android.graphics.Color.WHITE,
+                Toast.LENGTH_SHORT,
+                false,
+                true,
+            ).show()
             navController.navigate(Screen.Home.route) {
                 popUpTo(Screen.Home.route) { inclusive = false }
             }
@@ -101,28 +118,51 @@ fun PublishScreen(
 
     // 存草稿确认弹窗
     if (showDraftDialog) {
-        AlertDialog(
-            onDismissRequest = { showDraftDialog = false },
-            title = {
-                Text(
-                    text = "确认保存笔记至草稿箱吗？",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    showDraftDialog = false
-                    viewModel.saveDraft()
-                }) {
-                    Text("确定", color = LimePrimary, fontWeight = FontWeight.SemiBold)
+        BasicAlertDialog(onDismissRequest = { showDraftDialog = false }) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.widthIn(max = 260.dp),
+            ) {
+                Column {
+                    Text(
+                        text = "确认保存笔记至草稿箱吗？",
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 20.dp),
+                    )
+                    HorizontalDivider()
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
+                    ) {
+                        TextButton(
+                            onClick = { showDraftDialog = false },
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        ) {
+                            Text("取消", color = MaterialTheme.colorScheme.onSurface)
+                        }
+                        VerticalDivider()
+                        TextButton(
+                            onClick = {
+                                showDraftDialog = false
+                                viewModel.saveDraft()
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        ) {
+                            Text("确定", color = LimePrimary, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDraftDialog = false }) {
-                    Text("取消")
-                }
-            },
-        )
+            }
+        }
     }
 
     Column(
