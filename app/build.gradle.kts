@@ -111,6 +111,12 @@ dependencies {
     // Image Crop
     implementation(libs.ucrop)
 
+    // Drag-and-drop reorder
+    implementation(libs.reorderable)
+
+    // Toast
+    implementation(libs.toasty)
+
     // Splash Screen
     implementation(libs.androidx.core.splashscreen)
 

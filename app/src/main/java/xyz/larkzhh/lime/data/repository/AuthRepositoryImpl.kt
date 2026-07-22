@@ -29,7 +29,7 @@ class AuthRepositoryImpl @Inject constructor(
      */
     override suspend fun sendCode(email: String): Result<Unit> = runCatching {
         val response = apiService.sendCode(SendCodeRequest(email))
-        if (response.code != 200) throw Exception(response.message)
+        check(response.code == 200) { response.message }
     }
 
     /**
@@ -42,12 +42,9 @@ class AuthRepositoryImpl @Inject constructor(
      */
     override suspend fun login(email: String, password: String?, code: String?): Result<TokenData> = runCatching {
         val response = apiService.login(LoginRequest(email = email, password = password, code = code))
-        if (response.code == 200 && response.data != null) {
-            tokenStorage.saveTokens(response.data.accessToken, response.data.refreshToken, response.data.expiresIn)
-            response.data
-        } else {
-            throw Exception(response.message)
-        }
+        check(response.code == 200 && response.data != null) { response.message }
+        tokenStorage.saveTokens(response.data.accessToken, response.data.refreshToken, response.data.expiresIn)
+        response.data
     }
 
     /**
@@ -66,7 +63,7 @@ class AuthRepositoryImpl @Inject constructor(
         phone: String?,
     ): Result<Unit> = runCatching {
         val response = apiService.register(RegisterRequest(email = email, password = password, code = code, phone = phone))
-        if (response.code != 200) throw Exception(response.message)
+        check(response.code == 200) { response.message }
     }
 
     /**
@@ -74,16 +71,15 @@ class AuthRepositoryImpl @Inject constructor(
      * @return 刷新结果
      */
     override suspend fun refreshToken(): Result<TokenData> = runCatching {
-        val refreshToken = tokenStorage.refreshToken ?: throw Exception("未登录")
+        val refreshToken = tokenStorage.refreshToken ?: error("未登录")
         val response = apiService.refreshToken(RefreshTokenRequest(refreshToken))
-        if (response.code == 200 && response.data != null) {
-            // 刷新成功后，用新的 Token 覆盖本地旧凭证
-            tokenStorage.saveTokens(response.data.accessToken, response.data.refreshToken, response.data.expiresIn)
-            response.data // 返回新的 Token 数据
-        } else {
+        if (response.code != 200 || response.data == null) {
             tokenStorage.clearTokens()
-            throw Exception(response.message)
+            error(response.message)  // 刷新失败需要先清除本地 Token 再抛出
         }
+        // 刷新成功后，用新的 Token 覆盖本地旧凭证
+        tokenStorage.saveTokens(response.data.accessToken, response.data.refreshToken, response.data.expiresIn)
+        response.data // 返回新的 Token 数据
     }
 
     /**

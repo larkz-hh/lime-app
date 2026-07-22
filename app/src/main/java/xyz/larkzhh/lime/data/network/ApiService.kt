@@ -9,15 +9,18 @@ import retrofit2.http.PUT
 import retrofit2.http.Part
 import xyz.larkzhh.lime.data.network.model.ApiResponse
 import xyz.larkzhh.lime.data.network.model.LoginRequest
+import xyz.larkzhh.lime.data.network.model.NoteData
+import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
 import xyz.larkzhh.lime.data.network.model.RefreshTokenRequest
 import xyz.larkzhh.lime.data.network.model.RegisterRequest
 import xyz.larkzhh.lime.data.network.model.SendCodeRequest
 import xyz.larkzhh.lime.data.network.model.TokenData
 import xyz.larkzhh.lime.data.network.model.UpdateProfileRequest
+import xyz.larkzhh.lime.data.network.model.UploadNoteImageResponse
 import xyz.larkzhh.lime.data.network.model.UserData
 
 /**
- * 认证 API 接口
+ * API 接口
  */
 interface ApiService {
 
@@ -58,4 +61,13 @@ interface ApiService {
     @Multipart
     @POST("api/user/me/background")
     suspend fun uploadBackground(@Part file: MultipartBody.Part): ApiResponse<UserData>
+
+    /// 上传笔记图片
+    @Multipart
+    @POST("api/notes/images")
+    suspend fun uploadNoteImage(@Part file: MultipartBody.Part): ApiResponse<UploadNoteImageResponse>
+
+    /// 发布图文笔记
+    @POST("api/notes")
+    suspend fun publishNote(@Body request: PublishNoteRequest): ApiResponse<NoteData>
 }

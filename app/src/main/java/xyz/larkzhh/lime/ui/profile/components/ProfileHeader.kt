@@ -49,6 +49,7 @@ import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryLight
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
+import xyz.larkzhh.lime.ui.theme.LimeWhite
 import java.time.LocalDate
 
 
@@ -111,7 +112,7 @@ fun ProfileHeader(
                     Icon(
                         imageVector = Icons.Default.Menu,
                         contentDescription = "菜单",
-                        tint = LimePrimaryPale,
+                        tint = LimeWhite,
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -126,7 +127,7 @@ fun ProfileHeader(
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = null,
-                            tint = LimePrimaryPale,
+                            tint = LimeWhite ,
                             modifier = Modifier.size(14.dp),
                         )
                         Text("编辑主页", style = MaterialTheme.typography.labelMedium, color = LimePrimaryPale)
@@ -136,7 +137,7 @@ fun ProfileHeader(
                         Icon(
                             imageVector = Icons.Default.QrCodeScanner,
                             contentDescription = "扫一扫",
-                            tint = LimePrimaryPale,
+                            tint = LimeWhite,
                         )
                     }
                 }
@@ -169,7 +170,7 @@ fun ProfileHeader(
                 text = user?.bio?.takeIf { it.isNotBlank() } ?: "这个人是懒猪猪，还没有填写简介~",
                 style = MaterialTheme.typography.bodyMedium,
                 //color = if (user?.bio?.isNotBlank() == true) LimeDark else LimeGray,
-                color = LimePrimaryPale,
+                color = LimeWhite,
                 maxLines = 3,
             )
             Spacer(Modifier.height(16.dp))
@@ -266,7 +267,7 @@ private fun UserInfoSection(user: UserData?) {
             text = user?.nickname ?: "未设置昵称",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = LimePrimaryPale,
+            color = LimeWhite,
         )
         // 号码
         if (user != null) {
@@ -288,7 +289,7 @@ private fun StatItem(count: String, label: String) {
             text = count,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = LimePrimaryPale,
+            color = LimeWhite,
         )
         Text(
             text = label,
@@ -361,7 +362,7 @@ private fun QuickCard(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = LimePrimaryPale,
+                tint = LimeWhite,
                 modifier = Modifier.size(22.dp),
             )
             Spacer(Modifier.width(8.dp))
@@ -370,7 +371,7 @@ private fun QuickCard(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
-                    color = LimePrimaryPale,
+                    color = LimeWhite,
                 )
                 Text(
                     text = subtitle,
