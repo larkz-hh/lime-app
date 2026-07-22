@@ -104,7 +104,7 @@ class PublishViewModel @Inject constructor(
     }
 
     /// 从发布页返回选择器追加图片时，先把当前已选图片同步回选择器
-    fun preparePickerForAddMore() {
+    fun addMore() {
         _pickerState.update { it.copy(selectedUris = _publishState.value.selectedUris) }
     }
 
