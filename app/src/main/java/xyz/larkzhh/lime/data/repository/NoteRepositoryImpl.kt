@@ -42,6 +42,7 @@ class NoteRepositoryImpl @Inject constructor(
         title: String?,
         content: String?,
         imageUrls: List<String>,
+        status: Int,
     ): Result<Unit> = runCatching {
         val images = imageUrls.mapIndexed { index, url ->
             NoteImageRequest(url = url, sortOrder = index)
@@ -50,6 +51,7 @@ class NoteRepositoryImpl @Inject constructor(
             title = title?.ifBlank { null },
             content = content?.ifBlank { null },
             images = images,
+            status = status,
         )
         val response = apiService.publishNote(request)
         check(response.code == 200) { response.message }

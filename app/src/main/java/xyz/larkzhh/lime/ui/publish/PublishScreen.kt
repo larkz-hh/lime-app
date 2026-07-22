@@ -1,7 +1,9 @@
 package xyz.larkzhh.lime.ui.publish
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,10 +39,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,17 +54,20 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
+import es.dmoral.toasty.Toasty
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
 import xyz.larkzhh.lime.ui.theme.LimePrimary
+import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 @Composable
 fun PublishScreen(
@@ -65,6 +75,8 @@ fun PublishScreen(
     viewModel: PublishViewModel,
 ) {
     val publishState by viewModel.publishState.collectAsState()
+    val context = LocalContext.current
+    var showDraftDialog by remember { mutableStateOf(false) }
 
     // 发布成功后返回首页
     LaunchedEffect(publishState.isSuccess) {
@@ -74,6 +86,43 @@ fun PublishScreen(
                 popUpTo(Screen.Home.route) { inclusive = false }
             }
         }
+    }
+
+    // 存草稿成功后显示 Toast 并返回首页
+    LaunchedEffect(publishState.isDraftSuccess) {
+        if (publishState.isDraftSuccess) {
+            viewModel.clearDraftSuccess()
+            Toasty.normal(context, "存草稿成功", Toast.LENGTH_SHORT).show()
+            navController.navigate(Screen.Home.route) {
+                popUpTo(Screen.Home.route) { inclusive = false }
+            }
+        }
+    }
+
+    // 存草稿确认弹窗
+    if (showDraftDialog) {
+        AlertDialog(
+            onDismissRequest = { showDraftDialog = false },
+            title = {
+                Text(
+                    text = "确认保存笔记至草稿箱吗？",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDraftDialog = false
+                    viewModel.saveDraft()
+                }) {
+                    Text("确定", color = LimePrimary, fontWeight = FontWeight.SemiBold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDraftDialog = false }) {
+                    Text("取消")
+                }
+            },
+        )
     }
 
     Column(
@@ -231,24 +280,46 @@ fun PublishScreen(
             }
         }
 
-        // 发布按钮
-        Button(
-            onClick = { viewModel.publish() },
-            enabled = !publishState.isPublishing,
+        // 底部栏
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
-            shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = LimePrimary),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (publishState.isPublishing) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp,
-                    color = Color.White,
-                )
-            } else {
-                Text("发布笔记", fontWeight = FontWeight.SemiBold)
+            // 存草稿
+            Button(
+                onClick = { showDraftDialog = true },
+                enabled = !publishState.isPublishing,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = LimeWhite,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    disabledContainerColor = Color.White.copy(alpha = 0.6f),
+                    disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+            ) {
+                Text("存草稿", fontWeight = FontWeight.SemiBold)
+            }
+            // 发布笔记
+            Button(
+                onClick = { viewModel.publish() },
+                enabled = !publishState.isPublishing,
+                modifier = Modifier.weight(2f),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = LimePrimary),
+            ) {
+                if (publishState.isPublishing) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White,
+                    )
+                } else {
+                    Text("发布笔记", fontWeight = FontWeight.SemiBold)
+                }
             }
         }
         Spacer(Modifier.height(8.dp))

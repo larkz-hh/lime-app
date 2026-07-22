@@ -13,6 +13,7 @@ data class PublishNoteRequest(
     val title: String?,
     val content: String?,
     val images: List<NoteImageRequest>,
+    val status: Int = 1,  // 0=草稿，1=已发布
 )
 
 data class NoteImageData(

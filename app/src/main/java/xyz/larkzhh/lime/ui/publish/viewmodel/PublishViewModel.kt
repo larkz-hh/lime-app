@@ -36,11 +36,12 @@ data class PublishUiState(
     val publishProgress: Int = 0,  // 已上传图片数
     val error: String? = null,
     val isSuccess: Boolean = false,
+    val isDraftSuccess: Boolean = false,
 )
 
 /**
  * 发布页与编辑页共享的 ViewModel。
- * 负责负责管理相册选择状态、图片列表查询以及笔记发布逻辑。
+ * 负责负责管理相册选择状态、图片列表查询以及笔记发布、存草稿逻辑。
  */
 @HiltViewModel
 class PublishViewModel @Inject constructor(
@@ -63,7 +64,7 @@ class PublishViewModel @Inject constructor(
         }
     }
 
-    ///
+    /// 查询设备本地存储中的图片文件
     private suspend fun queryImages(): List<LocalImage> = withContext(Dispatchers.IO) {
         val result = mutableListOf<LocalImage>()
         val projection = arrayOf(MediaStore.Images.Media._ID)
@@ -117,8 +118,8 @@ class PublishViewModel @Inject constructor(
     fun onTitleChange(value: String) = _publishState.update { it.copy(title = value) }
     fun onContentChange(value: String) = _publishState.update { it.copy(content = value) }
 
-    /// 发布笔记
-    fun publish() {
+    /// 提交笔记，status为 1=发布，0=草稿
+    private fun submitNote(status: Int) {
         val state = _publishState.value
         if (state.selectedUris.isEmpty()) {
             _publishState.update { it.copy(error = "请至少添加一张图片") }
@@ -141,15 +142,30 @@ class PublishViewModel @Inject constructor(
                     title = state.title.ifBlank { null },
                     content = state.content.ifBlank { null },
                     imageUrls = uploadedUrls,
+                    status = status,
                 ).getOrThrow()
-                _publishState.update { it.copy(isPublishing = false, isSuccess = true) }
-            } catch (e: Exception) {
+                val isDraft = status == 0
                 _publishState.update {
-                    it.copy(isPublishing = false, error = e.message ?: "发布失败，请重试")
+                    it.copy(
+                        isPublishing = false,
+                        isSuccess = !isDraft,
+                        isDraftSuccess = isDraft,
+                    )
+                }
+            } catch (e: Exception) {
+                val errorMsg = if (status == 0) "存草稿失败，请重试" else "发布失败，请重试"
+                _publishState.update {
+                    it.copy(isPublishing = false, error = e.message ?: errorMsg)
                 }
             }
         }
     }
+
+    /// 发布笔记
+    fun publish() = submitNote(1)
+
+    /// 存草稿
+    fun saveDraft() = submitNote(0)
 
     /// 重排图片顺序
     fun reorderImages(fromIndex: Int, toIndex: Int) {
@@ -159,4 +175,5 @@ class PublishViewModel @Inject constructor(
     }
 
     fun clearSuccess() = _publishState.update { it.copy(isSuccess = false) }
+    fun clearDraftSuccess() = _publishState.update { it.copy(isDraftSuccess = false) }
 }
