@@ -29,6 +29,7 @@ accompanist = "0.37.3"
 workManager = "2.10.1"
 ucrop = "2.2.9"
 splashscreen = "1.0.1"
+reorderable = "3.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -107,6 +108,9 @@ ucrop = { group = "com.github.yalantis", name = "ucrop", version.ref = "ucrop" }
 
 # Splash Screen
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
+
+# reorderable
+reorderable = { group = "sh.calvin.reorderable", name = "reorderable", version.ref = "reorderable" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agpUser" }
