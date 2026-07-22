@@ -1,14 +1,14 @@
 package xyz.larkzhh.lime.ui.publish
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun PublishScreen(
+fun PhotoPickerScreen(
     navController: NavHostController,
     viewModel: PublishViewModel,
 ) {
-    Text("发布")
 }
