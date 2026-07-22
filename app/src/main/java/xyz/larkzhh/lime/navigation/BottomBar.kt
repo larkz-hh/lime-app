@@ -47,6 +47,7 @@ fun BottomNavBar(
     currentRoute: String?,
     isLoggedIn: Boolean,
     onRequireLogin: (String) -> Unit,
+    onPublishClick: () -> Unit,
 ) {
     val items = listOf(
         BottomNavItem.Home,
@@ -65,9 +66,11 @@ fun BottomNavBar(
                     selected = false,
                     onClick = {
                         if (!isLoggedIn) {
+                            // 未登录：记录目标路由，跳转到登录页
                             onRequireLogin(Screen.Publish.route)
                         } else {
-                            navController.navigate(Screen.Publish.route)
+                            // 已登录，显示底部选择弹窗
+                            onPublishClick()
                         }
                     },
                     icon = {

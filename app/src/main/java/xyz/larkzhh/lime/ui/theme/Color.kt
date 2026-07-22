@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 val LimePrimary = Color(0xFF4A9B6F)
 val LimePrimaryLight = Color(0xFF6DB890)
 val LimePrimaryPale = Color(0xFFE8F5EE)
+val LimeWhite = Color(0xFFFFFFFF)
 val LimeGray = Color(0xFFA6A6A6)
 val LimeLightGray = Color(0xFFF5F5F5)
 val LimeDark = Color(0xFF1A1A1A)
