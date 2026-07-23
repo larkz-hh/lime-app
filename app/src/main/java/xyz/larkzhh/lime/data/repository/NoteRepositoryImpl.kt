@@ -7,6 +7,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.NoteImageRequest
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
 import xyz.larkzhh.lime.domain.repository.NoteRepository
@@ -35,6 +36,13 @@ class NoteRepositoryImpl @Inject constructor(
         val response = apiService.uploadNoteImage(part)
         check(response.code == 200 && response.data != null) { response.message }
         response.data.url
+    }
+
+    /// 获取信息流
+    override suspend fun getFeed(cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
+        val response = apiService.getFeed(cursor = cursor, size = size)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
     }
 
     /// 发布笔记
