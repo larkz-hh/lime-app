@@ -24,6 +24,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,6 +45,7 @@ import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
+import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
@@ -160,11 +164,13 @@ private fun DiscoverTab(navController: NavHostController) {
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             uiState.isLoading -> {
+                // 首次加载
                 CircularProgressIndicator(
                     modifier = Modifier
                         .size(32.dp)
                         .align(Alignment.Center),
                     color = LimePrimary,
+                    trackColor = LimeWhite,
                     strokeWidth = 2.dp,
                 )
             }
@@ -176,19 +182,37 @@ private fun DiscoverTab(navController: NavHostController) {
                 )
             }
             else -> {
-                WaterfallFeed(
-                    isLoadingMore = uiState.isLoadingMore,
-                    onLoadMore = viewModel::loadMore,
-                ) {
-                    items(uiState.items, key = { it.id }) { item ->
-                        NoteCard(
-                            item = item,
-                            onClick = {
-                                navController.navigate(
-                                    Screen.Detail.createRoute(item.id.toString())
-                                )
-                            },
+                // 下拉刷新
+                val refreshState = rememberPullToRefreshState()
+                PullToRefreshBox(
+                    isRefreshing = uiState.isRefreshing,
+                    onRefresh = viewModel::refresh,
+                    state = refreshState,
+                    modifier = Modifier.fillMaxSize(),
+                    indicator = {
+                        PullToRefreshDefaults.Indicator(
+                            state = refreshState,
+                            isRefreshing = uiState.isRefreshing,
+                            containerColor = LimeWhite,
+                            color = LimePrimary,
+                            modifier = Modifier.align(Alignment.TopCenter),
                         )
+                    },
+                ) {
+                    WaterfallFeed(
+                        isLoadingMore = uiState.isLoadingMore,
+                        onLoadMore = viewModel::loadMore,
+                    ) {
+                        items(uiState.items, key = { it.id }) { item ->
+                            NoteCard(
+                                item = item,
+                                onClick = {
+                                    navController.navigate(
+                                        Screen.Detail.createRoute(item.id.toString())
+                                    )
+                                },
+                            )
+                        }
                     }
                 }
             }

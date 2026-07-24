@@ -14,7 +14,8 @@ import javax.inject.Inject
 
 data class FeedUiState(
     val items: List<FeedItem> = emptyList(),
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = false,       // 首次加载（全屏 spinner）
+    val isRefreshing: Boolean = false,    // 下拉刷新（顶部 indicator，不清空列表）
     val isLoadingMore: Boolean = false,
     val hasMore: Boolean = true,
     val error: String? = null,
@@ -55,6 +56,31 @@ class FeedViewModel @Inject constructor(
                 },
                 onFailure = { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
+                },
+            )
+        }
+    }
+
+    /// 下拉刷新，重新加载，不清空列表
+    fun refresh() {
+        val state = _uiState.value
+        if (state.isRefreshing || state.isLoading) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
+            cursor = null
+            noteRepository.getFeed(cursor = null).fold(
+                onSuccess = { response ->
+                    cursor = response.nextCursor
+                    _uiState.update {
+                        it.copy(
+                            isRefreshing = false,
+                            items = response.items,
+                            hasMore = response.hasMore,
+                        )
+                    }
+                },
+                onFailure = { e ->
+                    _uiState.update { it.copy(isRefreshing = false, error = e.message) }
                 },
             )
         }
