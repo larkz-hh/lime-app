@@ -14,8 +14,9 @@ import javax.inject.Inject
 
 data class FeedUiState(
     val items: List<FeedItem> = emptyList(),
-    val isLoading: Boolean = false,       // 首次加载（全屏 spinner）
-    val isRefreshing: Boolean = false,    // 下拉刷新（顶部 indicator，不清空列表）
+    val likedIds: Set<Long> = emptySet(),
+    val isLoading: Boolean = false,// 首次加载
+    val isRefreshing: Boolean = false,// 下拉刷新
     val isLoadingMore: Boolean = false,
     val hasMore: Boolean = true,
     val error: String? = null,
@@ -83,6 +84,32 @@ class FeedViewModel @Inject constructor(
                     _uiState.update { it.copy(isRefreshing = false, error = e.message) }
                 },
             )
+        }
+    }
+
+    fun toggleLike(noteId: Long) {
+        val liked = noteId in _uiState.value.likedIds
+        val delta = if (liked) -1 else 1
+        _uiState.update {
+            it.copy(
+                likedIds = if (liked) it.likedIds - noteId else it.likedIds + noteId,
+                items = it.items.map { item ->
+                    if (item.id == noteId) item.copy(likeCount = item.likeCount + delta) else item
+                },
+            )
+        }
+        viewModelScope.launch {
+            val result = if (liked) noteRepository.unlikeNote(noteId) else noteRepository.likeNote(noteId)
+            result.onFailure {
+                _uiState.update {
+                    it.copy(
+                        likedIds = if (liked) it.likedIds + noteId else it.likedIds - noteId,
+                        items = it.items.map { item ->
+                            if (item.id == noteId) item.copy(likeCount = item.likeCount - delta) else item
+                        },
+                    )
+                }
+            }
         }
     }
 

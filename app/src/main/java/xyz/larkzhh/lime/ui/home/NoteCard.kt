@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,6 +43,8 @@ import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 @Composable
 fun NoteCard(
     item: FeedItem,
+    liked: Boolean,
+    onLikeToggle: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -137,10 +142,12 @@ fun NoteCard(
                         modifier = Modifier.weight(1f),
                     )
                     Icon(
-                        imageVector = Icons.Filled.FavoriteBorder,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                        tint = LimeGray,
+                        imageVector = if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = if (liked) "取消点赞" else "点赞",
+                        modifier = Modifier
+                            .size(12.dp)
+                            .clickable(onClick = onLikeToggle),
+                        tint = if (liked) Color.Red else LimeGray,
                     )
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
