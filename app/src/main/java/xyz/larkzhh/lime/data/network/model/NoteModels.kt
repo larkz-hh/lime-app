@@ -32,3 +32,23 @@ data class NoteData(
     val createTime: String,
     val updateTime: String,
 )
+
+data class FeedAuthor(
+    val id: Long,
+    val nickname: String,
+    val avatar: String?,
+)
+
+data class FeedItem(
+    val id: Long,
+    val title: String?,
+    val coverImage: String?,
+    val likeCount: Int,
+    val author: FeedAuthor,// 作者详情
+)
+
+data class FeedResponse(
+    val items: List<FeedItem>,
+    val nextCursor: Long?,
+    val hasMore: Boolean,
+)
