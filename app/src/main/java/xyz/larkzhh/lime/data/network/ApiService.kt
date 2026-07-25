@@ -7,7 +7,9 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
+import retrofit2.http.Query
 import xyz.larkzhh.lime.data.network.model.ApiResponse
+import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.LoginRequest
 import xyz.larkzhh.lime.data.network.model.NoteData
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
@@ -70,4 +72,11 @@ interface ApiService {
     /// 发布图文笔记
     @POST("api/notes")
     suspend fun publishNote(@Body request: PublishNoteRequest): ApiResponse<NoteData>
+
+    /// 获取信息流
+    @GET("api/notes/feed")
+    suspend fun getFeed(
+        @Query("cursor") cursor: Long?,
+        @Query("size") size: Int,
+    ): ApiResponse<FeedResponse>
 }
