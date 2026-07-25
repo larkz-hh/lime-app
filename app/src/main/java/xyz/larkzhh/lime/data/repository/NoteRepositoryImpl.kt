@@ -45,6 +45,18 @@ class NoteRepositoryImpl @Inject constructor(
         response.data
     }
 
+    /// 点赞笔记
+    override suspend fun likeNote(id: Long): Result<Unit> = runCatching {
+        val response = apiService.likeNote(id)
+        check(response.code == 200) { response.message }
+    }
+
+    /// 取消点赞笔记
+    override suspend fun unlikeNote(id: Long): Result<Unit> = runCatching {
+        val response = apiService.unlikeNote(id)
+        check(response.code == 200) { response.message }
+    }
+
     /// 发布笔记
     override suspend fun publishNote(
         title: String?,

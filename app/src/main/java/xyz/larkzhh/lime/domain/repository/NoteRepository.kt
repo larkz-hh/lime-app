@@ -13,4 +13,8 @@ interface NoteRepository {
     suspend fun publishNote(title: String?, content: String?, imageUrls: List<String>, status: Int = 1): Result<Unit>
     /// 获取信息流，cursor 为空时从最新开始
     suspend fun getFeed(cursor: Long?, size: Int = 10): Result<FeedResponse>
+    /// 点赞笔记
+    suspend fun likeNote(id: Long): Result<Unit>
+    /// 取消点赞笔记
+    suspend fun unlikeNote(id: Long): Result<Unit>
 }

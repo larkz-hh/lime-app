@@ -2,11 +2,13 @@ package xyz.larkzhh.lime.data.network
 
 import okhttp3.MultipartBody
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
+import retrofit2.http.Path
 import retrofit2.http.Query
 import xyz.larkzhh.lime.data.network.model.ApiResponse
 import xyz.larkzhh.lime.data.network.model.FeedResponse
@@ -72,6 +74,14 @@ interface ApiService {
     /// 发布图文笔记
     @POST("api/notes")
     suspend fun publishNote(@Body request: PublishNoteRequest): ApiResponse<NoteData>
+
+    /// 点赞笔记
+    @POST("api/notes/{id}/like")
+    suspend fun likeNote(@Path("id") id: Long): ApiResponse<Unit>
+
+    /// 取消点赞笔记
+    @DELETE("api/notes/{id}/like")
+    suspend fun unlikeNote(@Path("id") id: Long): ApiResponse<Unit>
 
     /// 获取信息流
     @GET("api/notes/feed")
