@@ -88,6 +88,14 @@ interface ApiService {
     @GET("api/notes/{id}")
     suspend fun getNoteDetail(@Path("id") id: Long): ApiResponse<NoteDetailData>
 
+    /// 收藏笔记
+    @POST("api/notes/{id}/favorite")
+    suspend fun favoriteNote(@Path("id") id: Long): ApiResponse<Unit>
+
+    /// 取消收藏笔记
+    @DELETE("api/notes/{id}/favorite")
+    suspend fun unfavoriteNote(@Path("id") id: Long): ApiResponse<Unit>
+
     /// 获取信息流
     @GET("api/notes/feed")
     suspend fun getFeed(

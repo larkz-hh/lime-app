@@ -20,4 +20,8 @@ interface NoteRepository {
     suspend fun likeNote(id: Long): Result<Unit>
     /// 取消点赞笔记
     suspend fun unlikeNote(id: Long): Result<Unit>
+    /// 收藏笔记
+    suspend fun favoriteNote(id: Long): Result<Unit>
+    /// 取消收藏笔记
+    suspend fun unfavoriteNote(id: Long): Result<Unit>
 }

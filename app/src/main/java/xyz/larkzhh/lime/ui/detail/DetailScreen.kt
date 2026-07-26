@@ -88,6 +88,8 @@ fun DetailScreen(
                 )
                 NoteBottomBar(
                     note = uiState.note!!,
+                    onToggleLike = viewModel::toggleLike,
+                    onToggleFavorite = viewModel::toggleFavorite,
                 )
             }
         }
@@ -137,7 +139,7 @@ private fun NoteContent(
         // 更新时间
         item {
             Text(
-                text = formatNoteTime(note.updateTime),
+                text = formatNoteTime(note.updateTime.orEmpty()),
                 color = LimeGray,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(start = 16.dp, top = 10.dp, bottom = 16.dp),

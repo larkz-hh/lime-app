@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 
 data class DetailUiState(
-    val    note: NoteDetailData? = null,
+    val note: NoteDetailData? = null,
     val isLoading: Boolean = true,
     val error: String? = null,
 )
@@ -40,6 +40,36 @@ class DetailViewModel @Inject constructor(
                 .onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
                 }
+        }
+    }
+
+    fun toggleLike() {
+        val note = _uiState.value.note ?: return
+        viewModelScope.launch {
+            _uiState.update { s ->
+                s.copy(note = note.copy(
+                    liked = !note.liked,
+                    likeCount = if (note.liked) note.likeCount - 1 else note.likeCount + 1,
+                ))
+            }
+            val result = if (note.liked) noteRepository.unlikeNote(note.id)
+                         else noteRepository.likeNote(note.id)
+            result.onFailure { _uiState.update { it.copy(note = note) } }
+        }
+    }
+
+    fun toggleFavorite() {
+        val note = _uiState.value.note ?: return
+        viewModelScope.launch {
+            _uiState.update { s ->
+                s.copy(note = note.copy(
+                    favorited = !note.favorited,
+                    favCount = if (note.favorited) note.favCount - 1 else note.favCount + 1,
+                ))
+            }
+            val result = if (note.favorited) noteRepository.unfavoriteNote(note.id)
+                         else noteRepository.favoriteNote(note.id)
+            result.onFailure { _uiState.update { it.copy(note = note) } }
         }
     }
 }
