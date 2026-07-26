@@ -14,6 +14,7 @@ import xyz.larkzhh.lime.data.network.model.ApiResponse
 import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.LoginRequest
 import xyz.larkzhh.lime.data.network.model.NoteData
+import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
 import xyz.larkzhh.lime.data.network.model.RefreshTokenRequest
 import xyz.larkzhh.lime.data.network.model.RegisterRequest
@@ -82,6 +83,10 @@ interface ApiService {
     /// 取消点赞笔记
     @DELETE("api/notes/{id}/like")
     suspend fun unlikeNote(@Path("id") id: Long): ApiResponse<Unit>
+
+    /// 获取笔记详情
+    @GET("api/notes/{id}")
+    suspend fun getNoteDetail(@Path("id") id: Long): ApiResponse<NoteDetailData>
 
     /// 获取信息流
     @GET("api/notes/feed")
