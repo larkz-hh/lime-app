@@ -32,7 +32,17 @@ import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeTheme
 
-// 通用瀑布流组件。
+/**
+ * 通用瀑布流列表组件
+ *
+ * @param modifier 外部传入的 Modifier
+ * @param columns 瀑布流的列数，默认为 2 列
+ * @param state 列表的滚动状态，默认由组件内部记忆。可用于外部控制滚动或监听滚动事件
+ * @param contentPadding 列表内容的内边距，默认为四周 8.dp
+ * @param isLoadingMore 是否正在加载更多数据
+ * @param onLoadMore 触底加载更多的回调
+ * @param content 瀑布流的内容作用域，用于构建具体的items
+ */
 @Composable
 fun WaterfallFeed(
     modifier: Modifier = Modifier,
