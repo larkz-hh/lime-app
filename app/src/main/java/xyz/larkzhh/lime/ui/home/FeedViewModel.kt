@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.network.model.FeedItem
+import xyz.larkzhh.lime.domain.NoteEvent
+import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import javax.inject.Inject
 
@@ -29,6 +31,7 @@ data class FeedUiState(
 @HiltViewModel
 class FeedViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
+    private val eventBus: NoteEventBus,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FeedUiState(isLoading = true))
@@ -38,6 +41,30 @@ class FeedViewModel @Inject constructor(
 
     init {
         loadFeed()
+        observeNoteEvents()
+    }
+    /// 观察、收集事件，更新点赞数量与状态
+    private fun observeNoteEvents() {
+        viewModelScope.launch {
+            eventBus.events.collect { event ->
+                when (event) {
+                    is NoteEvent.LikeChanged -> {
+                        _uiState.update { state ->
+                            state.copy(
+                                items = state.items.map { item ->
+                                    if (item.id == event.noteId)
+                                        item.copy(liked = event.liked, likeCount = event.likeCount)
+                                    else item
+                                },
+                                likedIds = if (event.liked) state.likedIds + event.noteId
+                                           else state.likedIds - event.noteId,
+                            )
+                        }
+                    }
+                    is NoteEvent.FavoriteChanged -> Unit
+                }
+            }
+        }
     }
 
     private fun loadFeed() {

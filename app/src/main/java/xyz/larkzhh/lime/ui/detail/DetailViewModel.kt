@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
+import xyz.larkzhh.lime.domain.NoteEvent
+import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import javax.inject.Inject
 
@@ -25,6 +27,7 @@ data class DetailUiState(
 @HiltViewModel
 class DetailViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
+    private val eventBus: NoteEventBus,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DetailUiState())
@@ -54,7 +57,13 @@ class DetailViewModel @Inject constructor(
             }
             val result = if (note.liked) noteRepository.unlikeNote(note.id)
                          else noteRepository.likeNote(note.id)
-            result.onFailure { _uiState.update { it.copy(note = note) } }
+            result.fold(
+                onSuccess = {
+                    val updated = _uiState.value.note ?: return@fold
+                    eventBus.emit(NoteEvent.LikeChanged(updated.id, updated.liked, updated.likeCount))// 发送事件
+                },
+                onFailure = { _uiState.update { it.copy(note = note) } },
+            )
         }
     }
 
@@ -69,7 +78,13 @@ class DetailViewModel @Inject constructor(
             }
             val result = if (note.favorited) noteRepository.unfavoriteNote(note.id)
                          else noteRepository.favoriteNote(note.id)
-            result.onFailure { _uiState.update { it.copy(note = note) } }
+            result.fold(
+                onSuccess = {
+                    val updated = _uiState.value.note ?: return@fold
+                    eventBus.emit(NoteEvent.FavoriteChanged(updated.id, updated.favorited, updated.favCount))
+                },
+                onFailure = { _uiState.update { it.copy(note = note) } },
+            )
         }
     }
 }
