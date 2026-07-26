@@ -8,6 +8,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.model.FeedResponse
+import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.NoteImageRequest
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
 import xyz.larkzhh.lime.domain.repository.NoteRepository
@@ -55,6 +56,13 @@ class NoteRepositoryImpl @Inject constructor(
     override suspend fun unlikeNote(id: Long): Result<Unit> = runCatching {
         val response = apiService.unlikeNote(id)
         check(response.code == 200) { response.message }
+    }
+
+    /// 获取笔记详情
+    override suspend fun getNoteDetail(id: Long): Result<NoteDetailData> = runCatching {
+        val response = apiService.getNoteDetail(id)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
     }
 
     /// 发布笔记
