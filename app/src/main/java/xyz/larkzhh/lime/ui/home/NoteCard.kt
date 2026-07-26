@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -23,8 +24,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -48,10 +57,22 @@ fun NoteCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // 分配图片高宽比
     val imageRatio = remember(item.id) {
         val idx = (item.id % 3).toInt().let { if (it < 0) it + 3 else it }
         listOf(0.75f, 0.85f, 1.0f)[idx]
+    }
+    val likeComposition by rememberLottieComposition(
+        LottieCompositionSpec.Asset("lottie/like.lottie")
+    )
+    var isAnimating by remember { mutableStateOf(false) }
+    val animationProgress by animateLottieCompositionAsState(
+        composition = likeComposition,
+        isPlaying = isAnimating,
+        iterations = 1,
+        restartOnPlay = true,
+    )
+    LaunchedEffect(animationProgress) {
+        if (animationProgress >= 1f && isAnimating) isAnimating = false
     }
 
     Card(
@@ -141,14 +162,30 @@ fun NoteCard(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
                     )
-                    Icon(
-                        imageVector = if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = if (liked) "取消点赞" else "点赞",
+                    Box(
                         modifier = Modifier
-                            .size(12.dp)
-                            .clickable(onClick = onLikeToggle),
-                        tint = if (liked) Color.Red else LimeGray,
-                    )
+                            .size(32.dp)
+                            .clickable{
+                                if (!liked) isAnimating = true// 播放动画
+                                onLikeToggle()
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (liked && isAnimating) {
+                            LottieAnimation(
+                                composition = likeComposition,
+                                progress = { animationProgress },
+                                modifier = Modifier.size(32.dp),
+                            )
+                        } else {
+                            Icon(
+                                imageVector = if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                                contentDescription = if (liked) "取消点赞" else "点赞",
+                                modifier = Modifier.size(14.dp),
+                                tint = if (liked) Color.Red else LimeGray,
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
                         text = formatLikeCount(item.likeCount),
