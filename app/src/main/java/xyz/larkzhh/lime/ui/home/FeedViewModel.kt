@@ -51,6 +51,7 @@ class FeedViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             items = response.items,
+                            likedIds = response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
                             hasMore = response.hasMore,
                         )
                     }
@@ -76,6 +77,7 @@ class FeedViewModel @Inject constructor(
                         it.copy(
                             isRefreshing = false,
                             items = response.items,
+                            likedIds = response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
                             hasMore = response.hasMore,
                         )
                     }
@@ -125,6 +127,7 @@ class FeedViewModel @Inject constructor(
                         it.copy(
                             isLoadingMore = false,
                             items = it.items + response.items,
+                            likedIds = it.likedIds + response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
                             hasMore = response.hasMore,
                         )
                     }

@@ -44,6 +44,7 @@ data class FeedItem(
     val title: String?,
     val coverImage: String?,
     val likeCount: Int,
+    val liked: Boolean,
     val author: FeedAuthor,// 作者详情
 )
 
