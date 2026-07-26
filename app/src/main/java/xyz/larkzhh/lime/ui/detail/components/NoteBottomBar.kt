@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
@@ -34,8 +35,8 @@ import xyz.larkzhh.lime.ui.theme.LimePrimary
 @Composable
 fun NoteBottomBar(
     note: NoteDetailData,
-    onToggleLike: () -> Unit = {},
-    onToggleFavorite: () -> Unit = {},
+    onToggleLike: () -> Unit,
+    onToggleFavorite: () -> Unit,
 ) {
     Surface(
         shadowElevation = 8.dp,
@@ -72,9 +73,9 @@ fun NoteBottomBar(
             ) {
                 LikeButton(
                     liked = note.liked,
-                    onToggle = {},
+                    onToggle = onToggleLike,
                     iconSize = 22.dp,
-                    animationSize = 32.dp,
+                    animationSize = 48.dp,
                 )
                 Text(
                     text = note.likeCount.toString(),
@@ -89,13 +90,13 @@ fun NoteBottomBar(
                 horizontalArrangement = Arrangement.spacedBy(3.dp),
             ) {
                 IconButton(
-                    onClick = {},
+                    onClick = onToggleFavorite,
                     modifier = Modifier.size(32.dp),
                 ) {
                     Icon(
-                        imageVector = if (note.favorited) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                        imageVector = if (note.favorited) Icons.Filled.Star else Icons.Outlined.StarOutline,
                         contentDescription = if (note.favorited) "取消收藏" else "收藏",
-                        tint = if (note.favorited) LimePrimary else LimeGray,
+                        tint = if (note.favorited) Color(0xFFFFD700) else LimeGray,
                         modifier = Modifier.size(22.dp),
                     )
                 }

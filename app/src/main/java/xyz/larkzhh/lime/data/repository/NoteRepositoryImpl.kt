@@ -58,6 +58,18 @@ class NoteRepositoryImpl @Inject constructor(
         check(response.code == 200) { response.message }
     }
 
+    /// 收藏笔记
+    override suspend fun favoriteNote(id: Long): Result<Unit> = runCatching {
+        val response = apiService.favoriteNote(id)
+        check(response.code == 200) { response.message }
+    }
+
+    /// 取消收藏笔记
+    override suspend fun unfavoriteNote(id: Long): Result<Unit> = runCatching {
+        val response = apiService.unfavoriteNote(id)
+        check(response.code == 200) { response.message }
+    }
+
     /// 获取笔记详情
     override suspend fun getNoteDetail(id: Long): Result<NoteDetailData> = runCatching {
         val response = apiService.getNoteDetail(id)
