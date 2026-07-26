@@ -165,7 +165,10 @@ fun NoteCard(
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .clickable{
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() },
+                            ) {
                                 if (!liked) isAnimating = true// 播放动画
                                 onLikeToggle()
                             },
