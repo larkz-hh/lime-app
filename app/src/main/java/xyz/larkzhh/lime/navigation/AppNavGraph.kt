@@ -83,8 +83,7 @@ fun AppNavGraph() {
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            //modifier = Modifier.padding(innerPadding)
-            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+            modifier = if (showBottomBar) Modifier.padding(bottom = innerPadding.calculateBottomPadding()) else Modifier
         ) {
             composable(Screen.Login.route) {
                 LoginScreen(
