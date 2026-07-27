@@ -3,7 +3,8 @@ package xyz.larkzhh.lime.ui.detail.components
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -129,24 +130,27 @@ private fun ZoomableImage(
         }
     }
 
+    val transformableState = rememberTransformableState { zoomChange, panChange, _ ->
+        val newScale = (scale * zoomChange).coerceIn(1f, 5f)
+        scale = newScale
+        onScaleChanged(newScale)
+        if (newScale > 1f) {
+            offsetX += panChange.x
+            offsetY += panChange.y
+        } else {
+            // 缩放回 1 时归位
+            offsetX = 0f
+            offsetY = 0f
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTransformGestures { _, pan, zoom, _ ->
-                    val newScale = (scale * zoom).coerceIn(1f, 5f)
-                    scale = newScale
-                    onScaleChanged(newScale)
-                    if (newScale > 1f) {
-                        offsetX += pan.x
-                        offsetY += pan.y
-                    } else {
-                        // 缩放回 1 时归位
-                        offsetX = 0f
-                        offsetY = 0f
-                    }
-                }
-            }
+            .transformable(
+                state = transformableState,
+                canPan = { _ -> scale > 1f }, // 未放大时不拦截单指
+            )
             .pointerInput(Unit) {
                 // 轻触触发关闭
                 detectTapGestures(onTap = { onTap() })
