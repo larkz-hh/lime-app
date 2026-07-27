@@ -2,9 +2,6 @@ package xyz.larkzhh.lime.ui.detail.components
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -19,23 +16,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
+import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import xyz.larkzhh.lime.data.network.model.NoteImageData
 
+/// 全屏图片预览浮层
+/// 支持左右滑动翻页、双指/双击缩放、拖动到边缘自动翻页、单击退出
 @Composable
 fun ImagePreviewOverlay(
     images: List<NoteImageData>,
@@ -43,14 +34,7 @@ fun ImagePreviewOverlay(
     onDismiss: () -> Unit,
 ) {
     BackHandler(onBack = onDismiss)
-
     val pagerState = rememberPagerState(initialPage = initialIndex) { images.size }
-    var isZoomed by remember { mutableStateOf(false) }
-
-    // 换页时重置缩放标记
-    LaunchedEffect(pagerState.currentPage) {
-        isZoomed = false
-    }
 
     Box(
         modifier = Modifier
@@ -61,17 +45,13 @@ fun ImagePreviewOverlay(
             state = pagerState,
             modifier = Modifier.fillMaxSize(),
             beyondViewportPageCount = 1,
-            userScrollEnabled = !isZoomed,
         ) { page ->
-            ZoomableImage(
-                url = images[page].url,
-                isCurrentPage = page == pagerState.currentPage,
-                onTap = onDismiss,
-                onScaleChanged = { scale ->
-                    if (page == pagerState.currentPage) {
-                        isZoomed = scale > 1f
-                    }
-                },
+            ZoomableAsyncImage(
+                model = images[page].url,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit,
+                onClick = { onDismiss() },
             )
         }
 
@@ -105,70 +85,5 @@ fun ImagePreviewOverlay(
                     .padding(horizontal = 10.dp, vertical = 4.dp),
             )
         }
-    }
-}
-
-/// 支持双指缩放、平移、单击退出的单张图片
-/// 非当前页时自动重置缩放
-@Composable
-private fun ZoomableImage(
-    url: String,
-    isCurrentPage: Boolean,
-    onTap: () -> Unit,
-    onScaleChanged: (Float) -> Unit,
-) {
-    var scale by remember { mutableFloatStateOf(1f) }
-    var offsetX by remember { mutableFloatStateOf(0f) }
-    var offsetY by remember { mutableFloatStateOf(0f) }
-
-    // 切换到其他页时重置缩放与位移
-    LaunchedEffect(isCurrentPage) {
-        if (!isCurrentPage) {
-            scale = 1f
-            offsetX = 0f
-            offsetY = 0f
-        }
-    }
-
-    val transformableState = rememberTransformableState { zoomChange, panChange, _ ->
-        val newScale = (scale * zoomChange).coerceIn(1f, 5f)
-        scale = newScale
-        onScaleChanged(newScale)
-        if (newScale > 1f) {
-            offsetX += panChange.x
-            offsetY += panChange.y
-        } else {
-            // 缩放回 1 时归位
-            offsetX = 0f
-            offsetY = 0f
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .transformable(
-                state = transformableState,
-                canPan = { _ -> scale > 1f }, // 未放大时不拦截单指
-            )
-            .pointerInput(Unit) {
-                // 轻触触发关闭
-                detectTapGestures(onTap = { onTap() })
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        AsyncImage(
-            model = url,
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                    translationX = offsetX
-                    translationY = offsetY
-                },
-            contentScale = ContentScale.Fit,
-        )
     }
 }
