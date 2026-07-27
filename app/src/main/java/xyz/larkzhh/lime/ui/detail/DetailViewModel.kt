@@ -18,6 +18,7 @@ data class DetailUiState(
     val note: NoteDetailData? = null,
     val isLoading: Boolean = true,
     val error: String? = null,
+    val previewImageIndex: Int? = null, // null 不展示图片预览浮层
 )
 
 /**
@@ -32,6 +33,14 @@ class DetailViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(DetailUiState())
     val uiState = _uiState.asStateFlow()
+
+    fun showImagePreview(index: Int) {
+        _uiState.update { it.copy(previewImageIndex = index) }
+    }
+
+    fun hideImagePreview() {
+        _uiState.update { it.copy(previewImageIndex = null) }
+    }
 
     fun loadNote(noteId: Long) {
         viewModelScope.launch {
