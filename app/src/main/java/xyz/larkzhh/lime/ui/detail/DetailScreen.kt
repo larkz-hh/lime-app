@@ -22,10 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.ui.detail.components.AuthorBar
+import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.ui.detail.components.NoteBottomBar
 import xyz.larkzhh.lime.ui.detail.components.NoteImagePager
 import xyz.larkzhh.lime.ui.theme.LimeDark
@@ -85,6 +88,7 @@ fun DetailScreen(
                 NoteContent(
                     note = uiState.note!!,
                     modifier = Modifier.weight(1f),
+                    onImageClick = viewModel::showImagePreview,
                 )
                 NoteBottomBar(
                     note = uiState.note!!,
@@ -94,18 +98,38 @@ fun DetailScreen(
             }
         }
     }
+
+    // 图片全屏预览浮层
+    val previewIndex = uiState.previewImageIndex
+    val previewNote = uiState.note
+    if (previewIndex != null && previewNote != null) {
+        Dialog(
+            onDismissRequest = viewModel::hideImagePreview,
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false,
+            ),
+        ) {
+            ImagePreviewOverlay(
+                images = previewNote.images,
+                initialIndex = previewIndex,
+                onDismiss = viewModel::hideImagePreview,
+            )
+        }
+    }
 }
 
 @Composable
 private fun NoteContent(
     note: NoteDetailData,
+    onImageClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(modifier = modifier.fillMaxWidth()) {
         // 图片轮播
         if (note.images.isNotEmpty()) {
             item {
-                NoteImagePager(images = note.images)
+                NoteImagePager(images = note.images, onImageClick = onImageClick)
             }
         }
         // 标题

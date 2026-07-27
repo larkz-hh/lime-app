@@ -1,6 +1,8 @@
 package xyz.larkzhh.lime.ui.detail.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -13,6 +15,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +32,7 @@ import xyz.larkzhh.lime.ui.theme.LimePrimary
 @Composable
 fun NoteImagePager(
     images: List<NoteImageData>,
+    onImageClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (images.isEmpty()) return
@@ -47,7 +51,11 @@ fun NoteImagePager(
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(3f / 4f),
+                    .aspectRatio(3f / 4f)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                    ) { onImageClick(page) },
             )
         }
 
