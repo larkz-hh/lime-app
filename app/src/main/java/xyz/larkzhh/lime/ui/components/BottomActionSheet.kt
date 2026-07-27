@@ -81,9 +81,9 @@ fun BottomActionSheet(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp),
+                    //.navigationBarsPadding()
+                    //.padding(horizontal = 16.dp)
+                    //.padding(bottom = 16.dp),
             ) {
                 Column(
                     modifier = Modifier
