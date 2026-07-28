@@ -12,13 +12,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,6 +33,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
+import xyz.larkzhh.lime.ui.components.SelectableText
+import xyz.larkzhh.lime.ui.components.SelectionAction
 import xyz.larkzhh.lime.ui.detail.components.AuthorBar
 import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.ui.detail.components.NoteBottomBar
@@ -35,6 +43,8 @@ import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
+import xyz.larkzhh.lime.util.copyToClipboard
+import xyz.larkzhh.lime.util.showToast
 
 @Composable
 fun DetailScreen(
@@ -125,6 +135,15 @@ private fun NoteContent(
     onImageClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val selectionActions = remember(context) {
+        listOf(
+            SelectionAction("复制", Icons.Outlined.ContentCopy) { it.copyToClipboard(context); "已复制".showToast(context) },
+            SelectionAction("搜索", Icons.Outlined.Search) { },
+            SelectionAction("问AI", Icons.Outlined.AutoAwesome) { },
+        )
+    }
+
     LazyColumn(modifier = modifier.fillMaxWidth()) {
         // 图片轮播
         if (note.images.isNotEmpty()) {
@@ -135,8 +154,9 @@ private fun NoteContent(
         // 标题
         if (!note.title.isNullOrBlank()) {
             item {
-                Text(
+                SelectableText(
                     text = note.title,
+                    actions = selectionActions,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         color = LimeDark,
@@ -149,8 +169,9 @@ private fun NoteContent(
         // 正文
         if (!note.content.isNullOrBlank()) {
             item {
-                Text(
+                SelectableText(
                     text = note.content,
+                    actions = selectionActions,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = LimeDark,
                         lineHeight = 22.sp,
