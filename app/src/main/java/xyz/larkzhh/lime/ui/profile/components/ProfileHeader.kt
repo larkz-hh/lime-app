@@ -44,9 +44,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryLight
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
@@ -97,13 +95,11 @@ fun ProfileHeader(
                     )
             )
         }
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-
-            // 顶部工具栏 — statusBarsPadding 让内容在状态栏图标下方
+        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 28.dp)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .statusBarsPadding()
+                    .statusBarsPadding()// 让内容在状态栏图标下方
                     .padding(vertical = 2.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
