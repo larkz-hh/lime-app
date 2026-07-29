@@ -117,6 +117,9 @@ dependencies {
     // Toast
     implementation(libs.toasty)
 
+    // Telephoto zoomable image
+    implementation(libs.telephoto.zoomable.image.coil3)
+
     // Splash Screen
     implementation(libs.androidx.core.splashscreen)
 

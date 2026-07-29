@@ -25,6 +25,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 
+/**
+ * 通用自定义 AlertDialog 弹窗。
+ *
+ * @param title 弹窗显示的标题文本
+ * @param onFirstButtonClick 点击左侧按钮时的回
+ * @param onSecondButtonClick 点击右侧按钮时回调
+ * @param onDismissRequest 当用户点击弹窗外部区域或按下返回键时触发的回调
+ * @param firstButtonText 左侧按钮的文本，默认为 "取消"。
+ * @param secondButtonText 右侧按钮的文本，默认为 "确定"。
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LimeAlertDialog(
@@ -46,7 +56,7 @@ fun LimeAlertDialog(
     }
 }
 
-// 弹窗内容
+// 弹窗内容视图
 @Composable
 private fun LimeAlertDialogContent(
     title: String,

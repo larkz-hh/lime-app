@@ -8,6 +8,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.model.FeedResponse
+import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.NoteImageRequest
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
 import xyz.larkzhh.lime.domain.repository.NoteRepository
@@ -41,6 +42,37 @@ class NoteRepositoryImpl @Inject constructor(
     /// 获取信息流
     override suspend fun getFeed(cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
         val response = apiService.getFeed(cursor = cursor, size = size)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
+    /// 点赞笔记
+    override suspend fun likeNote(id: Long): Result<Unit> = runCatching {
+        val response = apiService.likeNote(id)
+        check(response.code == 200) { response.message }
+    }
+
+    /// 取消点赞笔记
+    override suspend fun unlikeNote(id: Long): Result<Unit> = runCatching {
+        val response = apiService.unlikeNote(id)
+        check(response.code == 200) { response.message }
+    }
+
+    /// 收藏笔记
+    override suspend fun favoriteNote(id: Long): Result<Unit> = runCatching {
+        val response = apiService.favoriteNote(id)
+        check(response.code == 200) { response.message }
+    }
+
+    /// 取消收藏笔记
+    override suspend fun unfavoriteNote(id: Long): Result<Unit> = runCatching {
+        val response = apiService.unfavoriteNote(id)
+        check(response.code == 200) { response.message }
+    }
+
+    /// 获取笔记详情
+    override suspend fun getNoteDetail(id: Long): Result<NoteDetailData> = runCatching {
+        val response = apiService.getNoteDetail(id)
         check(response.code == 200 && response.data != null) { response.message }
         response.data
     }

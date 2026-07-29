@@ -39,11 +39,28 @@ data class FeedAuthor(
     val avatar: String?,
 )
 
+data class NoteDetailData(
+    val id: Long,
+    val title: String?,
+    val content: String?,
+    val status: Int,
+    val images: List<NoteImageData>,
+    val likeCount: Int,
+    val favCount: Int,
+    val viewCount: Int,
+    val liked: Boolean,
+    val favorited: Boolean,
+    val author: FeedAuthor,
+    val createTime: String?,
+    val updateTime: String?,
+)
+
 data class FeedItem(
     val id: Long,
     val title: String?,
     val coverImage: String?,
     val likeCount: Int,
+    val liked: Boolean,
     val author: FeedAuthor,// 作者详情
 )
 

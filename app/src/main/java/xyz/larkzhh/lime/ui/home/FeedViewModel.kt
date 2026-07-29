@@ -9,13 +9,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.network.model.FeedItem
+import xyz.larkzhh.lime.domain.NoteEvent
+import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import javax.inject.Inject
 
 data class FeedUiState(
     val items: List<FeedItem> = emptyList(),
-    val isLoading: Boolean = false,       // 首次加载（全屏 spinner）
-    val isRefreshing: Boolean = false,    // 下拉刷新（顶部 indicator，不清空列表）
+    val likedIds: Set<Long> = emptySet(),
+    val isLoading: Boolean = false,// 首次加载
+    val isRefreshing: Boolean = false,// 下拉刷新
     val isLoadingMore: Boolean = false,
     val hasMore: Boolean = true,
     val error: String? = null,
@@ -28,6 +31,7 @@ data class FeedUiState(
 @HiltViewModel
 class FeedViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
+    private val eventBus: NoteEventBus,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FeedUiState(isLoading = true))
@@ -37,6 +41,30 @@ class FeedViewModel @Inject constructor(
 
     init {
         loadFeed()
+        observeNoteEvents()
+    }
+    /// 观察、收集事件，更新点赞数量与状态
+    private fun observeNoteEvents() {
+        viewModelScope.launch {
+            eventBus.events.collect { event ->
+                when (event) {
+                    is NoteEvent.LikeChanged -> {
+                        _uiState.update { state ->
+                            state.copy(
+                                items = state.items.map { item ->
+                                    if (item.id == event.noteId)
+                                        item.copy(liked = event.liked, likeCount = event.likeCount)
+                                    else item
+                                },
+                                likedIds = if (event.liked) state.likedIds + event.noteId
+                                           else state.likedIds - event.noteId,
+                            )
+                        }
+                    }
+                    is NoteEvent.FavoriteChanged -> Unit
+                }
+            }
+        }
     }
 
     private fun loadFeed() {
@@ -50,6 +78,7 @@ class FeedViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             items = response.items,
+                            likedIds = response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
                             hasMore = response.hasMore,
                         )
                     }
@@ -75,6 +104,7 @@ class FeedViewModel @Inject constructor(
                         it.copy(
                             isRefreshing = false,
                             items = response.items,
+                            likedIds = response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
                             hasMore = response.hasMore,
                         )
                     }
@@ -83,6 +113,32 @@ class FeedViewModel @Inject constructor(
                     _uiState.update { it.copy(isRefreshing = false, error = e.message) }
                 },
             )
+        }
+    }
+
+    fun toggleLike(noteId: Long) {
+        val liked = noteId in _uiState.value.likedIds
+        val delta = if (liked) -1 else 1
+        _uiState.update {
+            it.copy(
+                likedIds = if (liked) it.likedIds - noteId else it.likedIds + noteId,
+                items = it.items.map { item ->
+                    if (item.id == noteId) item.copy(likeCount = item.likeCount + delta) else item
+                },
+            )
+        }
+        viewModelScope.launch {
+            val result = if (liked) noteRepository.unlikeNote(noteId) else noteRepository.likeNote(noteId)
+            result.onFailure {
+                _uiState.update {
+                    it.copy(
+                        likedIds = if (liked) it.likedIds + noteId else it.likedIds - noteId,
+                        items = it.items.map { item ->
+                            if (item.id == noteId) item.copy(likeCount = item.likeCount - delta) else item
+                        },
+                    )
+                }
+            }
         }
     }
 
@@ -98,6 +154,7 @@ class FeedViewModel @Inject constructor(
                         it.copy(
                             isLoadingMore = false,
                             items = it.items + response.items,
+                            likedIds = it.likedIds + response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
                             hasMore = response.hasMore,
                         )
                     }
