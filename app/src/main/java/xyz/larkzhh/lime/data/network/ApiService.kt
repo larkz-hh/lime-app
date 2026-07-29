@@ -102,4 +102,13 @@ interface ApiService {
         @Query("cursor") cursor: Long?,
         @Query("size") size: Int,
     ): ApiResponse<FeedResponse>
+
+    /// 获取指定用户的笔记列表
+    @GET("api/notes/user/{userId}")
+    suspend fun getUserNotes(
+        @Path("userId") userId: Long,
+        @Query("status") status: String = "published",
+        @Query("cursor") cursor: Long?,
+        @Query("size") size: Int,
+    ): ApiResponse<FeedResponse>
 }
