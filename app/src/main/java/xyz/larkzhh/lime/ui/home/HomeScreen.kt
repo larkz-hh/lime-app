@@ -206,6 +206,8 @@ private fun DiscoverTab(navController: NavHostController) {
                         items(uiState.items, key = { it.id }) { item ->
                             NoteCard(
                                 item = item,
+                                liked = item.id in uiState.likedIds,
+                                onLikeToggle = { viewModel.toggleLike(item.id) },
                                 onClick = {
                                     navController.navigate(
                                         Screen.Detail.createRoute(item.id.toString())

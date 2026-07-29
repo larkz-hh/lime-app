@@ -13,11 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.data.network.model.FeedItem
+import xyz.larkzhh.lime.ui.components.LikeButton
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
@@ -40,10 +38,11 @@ import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 @Composable
 fun NoteCard(
     item: FeedItem,
+    liked: Boolean,
+    onLikeToggle: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // 分配图片高宽比
     val imageRatio = remember(item.id) {
         val idx = (item.id % 3).toInt().let { if (it < 0) it + 3 else it }
         listOf(0.75f, 0.85f, 1.0f)[idx]
@@ -136,11 +135,9 @@ fun NoteCard(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
                     )
-                    Icon(
-                        imageVector = Icons.Filled.FavoriteBorder,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                        tint = LimeGray,
+                    LikeButton(
+                        liked = liked,
+                        onToggle = onLikeToggle,
                     )
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
