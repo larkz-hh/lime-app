@@ -46,6 +46,13 @@ class NoteRepositoryImpl @Inject constructor(
         response.data
     }
 
+    /// 获取指定用户已发布的笔记列表
+    override suspend fun getUserNotes(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
+        val response = apiService.getUserNotes(userId = userId, cursor = cursor, size = size)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
     /// 点赞笔记
     override suspend fun likeNote(id: Long): Result<Unit> = runCatching {
         val response = apiService.likeNote(id)
