@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -28,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -118,16 +118,35 @@ fun SelectableText(
 
     // 拖杆拖动时的实时位置，窗口坐标
     var dragAt by remember { mutableStateOf(Offset.Zero) }
+    // 拖动时隐藏工具栏
+    var isDragging by remember { mutableStateOf(false) }
+    // 拖动时记录当前端；两端交叉时自动翻转
+    var draggingIsStart by remember { mutableStateOf(true) }
 
-    /// 把窗口坐标换算成字符位置
-    fun moveEdge(isStart: Boolean) {
+    /// 把窗口坐标换算成字符位置；拖杆越过对端时自动交换
+    fun moveEdge() {
         val result = layout ?: return
         val range = selection ?: return
-        val offset = result.getOffsetForPosition(dragAt - origin)//  将相对坐标转换为字符索引
-        selection = if (isStart) {
-            if (offset < range.end) TextRange(offset, range.end) else range
+        // dragAt 窗口坐标，减去 origin 得到 Text 局部坐标，再映射到字符索引
+        val offset = result.getOffsetForPosition(dragAt - origin)
+        if (draggingIsStart) {
+            when {
+                offset < range.end -> selection = TextRange(offset, range.end)
+                offset > range.end -> {
+                    // 左端拖过右端，交换角色：当前端变成结束端
+                    draggingIsStart = false
+                    selection = TextRange(range.end, offset)
+                }
+            }
         } else {
-            if (offset > range.start) TextRange(range.start, offset) else range
+            when {
+                offset > range.start -> selection = TextRange(range.start, offset)
+                offset < range.start -> {
+                    // 右端拖过了左端，交换角色：当前端变成起始端
+                    draggingIsStart = true
+                    selection = TextRange(offset, range.start)
+                }
+            }
         }
     }
 
@@ -152,15 +171,26 @@ fun SelectableText(
         val range = selection
         val result = layout
         if (range != null && result != null) {
-            val anchor = selectionBounds(result, range).translate(origin)
-            // 浮层贴选区上沿，顶部空间不够时翻到下沿
-            val above = anchor.top.roundToInt() - toolbarHeightPx - gapPx
-            val toolbarTop = if (above >= 0) above else anchor.bottom.roundToInt() + gapPx
-            // 弹窗覆盖浮层与两端拖杆，纵向留出拖杆小球
-            val bandTop = minOf(toolbarTop, anchor.top.roundToInt() - radiusPx)
+            // 选区首字符与末字符的精确边界，局部坐标
+            val head = result.getBoundingBox(range.start)
+            val tail = result.getBoundingBox((range.end - 1).coerceAtLeast(range.start))
+
+            // 拖杆吸附位置，局部坐标
+            val leftHandleX = (head.left + origin.x).roundToInt()
+            val leftHandleY = (head.top + origin.y).roundToInt()// 贴首字符左上角
+            val rightHandleX = (tail.right + origin.x).roundToInt()
+            val rightHandleY = (tail.bottom + origin.y).roundToInt()// 右杆贴末字符右下角
+
+            // 工具栏水平居中于首行字符，纵向贴选区上沿，顶部不够时翻到下沿
+            val toolbarCenterX = ((head.left + head.right) / 2 + origin.x).roundToInt()
+            val above = leftHandleY - toolbarHeightPx - gapPx
+            val toolbarTop = if (above >= 0) above else rightHandleY + gapPx
+
+            // 弹窗覆盖浮层与两端拖杆
+            val bandTop = minOf(toolbarTop, leftHandleY - radiusPx)
             val bandBottom = maxOf(
                 toolbarTop + toolbarHeightPx,
-                anchor.bottom.roundToInt() + radiusPx * 2,
+                rightHandleY + radiusPx * 2,
             )
 
             Popup(
@@ -178,75 +208,83 @@ fun SelectableText(
                             onClick = { selection = null },// 点击遮罩带内的空白区域，取消选中
                         ),
                 ) {
-                    val toolbarLeft = (anchor.center.x - toolbarWidthPx / 2f).roundToInt()
-                        .coerceIn(0, (windowWidth - toolbarWidthPx).coerceAtLeast(0))
-                    Row(
-                        modifier = Modifier
-                            .offset {
-                                IntOffset(toolbarLeft, toolbarTop - bandTop)// 遮罩带内部的相对位置
-                            }
-                            .background(toolbarColor, RoundedCornerShape(10.dp))
-                            .padding(horizontal = 4.dp, vertical = ToolbarVerticalPadding),
-                        horizontalArrangement = Arrangement.spacedBy(0.dp),
-                    ) {
-                        actions.forEach { action ->
-                            Column(
-                                modifier = Modifier
-                                    .width(ItemWidth)
-                                    .height(ToolbarHeight)
-                                    .clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() },
-                                    ) {
-                                        val selected = text.substring(range.start, range.end)// 选中的文本
-                                        selection = null
-                                        action.onClick(selected)
-                                    },
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                            ) {
-                                Icon(
-                                    imageVector = action.icon,
-                                    contentDescription = action.label,
-                                    tint = toolbarContentColor,
-                                    modifier = Modifier.size(19.dp),
-                                )
-                                Text(
-                                    text = action.label,
-                                    color = toolbarContentColor,
-                                    fontSize = 11.sp,
-                                    modifier = Modifier.padding(top = 3.dp),
-                                )
+                    val toolbarLeft = (toolbarCenterX - toolbarWidthPx / 2)
+                        .coerceIn(0, (windowWidth - toolbarWidthPx).coerceAtLeast(0))// 工具栏左侧
+
+                    // 拖动时隐藏工具栏，松手后显示
+                    if (!isDragging) {
+                        Row(
+                            modifier = Modifier
+                                .offset {
+                                    IntOffset(toolbarLeft, toolbarTop - bandTop)// 遮罩带内部的相对位置
+                                }
+                                .background(toolbarColor, RoundedCornerShape(10.dp))
+                                .padding(horizontal = 4.dp, vertical = ToolbarVerticalPadding),
+                            horizontalArrangement = Arrangement.spacedBy(0.dp),
+                        ) {
+                            actions.forEach { action ->
+                                Column(
+                                    modifier = Modifier
+                                        .width(ItemWidth)
+                                        .height(ToolbarHeight)
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() },
+                                        ) {
+                                            val selected = text.substring(range.start, range.end)// 选中的文本
+                                            selection = null
+                                            action.onClick(selected)
+                                        },
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = action.icon,
+                                        contentDescription = action.label,
+                                        tint = toolbarContentColor,
+                                        modifier = Modifier.size(19.dp),
+                                    )
+                                    Text(
+                                        text = action.label,
+                                        color = toolbarContentColor,
+                                        fontSize = 11.sp,
+                                        modifier = Modifier.padding(top = 3.dp),
+                                    )
+                                }
                             }
                         }
                     }
 
-                    // 选区左端拖杆
+                    // 选区左端拖杆，吸附首字符左上角
                     SelectionHandle(
                         color = handleColor,
-                        center = IntOffset(
-                            anchor.left.roundToInt(),
-                            anchor.top.roundToInt() - bandTop,
-                        ),
-                        onDragStart = { dragAt = origin + Offset(anchor.left, anchor.center.y) },
+                        center = IntOffset(leftHandleX, leftHandleY - bandTop),
+                        onDragStart = {
+                            isDragging = true
+                            draggingIsStart = true
+                            dragAt = Offset(head.left + origin.x, head.top + origin.y)
+                        },
                         onDrag = { delta ->
                             dragAt += delta
-                            moveEdge(isStart = true)// 把最新的 dragAt 转换成字符索引
+                            moveEdge()// 把最新的 dragAt 转换成字符索引
                         },
+                        onDragEnd = { isDragging = false },
                     )
 
-                    // 选区右端拖杆
+                    // 选区右端拖杆，吸附末字符右下角
                     SelectionHandle(
                         color = handleColor,
-                        center = IntOffset(
-                            anchor.right.roundToInt(),
-                            anchor.bottom.roundToInt() - bandTop,
-                        ),
-                        onDragStart = { dragAt = origin + Offset(anchor.right, anchor.center.y) },
+                        center = IntOffset(rightHandleX, rightHandleY - bandTop),
+                        onDragStart = {
+                            isDragging = true
+                            draggingIsStart = false
+                            dragAt = Offset(tail.right + origin.x, tail.bottom + origin.y)
+                        },
                         onDrag = { delta ->
                             dragAt += delta
-                            moveEdge(isStart = false)
+                            moveEdge()
                         },
+                        onDragEnd = { isDragging = false },
                     )
                 }
             }
@@ -256,11 +294,12 @@ fun SelectableText(
 
 /// 选区一端的拖杆
 @Composable
-private fun SelectionHandle(
+private fun BoxScope.SelectionHandle(
     color: Color,
     center: IntOffset,
     onDragStart: () -> Unit,
     onDrag: (Offset) -> Unit,
+    onDragEnd: () -> Unit,
 ) {
     val density = LocalDensity.current
     val touchRadius = 16.dp
@@ -274,6 +313,8 @@ private fun SelectionHandle(
                 detectDragGestures(
                     onDragStart = { onDragStart() },
                     onDrag = { _, delta -> onDrag(delta) },
+                    onDragEnd = { onDragEnd() },
+                    onDragCancel = { onDragEnd() },// 手势意外中断时恢复工具栏
                 )
             },
         contentAlignment = Alignment.Center,
@@ -298,18 +339,6 @@ private fun wordRangeAt(text: String, offset: Int): TextRange {
     val start = iterator.previous().let { if (it == BreakIterator.DONE) 0 else it }// 左边界
     if (start >= end) return single
     return if (text.substring(start, end).isBlank()) single else TextRange(start, end)
-}
-
-/// 选区的矩形包围盒
-private fun selectionBounds(layout: TextLayoutResult, range: TextRange): Rect {
-    val head = layout.getBoundingBox(range.start)
-    val tail = layout.getBoundingBox((range.end - 1).coerceAtLeast(range.start))
-    return Rect(
-        left = minOf(head.left, tail.left),
-        top = minOf(head.top, tail.top),
-        right = maxOf(head.right, tail.right),
-        bottom = maxOf(head.bottom, tail.bottom),
-    )
 }
 
 // 弹窗定位
