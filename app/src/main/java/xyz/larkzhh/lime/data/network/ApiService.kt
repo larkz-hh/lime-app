@@ -111,4 +111,20 @@ interface ApiService {
         @Query("cursor") cursor: Long?,
         @Query("size") size: Int,
     ): ApiResponse<FeedResponse>
+
+    /// 获取指定用户的点赞列表
+    @GET("api/notes/user/{userId}/likes")
+    suspend fun getUserLikes(
+        @Path("userId") userId: Long,
+        @Query("cursor") cursor: Long?,
+        @Query("size") size: Int,
+    ): ApiResponse<FeedResponse>
+
+    /// 获取指定用户的收藏列表
+    @GET("api/notes/user/{userId}/favorites")
+    suspend fun getUserFavorites(
+        @Path("userId") userId: Long,
+        @Query("cursor") cursor: Long?,
+        @Query("size") size: Int,
+    ): ApiResponse<FeedResponse>
 }

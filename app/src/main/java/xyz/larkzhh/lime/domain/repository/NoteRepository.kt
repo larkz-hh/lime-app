@@ -16,6 +16,10 @@ interface NoteRepository {
     suspend fun getFeed(cursor: Long?, size: Int = 10): Result<FeedResponse>
     /// 获取指定用户已发布的笔记列表
     suspend fun getUserNotes(userId: Long, cursor: Long?, size: Int = 10): Result<FeedResponse>
+    /// 获取指定用户的点赞笔记列表
+    suspend fun getUserLikes(userId: Long, cursor: Long?, size: Int = 10): Result<FeedResponse>
+    /// 获取指定用户的收藏笔记列表
+    suspend fun getUserFavorites(userId: Long, cursor: Long?, size: Int = 10): Result<FeedResponse>
     /// 获取笔记详情
     suspend fun getNoteDetail(id: Long): Result<NoteDetailData>
     /// 点赞笔记
