@@ -150,10 +150,6 @@ fun ProfileScreen(
                             selectedIndex = selectedTab,
                             onTabSelected = { selectedTab = it },
                         )
-                        HorizontalDivider(
-                            thickness = 0.5.dp,
-                            color = LimeLightGray,
-                        )
                     }
                 }
                 item(span = StaggeredGridItemSpan.FullLine) {
