@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScope
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +43,7 @@ import xyz.larkzhh.lime.ui.components.NoteCard
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.profile.components.ProfileHeader
 import xyz.larkzhh.lime.ui.profile.components.ProfileTabRow
+import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesUiState
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesViewModel
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileViewModel
 import xyz.larkzhh.lime.ui.theme.LimeGray
@@ -59,9 +61,27 @@ fun ProfileScreen(
     val uploadError by viewModel.uploadError.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val notesUiState by notesViewModel.uiState.collectAsState()
-    var selectedTab by rememberSaveable { mutableIntStateOf(0) }// tab
+    val notesUiState by notesViewModel.notesState.collectAsState()
+    val likesUiState by notesViewModel.likesState.collectAsState()
+    val favoritesUiState by notesViewModel.favoritesState.collectAsState()
+
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val tabs = listOf("笔记", "点赞", "收藏")
+
+    /// 当前 tab 对应的 UiState
+    val currentUiState: ProfileNotesUiState = when (selectedTab) {
+        0 -> notesUiState
+        1 -> likesUiState
+        else -> favoritesUiState
+    }
+
+    /// 点赞/收藏 tab 懒加载
+    LaunchedEffect(selectedTab) {
+        when (selectedTab) {
+            1 -> notesViewModel.loadLikesLazy()
+            2 -> notesViewModel.loadFavoritesLazy()
+        }
+    }
 
     /// 选择图片上传头像
     val avatarPickerLauncher = rememberLauncherForActivityResult(
@@ -85,8 +105,14 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface),
-                isLoadingMore = notesUiState.isLoadingMore,
-                onLoadMore = notesViewModel::loadMore,
+                isLoadingMore = currentUiState.isLoadingMore,
+                onLoadMore = {
+                    when (selectedTab) {
+                        0 -> notesViewModel.loadMoreNotes()
+                        1 -> notesViewModel.loadMoreLikes()
+                        else -> notesViewModel.loadMoreFavorites()
+                    }
+                },
                 contentPadding = PaddingValues(bottom = innerPadding.calculateBottomPadding()),
                 verticalItemSpacing = 0.dp,
             ) {
@@ -130,82 +156,90 @@ fun ProfileScreen(
                         )
                     }
                 }
-
-                // tab 内容
                 item(span = StaggeredGridItemSpan.FullLine) {
                     Box(modifier = Modifier.fillMaxWidth().height(8.dp))
                 }
+
+                // tab 内容
                 when (selectedTab) {
-                    0 -> {
-                        // 笔记列表
-                        if (notesUiState.isLoading) {
-                            item(span = StaggeredGridItemSpan.FullLine) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 32.dp),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(28.dp),
-                                        color = LimePrimary,
-                                        trackColor = LimeWhite,
-                                        strokeWidth = 2.dp,
-                                    )
-                                }
-                            }
-                        } else if (notesUiState.error != null && notesUiState.items.isEmpty()) {
-                            item(span = StaggeredGridItemSpan.FullLine) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 32.dp),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Text(
-                                        text = notesUiState.error ?: "加载失败",
-                                        color = LimeGray,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                    )
-                                }
-                            }
-                        } else {
-                            items(notesUiState.items, key = { it.id }) { item ->
-                                NoteCard(
-                                    item = item,
-                                    liked = item.id in notesUiState.likedIds,
-                                    onLikeToggle = { notesViewModel.toggleLike(item.id) },
-                                    modifier = Modifier.padding(
-                                        start = 4.dp,
-                                        end = 4.dp,
-                                        bottom = 8.dp,
-                                    ),
-                                    onClick = {
-                                        navController.navigate(
-                                            Screen.Detail.createRoute(item.id.toString())
-                                        )
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    else -> {
-                        item(span = StaggeredGridItemSpan.FullLine) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 64.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = "依旧施工",
-                                    color = LimeGray,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-                        }
-                    }
+                    0 -> tabContent(
+                        uiState = notesUiState,
+                        navController = navController,
+                        onLikeToggle = { id -> notesViewModel.toggleLike(id) },
+                    )
+                    1 -> tabContent(
+                        uiState = likesUiState,
+                        navController = navController,
+                        onLikeToggle = { id -> notesViewModel.toggleLike(id) },
+                    )
+                    else -> tabContent(
+                        uiState = favoritesUiState,
+                        navController = navController,
+                        onLikeToggle = { id -> notesViewModel.toggleLike(id) },
+                    )
                 }
+            }
+        }
+    }
+}
+
+/// 列表渲染逻辑
+private fun LazyStaggeredGridScope.tabContent(
+    uiState: ProfileNotesUiState,
+    navController: NavHostController,
+    onLikeToggle: (Long) -> Unit,
+) {
+    when {
+        uiState.isLoading -> {
+            item(span = StaggeredGridItemSpan.FullLine) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(28.dp),
+                        color = LimePrimary,
+                        trackColor = LimeWhite,
+                        strokeWidth = 2.dp,
+                    )
+                }
+            }
+        }
+        uiState.error != null && uiState.items.isEmpty() -> {
+            item(span = StaggeredGridItemSpan.FullLine) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = uiState.error,
+                        color = LimeGray,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+        }
+        else -> {
+            items(uiState.items, key = { it.id }) { item ->
+                NoteCard(
+                    item = item,
+                    liked = item.id in uiState.likedIds,
+                    onLikeToggle = { onLikeToggle(item.id) },
+                    modifier = Modifier.padding(
+                        start = 4.dp,
+                        end = 4.dp,
+                        bottom = 8.dp,
+                    ),
+                    onClick = {
+                        navController.navigate(
+                            Screen.Detail.createRoute(item.id.toString())
+                        )
+                    },
+                )
             }
         }
     }
