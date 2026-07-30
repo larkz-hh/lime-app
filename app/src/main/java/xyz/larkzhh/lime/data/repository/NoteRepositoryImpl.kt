@@ -53,6 +53,20 @@ class NoteRepositoryImpl @Inject constructor(
         response.data
     }
 
+    /// 获取指定用户的点赞笔记列表
+    override suspend fun getUserLikes(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
+        val response = apiService.getUserLikes(userId = userId, cursor = cursor, size = size)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
+    /// 获取指定用户的收藏笔记列表
+    override suspend fun getUserFavorites(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
+        val response = apiService.getUserFavorites(userId = userId, cursor = cursor, size = size)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
     /// 点赞笔记
     override suspend fun likeNote(id: Long): Result<Unit> = runCatching {
         val response = apiService.likeNote(id)
