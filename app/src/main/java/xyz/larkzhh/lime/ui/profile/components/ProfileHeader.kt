@@ -56,6 +56,7 @@ fun ProfileHeader(
     uiState: ProfileUiState,
     onEditProfile: () -> Unit,
     onEditAvatar: () -> Unit,
+    onQrScan: () -> Unit = {},
 ) {
     val user = (uiState as? ProfileUiState.Success)?.user
     val backgroundUrl = user?.backgroundImage
@@ -129,7 +130,7 @@ fun ProfileHeader(
                         Text("编辑主页", style = MaterialTheme.typography.labelMedium, color = LimePrimaryPale)
                     }
                     Spacer(Modifier.width(4.dp))
-                    IconButton(onClick = { /* TODO: 扫一扫 */ }) {
+                    IconButton(onClick = onQrScan) {
                         Icon(
                             imageVector = Icons.Default.QrCodeScanner,
                             contentDescription = "扫一扫",
