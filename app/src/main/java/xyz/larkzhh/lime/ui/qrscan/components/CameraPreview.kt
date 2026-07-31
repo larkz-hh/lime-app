@@ -20,19 +20,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
 
 @OptIn(ExperimentalGetImage::class)
 @Composable
-fun CameraPreview(onResult: (String) -> Unit) {
+fun CameraPreview(scanner: BarcodeScanner, onResult: (String) -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var hasResult by remember { mutableStateOf(false) }
     val executor = remember { Executors.newSingleThreadExecutor() }
-    val scanner = remember { BarcodeScanning.getClient() }
 
     val previewView = remember {
         PreviewView(context).apply {
@@ -43,7 +42,6 @@ fun CameraPreview(onResult: (String) -> Unit) {
     DisposableEffect(Unit) {
         onDispose {
             executor.shutdown()
-            scanner.close()
         }
     }
 
