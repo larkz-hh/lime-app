@@ -51,8 +51,8 @@ data class NoteDetailData(
     val liked: Boolean,
     val favorited: Boolean,
     val author: FeedAuthor,
-    val createTime: String?,
-    val updateTime: String?,
+    val createTime: String? = null,
+    val updateTime: String? = null,
 )
 
 data class FeedItem(

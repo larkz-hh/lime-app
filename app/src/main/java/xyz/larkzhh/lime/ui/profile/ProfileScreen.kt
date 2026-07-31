@@ -122,6 +122,7 @@ fun ProfileScreen(
                         uiState = uiState,
                         onEditProfile = { navController.navigate("edit_profile") },
                         onEditAvatar = { avatarPickerLauncher.launch("image/*") },
+                        onQrScan = { navController.navigate(Screen.QrScan.route) },
                     )
                 }
 
