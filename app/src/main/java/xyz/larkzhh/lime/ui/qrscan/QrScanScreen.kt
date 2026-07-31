@@ -6,10 +6,11 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.Camera
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -54,9 +55,13 @@ fun QrScanScreen(navController: NavHostController) {
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
     val scanner = remember { BarcodeScanning.getClient() }
     var isAlbumScanning by remember { mutableStateOf(false) }
+    var camera by remember { mutableStateOf<Camera?>(null) }
 
     DisposableEffect(Unit) {
-        onDispose { scanner.close() }
+        onDispose {
+            scanner.close()
+            camera?.cameraControl?.enableTorch(false)
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -65,31 +70,24 @@ fun QrScanScreen(navController: NavHostController) {
         }
     }
 
-    // 处理结果
     fun handleResult(raw: String) {
         navController.popBackStack()
         val uri = runCatching { raw.toUri() }.getOrNull()
         when {
-            // 笔记页面
             uri?.scheme == "lime" && uri.host == "note" -> {
                 val noteId = uri.pathSegments.firstOrNull().orEmpty()
-                if (noteId.isNotBlank()) {
-                    navController.navigate(Screen.Detail.createRoute(noteId))
-                }
+                if (noteId.isNotBlank()) navController.navigate(Screen.Detail.createRoute(noteId))
             }
-            // 用户页面
             uri?.scheme == "lime" && uri.host == "user" -> {
                 Toast.makeText(context, "施工中", Toast.LENGTH_SHORT).show()
             }
             uri?.scheme == "http" || uri?.scheme == "https" -> {
-                runCatching {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
+                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
             }
             else -> raw.showToast(context, Toast.LENGTH_LONG)
         }
     }
 
-    // 系统相册选择器
     val albumLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { imageUri ->
@@ -104,14 +102,9 @@ fun QrScanScreen(navController: NavHostController) {
         scanner.process(image)
             .addOnSuccessListener { barcodes ->
                 isAlbumScanning = false
-                val raw = barcodes
-                    .firstOrNull { it.format == Barcode.FORMAT_QR_CODE }
-                    ?.rawValue
-                if (!raw.isNullOrBlank()) {
-                    handleResult(raw)
-                } else {
-                     "未识别到二维码".showToast(context)
-                }
+                val raw = barcodes.firstOrNull { it.format == Barcode.FORMAT_QR_CODE }?.rawValue
+                if (!raw.isNullOrBlank()) handleResult(raw)
+                else "未识别到二维码".showToast(context)
             }
             .addOnFailureListener {
                 isAlbumScanning = false
@@ -121,8 +114,12 @@ fun QrScanScreen(navController: NavHostController) {
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         if (cameraPermission.status.isGranted) {
-            CameraPreview(scanner = scanner, onResult = ::handleResult)
-            ScanOverlay()
+            CameraPreview(
+                scanner = scanner,
+                onCameraReady = { camera = it },
+                onResult = ::handleResult,
+            )
+            ScanOverlay(camera = camera)
         } else {
             Text(
                 text = "需要相机权限才能扫描二维码",
@@ -170,10 +167,11 @@ fun QrScanScreen(navController: NavHostController) {
         }
 
         // 底部相册按钮
-        Box(
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 80.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             IconButton(
                 onClick = {
@@ -196,7 +194,7 @@ fun QrScanScreen(navController: NavHostController) {
                 text = "相册",
                 color = Color.White,
                 fontSize = 12.sp,
-                modifier = Modifier.align(Alignment.BottomCenter).offset(y = 24.dp),
+                modifier = Modifier.padding(top = 8.dp),
             )
         }
     }

@@ -1,6 +1,7 @@
 package xyz.larkzhh.lime.ui.qrscan.components
 
 import androidx.annotation.OptIn
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
@@ -27,7 +28,11 @@ import java.util.concurrent.Executors
 
 @OptIn(ExperimentalGetImage::class)
 @Composable
-fun CameraPreview(scanner: BarcodeScanner, onResult: (String) -> Unit) {
+fun CameraPreview(
+    scanner: BarcodeScanner,
+    onCameraReady: (Camera) -> Unit,
+    onResult: (String) -> Unit,
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var hasResult by remember { mutableStateOf(false) }
@@ -85,12 +90,13 @@ fun CameraPreview(scanner: BarcodeScanner, onResult: (String) -> Unit) {
                     }
                 }
             cameraProvider.unbindAll()// 清理旧状态
-            cameraProvider.bindToLifecycle(
+            val camera = cameraProvider.bindToLifecycle(
                 lifecycleOwner,
                 CameraSelector.DEFAULT_BACK_CAMERA,
                 preview,
                 imageAnalysis,
             )
+            onCameraReady(camera)
         }, ContextCompat.getMainExecutor(context))
     }
 
