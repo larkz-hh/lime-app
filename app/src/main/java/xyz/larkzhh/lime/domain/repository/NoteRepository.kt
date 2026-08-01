@@ -2,6 +2,7 @@ package xyz.larkzhh.lime.domain.repository
 
 import android.net.Uri
 import xyz.larkzhh.lime.data.network.model.FeedResponse
+import xyz.larkzhh.lime.data.network.model.HistoryResponse
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 
 /**
@@ -30,4 +31,10 @@ interface NoteRepository {
     suspend fun favoriteNote(id: Long): Result<Unit>
     /// 取消收藏笔记
     suspend fun unfavoriteNote(id: Long): Result<Unit>
+    /// 获取浏览历史
+    suspend fun getHistory(cursor: Long?, size: Int = 10): Result<HistoryResponse>
+    /// 删除浏览历史条目
+    suspend fun deleteHistory(ids: List<Long>): Result<Unit>
+    /// 清空全部浏览历史
+    suspend fun deleteHistoryAll(): Result<Unit>
 }
