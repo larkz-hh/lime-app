@@ -28,8 +28,9 @@ import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
 import xyz.larkzhh.lime.ui.detail.DetailScreen
 import xyz.larkzhh.lime.ui.home.HomeScreen
 import xyz.larkzhh.lime.ui.message.MessageScreen
-import xyz.larkzhh.lime.ui.profile.EditProfileScreen
+import xyz.larkzhh.lime.ui.profile.edit.EditProfileScreen
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
+import xyz.larkzhh.lime.ui.profile.history.BrowseHistoryScreen
 import xyz.larkzhh.lime.ui.publish.PhotoPickerScreen
 import xyz.larkzhh.lime.ui.publish.PublishScreen
 import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
@@ -128,6 +129,7 @@ fun AppNavGraph() {
                 }
                 QrScanScreen(navController)
             }
+            composable(Screen.BrowseHistory.route) { BrowseHistoryScreen(navController) }
             composable(
                 route = Screen.Detail.ROUTE,
                 arguments = listOf(navArgument("noteId") { type = NavType.StringType })

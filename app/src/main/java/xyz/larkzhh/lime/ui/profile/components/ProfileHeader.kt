@@ -57,6 +57,7 @@ fun ProfileHeader(
     onEditProfile: () -> Unit,
     onEditAvatar: () -> Unit,
     onQrScan: () -> Unit = {},
+    onBrowseHistory: () -> Unit = {},
 ) {
     val user = (uiState as? ProfileUiState.Success)?.user
     val backgroundUrl = user?.backgroundImage
@@ -200,7 +201,7 @@ fun ProfileHeader(
                     label = "浏览记录",
                     subtitle = "看过的笔记",
                     modifier = Modifier.weight(1f),
-                    onClick = { /* TODO */ },
+                    onClick = onBrowseHistory,
                 )
                 Spacer(Modifier.width(12.dp))
                 QuickCard(
