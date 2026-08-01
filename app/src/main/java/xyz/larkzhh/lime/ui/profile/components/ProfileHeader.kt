@@ -44,9 +44,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryLight
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
@@ -58,6 +56,8 @@ fun ProfileHeader(
     uiState: ProfileUiState,
     onEditProfile: () -> Unit,
     onEditAvatar: () -> Unit,
+    onQrScan: () -> Unit = {},
+    onBrowseHistory: () -> Unit = {},
 ) {
     val user = (uiState as? ProfileUiState.Success)?.user
     val backgroundUrl = user?.backgroundImage
@@ -97,13 +97,11 @@ fun ProfileHeader(
                     )
             )
         }
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-
-            // 顶部工具栏 — statusBarsPadding 让内容在状态栏图标下方
+        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 28.dp)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .statusBarsPadding()
+                    .statusBarsPadding()// 让内容在状态栏图标下方
                     .padding(vertical = 2.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
@@ -133,7 +131,7 @@ fun ProfileHeader(
                         Text("编辑主页", style = MaterialTheme.typography.labelMedium, color = LimePrimaryPale)
                     }
                     Spacer(Modifier.width(4.dp))
-                    IconButton(onClick = { /* TODO: 扫一扫 */ }) {
+                    IconButton(onClick = onQrScan) {
                         Icon(
                             imageVector = Icons.Default.QrCodeScanner,
                             contentDescription = "扫一扫",
@@ -203,7 +201,7 @@ fun ProfileHeader(
                     label = "浏览记录",
                     subtitle = "看过的笔记",
                     modifier = Modifier.weight(1f),
-                    onClick = { /* TODO */ },
+                    onClick = onBrowseHistory,
                 )
                 Spacer(Modifier.width(12.dp))
                 QuickCard(

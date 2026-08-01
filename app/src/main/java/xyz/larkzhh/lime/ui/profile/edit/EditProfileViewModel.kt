@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.profile.viewmodel
+package xyz.larkzhh.lime.ui.profile.edit
 
 import android.content.Context
 import android.net.Uri

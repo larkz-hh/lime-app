@@ -7,7 +7,9 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.model.DeleteHistoryRequest
 import xyz.larkzhh.lime.data.network.model.FeedResponse
+import xyz.larkzhh.lime.data.network.model.HistoryResponse
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.NoteImageRequest
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
@@ -46,6 +48,27 @@ class NoteRepositoryImpl @Inject constructor(
         response.data
     }
 
+    /// 获取指定用户已发布的笔记列表
+    override suspend fun getUserNotes(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
+        val response = apiService.getUserNotes(userId = userId, cursor = cursor, size = size)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
+    /// 获取指定用户的点赞笔记列表
+    override suspend fun getUserLikes(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
+        val response = apiService.getUserLikes(userId = userId, cursor = cursor, size = size)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
+    /// 获取指定用户的收藏笔记列表
+    override suspend fun getUserFavorites(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
+        val response = apiService.getUserFavorites(userId = userId, cursor = cursor, size = size)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
     /// 点赞笔记
     override suspend fun likeNote(id: Long): Result<Unit> = runCatching {
         val response = apiService.likeNote(id)
@@ -75,6 +98,25 @@ class NoteRepositoryImpl @Inject constructor(
         val response = apiService.getNoteDetail(id)
         check(response.code == 200 && response.data != null) { response.message }
         response.data
+    }
+
+    /// 获取浏览历史
+    override suspend fun getHistory(cursor: Long?, size: Int): Result<HistoryResponse> = runCatching {
+        val response = apiService.getHistory(cursor = cursor, size = size)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
+    /// 删除浏览历史条目
+    override suspend fun deleteHistory(ids: List<Long>): Result<Unit> = runCatching {
+        val response = apiService.deleteHistory(DeleteHistoryRequest(noteIds = ids))
+        check(response.code == 200) { response.message }
+    }
+
+    /// 清空全部浏览历史
+    override suspend fun deleteHistoryAll(): Result<Unit> = runCatching {
+        val response = apiService.deleteHistoryAll()
+        check(response.code == 200) { response.message }
     }
 
     /// 发布笔记

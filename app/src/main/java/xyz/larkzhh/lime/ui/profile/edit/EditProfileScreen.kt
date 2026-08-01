@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.profile
+package xyz.larkzhh.lime.ui.profile.edit
 
 import android.app.Activity
 import android.net.Uri
@@ -64,8 +64,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.yalantis.ucrop.UCrop
-import xyz.larkzhh.lime.ui.profile.viewmodel.EditProfileUiState
-import xyz.larkzhh.lime.ui.profile.viewmodel.EditProfileViewModel
 import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray

@@ -14,6 +14,8 @@ sealed class Screen(val route: String) {
         fun createRoute(noteId: String) = "detail/$noteId"
     }
     object EditProfile : Screen("edit_profile")
+    object QrScan : Screen("qr_scan")
     object PhotoPicker : Screen("photo_picker")
     object NotePublish : Screen("note_publish")
+    object BrowseHistory : Screen("browse_history")
 }

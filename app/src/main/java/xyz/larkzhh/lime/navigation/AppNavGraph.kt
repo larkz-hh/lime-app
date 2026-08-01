@@ -6,6 +6,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,12 +28,13 @@ import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
 import xyz.larkzhh.lime.ui.detail.DetailScreen
 import xyz.larkzhh.lime.ui.home.HomeScreen
 import xyz.larkzhh.lime.ui.message.MessageScreen
-import xyz.larkzhh.lime.ui.profile.EditProfileScreen
+import xyz.larkzhh.lime.ui.profile.edit.EditProfileScreen
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
+import xyz.larkzhh.lime.ui.profile.history.BrowseHistoryScreen
 import xyz.larkzhh.lime.ui.publish.PhotoPickerScreen
 import xyz.larkzhh.lime.ui.publish.PublishScreen
 import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
-import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
+import xyz.larkzhh.lime.ui.qrscan.QrScanScreen
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.ui.video.VideoScreen
 
@@ -54,13 +56,14 @@ fun AppNavGraph() {
     val startDestination = Screen.Home.route
     var pendingRedirect by remember { mutableStateOf<String?>(null) }
     var showPublishSheet by remember { mutableStateOf(false) }
+    var isFullScreenActive by remember { mutableStateOf(false) }// 是否全屏
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val showBottomBar = currentRoute in bottomNavRoutes
+    val showBottomBar = currentRoute in bottomNavRoutes && !isFullScreenActive
 
     Scaffold(
         bottomBar = {
@@ -119,6 +122,14 @@ fun AppNavGraph() {
             composable(Screen.Message.route) { MessageScreen(navController) }
             composable(Screen.Profile.route) { ProfileScreen(navController) }
             composable(Screen.EditProfile.route) { EditProfileScreen(navController) }
+            composable(Screen.QrScan.route) {
+                DisposableEffect(Unit) {
+                    isFullScreenActive = true
+                    onDispose { isFullScreenActive = false }
+                }
+                QrScanScreen(navController)
+            }
+            composable(Screen.BrowseHistory.route) { BrowseHistoryScreen(navController) }
             composable(
                 route = Screen.Detail.ROUTE,
                 arguments = listOf(navArgument("noteId") { type = NavType.StringType })
