@@ -51,8 +51,8 @@ data class NoteDetailData(
     val liked: Boolean,
     val favorited: Boolean,
     val author: FeedAuthor,
-    val createTime: String?,
-    val updateTime: String?,
+    val createTime: String? = null,
+    val updateTime: String? = null,
 )
 
 data class FeedItem(
@@ -61,7 +61,8 @@ data class FeedItem(
     val coverImage: String?,
     val likeCount: Int,
     val liked: Boolean,
-    val author: FeedAuthor,// 作者详情
+    val author: FeedAuthor,
+    val viewCount: Int? = null,// 本人才有值
 )
 
 data class FeedResponse(

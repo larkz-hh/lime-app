@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
@@ -49,6 +50,7 @@ fun WaterfallFeed(
     columns: Int = 2,
     state: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
     contentPadding: PaddingValues = PaddingValues(8.dp),
+    verticalItemSpacing: Dp = 8.dp,
     isLoadingMore: Boolean = false,
     onLoadMore: () -> Unit = {},
     content: LazyStaggeredGridScope.() -> Unit,
@@ -71,7 +73,7 @@ fun WaterfallFeed(
         modifier = modifier.fillMaxSize(),
         contentPadding = contentPadding,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalItemSpacing = 8.dp,
+        verticalItemSpacing = verticalItemSpacing,
     ) {
         content()
         if (isLoadingMore) {
