@@ -2,6 +2,7 @@ package xyz.larkzhh.lime.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -59,7 +60,10 @@ fun BottomNavBar(
 
     val authRequiredScreens = setOf(Screen.Message.route, Screen.Profile.route)
 
-    NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface,
+        windowInsets = WindowInsets(0),
+    ) {
         items.forEach { item ->
             if (item is BottomNavItem.Publish) {
                 NavigationBarItem(

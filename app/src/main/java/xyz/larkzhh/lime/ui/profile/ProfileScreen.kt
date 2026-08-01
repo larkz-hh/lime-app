@@ -4,19 +4,20 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScope
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -26,18 +27,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.components.NoteCard
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
@@ -47,7 +60,6 @@ import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesUiState
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesViewModel
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileViewModel
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
@@ -65,21 +77,16 @@ fun ProfileScreen(
     val likesUiState by notesViewModel.likesState.collectAsState()
     val favoritesUiState by notesViewModel.favoritesState.collectAsState()
 
-    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val tabs = listOf("笔记", "点赞", "收藏")
+    val pagerState = rememberPagerState { tabs.size }
+    val coroutineScope = rememberCoroutineScope()
 
-    /// 当前 tab 对应的 UiState
-    val currentUiState: ProfileNotesUiState = when (selectedTab) {
-        0 -> notesUiState
-        1 -> likesUiState
-        else -> favoritesUiState
-    }
-
-    /// 点赞/收藏 tab 懒加载
-    LaunchedEffect(selectedTab) {
-        when (selectedTab) {
-            1 -> notesViewModel.loadLikesLazy()
-            2 -> notesViewModel.loadFavoritesLazy()
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            when (page) {
+                1 -> notesViewModel.loadLikesLazy()
+                2 -> notesViewModel.loadFavoritesLazy()
+            }
         }
     }
 
@@ -96,88 +103,129 @@ fun ProfileScreen(
         }
     }
 
+    // 折叠 header 状态
+    var headerHeightPx by remember { mutableIntStateOf(0) }
+    var tabBarHeightPx by remember { mutableIntStateOf(0) }
+    var headerOffsetPx by remember { mutableFloatStateOf(0f) }
+    val density = LocalDensity.current
+
+    // 向上滑先折叠 header
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val delta = available.y// 手指滑动y轴距离
+                val oldOffset = headerOffsetPx
+                headerOffsetPx = (oldOffset + delta).coerceIn(-headerHeightPx.toFloat(), 0f)
+                return Offset(0f, headerOffsetPx - oldOffset)// 拦截头部区域实际移动的距离
+            }
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = LimeLightGray,
-    ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            WaterfallFeed(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface),
-                isLoadingMore = currentUiState.isLoadingMore,
-                onLoadMore = {
-                    when (selectedTab) {
-                        0 -> notesViewModel.loadMoreNotes()
-                        1 -> notesViewModel.loadMoreLikes()
-                        else -> notesViewModel.loadMoreFavorites()
-                    }
-                },
-                contentPadding = PaddingValues(bottom = innerPadding.calculateBottomPadding()),
-                verticalItemSpacing = 0.dp,
-            ) {
-                // 头部区域
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    ProfileHeader(
-                        uiState = uiState,
-                        onEditProfile = { navController.navigate("edit_profile") },
-                        onEditAvatar = { avatarPickerLauncher.launch("image/*") },
-                        onQrScan = { navController.navigate(Screen.QrScan.route) },
-                        onBrowseHistory = { navController.navigate(Screen.BrowseHistory.route) },
-                    )
-                }
+        contentWindowInsets = WindowInsets(0),
+    ) { _ ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(nestedScrollConnection)
+        ) {
+            val overlapPx = with(density) { 24.dp.toPx() }
+            val visibleHeaderPx = (headerHeightPx + headerOffsetPx).coerceAtLeast(0f)// header 当前实际可见的高度
+            val tabBarTopPx = (visibleHeaderPx - overlapPx).coerceAtLeast(0f)// tab 栏距离顶部的距离
+            val contentTopDp: Dp = with(density) { (tabBarTopPx + tabBarHeightPx).toDp() }// 列表内容开始的位置
 
-                // tab 栏
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .layout { measurable, constraints ->
-                                val placeable = measurable.measure(constraints)
-                                val overlapPx = 12.dp.roundToPx()
-                                layout(placeable.width, (placeable.height - overlapPx).coerceAtLeast(0)) {
-                                    placeable.placeRelative(0, -overlapPx)
-                                }
-                            }
-                            .shadow(
-                                elevation = 4.dp,
-                                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                                clip = false,
-                            )
-                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                            .background(MaterialTheme.colorScheme.surface)
-                    ) {
-                        ProfileTabRow(
-                            tabs = tabs,
-                            selectedIndex = selectedTab,
-                            onTabSelected = { selectedTab = it },
-                        )
-                    }
-                }
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    Box(modifier = Modifier.fillMaxWidth().height(8.dp))
-                }
-
-                // tab 内容
-                when (selectedTab) {
-                    0 -> tabContent(
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+                beyondViewportPageCount = 1,
+            ) { page ->
+                when (page) {
+                    0 -> TabPage(
                         uiState = notesUiState,
+                        contentPaddingTop = contentTopDp,// 随 header 折叠动态变化
                         navController = navController,
-                        onLikeToggle = { id -> notesViewModel.toggleLike(id) },
+                        onLikeToggle = notesViewModel::toggleLike,
+                        onLoadMore = notesViewModel::loadMoreNotes,
                     )
-                    1 -> tabContent(
+                    1 -> TabPage(
                         uiState = likesUiState,
+                        contentPaddingTop = contentTopDp,
                         navController = navController,
-                        onLikeToggle = { id -> notesViewModel.toggleLike(id) },
+                        onLikeToggle = notesViewModel::toggleLike,
+                        onLoadMore = notesViewModel::loadMoreLikes,
                     )
-                    else -> tabContent(
+                    else -> TabPage(
                         uiState = favoritesUiState,
+                        contentPaddingTop = contentTopDp,
                         navController = navController,
-                        onLikeToggle = { id -> notesViewModel.toggleLike(id) },
+                        onLikeToggle = notesViewModel::toggleLike,
+                        onLoadMore = notesViewModel::loadMoreFavorites,
                     )
                 }
             }
+
+            // 头部区域
+            ProfileHeader(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onSizeChanged { headerHeightPx = it.height }
+                    .offset { IntOffset(0, headerOffsetPx.roundToInt()) },
+                uiState = uiState,
+                onEditProfile = { navController.navigate("edit_profile") },
+                onEditAvatar = { avatarPickerLauncher.launch("image/*") },
+                onQrScan = { navController.navigate(Screen.QrScan.route) },
+                onBrowseHistory = { navController.navigate(Screen.BrowseHistory.route) },
+            )
+
+            // Tab 栏
+            val isSticky = visibleHeaderPx <= overlapPx// 是否吸顶
+            val tabShape = if (isSticky) RectangleShape else RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onSizeChanged { tabBarHeightPx = it.height }
+                    .offset { IntOffset(0, tabBarTopPx.roundToInt()) }
+                    .then(
+                        if (!isSticky) Modifier.shadow(elevation = 4.dp, shape = tabShape, clip = false)
+                        else Modifier
+                    )
+                    .clip(tabShape)
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                ProfileTabRow(
+                    tabs = tabs,
+                    selectedIndex = pagerState.currentPage,
+                    onTabSelected = { index ->
+                        coroutineScope.launch { pagerState.animateScrollToPage(index) }
+                    },
+                )
+            }
         }
+    }
+}
+
+/// Tab 页面
+@Composable
+private fun TabPage(
+    uiState: ProfileNotesUiState,
+    contentPaddingTop: Dp,
+    navController: NavHostController,
+    onLikeToggle: (Long) -> Unit,
+    onLoadMore: () -> Unit,
+) {
+    WaterfallFeed(
+        modifier = Modifier.fillMaxSize(),
+        isLoadingMore = uiState.isLoadingMore,
+        onLoadMore = onLoadMore,
+        contentPadding = PaddingValues(top = contentPaddingTop, bottom = 8.dp),
+        verticalItemSpacing = 0.dp,
+    ) {
+        tabContent(
+            uiState = uiState,
+            navController = navController,
+            onLikeToggle = onLikeToggle,
+        )
     }
 }
 
