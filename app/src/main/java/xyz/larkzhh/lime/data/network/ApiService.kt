@@ -4,6 +4,7 @@ import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.HTTP
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -11,7 +12,9 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 import xyz.larkzhh.lime.data.network.model.ApiResponse
+import xyz.larkzhh.lime.data.network.model.DeleteHistoryRequest
 import xyz.larkzhh.lime.data.network.model.FeedResponse
+import xyz.larkzhh.lime.data.network.model.HistoryResponse
 import xyz.larkzhh.lime.data.network.model.LoginRequest
 import xyz.larkzhh.lime.data.network.model.NoteData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
@@ -127,4 +130,19 @@ interface ApiService {
         @Query("cursor") cursor: Long?,
         @Query("size") size: Int,
     ): ApiResponse<FeedResponse>
+
+    /// 获取浏览历史
+    @GET("api/notes/history")
+    suspend fun getHistory(
+        @Query("cursor") cursor: Long?,
+        @Query("size") size: Int,
+    ): ApiResponse<HistoryResponse>
+
+    /// 删除浏览历史条目
+    @HTTP(method = "DELETE", path = "api/notes/history", hasBody = true)
+    suspend fun deleteHistory(@Body request: DeleteHistoryRequest): ApiResponse<Unit>
+
+    /// 清空全部浏览历史
+    @DELETE("api/notes/history/all")
+    suspend fun deleteHistoryAll(): ApiResponse<Unit>
 }
