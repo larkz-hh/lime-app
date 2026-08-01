@@ -123,6 +123,7 @@ fun ProfileScreen(
                         onEditProfile = { navController.navigate("edit_profile") },
                         onEditAvatar = { avatarPickerLauncher.launch("image/*") },
                         onQrScan = { navController.navigate(Screen.QrScan.route) },
+                        onBrowseHistory = { navController.navigate(Screen.BrowseHistory.route) },
                     )
                 }
 
