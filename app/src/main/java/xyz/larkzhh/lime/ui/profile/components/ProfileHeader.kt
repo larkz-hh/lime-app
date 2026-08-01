@@ -56,6 +56,7 @@ fun ProfileHeader(
     uiState: ProfileUiState,
     onEditProfile: () -> Unit,
     onEditAvatar: () -> Unit,
+    modifier: Modifier = Modifier,
     onQrScan: () -> Unit = {},
     onBrowseHistory: () -> Unit = {},
 ) {
@@ -63,7 +64,7 @@ fun ProfileHeader(
     val backgroundUrl = user?.backgroundImage
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .then(
                 if (backgroundUrl == null)
