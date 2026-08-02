@@ -87,8 +87,8 @@ fun LoginScreen(
                     }
                 },
                 expandedHeight = 56.dp,
-               // windowInsets = TopAppBarDefaults.windowInsets,
-                windowInsets = WindowInsets(0.dp),
+                windowInsets = TopAppBarDefaults.windowInsets,
+                // windowInsets = WindowInsets(0),
             )
         },
     ) { innerPadding ->

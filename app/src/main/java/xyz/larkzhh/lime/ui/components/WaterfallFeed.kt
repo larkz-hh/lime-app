@@ -49,8 +49,10 @@ fun WaterfallFeed(
     modifier: Modifier = Modifier,
     columns: Int = 2,
     state: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
-    contentPadding: PaddingValues = PaddingValues(8.dp),
-    verticalItemSpacing: Dp = 8.dp,
+    //contentPadding: PaddingValues = PaddingValues(8.dp),
+    contentPadding: PaddingValues = PaddingValues(start = 5.dp, end = 5.dp, top = 0.dp, bottom = 0.dp),
+    verticalItemSpacing: Dp = 4.dp,
+    horizontalItemSpacing: Dp = 4.dp,
     isLoadingMore: Boolean = false,
     onLoadMore: () -> Unit = {},
     content: LazyStaggeredGridScope.() -> Unit,
@@ -72,7 +74,7 @@ fun WaterfallFeed(
         state = state,
         modifier = modifier.fillMaxSize(),
         contentPadding = contentPadding,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(horizontalItemSpacing),
         verticalItemSpacing = verticalItemSpacing,
     ) {
         content()

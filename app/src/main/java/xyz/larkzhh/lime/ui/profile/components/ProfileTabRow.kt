@@ -5,6 +5,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalRippleConfiguration
@@ -40,7 +41,8 @@ fun ProfileTabRow(
             Box(
                 modifier = Modifier
                     .tabIndicatorOffset(selectedIndex, matchContentSize = true)
-                    .height(3.dp)
+                    .offset(y = (-8).dp)
+                    .height(2.dp)
                     .clip(RoundedCornerShape(1.5.dp))
                     .background(LimePrimary)
             )

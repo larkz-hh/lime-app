@@ -60,6 +60,7 @@ import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesUiState
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesViewModel
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileViewModel
 import xyz.larkzhh.lime.ui.theme.LimeGray
+import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
@@ -215,11 +216,10 @@ private fun TabPage(
     onLoadMore: () -> Unit,
 ) {
     WaterfallFeed(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(LimeLightGray),
         isLoadingMore = uiState.isLoadingMore,
         onLoadMore = onLoadMore,
-        contentPadding = PaddingValues(top = contentPaddingTop, bottom = 8.dp),
-        verticalItemSpacing = 0.dp,
+        contentPadding = PaddingValues(start = 5.dp, end = 5.dp,top = contentPaddingTop, bottom = 8.dp),
     ) {
         tabContent(
             uiState = uiState,
@@ -275,11 +275,6 @@ private fun LazyStaggeredGridScope.tabContent(
                     item = item,
                     liked = item.id in uiState.likedIds,
                     onLikeToggle = { onLikeToggle(item.id) },
-                    modifier = Modifier.padding(
-                        start = 4.dp,
-                        end = 4.dp,
-                        bottom = 8.dp,
-                    ),
                     onClick = {
                         navController.navigate(
                             Screen.Detail.createRoute(item.id.toString())
