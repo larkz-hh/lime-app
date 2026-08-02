@@ -117,15 +117,26 @@ fun ProfileScreen(
     val density = LocalDensity.current
     val gapPxConst = with(density) { 4.dp.toPx() }
 
-    // 向上滑先折叠 header
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
+            //计算header最多能向上隐藏的像素
+            private fun minOffset() =
+                -(headerHeightPx.toFloat() - topBarHeightPx.toFloat() - gapPxConst).coerceAtLeast(0f)
+
+            // 上滑header先折叠，再交给list
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                val delta = available.y// 手指滑动y轴距离
-                val oldOffset = headerOffsetPx
-                val minOffset = -(headerHeightPx.toFloat() - topBarHeightPx.toFloat() - gapPxConst).coerceAtLeast(0f)
-                headerOffsetPx = (oldOffset + delta).coerceIn(minOffset, 0f)
-                return Offset(0f, headerOffsetPx - oldOffset)// 拦截头部区域实际移动的距离
+                if (available.y >= 0f) return Offset.Zero
+                val old = headerOffsetPx
+                headerOffsetPx = (old + available.y).coerceIn(minOffset(), 0f)
+                return Offset(0f, headerOffsetPx - old)
+            }
+
+            // 下滑list滚到顶后剩余才展开header
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                if (available.y <= 0f) return Offset.Zero
+                val old = headerOffsetPx
+                headerOffsetPx = (old + available.y).coerceIn(minOffset(), 0f)
+                return Offset(0f, headerOffsetPx - old)
             }
         }
     }
