@@ -18,15 +18,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,10 +50,8 @@ import java.time.LocalDate
 @Composable
 fun ProfileHeader(
     uiState: ProfileUiState,
-    onEditProfile: () -> Unit,
     onEditAvatar: () -> Unit,
     modifier: Modifier = Modifier,
-    onQrScan: () -> Unit = {},
     onBrowseHistory: () -> Unit = {},
 ) {
     val user = (uiState as? ProfileUiState.Success)?.user
@@ -103,50 +97,11 @@ fun ProfileHeader(
                 )
         )
 
-        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 28.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()// 让内容在状态栏图标下方
-                    .padding(vertical = 2.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(onClick = { /* TODO: 打开抽屉 */ }) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = "菜单",
-                        tint = LimeWhite,
-                    )
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Row(
-                        modifier = Modifier
-                            .background(LimeGray.copy(alpha = 0.4f), shape = RoundedCornerShape(20.dp))
-                            .clickable(onClick = onEditProfile)
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = null,
-                            tint = LimeWhite ,
-                            modifier = Modifier.size(14.dp),
-                        )
-                        Text("编辑主页", style = MaterialTheme.typography.labelMedium, color = LimePrimaryPale)
-                    }
-                    Spacer(Modifier.width(4.dp))
-                    IconButton(onClick = onQrScan) {
-                        Icon(
-                            imageVector = Icons.Default.QrCodeScanner,
-                            contentDescription = "扫一扫",
-                            tint = LimeWhite,
-                        )
-                    }
-                }
-            }
-
+        Column(
+            modifier = Modifier
+                .statusBarsPadding()
+                .padding(top = 56.dp, start = 16.dp, end = 16.dp, bottom = 28.dp)
+        ) {
             Spacer(Modifier.height(8.dp))
 
             /// 头像与昵称
