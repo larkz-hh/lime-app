@@ -66,16 +66,8 @@ fun ProfileHeader(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .then(
-                if (backgroundUrl == null)
-                    Modifier.background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(LimePrimaryLight, LimePrimaryPale)
-                        )
-                    )
-                else Modifier
-            )
     ) {
+        // 背景图
         if (backgroundUrl != null) {
             AsyncImage(
                 model = backgroundUrl,
@@ -85,19 +77,32 @@ fun ProfileHeader(
                     .blur(1.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded),
                 contentScale = ContentScale.Crop,
             )
+        } else {
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .background(
                         brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Black.copy(alpha = 0.25f),
-                                Color.Black.copy(alpha = 0.50f),
-                            )
+                            colors = listOf(LimePrimaryLight, LimePrimaryPale)
                         )
                     )
             )
         }
+
+        // 透明渐变遮罩
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.2f),
+                            Color.Black.copy(alpha = 0.9f),
+                        )
+                    )
+                )
+        )
+
         Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 28.dp)) {
             Row(
                 modifier = Modifier
@@ -117,7 +122,7 @@ fun ProfileHeader(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Row(
                         modifier = Modifier
-                            .background(Color.Gray.copy(alpha = 0.5f), shape = RoundedCornerShape(20.dp))
+                            .background(LimeGray.copy(alpha = 0.4f), shape = RoundedCornerShape(20.dp))
                             .clickable(onClick = onEditProfile)
                             .padding(horizontal = 12.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -303,7 +308,7 @@ private fun StatItem(count: String, label: String) {
 private fun InfoChip(text: String? = null, genderIcon: Pair<String, Color>? = null) {
     Row(
         modifier = Modifier
-            .background(Color.Gray.copy(alpha = 0.5f), shape = RoundedCornerShape(20.dp))
+            .background(Color.Gray.copy(alpha = 0.4f), shape = RoundedCornerShape(20.dp))
             .padding(horizontal = 10.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(3.dp),
@@ -351,7 +356,7 @@ private fun QuickCard(
         onClick = onClick,
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Gray.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(containerColor = Color.Gray.copy(alpha = 0.4f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
