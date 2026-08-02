@@ -2,6 +2,7 @@ package xyz.larkzhh.lime.ui.profile
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -46,6 +47,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -56,6 +58,7 @@ import xyz.larkzhh.lime.ui.components.NoteCard
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.profile.components.ProfileHeader
 import xyz.larkzhh.lime.ui.profile.components.ProfileTabRow
+import xyz.larkzhh.lime.ui.profile.components.ProfileTopBar
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesUiState
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesViewModel
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileViewModel
@@ -63,6 +66,7 @@ import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
+import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
 
 @Composable
 fun ProfileScreen(
@@ -71,6 +75,7 @@ fun ProfileScreen(
     notesViewModel: ProfileNotesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val user = (uiState as? ProfileUiState.Success)?.user
     val uploadError by viewModel.uploadError.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -107,8 +112,10 @@ fun ProfileScreen(
     // 折叠 header 状态
     var headerHeightPx by remember { mutableIntStateOf(0) }
     var tabBarHeightPx by remember { mutableIntStateOf(0) }
+    var topBarHeightPx by remember { mutableIntStateOf(0) }
     var headerOffsetPx by remember { mutableFloatStateOf(0f) }
     val density = LocalDensity.current
+    val gapPxConst = with(density) { 4.dp.toPx() }
 
     // 向上滑先折叠 header
     val nestedScrollConnection = remember {
@@ -116,7 +123,8 @@ fun ProfileScreen(
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 val delta = available.y// 手指滑动y轴距离
                 val oldOffset = headerOffsetPx
-                headerOffsetPx = (oldOffset + delta).coerceIn(-headerHeightPx.toFloat(), 0f)
+                val minOffset = -(headerHeightPx.toFloat() - topBarHeightPx.toFloat() - gapPxConst).coerceAtLeast(0f)
+                headerOffsetPx = (oldOffset + delta).coerceIn(minOffset, 0f)
                 return Offset(0f, headerOffsetPx - oldOffset)// 拦截头部区域实际移动的距离
             }
         }
@@ -129,36 +137,50 @@ fun ProfileScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(LimeLightGray)
                 .nestedScroll(nestedScrollConnection)
         ) {
             val overlapPx = with(density) { 24.dp.toPx() }
+            val gapPx = with(density) { 4.dp.toPx() }
             val visibleHeaderPx = (headerHeightPx + headerOffsetPx).coerceAtLeast(0f)// header 当前实际可见的高度
-            val tabBarTopPx = (visibleHeaderPx - overlapPx).coerceAtLeast(0f)// tab 栏距离顶部的距离
-            val contentTopDp: Dp = with(density) { (tabBarTopPx + tabBarHeightPx).toDp() }// 列表内容开始的位置
+            val tabBarTopPx = (visibleHeaderPx - overlapPx).coerceAtLeast(topBarHeightPx.toFloat() + gapPx)// tab 栏距离顶部的距离
+            val contentTopDp: Dp = with(density) { (tabBarTopPx + tabBarHeightPx).toDp() }// 列表内容起始位置
+            val stickyTabBarBottomDp: Dp = with(density) {
+                (topBarHeightPx.toFloat() + gapPx + tabBarHeightPx.toFloat()).toDp()
+            }// tab 栏吸顶时的绝对位置
+            val relativeContentPaddingTop: Dp = (contentTopDp - stickyTabBarBottomDp).coerceAtLeast(8.dp)// 列表内容顶部内边距
+            val maxScrollPx = (headerHeightPx.toFloat() - topBarHeightPx.toFloat() - gapPx).coerceAtLeast(1f)// header 实际可滚动距离
+            val scrollFraction = if (headerHeightPx > 0) (-headerOffsetPx / maxScrollPx).coerceIn(0f, 1f) else 0f
+            val topBarBgAlpha = ((scrollFraction - 0.2f) / 0.5f).coerceIn(0f, 1f)// 顶部栏背景透明度
+            val editButtonAlpha = (1f - scrollFraction / 0.5f).coerceIn(0f, 1f)// 编辑按钮背景透明度
+            val avatarThresholdPx = with(density) { 84.dp.toPx() }
+            val miniAvatarProgress = ((-headerOffsetPx - avatarThresholdPx) / with(density) { 32.dp.toPx() }).coerceIn(0f, 1f)// 小头像的过渡进度
+            val miniAvatarAlpha = miniAvatarProgress// 小头像透明度
+            val miniAvatarOffsetDp: Dp = with(density) { ((1f - miniAvatarAlpha) * 12.dp.toPx()).toDp() }// 小头像偏移
 
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.padding(top = stickyTabBarBottomDp).fillMaxSize().clip(RectangleShape),
                 beyondViewportPageCount = 1,
             ) { page ->
                 when (page) {
                     0 -> TabPage(
                         uiState = notesUiState,
-                        contentPaddingTop = contentTopDp,// 随 header 折叠动态变化
+                        contentPaddingTop = relativeContentPaddingTop,// 随 header 折叠动态变化
                         navController = navController,
                         onLikeToggle = notesViewModel::toggleLike,
                         onLoadMore = notesViewModel::loadMoreNotes,
                     )
                     1 -> TabPage(
                         uiState = likesUiState,
-                        contentPaddingTop = contentTopDp,
+                        contentPaddingTop = relativeContentPaddingTop,
                         navController = navController,
                         onLikeToggle = notesViewModel::toggleLike,
                         onLoadMore = notesViewModel::loadMoreLikes,
                     )
                     else -> TabPage(
                         uiState = favoritesUiState,
-                        contentPaddingTop = contentTopDp,
+                        contentPaddingTop = relativeContentPaddingTop,
                         navController = navController,
                         onLikeToggle = notesViewModel::toggleLike,
                         onLoadMore = notesViewModel::loadMoreFavorites,
@@ -173,15 +195,17 @@ fun ProfileScreen(
                     .onSizeChanged { headerHeightPx = it.height }
                     .offset { IntOffset(0, headerOffsetPx.roundToInt()) },
                 uiState = uiState,
-                onEditProfile = { navController.navigate("edit_profile") },
                 onEditAvatar = { avatarPickerLauncher.launch("image/*") },
-                onQrScan = { navController.navigate(Screen.QrScan.route) },
                 onBrowseHistory = { navController.navigate(Screen.BrowseHistory.route) },
             )
 
             // Tab 栏
-            val isSticky = visibleHeaderPx <= overlapPx// 是否吸顶
-            val tabShape = if (isSticky) RectangleShape else RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            val isSticky = (visibleHeaderPx - overlapPx) <= topBarHeightPx.toFloat() + gapPx// 是否吸顶
+            val cornerRadiusDp by animateDpAsState(
+                targetValue = if (isSticky) 0.dp else 16.dp,
+                label = "tabBarCorner"
+            )
+            val tabShape = RoundedCornerShape(topStart = cornerRadiusDp, topEnd = cornerRadiusDp)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -202,6 +226,19 @@ fun ProfileScreen(
                     },
                 )
             }
+
+            // 顶部栏
+            ProfileTopBar(
+                user = user,
+                bgAlpha = topBarBgAlpha,
+                miniAvatarAlpha = miniAvatarAlpha,
+                miniAvatarOffsetDp = miniAvatarOffsetDp,
+                editButtonAlpha = editButtonAlpha,
+                onMenuClick = { /* TODO */ },
+                onEditProfileClick = { navController.navigate("edit_profile") },
+                onQrScanClick = { navController.navigate(Screen.QrScan.route) },
+                onSizeChanged = { size -> topBarHeightPx = size.height },
+            )
         }
     }
 }
@@ -219,7 +256,7 @@ private fun TabPage(
         modifier = Modifier.fillMaxSize().background(LimeLightGray),
         isLoadingMore = uiState.isLoadingMore,
         onLoadMore = onLoadMore,
-        contentPadding = PaddingValues(start = 5.dp, end = 5.dp,top = contentPaddingTop, bottom = 8.dp),
+        contentPadding = PaddingValues(start = 5.dp, end = 5.dp, top = contentPaddingTop, bottom = 8.dp),
     ) {
         tabContent(
             uiState = uiState,
