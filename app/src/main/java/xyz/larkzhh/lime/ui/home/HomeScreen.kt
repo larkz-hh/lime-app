@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -18,8 +19,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
@@ -31,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +49,7 @@ import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.components.NoteCard
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.theme.LimeGray
+import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
@@ -76,6 +81,7 @@ fun HomeScreen(navController: NavHostController) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeTopBar(
     tabs: List<String>,
@@ -109,13 +115,15 @@ private fun HomeTopBar(
                 Box(
                     modifier = Modifier
                         .tabIndicatorOffset(selectedIndex, matchContentSize = true)
-                        .height(3.dp)
+                        .offset(y = (-8).dp)
+                        .height(2.dp)
                         .clip(RoundedCornerShape(1.5.dp))
                         .background(LimePrimary)
                 )
             },
             divider = {},
         ) {
+            CompositionLocalProvider(LocalRippleConfiguration provides null) {
             tabs.forEachIndexed { index, title ->
                 Tab(
                     selected = selectedIndex == index,
@@ -134,6 +142,7 @@ private fun HomeTopBar(
                 )
             }
         }
+        }
         // 搜索入口
         IconButton(onClick = onSearchClick) {
             Icon(
@@ -149,7 +158,9 @@ private fun HomeTopBar(
 @Composable
 private fun FollowTab() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LimeLightGray),
         contentAlignment = Alignment.Center,
     ) {
         Text(text = "关注", color = LimeGray)
@@ -162,7 +173,7 @@ private fun DiscoverTab(navController: NavHostController) {
     val viewModel: FeedViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().background(LimeLightGray)) {
         when {
             uiState.isLoading -> {
                 // 首次加载

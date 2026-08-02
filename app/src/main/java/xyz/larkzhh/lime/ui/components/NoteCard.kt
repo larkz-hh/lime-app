@@ -57,8 +57,10 @@ fun NoteCard(
     modifier: Modifier = Modifier,
 ) {
     val imageRatio = remember(item.id) {
-        val idx = (item.id % 3).toInt().let { if (it < 0) it + 3 else it }
-        listOf(0.75f, 0.85f, 1.0f)[idx]
+//        val idx = (item.id % 3).toInt().let { if (it < 0) it + 3 else it }
+//        listOf(0.75f, 0.85f, 1.0f)[idx]
+        val idx = (item.id % 4).toInt().let { if (it < 0) it + 4 else it }
+        listOf(0.65f, 0.8f, 0.95f, 1.1f)[idx]
     }
 
     Card(
