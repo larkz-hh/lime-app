@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,11 +29,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.BlurredEdgeTreatment
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -46,12 +47,12 @@ import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import java.time.LocalDate
 
-
 @Composable
 fun ProfileHeader(
     uiState: ProfileUiState,
     onEditAvatar: () -> Unit,
     modifier: Modifier = Modifier,
+    gradientEndColor: Color = Color.Black.copy(alpha = 0.9f),
     onBrowseHistory: () -> Unit = {},
 ) {
     val user = (uiState as? ProfileUiState.Success)?.user
@@ -66,11 +67,27 @@ fun ProfileHeader(
             AsyncImage(
                 model = backgroundUrl,
                 contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                colorFilter = ColorFilter.colorMatrix(
+                    ColorMatrix().apply { setToScale(0.52f, 0.52f, 0.52f, 1f) }
+                ),// 亮度变暗
+            )
+            Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .blur(1.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded),
-                contentScale = ContentScale.Crop,
-            )
+                    //.graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+            ) {
+//                AsyncImage(
+//                    model = backgroundUrl,
+//                    contentDescription = null,
+//                    modifier = Modifier
+//                        .matchParentSize()
+//                        .blur(20.dp),
+//                    contentScale = ContentScale.Crop,
+//                )
+                BlurMask(gradientEndColor)
+            }
         } else {
             Box(
                 modifier = Modifier
@@ -81,21 +98,8 @@ fun ProfileHeader(
                         )
                     )
             )
+            BlurMask(gradientEndColor)
         }
-
-        // 透明渐变遮罩
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Black.copy(alpha = 0.2f),
-                            Color.Black.copy(alpha = 0.9f),
-                        )
-                    )
-                )
-        )
 
         Column(
             modifier = Modifier
@@ -253,7 +257,7 @@ private fun StatItem(count: String, label: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = LimeGray,
+            color = LimePrimaryPale,
         )
     }
 }
@@ -340,4 +344,21 @@ private fun QuickCard(
             }
         }
     }
+}
+
+/// 蒙版
+@Composable
+private fun BoxScope.BlurMask(gradientEndColor: Color) {
+    Box(
+        modifier = Modifier
+            .matchParentSize()
+            //.graphicsLayer { blendMode = BlendMode.DstIn }
+            .background(
+                brush = Brush.verticalGradient(
+                    0f to Color.Transparent,
+                    0.5f to Color.Black.copy(0.3f),
+                    0.7f to gradientEndColor.copy(0.9f),
+                )
+            )
+    )
 }

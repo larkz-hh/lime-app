@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.Dp
@@ -45,20 +46,21 @@ import xyz.larkzhh.lime.ui.theme.LimeWhite
 fun ProfileTopBar(
     user: UserData?,
     bgAlpha: Float,
+    modifier: Modifier = Modifier,
+    dominantColor: Color = Color.Black,
     miniAvatarAlpha: Float,
     miniAvatarOffsetDp: Dp,
     editButtonAlpha: Float,
     onMenuClick: () -> Unit,
     onEditProfileClick: () -> Unit,
     onQrScanClick: () -> Unit,
-    modifier: Modifier = Modifier,
     onSizeChanged: (IntSize) -> Unit = {},
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .onSizeChanged(onSizeChanged)
-            .background(LimeGray.copy(alpha = bgAlpha))
+            .background(dominantColor.copy(alpha = bgAlpha))
     ) {
         Box(
             modifier = Modifier

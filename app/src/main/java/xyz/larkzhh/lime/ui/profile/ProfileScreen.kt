@@ -67,6 +67,9 @@ import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.Color
+import xyz.larkzhh.lime.util.extractGradientColor
 
 @Composable
 fun ProfileScreen(
@@ -116,6 +119,16 @@ fun ProfileScreen(
     var headerOffsetPx by remember { mutableFloatStateOf(0f) }
     val density = LocalDensity.current
     val gapPxConst = with(density) { 4.dp.toPx() }
+
+    // 背景图主色提取
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val backgroundUrl = (uiState as? ProfileUiState.Success)?.user?.backgroundImage
+    var dominantColor by remember { mutableStateOf(Color.Black) }
+    LaunchedEffect(backgroundUrl) {
+        val rgb = backgroundUrl?.let { extractGradientColor(context, it) }
+        dominantColor = if (rgb != null) Color(rgb) else Color.Black
+    }
+    val gradientEndColor = dominantColor.copy(alpha = 0.95f)
 
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
@@ -206,6 +219,7 @@ fun ProfileScreen(
                     .onSizeChanged { headerHeightPx = it.height }
                     .offset { IntOffset(0, headerOffsetPx.roundToInt()) },
                 uiState = uiState,
+                gradientEndColor = gradientEndColor,
                 onEditAvatar = { avatarPickerLauncher.launch("image/*") },
                 onBrowseHistory = { navController.navigate(Screen.BrowseHistory.route) },
             )
@@ -242,6 +256,7 @@ fun ProfileScreen(
             ProfileTopBar(
                 user = user,
                 bgAlpha = topBarBgAlpha,
+                dominantColor = dominantColor,
                 miniAvatarAlpha = miniAvatarAlpha,
                 miniAvatarOffsetDp = miniAvatarOffsetDp,
                 editButtonAlpha = editButtonAlpha,
