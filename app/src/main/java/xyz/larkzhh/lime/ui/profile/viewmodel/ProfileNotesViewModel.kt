@@ -22,6 +22,7 @@ data class ProfileNotesUiState(
     val likedIds: Set<Long> = emptySet(),
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
+    val isRefreshing: Boolean = false,
     val hasMore: Boolean = true,
     val error: String? = null,
 )
@@ -103,6 +104,7 @@ class ProfileNotesViewModel @Inject constructor(
                     _notesState.update {
                         it.copy(
                             isLoading = false,
+                            isRefreshing = false,
                             items = response.items,
                             likedIds = response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
                             hasMore = response.hasMore,
@@ -110,10 +112,16 @@ class ProfileNotesViewModel @Inject constructor(
                     }
                 },
                 onFailure = { e ->
-                    _notesState.update { it.copy(isLoading = false, error = e.message) }
+                    _notesState.update { it.copy(isLoading = false, isRefreshing = false, error = e.message) }
                 },
             )
         }
+    }
+
+    fun refreshNotes() {
+        if (_notesState.value.isRefreshing) return
+        _notesState.update { it.copy(isRefreshing = true) }
+        loadNotes()
     }
 
     fun loadMoreNotes() {
@@ -147,8 +155,18 @@ class ProfileNotesViewModel @Inject constructor(
 
     /// 点赞 tab 懒加载
     fun loadLikesLazy() {
-        val uid = userId ?: return
         if (_likesState.value.items.isNotEmpty() || _likesState.value.isLoading) return
+        loadLikes()
+    }
+
+    fun refreshLikes() {
+        if (_likesState.value.isRefreshing) return
+        _likesState.update { it.copy(isRefreshing = true) }
+        loadLikes()
+    }
+
+    private fun loadLikes() {
+        val uid = userId ?: return
         viewModelScope.launch {
             _likesState.update { it.copy(isLoading = true, error = null, items = emptyList(), hasMore = true) }
             likesCursor = null
@@ -158,6 +176,7 @@ class ProfileNotesViewModel @Inject constructor(
                     _likesState.update {
                         it.copy(
                             isLoading = false,
+                            isRefreshing = false,
                             items = response.items,
                             likedIds = response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
                             hasMore = response.hasMore,
@@ -165,7 +184,7 @@ class ProfileNotesViewModel @Inject constructor(
                     }
                 },
                 onFailure = { e ->
-                    _likesState.update { it.copy(isLoading = false, error = e.message) }
+                    _likesState.update { it.copy(isLoading = false, isRefreshing = false, error = e.message) }
                 },
             )
         }
@@ -202,8 +221,18 @@ class ProfileNotesViewModel @Inject constructor(
 
     /// 懒加载收藏 tab
     fun loadFavoritesLazy() {
-        val uid = userId ?: return
         if (_favoritesState.value.items.isNotEmpty() || _favoritesState.value.isLoading) return
+        loadFavorites()
+    }
+
+    fun refreshFavorites() {
+        if (_favoritesState.value.isRefreshing) return
+        _favoritesState.update { it.copy(isRefreshing = true) }
+        loadFavorites()
+    }
+
+    private fun loadFavorites() {
+        val uid = userId ?: return
         viewModelScope.launch {
             _favoritesState.update { it.copy(isLoading = true, error = null, items = emptyList(), hasMore = true) }
             favoritesCursor = null
@@ -213,6 +242,7 @@ class ProfileNotesViewModel @Inject constructor(
                     _favoritesState.update {
                         it.copy(
                             isLoading = false,
+                            isRefreshing = false,
                             items = response.items,
                             likedIds = response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
                             hasMore = response.hasMore,
@@ -220,7 +250,7 @@ class ProfileNotesViewModel @Inject constructor(
                     }
                 },
                 onFailure = { e ->
-                    _favoritesState.update { it.copy(isLoading = false, error = e.message) }
+                    _favoritesState.update { it.copy(isLoading = false, isRefreshing = false, error = e.message) }
                 },
             )
         }
