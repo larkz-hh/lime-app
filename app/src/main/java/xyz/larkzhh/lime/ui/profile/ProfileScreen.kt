@@ -47,7 +47,6 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -67,6 +66,9 @@ import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import xyz.larkzhh.lime.util.extractGradientColor
@@ -157,7 +159,34 @@ fun ProfileScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0),
-    ) { _ ->
+    ) { padding ->
+        val currentIsRefreshing = when (pagerState.currentPage) {
+            0 -> notesUiState.isRefreshing
+            1 -> likesUiState.isRefreshing
+            else -> favoritesUiState.isRefreshing
+        }
+        // 根据tab页选择刷新方法
+        val onRefresh: () -> Unit = when (pagerState.currentPage) {
+            0 -> notesViewModel::refreshNotes
+            1 -> notesViewModel::refreshLikes
+            else -> notesViewModel::refreshFavorites
+        }
+        val refreshState = rememberPullToRefreshState()
+        PullToRefreshBox(
+            isRefreshing = currentIsRefreshing,
+            onRefresh = onRefresh,
+            state = refreshState,
+            modifier = Modifier.fillMaxSize(),
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = refreshState,
+                    isRefreshing = currentIsRefreshing,
+                    containerColor = LimeWhite,
+                    color = LimePrimary,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                )
+            },
+        ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -190,7 +219,7 @@ fun ProfileScreen(
                 when (page) {
                     0 -> TabPage(
                         uiState = notesUiState,
-                        contentPaddingTop = relativeContentPaddingTop,// 随 header 折叠动态变化
+                        contentPaddingTop = relativeContentPaddingTop,
                         navController = navController,
                         onLikeToggle = notesViewModel::toggleLike,
                         onLoadMore = notesViewModel::loadMoreNotes,
@@ -265,6 +294,7 @@ fun ProfileScreen(
                 onQrScanClick = { navController.navigate(Screen.QrScan.route) },
                 onSizeChanged = { size -> topBarHeightPx = size.height },
             )
+        }
         }
     }
 }
