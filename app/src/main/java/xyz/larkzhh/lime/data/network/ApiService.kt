@@ -78,6 +78,11 @@ interface ApiService {
     @POST("api/notes/images")
     suspend fun uploadNoteImage(@Part file: MultipartBody.Part): ApiResponse<UploadNoteImageResponse>
 
+    /// 上传评论图片
+    @Multipart
+    @POST("api/comments/images")
+    suspend fun uploadCommentImage(@Part file: MultipartBody.Part): ApiResponse<UploadNoteImageResponse>
+
     /// 发布图文笔记
     @POST("api/notes")
     suspend fun publishNote(@Body request: PublishNoteRequest): ApiResponse<NoteData>
