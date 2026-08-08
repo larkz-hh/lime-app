@@ -1,5 +1,11 @@
 package xyz.larkzhh.lime.data.repository
 
+import android.content.Context
+import android.net.Uri
+import dagger.hilt.android.qualifiers.ApplicationContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.CommentListResponse
@@ -14,6 +20,7 @@ import javax.inject.Singleton
 @Singleton
 class CommentRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
+    @param:ApplicationContext private val context: Context,
 ) : CommentRepository {
 
     /// 获取评论
@@ -24,8 +31,8 @@ class CommentRepositoryImpl @Inject constructor(
     }
 
     /// 发送评论
-    override suspend fun sentComment(noteId: Long, content: String): Result<CommentData> = runCatching {
-        val response = apiService.postComment(noteId, PostCommentRequest(content))
+    override suspend fun sentComment(noteId: Long, content: String?, images: List<String>?): Result<CommentData> = runCatching {
+        val response = apiService.postComment(noteId, PostCommentRequest(content, images))
         check(response.code == 200 && response.data != null) { response.message }
         response.data
     }
@@ -38,8 +45,8 @@ class CommentRepositoryImpl @Inject constructor(
     }
 
     /// 发送回复
-    override suspend fun sentReply(noteId: Long, commentId: Long, content: String, replyToUserId: Long?): Result<ReplyData> = runCatching {
-        val response = apiService.postReply(noteId, commentId, PostReplyRequest(content, replyToUserId))
+    override suspend fun sentReply(noteId: Long, commentId: Long, content: String?, images: List<String>?, replyToUserId: Long?): Result<ReplyData> = runCatching {
+        val response = apiService.postReply(noteId, commentId, PostReplyRequest(content, replyToUserId, images))
         check(response.code == 200 && response.data != null) { response.message }
         response.data
     }
@@ -54,5 +61,23 @@ class CommentRepositoryImpl @Inject constructor(
     override suspend fun unlikeComment(commentId: Long): Result<Unit> = runCatching {
         val response = apiService.unlikeComment(commentId)
         check(response.code == 200) { response.message }
+    }
+
+    /// 上传评论图片
+    override suspend fun uploadCommentImage(uri: Uri): Result<String> = runCatching {
+        val bytes = context.contentResolver.openInputStream(uri)?.readBytes()
+            ?: error("无法读取图片文件")
+        val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
+        val ext = when (mimeType) {
+            "image/png" -> "png"
+            "image/webp" -> "webp"
+            "image/gif" -> "gif"
+            else -> "jpg"
+        }
+        val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
+        val part = MultipartBody.Part.createFormData("file", "upload.$ext", requestBody)
+        val response = apiService.uploadCommentImage(part)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data.url
     }
 }
