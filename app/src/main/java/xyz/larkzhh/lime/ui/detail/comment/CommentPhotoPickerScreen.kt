@@ -1,7 +1,6 @@
-package xyz.larkzhh.lime.ui.publish
+package xyz.larkzhh.lime.ui.detail.comment
 
 import android.Manifest
-import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -12,9 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -33,21 +29,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import xyz.larkzhh.lime.navigation.Screen
-import xyz.larkzhh.lime.ui.components.ImageGridItem
-import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
+import xyz.larkzhh.lime.ui.components.ImagePickerGrid
+import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ImagePickerViewModel
+import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun PhotoPickerScreen(
+fun CommentPhotoPickerScreen(
     navController: NavHostController,
-    viewModel: PublishViewModel,
+    viewModel: ImagePickerViewModel = hiltViewModel(),
 ) {
-    val pickerState by viewModel.pickerState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Manifest.permission.READ_MEDIA_IMAGES
@@ -58,7 +55,7 @@ fun PhotoPickerScreen(
 
     LaunchedEffect(permissionState.status.isGranted) {
         if (permissionState.status.isGranted) {
-            viewModel.loadDeviceImages()
+            viewModel.load()
         } else {
             permissionState.launchPermissionRequest()
         }
@@ -86,7 +83,7 @@ fun PhotoPickerScreen(
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
             )
-            val count = pickerState.selectedUris.size
+            val count = uiState.selectedUris.size
             if (count > 0) {
                 Text(
                     text = "已选 $count/9",
@@ -102,7 +99,8 @@ fun PhotoPickerScreen(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .background(LimeWhite),
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -117,7 +115,7 @@ fun PhotoPickerScreen(
                 }
             }
 
-            pickerState.isLoading -> {
+            uiState.isLoading -> {
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -129,35 +127,30 @@ fun PhotoPickerScreen(
             }
 
             else -> {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
+                ImagePickerGrid(
+                    images = uiState.images,
+                    selectedUris = uiState.selectedUris,
+                    onToggle = { viewModel.toggle(it) },
                     modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    items(pickerState.images, key = { it.id }) { image ->
-                        ImageGridItem(
-                            uri = image.uri,
-                            selectionIndex = pickerState.selectedUris.indexOf(image.uri),
-                            onToggle = { viewModel.toggleImageSelection(image.uri) },
-                        )
-                    }
-                }
+                )
             }
         }
 
-        // 底部栏
+        // 底部确认栏
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.End,
         ) {
-            val count = pickerState.selectedUris.size
+            val count = uiState.selectedUris.size
             Button(
                 onClick = {
-                    viewModel.confirmSelection()
-                    navController.navigate(Screen.NotePublish.route)
+                    // 将选中的图片写回上一个页面的 savedStateHandle
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("comment_images", uiState.selectedUris.toList())
+                    navController.popBackStack()
                 },
                 enabled = count > 0,
                 shape = RoundedCornerShape(20.dp),
@@ -168,7 +161,7 @@ fun PhotoPickerScreen(
                 ),
             ) {
                 Text(
-                    text = if (count > 0) "下一步($count)" else "下一步",
+                    text = if (count > 0) "完成($count)" else "完成",
                     fontWeight = FontWeight.Medium,
                 )
             }
