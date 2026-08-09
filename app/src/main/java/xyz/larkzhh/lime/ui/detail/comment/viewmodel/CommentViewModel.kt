@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.detail
+package xyz.larkzhh.lime.ui.detail.comment.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.domain.repository.CommentRepository
+import android.net.Uri
 import javax.inject.Inject
 
 /// 排序方式： 热度、时间
@@ -26,6 +27,7 @@ data class CommentUiState(
     val expandedReplies: Map<Long, ExpandedRepliesState> = emptyMap(), // 展开的回复
     val replyTarget: ReplyTarget? = null,// 当前评论框目标，null 评论笔记，非 null 回复某条评论
     val showInputSheet: Boolean = false,
+    val pendingImages: List<Uri> = emptyList(), // 待发送的评论图片
 )
 
 /// 单条评论回复展开
@@ -43,6 +45,12 @@ data class ReplyTarget(
     val replyToNickname: String,
 )
 
+/**
+ * 笔记详情页中评论模块的 ViewModel。
+ * 1. 管理评论列表、回复列表的 UI 状态。
+ * 2. 处理用户交互逻辑。
+ * 3. 图片上传与文本内容的提交。
+ */
 @HiltViewModel
 class CommentViewModel @Inject constructor(
     private val commentRepository: CommentRepository,
@@ -99,29 +107,45 @@ class CommentViewModel @Inject constructor(
 
     /// 提交评论
     fun submitComment(content: String) {
-        if (content.isBlank()) return
+        val images = _uiState.value.pendingImages
+        if (content.isBlank() && images.isEmpty()) return
         val target = _uiState.value.replyTarget
         _uiState.update { it.copy(isSubmitting = true) }
         viewModelScope.launch {
+            // 先上传图片，获取 url 列表
+            val uploadedUrls = mutableListOf<String>()
+            for (uri in images) {
+                val result = commentRepository.uploadCommentImage(uri)
+                result.onSuccess { uploadedUrls.add(it) }
+                result.onFailure {
+                    _uiState.update { it.copy(isSubmitting = false) }
+                    return@launch
+                }
+            }
+            val imageUrls = uploadedUrls.ifEmpty { null }
+            val textContent = content.ifBlank { null }
+
             if (target == null) {
-                commentRepository.sentComment(noteId, content)
+                commentRepository.sentComment(noteId, textContent, imageUrls)
                     .onSuccess { newComment ->
                         _uiState.update { it.copy(
                             comments = listOf(newComment) + it.comments,
                             isSubmitting = false,
                             showInputSheet = false,
                             replyTarget = null,// 清空当前的回复目标
+                            pendingImages = emptyList(),
                         ) }
                     }
                     .onFailure { _uiState.update { it.copy(isSubmitting = false) } }
             } else {
-                commentRepository.sentReply(noteId, target.commentId, content, target.replyToUserId)
+                commentRepository.sentReply(noteId, target.commentId, textContent, imageUrls, target.replyToUserId)
                     .onSuccess {
                         _uiState.update { s ->
                             s.copy(
                                 isSubmitting = false,
                                 showInputSheet = false,
                                 replyTarget = null,// 清空当前的回复目标
+                                pendingImages = emptyList(),
                             )
                         }
                         loadComments(refresh = true)
@@ -220,6 +244,19 @@ class CommentViewModel @Inject constructor(
 
     /// 关闭输入面板
     fun closeInputSheet() {
-        _uiState.update { it.copy(showInputSheet = false, replyTarget = null) }
+        _uiState.update { it.copy(showInputSheet = false, replyTarget = null, pendingImages = emptyList()) }
+    }
+
+    /// 添加待发送的评论图片
+    fun addCommentImages(uris: List<Uri>) {
+        _uiState.update { s ->
+            val merged = (s.pendingImages + uris).take(9)
+            s.copy(pendingImages = merged)
+        }
+    }
+
+    /// 移除一张待发送的图片
+    fun removeCommentImage(uri: Uri) {
+        _uiState.update { it.copy(pendingImages = it.pendingImages - uri) }
     }
 }

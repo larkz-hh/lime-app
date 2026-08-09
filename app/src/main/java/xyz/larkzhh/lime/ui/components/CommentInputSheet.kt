@@ -1,9 +1,11 @@
 package xyz.larkzhh.lime.ui.components
 
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -19,9 +21,16 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material.icons.outlined.Image
@@ -46,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -55,17 +65,32 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.ui.detail.components.EmojiPanel
 import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 
+/**
+ * 评论输入框组件
+ *
+ * @param hint 输入框提示文字
+ * @param isSubmitting 是否正在提交
+ * @param selectedImages 已选择的图片列表
+ * @param onImagePickRequest 请求选择图片回调
+ * @param onRemoveImage 移除指定图片回调
+ * @param onSubmit 提交评论回调
+ * @param onDismiss 关闭面板回调
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CommentInputSheet(
     hint: String = "说点什么…",
     isSubmitting: Boolean = false,
+    selectedImages: List<Uri> = emptyList(),
+    onImagePickRequest: () -> Unit = {},
+    onRemoveImage: (Uri) -> Unit = {},
     onSubmit: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -177,6 +202,67 @@ fun CommentInputSheet(
                     }
                 }
 
+                // 已选图片预览行
+                if (selectedImages.isNotEmpty()) {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        itemsIndexed(selectedImages, key = { index, _ -> index }) { _, uri ->
+                            Box(modifier = Modifier.size(56.dp)) {
+                                AsyncImage(
+                                    model = uri,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(8.dp)),
+                                )
+                                // 删除按钮
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(2.dp)
+                                        .size(18.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.Black.copy(alpha = 0.6f))
+                                        .clickable { onRemoveImage(uri) },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Close,
+                                        contentDescription = "删除图片",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(12.dp),
+                                    )
+                                }
+                            }
+                        }
+                        // 未满9张时显示添加按钮
+                        if (selectedImages.size < 9) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(LimeLightGray)
+                                        .clickable { onImagePickRequest() },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Add,
+                                        contentDescription = "添加图片",
+                                        tint = LimeGray,
+                                        modifier = Modifier.size(28.dp),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 HorizontalDivider(modifier = Modifier.padding(top = 8.dp), color = LimeLightGray)
 
                 Row(
@@ -188,7 +274,7 @@ fun CommentInputSheet(
                     IconButton(onClick = { }) {
                         Icon(Icons.Outlined.Mic, contentDescription = "录音", tint = LimeGray, modifier = Modifier.size(22.dp))
                     }
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { onImagePickRequest() }) {
                         Icon(Icons.Outlined.Image, contentDescription = "相册", tint = LimeGray, modifier = Modifier.size(22.dp))
                     }
                     IconButton(onClick = { }) {
@@ -215,7 +301,7 @@ fun CommentInputSheet(
                     Spacer(modifier = Modifier.weight(1f))
 
                     // 发送按钮
-                    val hasText = textValue.text.isNotBlank()
+                    val canSend = textValue.text.isNotBlank() || selectedImages.isNotEmpty()
                     if (isSubmitting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(22.dp),
@@ -226,8 +312,8 @@ fun CommentInputSheet(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (hasText) LimePrimary else LimeLightGray)
-                                .clickable(enabled = hasText) {
+                                .background(if (canSend) LimePrimary else LimeLightGray)
+                                .clickable(enabled = canSend) {
                                     onSubmit(textValue.text)
                                     textValue = TextFieldValue()
                                 }
@@ -237,7 +323,7 @@ fun CommentInputSheet(
                             Text(
                                 text = "发送",
                                 fontSize = 13.sp,
-                                color = if (hasText) Color.White else LimeGray,
+                                color = if (canSend) Color.White else LimeGray,
                             )
                         }
                     }

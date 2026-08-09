@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.ui.detail
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +28,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -39,12 +42,17 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
+import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.components.CommentInputSheet
 import xyz.larkzhh.lime.ui.components.SelectableText
 import xyz.larkzhh.lime.ui.components.SelectionAction
 import xyz.larkzhh.lime.ui.detail.components.AuthorBar
-import xyz.larkzhh.lime.ui.detail.components.CommentCard
-import xyz.larkzhh.lime.ui.detail.components.CommentHeader
+import xyz.larkzhh.lime.ui.detail.comment.components.CommentCard
+import xyz.larkzhh.lime.ui.detail.comment.components.CommentHeader
+import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentSort
+import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentUiState
+import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentViewModel
+import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
 import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.ui.detail.components.NoteBottomBar
 import xyz.larkzhh.lime.ui.detail.components.NoteImagePager
@@ -66,10 +74,25 @@ fun DetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val commentUiState by commentViewModel.uiState.collectAsState()
 
+    // 评论图片预览本地状态
+    var commentPreviewImages by remember { mutableStateOf<List<String>>(emptyList()) }
+    var commentPreviewIndex by remember { mutableStateOf<Int?>(null) }
+
     LaunchedEffect(noteId) {
         val id = noteId.toLongOrNull() ?: return@LaunchedEffect
         viewModel.loadNote(id)
         commentViewModel.init(id)
+    }
+
+    // 观察从图片选择页面返回的图片
+    LaunchedEffect(Unit) {
+        val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle ?: return@LaunchedEffect
+        savedStateHandle.getStateFlow<List<Uri>?>("comment_images", null).collect { uris ->
+            if (!uris.isNullOrEmpty()) {
+                commentViewModel.addCommentImages(uris)
+                savedStateHandle.remove<List<Uri>>("comment_images")
+            }
+        }
     }
 
     Box(
@@ -113,6 +136,10 @@ fun DetailScreen(
                         onReply = { commentViewModel.openInputSheet(it) },
                         onLoadMoreReplies = commentViewModel::loadMoreReplies,
                         onReplyLike = commentViewModel::toggleReplyLike,
+                        onCommentImageClick = { images, index ->
+                            commentPreviewImages = images
+                            commentPreviewIndex = index
+                        },
                     )
                     NoteBottomBar(
                         note = uiState.note!!,
@@ -124,7 +151,7 @@ fun DetailScreen(
             }
         }
 
-        // 图片全屏预览浮层
+        // 笔记图片全屏预览浮层
         val previewIndex = uiState.previewImageIndex
         val previewNote = uiState.note
         if (previewIndex != null && previewNote != null) {
@@ -133,9 +160,24 @@ fun DetailScreen(
                 properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
             ) {
                 ImagePreviewOverlay(
-                    images = previewNote.images,
+                    images = previewNote.images.map { it.url },
                     initialIndex = previewIndex,
                     onDismiss = viewModel::hideImagePreview,
+                )
+            }
+        }
+
+        // 评论图片全屏预览浮层
+        val commentIdx = commentPreviewIndex
+        if (commentIdx != null && commentPreviewImages.isNotEmpty()) {
+            Dialog(
+                onDismissRequest = { commentPreviewIndex = null },
+                properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+            ) {
+                ImagePreviewOverlay(
+                    images = commentPreviewImages,
+                    initialIndex = commentIdx,
+                    onDismiss = { commentPreviewIndex = null },
                 )
             }
         }
@@ -146,6 +188,11 @@ fun DetailScreen(
             CommentInputSheet(
                 hint = hint,
                 isSubmitting = commentUiState.isSubmitting,
+                selectedImages = commentUiState.pendingImages,
+                onImagePickRequest = {
+                    navController.navigate(Screen.CommentPhotoPicker.route)
+                },
+                onRemoveImage = commentViewModel::removeCommentImage,
                 onSubmit = commentViewModel::submitComment,
                 onDismiss = commentViewModel::closeInputSheet,
             )
@@ -164,6 +211,7 @@ private fun NoteContent(
     onReply: (ReplyTarget) -> Unit,
     onLoadMoreReplies: (Long) -> Unit,
     onReplyLike: (commentId: Long, replyId: Long) -> Unit,
+    onCommentImageClick: (images: List<String>, index: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -267,6 +315,7 @@ private fun NoteContent(
                 onReply = onReply,
                 onLoadMoreReplies = { onLoadMoreReplies(comment.id) },
                 onReplyLike = { replyId -> onReplyLike(comment.id, replyId) },
+                onImageClick = onCommentImageClick,
             )
             HorizontalDivider(color = LimeLightGray, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
         }
