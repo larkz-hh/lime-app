@@ -27,7 +27,7 @@ data class CommentUiState(
     val expandedReplies: Map<Long, ExpandedRepliesState> = emptyMap(), // 展开的回复
     val replyTarget: ReplyTarget? = null,// 当前评论框目标，null 评论笔记，非 null 回复某条评论
     val showInputSheet: Boolean = false,
-    val pendingImages: List<Uri> = emptyList(), // 待发送的评论图片
+    val pendingImages: List<Uri> = emptyList(),// 待发送的评论图片
 )
 
 /// 单条评论回复展开
@@ -128,8 +128,9 @@ class CommentViewModel @Inject constructor(
             if (target == null) {
                 commentRepository.sentComment(noteId, textContent, imageUrls)
                     .onSuccess { newComment ->
+                        val comment = if (!imageUrls.isNullOrEmpty()) newComment.copy(images = imageUrls) else newComment
                         _uiState.update { it.copy(
-                            comments = listOf(newComment) + it.comments,
+                            comments = listOf(comment) + it.comments,
                             isSubmitting = false,
                             showInputSheet = false,
                             replyTarget = null,// 清空当前的回复目标
@@ -139,16 +140,33 @@ class CommentViewModel @Inject constructor(
                     .onFailure { _uiState.update { it.copy(isSubmitting = false) } }
             } else {
                 commentRepository.sentReply(noteId, target.commentId, textContent, imageUrls, target.replyToUserId)
-                    .onSuccess {
+                    .onSuccess { newReply ->
+                        val reply = if (!imageUrls.isNullOrEmpty()) newReply.copy(images = imageUrls) else newReply
                         _uiState.update { s ->
+                            val commentId = target.commentId
+                            val existing = s.expandedReplies[commentId]
+                            val updatedExpandedReplies = if (existing != null) {
+                                s.expandedReplies + (commentId to existing.copy(replies = existing.replies + reply))
+                            } else {
+                                s.expandedReplies// 没展开，不做处理
+                            }
+                            // 乐观追加到评论的顶部预览
+                            val updatedComments = s.comments.map { c ->
+                                if (c.id == commentId) c.copy(
+                                    topReplies = (c.topReplies ?: emptyList()) + reply,
+                                    replyCount = c.replyCount + 1,
+                                ) else c
+                            }
                             s.copy(
                                 isSubmitting = false,
                                 showInputSheet = false,
                                 replyTarget = null,// 清空当前的回复目标
                                 pendingImages = emptyList(),
+                                expandedReplies = updatedExpandedReplies,
+                                comments = updatedComments,
                             )
                         }
-                        loadComments(refresh = true)
+                        // 不刷新列表，重进详情页才同步服务端的排序
                     }
                     .onFailure { _uiState.update { it.copy(isSubmitting = false) } }
             }

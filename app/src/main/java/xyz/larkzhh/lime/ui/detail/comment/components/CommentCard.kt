@@ -1,5 +1,14 @@
 package xyz.larkzhh.lime.ui.detail.comment.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +50,7 @@ import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.util.formatRelativeTime
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun CommentCard(
@@ -151,27 +161,53 @@ fun CommentCard(
             }
 
             // 回复区域
-            val replies = expandedReplies?.replies ?: comment.topReplies
-            if (!replies.isNullOrEmpty()) {
+            val isExpanded = expandedReplies != null// 是否展开回复
+            val topReplies = comment.topReplies
+            val topReplyIds = topReplies?.map { it.id }?.toSet() ?: emptySet()
+            val expandedList = expandedReplies?.replies
+            // 展开后的回复，过滤顶部预览
+            val newReplies = expandedList?.filter { it.id !in topReplyIds }
+
+            // 顶部预览
+            if (!topReplies.isNullOrEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    replies.forEach { reply ->
+                    topReplies.forEach { reply ->
                         ReplyItem(
                             reply = reply,
-                            onReply = {
-                                onReply(ReplyTarget(comment.id, reply.author.id, reply.author.nickname))
-                            },
+                            onReply = { onReply(ReplyTarget(comment.id, reply.author.id, reply.author.nickname)) },
                             onLike = { onReplyLike(reply.id) },
                             onImageClick = onImageClick,
                         )
                     }
                 }
+            }
 
-                val isExpanded = expandedReplies != null
-                val replyCount = comment.replyCount
+            // 展开后新增的回复
+            if (isExpanded && !newReplies.isNullOrEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    for ((index, reply) in newReplies.withIndex()) {
+                        AnimatedReplyItem(
+                            index = index,
+                            total = newReplies.size,
+                            reply = reply,
+                            onReply = { onReply(ReplyTarget(comment.id, reply.author.id, reply.author.nickname)) },
+                            onLike = { onReplyLike(reply.id) },
+                            onImageClick = onImageClick,
+                        )
+                    }
+                }
+            }
+
+            val replies = expandedReplies?.replies ?: comment.topReplies
+            val replyCount = comment.replyCount
+            if (!replies.isNullOrEmpty()) {
                 when {
                     expandedReplies?.isLoading == true -> {
                         Spacer(modifier = Modifier.height(8.dp))
@@ -199,9 +235,9 @@ fun CommentCard(
                         )
                     }
                 }
-            } else if (comment.replyCount > 0 && expandedReplies == null) {
+            } else if (replyCount > 0 && !isExpanded) {
                 Spacer(modifier = Modifier.height(6.dp))
-                val label = if (comment.replyCount <= 5) "展开${comment.replyCount}条回复" else "展开5条回复"
+                val label = if (replyCount <= 5) "展开${replyCount}条回复" else "展开5条回复"
                 Text(
                     text = label,
                     fontSize = 12.sp,
@@ -210,6 +246,36 @@ fun CommentCard(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun AnimatedReplyItem(
+    index: Int,
+    total: Int,
+    reply: ReplyData,
+    onReply: () -> Unit,
+    onLike: () -> Unit,
+    onImageClick: (images: List<String>, index: Int) -> Unit = { _, _ -> },
+) {
+    // 后面的回复初始叠在上方，delay 后滑到原位
+    var settled by remember(reply.id) { mutableStateOf(false) }
+    LaunchedEffect(reply.id) {
+        delay(((total - 1 - index) * 60L).milliseconds)
+        settled = true
+    }
+    val offsetY by animateFloatAsState(
+        targetValue = if (settled) 0f else -(total - index).toFloat() * 28f,
+        animationSpec = tween(durationMillis = 320),
+        label = "replyOffset$index",
+    )
+    val alpha by animateFloatAsState(
+        targetValue = if (settled) 1f else 0.3f,
+        animationSpec = tween(durationMillis = 320),
+        label = "replyAlpha$index",
+    )
+    Box(modifier = Modifier.graphicsLayer { translationY = offsetY; this.alpha = alpha }) {
+        ReplyItem(reply = reply, onReply = onReply, onLike = onLike, onImageClick = onImageClick)
     }
 }
 
