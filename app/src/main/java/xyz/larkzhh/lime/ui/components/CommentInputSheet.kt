@@ -21,9 +21,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,6 +46,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -98,7 +98,14 @@ fun CommentInputSheet(
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
     val density = LocalDensity.current
-    var textValue by remember { mutableStateOf(TextFieldValue()) }
+    // 保存文本和光标位置
+    val textFieldValueSaver = Saver<TextFieldValue, Pair<String, Int>>(
+        save = { it.text to it.selection.end },
+        restore = { TextFieldValue(it.first, TextRange(it.second.coerceIn(0, it.first.length))) },
+    )
+    var textValue by rememberSaveable(stateSaver = textFieldValueSaver) {
+        mutableStateOf(TextFieldValue())
+    }
     var showEmojiPanel by remember { mutableStateOf(false) }
     var pendingKeyboard by remember { mutableStateOf(false) }// 记录表情到键盘过渡
 
@@ -166,7 +173,7 @@ fun CommentInputSheet(
                 ) {
                     BasicTextField(
                         value = textValue,
-                        onValueChange = { textValue = it },
+                        onValueChange = { newValue -> textValue = newValue },
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 40.dp, max = 144.dp)
