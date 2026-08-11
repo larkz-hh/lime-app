@@ -11,10 +11,17 @@ import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.domain.repository.CommentRepository
 import android.net.Uri
+import java.io.File
 import javax.inject.Inject
 
 /// 排序方式： 热度、时间
 enum class CommentSort { HOT, TIME }
+
+/// 已录制的语音
+data class VoiceRecord(
+    val file: File,
+    val durationSeconds: Int,
+)
 
 data class CommentUiState(
     val comments: List<CommentData> = emptyList(),
@@ -28,6 +35,8 @@ data class CommentUiState(
     val replyTarget: ReplyTarget? = null,// 当前评论框目标，null 评论笔记，非 null 回复某条评论
     val showInputSheet: Boolean = false,
     val pendingImages: List<Uri> = emptyList(),// 待发送的评论图片
+    val pendingVoice: VoiceRecord? = null,// 待发送的语音
+    val showVoiceSheet: Boolean = false,
 )
 
 /// 单条评论回复展开
@@ -49,7 +58,7 @@ data class ReplyTarget(
  * 笔记详情页中评论模块的 ViewModel。
  * 1. 管理评论列表、回复列表的 UI 状态。
  * 2. 处理用户交互逻辑。
- * 3. 图片上传与文本内容的提交。
+ * 3. 图片/语音上传与文本内容的提交。
  */
 @HiltViewModel
 class CommentViewModel @Inject constructor(
@@ -105,14 +114,15 @@ class CommentViewModel @Inject constructor(
         }
     }
 
-    /// 提交评论
+    /// 提交评论，图片和语音互斥
     fun submitComment(content: String) {
         val images = _uiState.value.pendingImages
-        if (content.isBlank() && images.isEmpty()) return
+        val voice = _uiState.value.pendingVoice
+        if (content.isBlank() && images.isEmpty() && voice == null) return
         val target = _uiState.value.replyTarget
         _uiState.update { it.copy(isSubmitting = true) }
         viewModelScope.launch {
-            // 先上传图片，获取 url 列表
+            // 上传图片
             val uploadedUrls = mutableListOf<String>()
             for (uri in images) {
                 val result = commentRepository.uploadCommentImage(uri)
@@ -122,26 +132,48 @@ class CommentViewModel @Inject constructor(
                     return@launch
                 }
             }
+
+            // 上传语音
+            var voiceUrl: String? = null
+            if (voice != null) {
+                commentRepository.uploadCommentVoice(voice.file)
+                    .onSuccess { voiceUrl = it }
+                    .onFailure {
+                        _uiState.update { it.copy(isSubmitting = false) }
+                        return@launch
+                    }
+            }
+
             val imageUrls = uploadedUrls.ifEmpty { null }
             val textContent = content.ifBlank { null }
 
             if (target == null) {
-                commentRepository.sentComment(noteId, textContent, imageUrls)
+                commentRepository.sentComment(noteId, textContent, imageUrls, voiceUrl, voice?.durationSeconds)
                     .onSuccess { newComment ->
-                        val comment = if (!imageUrls.isNullOrEmpty()) newComment.copy(images = imageUrls) else newComment
+                        val comment = when {
+                            !imageUrls.isNullOrEmpty() -> newComment.copy(images = imageUrls)
+                            voiceUrl != null -> newComment.copy(voiceUrl = voiceUrl, voiceDuration = voice?.durationSeconds)
+                            else -> newComment
+                        }
                         _uiState.update { it.copy(
                             comments = listOf(comment) + it.comments,
                             isSubmitting = false,
                             showInputSheet = false,
-                            replyTarget = null,// 清空当前的回复目标
+                            replyTarget = null,
                             pendingImages = emptyList(),
+                            pendingVoice = null,
                         ) }
+                        voice?.file?.delete()
                     }
                     .onFailure { _uiState.update { it.copy(isSubmitting = false) } }
             } else {
-                commentRepository.sentReply(noteId, target.commentId, textContent, imageUrls, target.replyToUserId)
+                commentRepository.sentReply(noteId, target.commentId, textContent, imageUrls, target.replyToUserId, voiceUrl, voice?.durationSeconds)
                     .onSuccess { newReply ->
-                        val reply = if (!imageUrls.isNullOrEmpty()) newReply.copy(images = imageUrls) else newReply
+                        val reply = when {
+                            !imageUrls.isNullOrEmpty() -> newReply.copy(images = imageUrls)
+                            voiceUrl != null -> newReply.copy(voiceUrl = voiceUrl, voiceDuration = voice?.durationSeconds)
+                            else -> newReply
+                        }
                         _uiState.update { s ->
                             val commentId = target.commentId
                             val existing = s.expandedReplies[commentId]
@@ -160,12 +192,14 @@ class CommentViewModel @Inject constructor(
                             s.copy(
                                 isSubmitting = false,
                                 showInputSheet = false,
-                                replyTarget = null,// 清空当前的回复目标
+                                replyTarget = null,
                                 pendingImages = emptyList(),
+                                pendingVoice = null,
                                 expandedReplies = updatedExpandedReplies,
                                 comments = updatedComments,
                             )
                         }
+                        voice?.file?.delete()
                         // 不刷新列表，重进详情页才同步服务端的排序
                     }
                     .onFailure { _uiState.update { it.copy(isSubmitting = false) } }
@@ -260,9 +294,10 @@ class CommentViewModel @Inject constructor(
         _uiState.update { it.copy(showInputSheet = true, replyTarget = replyTarget) }
     }
 
-    /// 关闭输入面板
+    /// 关闭输入面板，清空语音临时文件
     fun closeInputSheet() {
-        _uiState.update { it.copy(showInputSheet = false, replyTarget = null, pendingImages = emptyList()) }
+        _uiState.value.pendingVoice?.file?.delete()
+        _uiState.update { it.copy(showInputSheet = false, replyTarget = null, pendingImages = emptyList(), pendingVoice = null) }
     }
 
     /// 添加待发送的评论图片
@@ -276,5 +311,26 @@ class CommentViewModel @Inject constructor(
     /// 移除一张待发送的图片
     fun removeCommentImage(uri: Uri) {
         _uiState.update { it.copy(pendingImages = it.pendingImages - uri) }
+    }
+
+    /// 打开录音面板
+    fun openVoiceSheet() {
+        _uiState.update { it.copy(showVoiceSheet = true, showInputSheet = false) }
+    }
+
+    /// 关闭录音面板
+    fun closeVoiceSheet() {
+        _uiState.update { it.copy(showVoiceSheet = false, showInputSheet = true) }
+    }
+
+    /// 完成录音，保存语音记录，恢复评论框
+    fun setPendingVoice(voice: VoiceRecord) {
+        _uiState.update { it.copy(pendingVoice = voice, showVoiceSheet = false, showInputSheet = true) }
+    }
+
+    /// 移除待发送的语音
+    fun removePendingVoice() {
+        _uiState.value.pendingVoice?.file?.delete()
+        _uiState.update { it.copy(pendingVoice = null) }
     }
 }

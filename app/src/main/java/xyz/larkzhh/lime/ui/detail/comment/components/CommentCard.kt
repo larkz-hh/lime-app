@@ -44,6 +44,7 @@ import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.ui.components.LikeButton
+import xyz.larkzhh.lime.ui.components.VoiceMessageCard
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ExpandedRepliesState
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
 import xyz.larkzhh.lime.ui.theme.LimeDark
@@ -62,6 +63,9 @@ fun CommentCard(
     modifier: Modifier = Modifier,
     onImageClick: (images: List<String>, index: Int) -> Unit = { _, _ -> },
     onReplyLike: (replyId: Long) -> Unit = {},
+    playingVoiceId: Long? = null,
+    onVoicePlay: (id: Long) -> Unit = {},
+    onVoiceStop: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
@@ -115,6 +119,22 @@ fun CommentCard(
                 CommentImageGrid(
                     images = images,
                     onImageClick = { index -> onImageClick(images, index) },
+                )
+            }
+
+            // 评论语音
+            val voiceUrl = comment.voiceUrl
+            val voiceDuration = comment.voiceDuration
+            if (!voiceUrl.isNullOrBlank() && voiceDuration != null) {
+                if (!comment.content.isNullOrBlank() || !comment.images.isNullOrEmpty()) Spacer(
+                    modifier = Modifier.height(6.dp)
+                )
+                VoiceMessageCard(
+                    url = voiceUrl,
+                    durationSeconds = voiceDuration,
+                    isCurrentlyPlaying = playingVoiceId == comment.id,
+                    onPlayStart = { onVoicePlay(comment.id) },
+                    onPlayStop = onVoiceStop,
                 )
             }
 
@@ -181,6 +201,9 @@ fun CommentCard(
                             onReply = { onReply(ReplyTarget(comment.id, reply.author.id, reply.author.nickname)) },
                             onLike = { onReplyLike(reply.id) },
                             onImageClick = onImageClick,
+                            playingVoiceId = playingVoiceId,
+                            onVoicePlay = onVoicePlay,
+                            onVoiceStop = onVoiceStop,
                         )
                     }
                 }
@@ -189,7 +212,9 @@ fun CommentCard(
             // 展开后新增的回复
             if (isExpanded && !newReplies.isNullOrEmpty()) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     for ((index, reply) in newReplies.withIndex()) {
@@ -197,9 +222,20 @@ fun CommentCard(
                             index = index,
                             total = newReplies.size,
                             reply = reply,
-                            onReply = { onReply(ReplyTarget(comment.id, reply.author.id, reply.author.nickname)) },
+                            onReply = {
+                                onReply(
+                                    ReplyTarget(
+                                        comment.id,
+                                        reply.author.id,
+                                        reply.author.nickname
+                                    )
+                                )
+                            },
                             onLike = { onReplyLike(reply.id) },
                             onImageClick = onImageClick,
+                            playingVoiceId = playingVoiceId,
+                            onVoicePlay = onVoicePlay,
+                            onVoiceStop = onVoiceStop,
                         )
                     }
                 }
@@ -211,8 +247,15 @@ fun CommentCard(
                 when {
                     expandedReplies?.isLoading == true -> {
                         Spacer(modifier = Modifier.height(8.dp))
-                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(modifier = Modifier.size(18.dp), color = LimePrimary, strokeWidth = 2.dp)
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                color = LimePrimary,
+                                strokeWidth = 2.dp
+                            )
                         }
                     }
                     expandedReplies?.hasMore == true -> {
@@ -257,6 +300,9 @@ private fun AnimatedReplyItem(
     onReply: () -> Unit,
     onLike: () -> Unit,
     onImageClick: (images: List<String>, index: Int) -> Unit = { _, _ -> },
+    playingVoiceId: Long? = null,
+    onVoicePlay: (id: Long) -> Unit = {},
+    onVoiceStop: () -> Unit = {},
 ) {
     // 后面的回复初始叠在上方，delay 后滑到原位
     var settled by remember(reply.id) { mutableStateOf(false) }
@@ -275,7 +321,15 @@ private fun AnimatedReplyItem(
         label = "replyAlpha$index",
     )
     Box(modifier = Modifier.graphicsLayer { translationY = offsetY; this.alpha = alpha }) {
-        ReplyItem(reply = reply, onReply = onReply, onLike = onLike, onImageClick = onImageClick)
+        ReplyItem(
+            reply = reply,
+            onReply = onReply,
+            onLike = onLike,
+            onImageClick = onImageClick,
+            playingVoiceId = playingVoiceId,
+            onVoicePlay = onVoicePlay,
+            onVoiceStop = onVoiceStop
+        )
     }
 }
 
@@ -285,6 +339,9 @@ private fun ReplyItem(
     onReply: () -> Unit,
     onLike: () -> Unit,
     onImageClick: (images: List<String>, index: Int) -> Unit = { _, _ -> },
+    playingVoiceId: Long? = null,
+    onVoicePlay: (id: Long) -> Unit = {},
+    onVoiceStop: () -> Unit = {},
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -335,6 +392,22 @@ private fun ReplyItem(
                 CommentImageGrid(
                     images = images,
                     onImageClick = { index -> onImageClick(images, index) },
+                )
+            }
+
+            // 回复语音
+            val replyVoiceUrl = reply.voiceUrl
+            val replyVoiceDuration = reply.voiceDuration
+            if (!replyVoiceUrl.isNullOrBlank() && replyVoiceDuration != null) {
+                if (reply.replyToNickname != null || hasText || !reply.images.isNullOrEmpty()) Spacer(
+                    modifier = Modifier.height(4.dp)
+                )
+                VoiceMessageCard(
+                    url = replyVoiceUrl,
+                    durationSeconds = replyVoiceDuration,
+                    isCurrentlyPlaying = playingVoiceId == reply.id,
+                    onPlayStart = { onVoicePlay(reply.id) },
+                    onPlayStop = onVoiceStop,
                 )
             }
 

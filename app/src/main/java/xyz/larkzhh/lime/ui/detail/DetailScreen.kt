@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,6 +47,7 @@ import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.components.CommentInputSheet
 import xyz.larkzhh.lime.ui.components.SelectableText
 import xyz.larkzhh.lime.ui.components.SelectionAction
+import xyz.larkzhh.lime.ui.components.VoiceRecordSheet
 import xyz.larkzhh.lime.ui.detail.components.AuthorBar
 import xyz.larkzhh.lime.ui.detail.comment.components.CommentCard
 import xyz.larkzhh.lime.ui.detail.comment.components.CommentHeader
@@ -183,18 +185,34 @@ fun DetailScreen(
         }
 
         // 评论输入框
+        var voiceSheetHeightDp by remember { mutableIntStateOf(0) }
         if (commentUiState.showInputSheet) {
             val hint = commentUiState.replyTarget?.let { "回复 @${it.replyToNickname}" } ?: "说点什么…"
             CommentInputSheet(
                 hint = hint,
                 isSubmitting = commentUiState.isSubmitting,
                 selectedImages = commentUiState.pendingImages,
+                pendingVoice = commentUiState.pendingVoice,
                 onImagePickRequest = {
                     navController.navigate(Screen.CommentPhotoPicker.route)
                 },
                 onRemoveImage = commentViewModel::removeCommentImage,
+                onVoiceRecordRequest = { heightDp ->
+                    voiceSheetHeightDp = heightDp
+                    commentViewModel.openVoiceSheet()
+                },
+                onRemoveVoice = commentViewModel::removePendingVoice,
                 onSubmit = commentViewModel::submitComment,
                 onDismiss = commentViewModel::closeInputSheet,
+            )
+        }
+
+        // 录音面板
+        if (commentUiState.showVoiceSheet) {
+            VoiceRecordSheet(
+                sheetTotalHeightDp = voiceSheetHeightDp,
+                onVoiceRecorded = commentViewModel::setPendingVoice,
+                onDismiss = commentViewModel::closeVoiceSheet,
             )
         }
     }
@@ -224,6 +242,9 @@ private fun NoteContent(
     }
 
     val listState = rememberLazyListState()
+
+    // 评论语音播放互斥
+    var playingVoiceId by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(listState.canScrollForward) {
         if (!listState.canScrollForward && commentUiState.hasMore && !commentUiState.isLoadingMore) {
@@ -316,6 +337,9 @@ private fun NoteContent(
                 onLoadMoreReplies = { onLoadMoreReplies(comment.id) },
                 onReplyLike = { replyId -> onReplyLike(comment.id, replyId) },
                 onImageClick = onCommentImageClick,
+                playingVoiceId = playingVoiceId,
+                onVoicePlay = { id -> playingVoiceId = id },
+                onVoiceStop = { playingVoiceId = null },
             )
             HorizontalDivider(color = LimeLightGray, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
         }
