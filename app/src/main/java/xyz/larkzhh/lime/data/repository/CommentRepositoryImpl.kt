@@ -14,6 +14,7 @@ import xyz.larkzhh.lime.data.network.model.PostReplyRequest
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.data.network.model.ReplyListResponse
 import xyz.larkzhh.lime.domain.repository.CommentRepository
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,8 +32,8 @@ class CommentRepositoryImpl @Inject constructor(
     }
 
     /// 发送评论
-    override suspend fun sentComment(noteId: Long, content: String?, images: List<String>?): Result<CommentData> = runCatching {
-        val response = apiService.postComment(noteId, PostCommentRequest(content, images))
+    override suspend fun sentComment(noteId: Long, content: String?, images: List<String>?, voiceUrl: String?, voiceDuration: Int?): Result<CommentData> = runCatching {
+        val response = apiService.postComment(noteId, PostCommentRequest(content, images, voiceUrl, voiceDuration))
         check(response.code == 200 && response.data != null) { response.message }
         response.data
     }
@@ -45,8 +46,8 @@ class CommentRepositoryImpl @Inject constructor(
     }
 
     /// 发送回复
-    override suspend fun sentReply(noteId: Long, commentId: Long, content: String?, images: List<String>?, replyToUserId: Long?): Result<ReplyData> = runCatching {
-        val response = apiService.postReply(noteId, commentId, PostReplyRequest(content, replyToUserId, images))
+    override suspend fun sentReply(noteId: Long, commentId: Long, content: String?, images: List<String>?, replyToUserId: Long?, voiceUrl: String?, voiceDuration: Int?): Result<ReplyData> = runCatching {
+        val response = apiService.postReply(noteId, commentId, PostReplyRequest(content, replyToUserId, images, voiceUrl, voiceDuration))
         check(response.code == 200 && response.data != null) { response.message }
         response.data
     }
@@ -77,6 +78,16 @@ class CommentRepositoryImpl @Inject constructor(
         val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
         val part = MultipartBody.Part.createFormData("file", "upload.$ext", requestBody)
         val response = apiService.uploadCommentImage(part)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data.url
+    }
+
+    /// 上传评论语音
+    override suspend fun uploadCommentVoice(file: File): Result<String> = runCatching {
+        val bytes = file.readBytes()
+        val requestBody = bytes.toRequestBody("audio/mp4".toMediaTypeOrNull())
+        val part = MultipartBody.Part.createFormData("file", file.name, requestBody)
+        val response = apiService.uploadCommentVoice(part)
         check(response.code == 200 && response.data != null) { response.message }
         response.data.url
     }
