@@ -7,6 +7,8 @@ data class ReplyData(
     val replyToNickname: String?,
     val content: String? = null,
     val images: List<String>? = null,
+    val voiceUrl: String? = null,
+    val voiceDuration: Int? = null,
     val likeCount: Int,
     val liked: Boolean,
     val isNoteAuthor: Boolean,
@@ -19,6 +21,8 @@ data class CommentData(
     val author: FeedAuthor,
     val content: String? = null,
     val images: List<String>? = null,
+    val voiceUrl: String? = null,
+    val voiceDuration: Int? = null,
     val likeCount: Int,
     val replyCount: Int,
     val liked: Boolean,
@@ -43,10 +47,14 @@ data class ReplyListResponse(
 data class PostCommentRequest(
     val content: String? = null,
     val images: List<String>? = null,
+    val voiceUrl: String? = null,
+    val voiceDuration: Int? = null,
 )
 
 data class PostReplyRequest(
     val content: String? = null,
     val replyToUserId: Long? = null,
     val images: List<String>? = null,
+    val voiceUrl: String? = null,
+    val voiceDuration: Int? = null,
 )
