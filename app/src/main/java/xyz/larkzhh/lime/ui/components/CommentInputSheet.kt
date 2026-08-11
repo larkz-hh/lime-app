@@ -56,6 +56,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -66,11 +68,13 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.ui.detail.comment.viewmodel.VoiceRecord
 import xyz.larkzhh.lime.ui.detail.components.EmojiPanel
 import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
+import xyz.larkzhh.lime.util.showToast
 
 /**
  * 评论输入框组件
@@ -78,8 +82,11 @@ import xyz.larkzhh.lime.ui.theme.LimePrimary
  * @param hint 输入框提示文字
  * @param isSubmitting 是否正在提交
  * @param selectedImages 已选择的图片列表
+ * @param pendingVoice 已录制待发送的语音（与图片互斥）
  * @param onImagePickRequest 请求选择图片回调
  * @param onRemoveImage 移除指定图片回调
+ * @param onVoiceRecordRequest 点击麦克风回调
+ * @param onRemoveVoice 移除语音回调
  * @param onSubmit 提交评论回调
  * @param onDismiss 关闭面板回调
  */
@@ -89,11 +96,15 @@ fun CommentInputSheet(
     hint: String = "说点什么…",
     isSubmitting: Boolean = false,
     selectedImages: List<Uri> = emptyList(),
+    pendingVoice: VoiceRecord? = null,
     onImagePickRequest: () -> Unit = {},
     onRemoveImage: (Uri) -> Unit = {},
+    onVoiceRecordRequest: (sheetTotalHeightDp: Int) -> Unit = {},
+    onRemoveVoice: () -> Unit = {},
     onSubmit: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
@@ -146,10 +157,15 @@ fun CommentInputSheet(
                 interactionSource = remember { MutableInteractionSource() },
             ) { onDismiss() },
     ) {
+    var sheetTotalHeightDp by remember { mutableIntStateOf(0) }
+
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
+                .onGloballyPositioned {
+                    sheetTotalHeightDp = with(density) { it.size.height.toDp().value.toInt() }
+                }
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
@@ -270,6 +286,37 @@ fun CommentInputSheet(
                     }
                 }
 
+                // 刚录音的语音预览卡片（与图片互斥）
+                if (pendingVoice != null) {
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        VoiceMessageCard(
+                            durationSeconds = pendingVoice.durationSeconds,
+                            localFile = pendingVoice.file,
+                        )
+                        // 删除语音按钮
+                        Box(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clip(CircleShape)
+                                .background(LimeGray.copy(alpha = 0.3f))
+                                .clickable { onRemoveVoice() },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "删除语音",
+                                tint = Color.White,
+                                modifier = Modifier.size(12.dp),
+                            )
+                        }
+                    }
+                }
+
                 HorizontalDivider(modifier = Modifier.padding(top = 8.dp), color = LimeLightGray)
 
                 Row(
@@ -278,10 +325,31 @@ fun CommentInputSheet(
                         .padding(horizontal = 4.dp, vertical = 2.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Outlined.Mic, contentDescription = "录音", tint = LimeGray, modifier = Modifier.size(22.dp))
+                    // 麦克风，与图片互斥
+                    IconButton(onClick = {
+                        if (selectedImages.isNotEmpty()) {
+                            "图片和语音不能同时添加".showToast(context)
+                        } else if (pendingVoice != null) {
+                            "只能添加一条语音".showToast(context)
+                        } else {
+                            onVoiceRecordRequest(sheetTotalHeightDp)
+                        }
+                    }) {
+                        Icon(
+                            Icons.Outlined.Mic,
+                            contentDescription = "录音",
+                            tint = if (pendingVoice != null) LimePrimary else LimeGray,
+                            modifier = Modifier.size(22.dp),
+                        )
                     }
-                    IconButton(onClick = { onImagePickRequest() }) {
+                    // 相册，与语音互斥
+                    IconButton(onClick = {
+                        if (pendingVoice != null) {
+                            "图片和语音不能同时添加".showToast(context)
+                        } else {
+                            onImagePickRequest()
+                        }
+                    }) {
                         Icon(Icons.Outlined.Image, contentDescription = "相册", tint = LimeGray, modifier = Modifier.size(22.dp))
                     }
                     IconButton(onClick = { }) {
@@ -308,7 +376,7 @@ fun CommentInputSheet(
                     Spacer(modifier = Modifier.weight(1f))
 
                     // 发送按钮
-                    val canSend = textValue.text.isNotBlank() || selectedImages.isNotEmpty()
+                    val canSend = textValue.text.isNotBlank() || selectedImages.isNotEmpty() || pendingVoice != null
                     if (isSubmitting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(22.dp),
