@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,229 +67,242 @@ fun CommentCard(
     playingVoiceId: Long? = null,
     onVoicePlay: (id: Long) -> Unit = {},
     onVoiceStop: () -> Unit = {},
+    onLongPress: () -> Unit = {},
+    onReplyLongPress: (ReplyData) -> Unit = {},
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        // 头像
-        AsyncImage(
-            model = comment.author.avatar,
-            contentDescription = null,
+    val isExpanded = expandedReplies != null// 是否展开预览
+    val topReplies = comment.topReplies
+    val topReplyIds = topReplies?.map { it.id }?.toSet() ?: emptySet()
+    val newReplies = expandedReplies?.replies?.filter { it.id !in topReplyIds }// 展开后的回复过滤顶部预览
+    val replies = expandedReplies?.replies ?: topReplies
+    val replyCount = comment.replyCount
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
             modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop,
-        )
-
-        Spacer(modifier = Modifier.width(10.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            // 昵称、作者标签
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = comment.author.nickname,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = LimeGray,
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = { onReply(ReplyTarget(comment.id, null, comment.author.nickname)) },
+                    onLongClick = onLongPress,
                 )
-                if (comment.isNoteAuthor) {
-                    Spacer(modifier = Modifier.width(4.dp))
-                    AuthorBadge()
-                }
-            }
+                .padding(start = 16.dp, end = 16.dp, top = 10.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            // 头像
+            AsyncImage(
+                model = comment.author.avatar,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop,
+            )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.width(10.dp))
 
-            // 评论文字内容
-            if (!comment.content.isNullOrBlank()) {
-                Text(
-                    text = comment.content,
-                    fontSize = 15.sp,
-                    color = LimeDark,
-                    lineHeight = 22.sp,
-                )
-            }
-
-            // 评论图片
-            val images = comment.images
-            if (!images.isNullOrEmpty()) {
-                if (!comment.content.isNullOrBlank()) Spacer(modifier = Modifier.height(6.dp))
-                CommentImageGrid(
-                    images = images,
-                    onImageClick = { index -> onImageClick(images, index) },
-                )
-            }
-
-            // 评论语音
-            val voiceUrl = comment.voiceUrl
-            val voiceDuration = comment.voiceDuration
-            if (!voiceUrl.isNullOrBlank() && voiceDuration != null) {
-                if (!comment.content.isNullOrBlank() || !comment.images.isNullOrEmpty()) Spacer(
-                    modifier = Modifier.height(6.dp)
-                )
-                VoiceMessageCard(
-                    url = voiceUrl,
-                    durationSeconds = voiceDuration,
-                    isCurrentlyPlaying = playingVoiceId == comment.id,
-                    onPlayStart = { onVoicePlay(comment.id) },
-                    onPlayStop = onVoiceStop,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // 时间、ip、回复、点赞
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    text = formatRelativeTime(comment.createTime),
-                    fontSize = 12.sp,
-                    color = LimeGray,
-                )
-                if (!comment.ipLocation.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(text = comment.ipLocation, fontSize = 12.sp, color = LimeGray)
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "回复",
-                    fontSize = 12.sp,
-                    color = LimeGray,
-                    modifier = Modifier.clickable {
-                        onReply(ReplyTarget(comment.id, null, comment.author.nickname))
-                    },
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                LikeButton(
-                    liked = comment.liked,
-                    onToggle = onLike,
-                    iconSize = 16.dp,
-                    animationSize = 32.dp,
-                )
-                if (comment.likeCount > 0) {
-                    Spacer(modifier = Modifier.width(2.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                // 昵称、作者标签
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = comment.likeCount.toString(),
-                        fontSize = 11.sp,
+                        text = comment.author.nickname,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
                         color = LimeGray,
+                    )
+                    if (comment.isNoteAuthor) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        AuthorBadge()
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // 评论文字内容
+                if (!comment.content.isNullOrBlank()) {
+                    Text(
+                        text = comment.content,
+                        fontSize = 15.sp,
+                        color = LimeDark,
+                        lineHeight = 22.sp,
+                    )
+            }
+
+                // 评论图片
+                val images = comment.images
+                if (!images.isNullOrEmpty()) {
+                    if (!comment.content.isNullOrBlank()) Spacer(modifier = Modifier.height(6.dp))
+                    CommentImageGrid(
+                        images = images,
+                        onImageClick = { index -> onImageClick(images, index) },
+                    )
+                }
+
+                // 评论语音
+                val voiceUrl = comment.voiceUrl
+                val voiceDuration = comment.voiceDuration
+                if (!voiceUrl.isNullOrBlank() && voiceDuration != null) {
+                    if (!comment.content.isNullOrBlank() || !comment.images.isNullOrEmpty()) Spacer(
+                        modifier = Modifier.height(6.dp)
+                    )
+                    VoiceMessageCard(
+                        url = voiceUrl,
+                        durationSeconds = voiceDuration,
+                        isCurrentlyPlaying = playingVoiceId == comment.id,
+                        onPlayStart = { onVoicePlay(comment.id) },
+                        onPlayStop = onVoiceStop,
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // 时间、ip、回复、点赞
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = formatRelativeTime(comment.createTime),
+                        fontSize = 12.sp,
+                        color = LimeGray,
+                    )
+                    if (!comment.ipLocation.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(text = comment.ipLocation, fontSize = 12.sp, color = LimeGray)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "回复",
+                        fontSize = 12.sp,
+                        color = LimeGray,
+                        modifier = Modifier.clickable(
+                            indication = null,
+                            interactionSource = null,
+                        ) {
+                            onReply(ReplyTarget(comment.id, null, comment.author.nickname))
+                        },
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    LikeButton(
+                        liked = comment.liked,
+                        onToggle = onLike,
+                        iconSize = 16.dp,
+                        animationSize = 32.dp,
+                    )
+                    if (comment.likeCount > 0) {
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text(
+                            text = comment.likeCount.toString(),
+                            fontSize = 11.sp,
+                            color = LimeGray,
+                        )
+                    }
+                }
+            }
+        }
+
+        // 回复区域
+        Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 62.dp, end = 16.dp),
+            ) {
+                // 顶部预览回复
+                if (!topReplies.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        topReplies.forEach { reply ->
+                            ReplyItem(
+                                reply = reply,
+                                onReply = { onReply(ReplyTarget(comment.id, reply.author.id, reply.author.nickname)) },
+                                onLike = { onReplyLike(reply.id) },
+                                onImageClick = onImageClick,
+                                playingVoiceId = playingVoiceId,
+                                onVoicePlay = onVoicePlay,
+                                onVoiceStop = onVoiceStop,
+                                onLongPress = { onReplyLongPress(reply) },
+                            )
+                        }
+                    }
+                }
+
+                // 展开后新增的回复
+                if (isExpanded && !newReplies.isNullOrEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        for ((index, reply) in newReplies.withIndex()) {
+                            AnimatedReplyItem(
+                                index = index,
+                                total = newReplies.size,
+                                reply = reply,
+                                onReply = {
+                                    onReply(ReplyTarget(comment.id, reply.author.id, reply.author.nickname))
+                                },
+                                onLike = { onReplyLike(reply.id) },
+                                onImageClick = onImageClick,
+                                playingVoiceId = playingVoiceId,
+                                onVoicePlay = onVoicePlay,
+                                onVoiceStop = onVoiceStop,
+                                onLongPress = { onReplyLongPress(reply) },
+                            )
+                        }
+                    }
+                }
+
+                if (!replies.isNullOrEmpty()) {
+                    when {
+                        expandedReplies?.isLoading == true -> {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    color = LimePrimary,
+                                    strokeWidth = 2.dp
+                                )
+                            }
+                        }
+                        expandedReplies?.hasMore == true -> {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "展开更多回复",
+                                fontSize = 12.sp,
+                                color = LimePrimary,
+                                modifier = Modifier.clickable { onLoadMoreReplies() },
+                            )
+                        }
+                        !isExpanded && replyCount > 1 -> {
+                            val label = if (replyCount <= 5) "展开${replyCount - 1}条回复" else "展开5条回复"
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = label,
+                                fontSize = 12.sp,
+                                color = LimePrimary,
+                                modifier = Modifier.clickable { onLoadMoreReplies() },
+                            )
+                        }
+                    }
+                } else if (replyCount > 0 && !isExpanded) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    val label = if (replyCount <= 5) "展开${replyCount}条回复" else "展开5条回复"
+                    Text(
+                        text = label,
+                        fontSize = 12.sp,
+                        color = LimePrimary,
+                        modifier = Modifier.clickable { onLoadMoreReplies() },
                     )
                 }
             }
 
-            // 回复区域
-            val isExpanded = expandedReplies != null// 是否展开回复
-            val topReplies = comment.topReplies
-            val topReplyIds = topReplies?.map { it.id }?.toSet() ?: emptySet()
-            val expandedList = expandedReplies?.replies
-            // 展开后的回复，过滤顶部预览
-            val newReplies = expandedList?.filter { it.id !in topReplyIds }
-
-            // 顶部预览
-            if (!topReplies.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    topReplies.forEach { reply ->
-                        ReplyItem(
-                            reply = reply,
-                            onReply = { onReply(ReplyTarget(comment.id, reply.author.id, reply.author.nickname)) },
-                            onLike = { onReplyLike(reply.id) },
-                            onImageClick = onImageClick,
-                            playingVoiceId = playingVoiceId,
-                            onVoicePlay = onVoicePlay,
-                            onVoiceStop = onVoiceStop,
-                        )
-                    }
-                }
-            }
-
-            // 展开后新增的回复
-            if (isExpanded && !newReplies.isNullOrEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    for ((index, reply) in newReplies.withIndex()) {
-                        AnimatedReplyItem(
-                            index = index,
-                            total = newReplies.size,
-                            reply = reply,
-                            onReply = {
-                                onReply(
-                                    ReplyTarget(
-                                        comment.id,
-                                        reply.author.id,
-                                        reply.author.nickname
-                                    )
-                                )
-                            },
-                            onLike = { onReplyLike(reply.id) },
-                            onImageClick = onImageClick,
-                            playingVoiceId = playingVoiceId,
-                            onVoicePlay = onVoicePlay,
-                            onVoiceStop = onVoiceStop,
-                        )
-                    }
-                }
-            }
-
-            val replies = expandedReplies?.replies ?: comment.topReplies
-            val replyCount = comment.replyCount
-            if (!replies.isNullOrEmpty()) {
-                when {
-                    expandedReplies?.isLoading == true -> {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                color = LimePrimary,
-                                strokeWidth = 2.dp
-                            )
-                        }
-                    }
-                    expandedReplies?.hasMore == true -> {
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "展开更多回复",
-                            fontSize = 12.sp,
-                            color = LimePrimary,
-                            modifier = Modifier.clickable { onLoadMoreReplies() },
-                        )
-                    }
-                    !isExpanded && replyCount > 1 -> {
-                        val label = if (replyCount <= 5) "展开${replyCount - 1}条回复" else "展开5条回复"
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = label,
-                            fontSize = 12.sp,
-                            color = LimePrimary,
-                            modifier = Modifier.clickable { onLoadMoreReplies() },
-                        )
-                    }
-                }
-            } else if (replyCount > 0 && !isExpanded) {
-                Spacer(modifier = Modifier.height(6.dp))
-                val label = if (replyCount <= 5) "展开${replyCount}条回复" else "展开5条回复"
-                Text(
-                    text = label,
-                    fontSize = 12.sp,
-                    color = LimePrimary,
-                    modifier = Modifier.clickable { onLoadMoreReplies() },
-                )
-            }
-        }
+        Spacer(modifier = Modifier.height(10.dp))
     }
 }
 
@@ -303,6 +317,7 @@ private fun AnimatedReplyItem(
     playingVoiceId: Long? = null,
     onVoicePlay: (id: Long) -> Unit = {},
     onVoiceStop: () -> Unit = {},
+    onLongPress: () -> Unit = {},
 ) {
     // 后面的回复初始叠在上方，delay 后滑到原位
     var settled by remember(reply.id) { mutableStateOf(false) }
@@ -328,7 +343,8 @@ private fun AnimatedReplyItem(
             onImageClick = onImageClick,
             playingVoiceId = playingVoiceId,
             onVoicePlay = onVoicePlay,
-            onVoiceStop = onVoiceStop
+            onVoiceStop = onVoiceStop,
+            onLongPress = onLongPress,
         )
     }
 }
@@ -342,9 +358,15 @@ private fun ReplyItem(
     playingVoiceId: Long? = null,
     onVoicePlay: (id: Long) -> Unit = {},
     onVoiceStop: () -> Unit = {},
+    onLongPress: () -> Unit = {},
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = onReply,
+                onLongClick = onLongPress,
+            ),
         verticalAlignment = Alignment.Top,
     ) {
         AsyncImage(
@@ -428,7 +450,10 @@ private fun ReplyItem(
                     text = "回复",
                     fontSize = 11.sp,
                     color = LimeGray,
-                    modifier = Modifier.clickable { onReply() },
+                modifier = Modifier.clickable(
+                        indication = null,
+                        interactionSource = null,
+                    ) { onReply() },
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 LikeButton(liked = reply.liked, onToggle = onLike, iconSize = 14.dp, animationSize = 28.dp)

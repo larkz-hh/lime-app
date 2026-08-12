@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.domain.repository.CommentRepository
+import xyz.larkzhh.lime.domain.repository.UserRepository
 import android.net.Uri
 import java.io.File
 import javax.inject.Inject
@@ -63,12 +64,16 @@ data class ReplyTarget(
 @HiltViewModel
 class CommentViewModel @Inject constructor(
     private val commentRepository: CommentRepository,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CommentUiState())
     val uiState = _uiState.asStateFlow()
 
     private var noteId: Long = 0L
+
+    /// 当前登录用户id
+    val currentUserId: Long? get() = userRepository.userFlow.value?.id
 
     fun init(noteId: Long) {
         if (this.noteId == noteId) return
@@ -332,5 +337,42 @@ class CommentViewModel @Inject constructor(
     fun removePendingVoice() {
         _uiState.value.pendingVoice?.file?.delete()
         _uiState.update { it.copy(pendingVoice = null) }
+    }
+
+    /// 删除评论，乐观移除
+    fun deleteComment(commentId: Long) {
+        val backup = _uiState.value.comments
+        _uiState.update { s -> s.copy(comments = s.comments.filter { c -> c.id != commentId }) }
+        viewModelScope.launch {
+            commentRepository.deleteComment(commentId).onFailure {
+                _uiState.update { s -> s.copy(comments = backup) }
+            }
+        }
+    }
+
+    /// 删除回复
+    fun deleteReply(commentId: Long, replyId: Long) {
+        val backup = _uiState.value
+        _uiState.update { s ->
+            s.copy(
+                comments = s.comments.map { c ->
+                    // 定位父评论
+                    if (c.id == commentId) c.copy(
+                        topReplies = c.topReplies?.filter { r -> r.id != replyId },
+                        replyCount = (c.replyCount - 1).coerceAtLeast(0),
+                    ) else c
+                },
+                // 更新展开的回复列表
+                expandedReplies = s.expandedReplies.mapValues { (id, state) ->
+                    if (id == commentId) state.copy(replies = state.replies.filter { r -> r.id != replyId })
+                    else state
+                },
+            )
+        }
+        viewModelScope.launch {
+            commentRepository.deleteComment(replyId).onFailure {
+                _uiState.update { backup }
+            }
+        }
     }
 }

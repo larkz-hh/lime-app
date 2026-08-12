@@ -14,6 +14,7 @@ interface CommentRepository {
     suspend fun sentReply(noteId: Long, commentId: Long, content: String?, images: List<String>?, replyToUserId: Long?, voiceUrl: String?, voiceDuration: Int?): Result<ReplyData>
     suspend fun likeComment(commentId: Long): Result<Unit>
     suspend fun unlikeComment(commentId: Long): Result<Unit>
+    suspend fun deleteComment(commentId: Long): Result<Unit>
     suspend fun uploadCommentImage(uri: Uri): Result<String>
     suspend fun uploadCommentVoice(file: File): Result<String>
 }

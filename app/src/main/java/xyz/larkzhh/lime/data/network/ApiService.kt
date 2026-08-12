@@ -198,4 +198,8 @@ interface ApiService {
     /// 取消点赞评论/回复
     @DELETE("api/comments/{commentId}/like")
     suspend fun unlikeComment(@Path("commentId") commentId: Long): ApiResponse<Unit>
+
+    /// 删除评论/回复
+    @DELETE("api/comments/{commentId}")
+    suspend fun deleteComment(@Path("commentId") commentId: Long): ApiResponse<Unit>
 }
