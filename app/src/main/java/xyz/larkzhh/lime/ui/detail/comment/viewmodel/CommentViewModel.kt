@@ -347,10 +347,11 @@ class CommentViewModel @Inject constructor(
 
     /// 删除评论，乐观移除
     fun deleteComment(commentId: Long) {
+        val comment = _uiState.value.comments.find { it.id == commentId }
         val backup = _uiState.value
         _uiState.update { s -> s.copy(
             comments = s.comments.filter { c -> c.id != commentId },
-            commentCountDelta = s.commentCountDelta - 1,
+            commentCountDelta = s.commentCountDelta - 1 - (comment?.replyCount ?: 0),
         ) }
         viewModelScope.launch {
             commentRepository.deleteComment(commentId).onFailure {
