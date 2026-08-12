@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -23,11 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
@@ -98,7 +99,7 @@ fun AuthorBar(
         // 分享按钮
         IconButton(onClick = {}) {
             Icon(
-                imageVector = Icons.Default.Share,
+                painter = painterResource(R.drawable.ic_share),
                 contentDescription = "分享",
                 tint = LimeDark,
                 modifier = Modifier.size(20.dp),

@@ -48,6 +48,7 @@ data class NoteDetailData(
     val likeCount: Int,
     val favCount: Int,
     val viewCount: Int,
+    val commentCount: Int = 0,
     val liked: Boolean,
     val favorited: Boolean,
     val author: FeedAuthor,

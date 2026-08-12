@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.ui.auth.LoginScreen
 import xyz.larkzhh.lime.ui.auth.RegisterScreen
 import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
+import xyz.larkzhh.lime.ui.detail.comment.CommentPhotoPickerScreen
 import xyz.larkzhh.lime.ui.detail.DetailScreen
 import xyz.larkzhh.lime.ui.home.HomeScreen
 import xyz.larkzhh.lime.ui.message.MessageScreen
@@ -130,6 +131,7 @@ fun AppNavGraph() {
                 QrScanScreen(navController)
             }
             composable(Screen.BrowseHistory.route) { BrowseHistoryScreen(navController) }
+            composable(Screen.CommentPhotoPicker.route) { CommentPhotoPickerScreen(navController) }
             composable(
                 route = Screen.Detail.ROUTE,
                 arguments = listOf(navArgument("noteId") { type = NavType.StringType })
