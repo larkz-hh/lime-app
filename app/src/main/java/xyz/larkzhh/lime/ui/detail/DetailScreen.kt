@@ -59,6 +59,7 @@ import xyz.larkzhh.lime.ui.components.VoiceRecordSheet
 import xyz.larkzhh.lime.ui.detail.components.AuthorBar
 import xyz.larkzhh.lime.ui.detail.comment.components.CommentCard
 import xyz.larkzhh.lime.ui.detail.comment.components.CommentHeader
+import xyz.larkzhh.lime.ui.detail.comment.components.CommentInputBar
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentSort
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentUiState
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentViewModel
@@ -173,6 +174,26 @@ fun DetailScreen(
                         },
                         onCommentLongPress = { longPressTarget = LongPressTarget.Comment(it) },
                         onCommentReplyLongPress = { commentId, reply -> longPressTarget = LongPressTarget.Reply(commentId, reply) },
+                        currentUserAvatar = commentViewModel.currentUserAvatar,
+                        onCommentBoxClick = { commentViewModel.openInputSheet(null) },
+                        onVoiceClick = {
+                            commentViewModel.openInputSheet(null)
+                            if (commentUiState.pendingImages.isNotEmpty()) {
+                                "图片和语音不能同时添加".showToast(context)
+                            } else if (commentUiState.pendingVoice != null) {
+                                "只能添加一条语音".showToast(context)
+                            } else {
+                                commentViewModel.openVoiceSheet()
+                            }
+                        },
+                        onAlbumClick = {
+                            commentViewModel.openInputSheet(null)
+                            if (commentUiState.pendingVoice != null) {
+                                "图片和语音不能同时添加".showToast(context)
+                            } else {
+                                navController.navigate(Screen.CommentPhotoPicker.route)
+                            }
+                        },
                     )
                     NoteBottomBar(
                         note = uiState.note!!,
@@ -298,6 +319,7 @@ fun DetailScreen(
                     GroupedSheetAction(
                         label = "复制",
                         icon = Icons.Outlined.ContentCopy,
+                        iconSize = 20.dp,
                         onClick = {
                             m.copyText?.copyToClipboard(context)
                             "已复制".showToast(context)
@@ -346,6 +368,10 @@ private fun NoteContent(
     onCommentImageClick: (images: List<String>, index: Int) -> Unit,
     onCommentLongPress: (CommentData) -> Unit,
     onCommentReplyLongPress: (commentId: Long, reply: ReplyData) -> Unit,
+    currentUserAvatar: String?,
+    onCommentBoxClick: () -> Unit,
+    onVoiceClick: () -> Unit,
+    onAlbumClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -419,9 +445,19 @@ private fun NoteContent(
         // 评论区标题栏
         item {
             CommentHeader(
-                commentCount = note.commentCount,
+                commentCount = note.commentCount + commentUiState.commentCountDelta,
                 sort = commentUiState.sort,
                 onSortChange = onSortChange,
+            )
+        }
+
+        // 评论输入栏
+        item {
+            CommentInputBar(
+                currentUserAvatar = currentUserAvatar,
+                onCommentClick = onCommentBoxClick,
+                onVoiceClick = onVoiceClick,
+                onAlbumClick = onAlbumClick,
             )
         }
 

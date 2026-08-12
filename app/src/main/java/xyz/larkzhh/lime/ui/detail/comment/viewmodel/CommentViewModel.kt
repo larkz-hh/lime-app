@@ -26,6 +26,7 @@ data class VoiceRecord(
 
 data class CommentUiState(
     val comments: List<CommentData> = emptyList(),
+    val commentCountDelta: Int = 0,// 总评论数增量
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasMore: Boolean = false,
@@ -74,6 +75,9 @@ class CommentViewModel @Inject constructor(
 
     /// 当前登录用户id
     val currentUserId: Long? get() = userRepository.userFlow.value?.id
+
+    /// 当前登录用户头像
+    val currentUserAvatar: String? get() = userRepository.userFlow.value?.avatar
 
     fun init(noteId: Long) {
         if (this.noteId == noteId) return
@@ -162,6 +166,7 @@ class CommentViewModel @Inject constructor(
                         }
                         _uiState.update { it.copy(
                             comments = listOf(comment) + it.comments,
+                            commentCountDelta = it.commentCountDelta + 1,
                             isSubmitting = false,
                             showInputSheet = false,
                             replyTarget = null,
@@ -202,6 +207,7 @@ class CommentViewModel @Inject constructor(
                                 pendingVoice = null,
                                 expandedReplies = updatedExpandedReplies,
                                 comments = updatedComments,
+                                commentCountDelta = s.commentCountDelta + 1,
                             )
                         }
                         voice?.file?.delete()
@@ -341,11 +347,14 @@ class CommentViewModel @Inject constructor(
 
     /// 删除评论，乐观移除
     fun deleteComment(commentId: Long) {
-        val backup = _uiState.value.comments
-        _uiState.update { s -> s.copy(comments = s.comments.filter { c -> c.id != commentId }) }
+        val backup = _uiState.value
+        _uiState.update { s -> s.copy(
+            comments = s.comments.filter { c -> c.id != commentId },
+            commentCountDelta = s.commentCountDelta - 1,
+        ) }
         viewModelScope.launch {
             commentRepository.deleteComment(commentId).onFailure {
-                _uiState.update { s -> s.copy(comments = backup) }
+                _uiState.update { backup }
             }
         }
     }
@@ -367,6 +376,7 @@ class CommentViewModel @Inject constructor(
                     if (id == commentId) state.copy(replies = state.replies.filter { r -> r.id != replyId })
                     else state
                 },
+                commentCountDelta = s.commentCountDelta - 1,
             )
         }
         viewModelScope.launch {
