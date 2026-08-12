@@ -1,6 +1,10 @@
 package xyz.larkzhh.lime.ui.components
 
 import android.Manifest
+import android.content.Context
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.media.MediaRecorder
 import android.os.Build
 import androidx.compose.foundation.background
@@ -93,6 +97,37 @@ fun VoiceRecordSheet(
 
     var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
     var outputFile by remember { mutableStateOf<File?>(null) }
+    val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
+    var audioFocusRequest by remember { mutableStateOf<AudioFocusRequest?>(null) }
+    var focusLost by remember { mutableStateOf(false) }// 焦点被抢占时触发停录
+
+    // 请求音频焦点
+    fun requestAudioFocus() {
+        val listener = AudioManager.OnAudioFocusChangeListener { change ->
+            if (change == AudioManager.AUDIOFOCUS_LOSS || change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+                focusLost = true// 被打断停止录音
+            }
+        }
+        // 构建焦点请求配置
+        val req = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build()
+            )
+            .setAcceptsDelayedFocusGain(false)
+            .setOnAudioFocusChangeListener(listener)
+            .build()
+        audioFocusRequest = req
+        audioManager.requestAudioFocus(req)
+    }
+
+    // 释放音频焦点
+    fun abandonAudioFocus() {
+        audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
+        audioFocusRequest = null
+    }
 
     val audioPermission = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
     LaunchedEffect(Unit) {
@@ -110,6 +145,7 @@ fun VoiceRecordSheet(
             MediaRecorder()
         }
         try {
+            requestAudioFocus()
             recorder.apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
                 setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
@@ -124,6 +160,7 @@ fun VoiceRecordSheet(
             isRecording = true
             recordSeconds = 0
         } catch (_: Exception) {
+            abandonAudioFocus()
             recorder.release()
         }
     }
@@ -135,6 +172,7 @@ fun VoiceRecordSheet(
             recorder.stop()
         } catch (_: Exception) {}
         recorder.release()
+        abandonAudioFocus()
         mediaRecorder = null
         isRecording = false
         isCancelling = false
@@ -152,6 +190,15 @@ fun VoiceRecordSheet(
                 try { r.stop() } catch (_: Exception) {}
                 r.release()
             }
+            abandonAudioFocus()
+        }
+    }
+
+    // 焦点被抢占时自动停录
+    LaunchedEffect(focusLost) {
+        if (focusLost && isRecording) {
+            focusLost = false
+            stopRecording(cancel = false)
         }
     }
 
