@@ -64,6 +64,12 @@ class CommentRepositoryImpl @Inject constructor(
         check(response.code == 200) { response.message }
     }
 
+    /// 删除评论/回复
+    override suspend fun deleteComment(commentId: Long): Result<Unit> = runCatching {
+        val response = apiService.deleteComment(commentId)
+        check(response.code == 200) { response.message }
+    }
+
     /// 上传评论图片
     override suspend fun uploadCommentImage(uri: Uri): Result<String> = runCatching {
         val bytes = context.contentResolver.openInputStream(uri)?.readBytes()

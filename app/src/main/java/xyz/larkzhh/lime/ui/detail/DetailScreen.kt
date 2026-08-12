@@ -17,8 +17,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import xyz.larkzhh.lime.R
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Reply
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -42,9 +44,15 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.compose.ui.graphics.Color
+import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
+import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.components.CommentInputSheet
+import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet
+import xyz.larkzhh.lime.ui.components.GroupedSheetAction
+import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.SelectableText
 import xyz.larkzhh.lime.ui.components.SelectionAction
 import xyz.larkzhh.lime.ui.components.VoiceRecordSheet
@@ -66,6 +74,20 @@ import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.formatRelativeTime
 import xyz.larkzhh.lime.util.showToast
 
+// 长按目标
+private sealed interface LongPressTarget {
+    data class Comment(val comment: CommentData) : LongPressTarget
+    data class Reply(val commentId: Long, val reply: ReplyData) : LongPressTarget
+}
+
+/// 长按菜单动作列表
+private data class LongPressMenu(
+    val replyTarget: ReplyTarget,
+    val copyText: String?,
+    val canDelete: Boolean,
+    val onDelete: () -> Unit,
+)
+
 @Composable
 fun DetailScreen(
     navController: NavHostController,
@@ -79,6 +101,9 @@ fun DetailScreen(
     // 评论图片预览本地状态
     var commentPreviewImages by remember { mutableStateOf<List<String>>(emptyList()) }
     var commentPreviewIndex by remember { mutableStateOf<Int?>(null) }
+    var longPressTarget by remember { mutableStateOf<LongPressTarget?>(null) }
+    var pendingDeleteAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val context = LocalContext.current
 
     LaunchedEffect(noteId) {
         val id = noteId.toLongOrNull() ?: return@LaunchedEffect
@@ -106,7 +131,9 @@ fun DetailScreen(
             when {
                 uiState.isLoading -> {
                     Box(
-                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
                         contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator(color = LimePrimary)
@@ -115,7 +142,9 @@ fun DetailScreen(
 
                 uiState.error != null -> {
                     Box(
-                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(text = uiState.error ?: "加载失败", color = LimeGray, fontSize = 14.sp)
@@ -142,6 +171,8 @@ fun DetailScreen(
                             commentPreviewImages = images
                             commentPreviewIndex = index
                         },
+                        onCommentLongPress = { longPressTarget = LongPressTarget.Comment(it) },
+                        onCommentReplyLongPress = { commentId, reply -> longPressTarget = LongPressTarget.Reply(commentId, reply) },
                     )
                     NoteBottomBar(
                         note = uiState.note!!,
@@ -215,6 +246,89 @@ fun DetailScreen(
                 onDismiss = commentViewModel::closeVoiceSheet,
             )
         }
+
+        // 长按操作菜单
+        val pressed = longPressTarget
+        val currentUserId = commentViewModel.currentUserId// 当前登录用户
+        val noteAuthorId = uiState.note?.author?.id// 笔记作者
+        // 菜单动作列表参数
+        val menu = when (pressed) {
+            is LongPressTarget.Comment -> LongPressMenu(
+                replyTarget = ReplyTarget(
+                    pressed.comment.id,
+                    null,
+                    pressed.comment.author.nickname
+                ),
+                copyText = pressed.comment.content,
+                canDelete = currentUserId != null &&
+                        (currentUserId == pressed.comment.author.id || currentUserId == noteAuthorId),
+                onDelete = {
+                    pendingDeleteAction = { commentViewModel.deleteComment(pressed.comment.id) }
+                },
+            )
+
+            is LongPressTarget.Reply -> LongPressMenu(
+                replyTarget = ReplyTarget(
+                    pressed.commentId,
+                    pressed.reply.author.id,
+                    pressed.reply.author.nickname
+                ),
+                copyText = pressed.reply.content,
+                canDelete = currentUserId != null &&
+                        (currentUserId == pressed.reply.author.id || currentUserId == noteAuthorId),
+                onDelete = {
+                    pendingDeleteAction =
+                        { commentViewModel.deleteReply(pressed.commentId, pressed.reply.id) }
+                },
+            )
+
+            null -> null// 未长按
+        }
+        GroupedBottomActionSheet(
+            visible = menu != null,
+            onDismiss = { longPressTarget = null },
+            groups = buildList {
+                val m = menu ?: return@buildList
+                add(listOf(
+                    GroupedSheetAction(
+                        label = "回复",
+                        icon = Icons.AutoMirrored.Outlined.Reply,
+                        onClick = { commentViewModel.openInputSheet(m.replyTarget) },
+                    ),
+                    GroupedSheetAction(
+                        label = "复制",
+                        icon = Icons.Outlined.ContentCopy,
+                        onClick = {
+                            m.copyText?.copyToClipboard(context)
+                            "已复制".showToast(context)
+                        },
+                    ),
+                ))
+                if (m.canDelete) {
+                    add(listOf(
+                        GroupedSheetAction(
+                            label = "删除",
+                            icon = Icons.Outlined.Delete,
+                            textColor = Color(0xFFFF3B30),
+                            onClick = m.onDelete,
+                        ),
+                    ))
+                }
+            },
+        )
+
+        // 删除确认对话框
+        if (pendingDeleteAction != null) {
+            LimeAlertDialog(
+                title = "确认删除这条评论吗？",
+                onDismissRequest = { pendingDeleteAction = null },
+                onFirstButtonClick = { pendingDeleteAction = null },
+                onSecondButtonClick = {
+                    pendingDeleteAction?.invoke()
+                    pendingDeleteAction = null
+                },
+            )
+        }
     }
 }
 
@@ -230,6 +344,8 @@ private fun NoteContent(
     onLoadMoreReplies: (Long) -> Unit,
     onReplyLike: (commentId: Long, replyId: Long) -> Unit,
     onCommentImageClick: (images: List<String>, index: Int) -> Unit,
+    onCommentLongPress: (CommentData) -> Unit,
+    onCommentReplyLongPress: (commentId: Long, reply: ReplyData) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -313,7 +429,9 @@ private fun NoteContent(
         if (!commentUiState.isLoading && commentUiState.comments.isEmpty()) {
             item {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Image(
@@ -340,6 +458,8 @@ private fun NoteContent(
                 playingVoiceId = playingVoiceId,
                 onVoicePlay = { id -> playingVoiceId = id },
                 onVoiceStop = { playingVoiceId = null },
+                onLongPress = { onCommentLongPress(comment) },
+                onReplyLongPress = { reply -> onCommentReplyLongPress(comment.id, reply) },
             )
             HorizontalDivider(color = LimeLightGray, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
         }
@@ -349,8 +469,8 @@ private fun NoteContent(
             item {
                 Box(
                     modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                        .fillMaxWidth()
+                        .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = LimePrimary, strokeWidth = 2.dp)
@@ -362,7 +482,8 @@ private fun NoteContent(
         if (!commentUiState.hasMore && commentUiState.comments.isNotEmpty()) {
             item {
                 Box(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(vertical = 20.dp),
                     contentAlignment = Alignment.Center
                 ) {
