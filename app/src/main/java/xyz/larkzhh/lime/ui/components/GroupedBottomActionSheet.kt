@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -41,6 +42,7 @@ data class GroupedSheetAction(
     val icon: ImageVector,
     val textColor: Color = Color(0xFF1C1C1E),
     val fontWeight: FontWeight = FontWeight.Normal,
+    val iconSize: Dp = 24.dp,
     val onClick: () -> Unit,
 )
 
@@ -144,7 +146,7 @@ fun GroupedBottomActionSheet(
                                     imageVector = action.icon,
                                     contentDescription = action.label,
                                     tint = action.textColor,
-                                    modifier = Modifier.size(24.dp),
+                                    modifier = Modifier.size(action.iconSize),
                                 )
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Text(
