@@ -12,24 +12,27 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 import xyz.larkzhh.lime.data.network.model.ApiResponse
+import xyz.larkzhh.lime.data.network.model.CommentData
+import xyz.larkzhh.lime.data.network.model.CommentListResponse
 import xyz.larkzhh.lime.data.network.model.DeleteHistoryRequest
 import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.HistoryResponse
 import xyz.larkzhh.lime.data.network.model.LoginRequest
 import xyz.larkzhh.lime.data.network.model.NoteData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
+import xyz.larkzhh.lime.data.network.model.PostCommentRequest
+import xyz.larkzhh.lime.data.network.model.PostReplyRequest
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
 import xyz.larkzhh.lime.data.network.model.RefreshTokenRequest
 import xyz.larkzhh.lime.data.network.model.RegisterRequest
+import xyz.larkzhh.lime.data.network.model.ReplyData
+import xyz.larkzhh.lime.data.network.model.ReplyListResponse
 import xyz.larkzhh.lime.data.network.model.SendCodeRequest
 import xyz.larkzhh.lime.data.network.model.TokenData
 import xyz.larkzhh.lime.data.network.model.UpdateProfileRequest
 import xyz.larkzhh.lime.data.network.model.UploadNoteImageResponse
 import xyz.larkzhh.lime.data.network.model.UserData
 
-/**
- * API 接口
- */
 interface ApiService {
 
     /// 发送验证码
@@ -74,6 +77,16 @@ interface ApiService {
     @Multipart
     @POST("api/notes/images")
     suspend fun uploadNoteImage(@Part file: MultipartBody.Part): ApiResponse<UploadNoteImageResponse>
+
+    /// 上传评论图片
+    @Multipart
+    @POST("api/comments/images")
+    suspend fun uploadCommentImage(@Part file: MultipartBody.Part): ApiResponse<UploadNoteImageResponse>
+
+    /// 上传评论语音
+    @Multipart
+    @POST("api/comments/voices")
+    suspend fun uploadCommentVoice(@Part file: MultipartBody.Part): ApiResponse<UploadNoteImageResponse>
 
     /// 发布图文笔记
     @POST("api/notes")
@@ -145,4 +158,48 @@ interface ApiService {
     /// 清空全部浏览历史
     @DELETE("api/notes/history/all")
     suspend fun deleteHistoryAll(): ApiResponse<Unit>
+
+    /// 获取笔记评论列表
+    @GET("api/notes/{noteId}/comments")
+    suspend fun getComments(
+        @Path("noteId") noteId: Long,
+        @Query("sort") sort: String,
+        @Query("cursor") cursor: String?,
+        @Query("size") size: Int,
+    ): ApiResponse<CommentListResponse>
+
+    /// 发布评论
+    @POST("api/notes/{noteId}/comments")
+    suspend fun postComment(
+        @Path("noteId") noteId: Long,
+        @Body request: PostCommentRequest,
+    ): ApiResponse<CommentData>
+
+    /// 获取回复列表
+    @GET("api/comments/{commentId}/replies")
+    suspend fun getReplies(
+        @Path("commentId") commentId: Long,
+        @Query("cursor") cursor: Long?,
+        @Query("size") size: Int,
+    ): ApiResponse<ReplyListResponse>
+
+    /// 发布回复
+    @POST("api/notes/{noteId}/comments/{commentId}/replies")
+    suspend fun postReply(
+        @Path("noteId") noteId: Long,
+        @Path("commentId") commentId: Long,
+        @Body request: PostReplyRequest,
+    ): ApiResponse<ReplyData>
+
+    /// 点赞评论/回复
+    @POST("api/comments/{commentId}/like")
+    suspend fun likeComment(@Path("commentId") commentId: Long): ApiResponse<Unit>
+
+    /// 取消点赞评论/回复
+    @DELETE("api/comments/{commentId}/like")
+    suspend fun unlikeComment(@Path("commentId") commentId: Long): ApiResponse<Unit>
+
+    /// 删除评论/回复
+    @DELETE("api/comments/{commentId}")
+    suspend fun deleteComment(@Path("commentId") commentId: Long): ApiResponse<Unit>
 }

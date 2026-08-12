@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
-import xyz.larkzhh.lime.data.network.model.NoteImageData
 import xyz.larkzhh.lime.ui.components.BottomActionSheet
 import xyz.larkzhh.lime.ui.components.SheetAction
 import xyz.larkzhh.lime.ui.theme.LimeGray
@@ -42,7 +41,7 @@ import xyz.larkzhh.lime.util.showToast
 /// 单击退出，长按弹出操作菜单
 @Composable
 fun ImagePreviewOverlay(
-    images: List<NoteImageData>,
+    images: List<String>,
     initialIndex: Int,
     onDismiss: () -> Unit,
 ) {
@@ -63,7 +62,7 @@ fun ImagePreviewOverlay(
             beyondViewportPageCount = 1,
         ) { page ->
             ZoomableAsyncImage(
-                model = images[page].url,
+                model = images[page],
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit,
@@ -111,7 +110,7 @@ fun ImagePreviewOverlay(
                 SheetAction(
                     label = "保存图片",
                     onClick = {
-                        val url = images[pagerState.currentPage].url
+                        val url = images[pagerState.currentPage]
                         scope.launch {
                             val ok = saveImageToGallery(context, url)
                             val text = if (ok) "已保存到相册" else "保存失败"
