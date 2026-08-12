@@ -76,6 +76,7 @@ fun CommentCard(
     val newReplies = expandedReplies?.replies?.filter { it.id !in topReplyIds }// 展开后的回复过滤顶部预览
     val replies = expandedReplies?.replies ?: topReplies
     val replyCount = comment.replyCount
+    val hiddenReplyCount = (replyCount - (topReplies?.size ?: 0)).coerceAtLeast(0)// 尚未展示的回复数
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -279,8 +280,8 @@ fun CommentCard(
                                 modifier = Modifier.clickable { onLoadMoreReplies() },
                             )
                         }
-                        !isExpanded && replyCount > 1 -> {
-                            val label = if (replyCount <= 5) "展开${replyCount - 1}条回复" else "展开5条回复"
+                        !isExpanded && hiddenReplyCount > 0 -> {
+                            val label = if (hiddenReplyCount <= 5) "展开${hiddenReplyCount}条回复" else "展开5条回复"
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = label,
@@ -290,9 +291,9 @@ fun CommentCard(
                             )
                         }
                     }
-                } else if (replyCount > 0 && !isExpanded) {
+                } else if (hiddenReplyCount > 0 && !isExpanded) {
                     Spacer(modifier = Modifier.height(6.dp))
-                    val label = if (replyCount <= 5) "展开${replyCount}条回复" else "展开5条回复"
+                    val label = if (hiddenReplyCount <= 5) "展开${hiddenReplyCount}条回复" else "展开5条回复"
                     Text(
                         text = label,
                         fontSize = 12.sp,
