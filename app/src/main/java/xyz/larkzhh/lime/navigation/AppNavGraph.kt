@@ -122,6 +122,13 @@ fun AppNavGraph() {
             composable(Screen.Video.route) { VideoScreen(navController) }
             composable(Screen.Message.route) { MessageScreen(navController) }
             composable(Screen.Profile.route) { ProfileScreen(navController) }
+            composable(
+                route = Screen.UserProfile.ROUTE,
+                arguments = listOf(navArgument("userId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getLong("userId") ?: return@composable
+                ProfileScreen(navController = navController, userId = userId)
+            }
             composable(Screen.EditProfile.route) { EditProfileScreen(navController) }
             composable(Screen.QrScan.route) {
                 DisposableEffect(Unit) {

@@ -46,6 +46,13 @@ class UserRepositoryImpl @Inject constructor(
         response.data
     }
 
+    /// 获取指定用户公开资料
+    override suspend fun getUserById(userId: Long): Result<UserData> = runCatching {
+        val response = apiService.getUserById(userId)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
     /// 清空用户数据
     override fun clearUser() {
         _userFlow.value = null

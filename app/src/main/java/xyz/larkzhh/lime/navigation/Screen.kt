@@ -9,6 +9,10 @@ sealed class Screen(val route: String) {
     object Publish : Screen("publish")
     object Message : Screen("message")
     object Profile : Screen("profile")
+    object UserProfile : Screen("user_profile/{userId}") {
+        const val ROUTE = "user_profile/{userId}"
+        fun createRoute(userId: Long) = "user_profile/$userId"
+    }
     object Detail : Screen("detail/{noteId}") {
         const val ROUTE = "detail/{noteId}"
         fun createRoute(noteId: String) = "detail/$noteId"
