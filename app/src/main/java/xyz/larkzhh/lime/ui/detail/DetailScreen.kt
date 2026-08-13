@@ -156,6 +156,11 @@ fun DetailScreen(
                     AuthorBar(
                         note = uiState.note!!,
                         onBack = { navController.popBackStack() },
+                        onAuthorClick = {
+                            navController.navigate(
+                                Screen.UserProfile.createRoute(uiState.note!!.author.id)
+                            )
+                        },
                     )
                     NoteContent(
                         note = uiState.note!!,
@@ -193,6 +198,9 @@ fun DetailScreen(
                             } else {
                                 navController.navigate(Screen.CommentPhotoPicker.route)
                             }
+                        },
+                        onAuthorClick = { userId ->
+                            navController.navigate(Screen.UserProfile.createRoute(userId))
                         },
                     )
                     NoteBottomBar(
@@ -372,12 +380,16 @@ private fun NoteContent(
     onCommentBoxClick: () -> Unit,
     onVoiceClick: () -> Unit,
     onAlbumClick: () -> Unit,
+    onAuthorClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val selectionActions = remember(context) {
         listOf(
-            SelectionAction("复制", Icons.Outlined.ContentCopy) { it.copyToClipboard(context); "已复制".showToast(context) },
+            SelectionAction(
+                "复制",
+                Icons.Outlined.ContentCopy
+            ) { it.copyToClipboard(context); "已复制".showToast(context) },
             SelectionAction("搜索", Icons.Outlined.Search) { },
             SelectionAction("问AI", Icons.Outlined.AutoAwesome) { },
         )
@@ -496,6 +508,7 @@ private fun NoteContent(
                 onVoiceStop = { playingVoiceId = null },
                 onLongPress = { onCommentLongPress(comment) },
                 onReplyLongPress = { reply -> onCommentReplyLongPress(comment.id, reply) },
+                onAuthorClick = onAuthorClick,
             )
             HorizontalDivider(color = LimeLightGray, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
         }

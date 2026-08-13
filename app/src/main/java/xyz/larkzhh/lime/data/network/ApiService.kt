@@ -59,6 +59,10 @@ interface ApiService {
     @GET("api/user/me")
     suspend fun getMe(): ApiResponse<UserData>
 
+    /// 获取指定用户公开资料
+    @GET("api/user/{userId}")
+    suspend fun getUserById(@Path("userId") userId: Long): ApiResponse<UserData>
+
     /// 修改个人资料
     @PUT("api/user/me")
     suspend fun updateMe(@Body request: UpdateProfileRequest): ApiResponse<UserData>

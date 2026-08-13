@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.ui.profile.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,6 +34,7 @@ data class ProfileNotesUiState(
  */
 @HiltViewModel
 class ProfileNotesViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val noteRepository: NoteRepository,
     private val userRepository: UserRepository,
     private val eventBus: NoteEventBus,
@@ -52,11 +54,12 @@ class ProfileNotesViewModel @Inject constructor(
     private var favoritesCursor: Long? = null
     private var userId: Long? = null
 
+    /// 提取路由参数中的目标用户id
+    private val requestedUserId: Long? = savedStateHandle["userId"]
+
     init {
         viewModelScope.launch {
-            /// 等待用户数据
-            val user = userRepository.userFlow.filterNotNull().first()
-            userId = user.id
+            userId = requestedUserId ?: userRepository.userFlow.filterNotNull().first().id
             loadNotes()
         }
         observeNoteEvents()

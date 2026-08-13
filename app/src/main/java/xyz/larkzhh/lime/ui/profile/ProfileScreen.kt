@@ -18,6 +18,9 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -33,7 +36,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -73,13 +75,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import xyz.larkzhh.lime.util.extractGradientColor
 
+/// 主页 Tab 类型
+private enum class ProfileTab(val label: String) {
+    Notes("笔记"),
+    Likes("点赞"),
+    Favorites("收藏"),
+}
+
 @Composable
 fun ProfileScreen(
     navController: NavHostController,
+    userId: Long? = null,// null为底部导航我的
     viewModel: ProfileViewModel = hiltViewModel(),
     notesViewModel: ProfileNotesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val isSelf by viewModel.isSelf.collectAsState()
     val user = (uiState as? ProfileUiState.Success)?.user
     val uploadError by viewModel.uploadError.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -88,16 +99,30 @@ fun ProfileScreen(
     val likesUiState by notesViewModel.likesState.collectAsState()
     val favoritesUiState by notesViewModel.favoritesState.collectAsState()
 
-    val tabs = listOf("笔记", "点赞", "收藏")
+    /// 本人三个tab，他人按隐私过滤
+    val tabKinds = remember(user, isSelf) {
+        if (isSelf) {
+            listOf(ProfileTab.Notes, ProfileTab.Likes, ProfileTab.Favorites)
+        } else {
+            user?.let { u ->
+                buildList {
+                    add(ProfileTab.Notes)
+                    if (!u.likePrivate) add(ProfileTab.Likes)
+                    if (!u.favPrivate) add(ProfileTab.Favorites)
+                }
+            } ?: emptyList()
+        }
+    }
+    val tabs = remember(tabKinds) { tabKinds.map { it.label } }
     val pagerState = rememberPagerState { tabs.size }
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
-            when (page) {
-                1 -> notesViewModel.loadLikesLazy()
-                2 -> notesViewModel.loadFavoritesLazy()
-            }
+    // 切到点赞/收藏 Tab 时懒加载
+    LaunchedEffect(pagerState.currentPage, tabKinds) {
+        when (tabKinds.getOrNull(pagerState.currentPage)) {
+            ProfileTab.Likes -> notesViewModel.loadLikesLazy()
+            ProfileTab.Favorites -> notesViewModel.loadFavoritesLazy()
+            else -> Unit
         }
     }
 
@@ -160,16 +185,17 @@ fun ProfileScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0),
     ) { padding ->
-        val currentIsRefreshing = when (pagerState.currentPage) {
-            0 -> notesUiState.isRefreshing
-            1 -> likesUiState.isRefreshing
-            else -> favoritesUiState.isRefreshing
+        val currentTab = tabKinds.getOrNull(pagerState.currentPage) ?: ProfileTab.Notes
+        val currentIsRefreshing = when (currentTab) {
+            ProfileTab.Notes -> notesUiState.isRefreshing
+            ProfileTab.Likes -> likesUiState.isRefreshing
+            ProfileTab.Favorites -> favoritesUiState.isRefreshing
         }
         // 根据tab页选择刷新方法
-        val onRefresh: () -> Unit = when (pagerState.currentPage) {
-            0 -> notesViewModel::refreshNotes
-            1 -> notesViewModel::refreshLikes
-            else -> notesViewModel::refreshFavorites
+        val onRefresh: () -> Unit = when (currentTab) {
+            ProfileTab.Notes -> notesViewModel::refreshNotes
+            ProfileTab.Likes -> notesViewModel::refreshLikes
+            ProfileTab.Favorites -> notesViewModel::refreshFavorites
         }
         val refreshState = rememberPullToRefreshState()
         PullToRefreshBox(
@@ -211,32 +237,49 @@ fun ProfileScreen(
             val miniAvatarAlpha = miniAvatarProgress// 小头像透明度
             val miniAvatarOffsetDp: Dp = with(density) { ((1f - miniAvatarAlpha) * 12.dp.toPx()).toDp() }// 小头像偏移
 
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.padding(top = stickyTabBarBottomDp).fillMaxSize().clip(RectangleShape),
-                beyondViewportPageCount = 1,
-            ) { page ->
-                when (page) {
-                    0 -> TabPage(
-                        uiState = notesUiState,
-                        contentPaddingTop = relativeContentPaddingTop,
-                        navController = navController,
-                        onLikeToggle = notesViewModel::toggleLike,
-                        onLoadMore = notesViewModel::loadMoreNotes,
-                    )
-                    1 -> TabPage(
-                        uiState = likesUiState,
-                        contentPaddingTop = relativeContentPaddingTop,
-                        navController = navController,
-                        onLikeToggle = notesViewModel::toggleLike,
-                        onLoadMore = notesViewModel::loadMoreLikes,
-                    )
-                    else -> TabPage(
-                        uiState = favoritesUiState,
-                        contentPaddingTop = relativeContentPaddingTop,
-                        navController = navController,
-                        onLikeToggle = notesViewModel::toggleLike,
-                        onLoadMore = notesViewModel::loadMoreFavorites,
+            if (tabKinds.isNotEmpty()) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.padding(top = stickyTabBarBottomDp).fillMaxSize().clip(RectangleShape),
+                    beyondViewportPageCount = 1,
+                ) { page ->
+                    when (tabKinds.getOrNull(page)) {
+                        ProfileTab.Notes -> TabPage(
+                            uiState = notesUiState,
+                            contentPaddingTop = relativeContentPaddingTop,
+                            navController = navController,
+                            onLikeToggle = notesViewModel::toggleLike,
+                            onLoadMore = notesViewModel::loadMoreNotes,
+                        )
+                        ProfileTab.Likes -> TabPage(
+                            uiState = likesUiState,
+                            contentPaddingTop = relativeContentPaddingTop,
+                            navController = navController,
+                            onLikeToggle = notesViewModel::toggleLike,
+                            onLoadMore = notesViewModel::loadMoreLikes,
+                        )
+                        ProfileTab.Favorites -> TabPage(
+                            uiState = favoritesUiState,
+                            contentPaddingTop = relativeContentPaddingTop,
+                            navController = navController,
+                            onLikeToggle = notesViewModel::toggleLike,
+                            onLoadMore = notesViewModel::loadMoreFavorites,
+                        )
+                        null -> Unit
+                    }
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = with(density) { headerHeightPx.toDp() }),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(28.dp),
+                        color = LimePrimary,
+                        trackColor = LimeWhite,
+                        strokeWidth = 2.dp,
                     )
                 }
             }
@@ -248,40 +291,46 @@ fun ProfileScreen(
                     .onSizeChanged { headerHeightPx = it.height }
                     .offset { IntOffset(0, headerOffsetPx.roundToInt()) },
                 uiState = uiState,
+                isSelf = isSelf,
                 gradientEndColor = gradientEndColor,
                 onEditAvatar = { avatarPickerLauncher.launch("image/*") },
                 onBrowseHistory = { navController.navigate(Screen.BrowseHistory.route) },
+                onFollowClick = { /* TODO: */ },
+                onMessageClick = { /* TODO: */ },
             )
 
             // Tab 栏
-            val isSticky = (visibleHeaderPx - overlapPx) <= topBarHeightPx.toFloat() + gapPx// 是否吸顶
-            val cornerRadiusDp by animateDpAsState(
-                targetValue = if (isSticky) 0.dp else 16.dp,
-                label = "tabBarCorner"
-            )
-            val tabShape = RoundedCornerShape(topStart = cornerRadiusDp, topEnd = cornerRadiusDp)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .onSizeChanged { tabBarHeightPx = it.height }
-                    .offset { IntOffset(0, tabBarTopPx.roundToInt()) }
-                    .then(
-                        if (!isSticky) Modifier.shadow(elevation = 4.dp, shape = tabShape, clip = false)
-                        else Modifier
-                    )
-                    .clip(tabShape)
-                    .background(MaterialTheme.colorScheme.surface)
-            ) {
-                ProfileTabRow(
-                    tabs = tabs,
-                    selectedIndex = pagerState.currentPage,
-                    onTabSelected = { index ->
-                        coroutineScope.launch { pagerState.animateScrollToPage(index) }
-                    },
+            if (tabKinds.isNotEmpty()) {
+                val isSticky = (visibleHeaderPx - overlapPx) <= topBarHeightPx.toFloat() + gapPx// 是否吸顶
+                val cornerRadiusDp by animateDpAsState(
+                    targetValue = if (isSticky) 0.dp else 16.dp,
+                    label = "tabBarCorner"
                 )
+                val tabShape = RoundedCornerShape(topStart = cornerRadiusDp, topEnd = cornerRadiusDp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onSizeChanged { tabBarHeightPx = it.height }
+                        .offset { IntOffset(0, tabBarTopPx.roundToInt()) }
+                        .then(
+                            if (!isSticky) Modifier.shadow(elevation = 4.dp, shape = tabShape, clip = false)
+                            else Modifier
+                        )
+                        .clip(tabShape)
+                        .background(MaterialTheme.colorScheme.surface)
+                ) {
+                    ProfileTabRow(
+                        tabs = tabs,
+                        selectedIndex = pagerState.currentPage,
+                        onTabSelected = { index ->
+                            coroutineScope.launch { pagerState.animateScrollToPage(index) }
+                        },
+                    )
+                }
             }
 
             // 顶部栏
+            val fromBottomNav = userId == null
             ProfileTopBar(
                 user = user,
                 bgAlpha = topBarBgAlpha,
@@ -289,8 +338,10 @@ fun ProfileScreen(
                 miniAvatarAlpha = miniAvatarAlpha,
                 miniAvatarOffsetDp = miniAvatarOffsetDp,
                 editButtonAlpha = editButtonAlpha,
-                onMenuClick = { /* TODO */ },
-                onEditProfileClick = { navController.navigate("edit_profile") },
+                leadingIcon = if (fromBottomNav) Icons.Default.Menu else Icons.AutoMirrored.Filled.ArrowBack,
+                onLeadingClick = { if (!fromBottomNav) navController.popBackStack() },
+                showTrailingActions = isSelf,
+                onEditProfileClick = { navController.navigate(Screen.EditProfile.route) },
                 onQrScanClick = { navController.navigate(Screen.QrScan.route) },
                 onSizeChanged = { size -> topBarHeightPx = size.height },
             )

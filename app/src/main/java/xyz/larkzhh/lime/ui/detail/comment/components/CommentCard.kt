@@ -12,6 +12,7 @@ import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,6 +70,7 @@ fun CommentCard(
     onVoiceStop: () -> Unit = {},
     onLongPress: () -> Unit = {},
     onReplyLongPress: (ReplyData) -> Unit = {},
+    onAuthorClick: (Long) -> Unit = {},
 ) {
     val isExpanded = expandedReplies != null// 是否展开预览
     val topReplies = comment.topReplies
@@ -95,7 +97,11 @@ fun CommentCard(
                 contentDescription = null,
                 modifier = Modifier
                     .size(36.dp)
-                    .clip(CircleShape),
+                    .clip(CircleShape)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                    ) { onAuthorClick(comment.author.id) },
                 contentScale = ContentScale.Crop,
             )
 
@@ -109,6 +115,10 @@ fun CommentCard(
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                         color = LimeGray,
+                        modifier = Modifier.clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                        ) { onAuthorClick(comment.author.id) },
                     )
                     if (comment.isNoteAuthor) {
                         Spacer(modifier = Modifier.width(4.dp))
@@ -224,6 +234,7 @@ fun CommentCard(
                                 onVoicePlay = onVoicePlay,
                                 onVoiceStop = onVoiceStop,
                                 onLongPress = { onReplyLongPress(reply) },
+                                onAuthorClick = onAuthorClick,
                             )
                         }
                     }
@@ -251,6 +262,7 @@ fun CommentCard(
                                 onVoicePlay = onVoicePlay,
                                 onVoiceStop = onVoiceStop,
                                 onLongPress = { onReplyLongPress(reply) },
+                                onAuthorClick = onAuthorClick,
                             )
                         }
                     }
@@ -319,6 +331,7 @@ private fun AnimatedReplyItem(
     onVoicePlay: (id: Long) -> Unit = {},
     onVoiceStop: () -> Unit = {},
     onLongPress: () -> Unit = {},
+    onAuthorClick: (Long) -> Unit = {},
 ) {
     // 后面的回复初始叠在上方，delay 后滑到原位
     var settled by remember(reply.id) { mutableStateOf(false) }
@@ -346,6 +359,7 @@ private fun AnimatedReplyItem(
             onVoicePlay = onVoicePlay,
             onVoiceStop = onVoiceStop,
             onLongPress = onLongPress,
+            onAuthorClick = onAuthorClick,
         )
     }
 }
@@ -360,6 +374,7 @@ private fun ReplyItem(
     onVoicePlay: (id: Long) -> Unit = {},
     onVoiceStop: () -> Unit = {},
     onLongPress: () -> Unit = {},
+    onAuthorClick: (Long) -> Unit = {},
 ) {
     Row(
         modifier = Modifier
@@ -375,7 +390,11 @@ private fun ReplyItem(
             contentDescription = null,
             modifier = Modifier
                 .size(28.dp)
-                .clip(CircleShape),
+                .clip(CircleShape)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                ) { onAuthorClick(reply.author.id) },
             contentScale = ContentScale.Crop,
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -386,6 +405,10 @@ private fun ReplyItem(
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = LimeGray,
+                    modifier = Modifier.clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                    ) { onAuthorClick(reply.author.id) },
                 )
                 if (reply.isNoteAuthor) {
                     Spacer(modifier = Modifier.width(4.dp))
