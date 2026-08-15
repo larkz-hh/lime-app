@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScope
+import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,9 +35,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,7 +58,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import xyz.larkzhh.lime.navigation.AuthorProfileSession
 import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.ui.components.NoteCard
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.profile.components.ProfileHeader
@@ -88,6 +94,7 @@ fun ProfileScreen(
     userId: Long? = null,// null为底部导航我的
     viewModel: ProfileViewModel = hiltViewModel(),
     notesViewModel: ProfileNotesViewModel = hiltViewModel(),
+    session: AuthorProfileSession? = null,// 非空为笔记作者用户页面
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isSelf by viewModel.isSelf.collectAsState()
@@ -114,8 +121,14 @@ fun ProfileScreen(
         }
     }
     val tabs = remember(tabKinds) { tabKinds.map { it.label } }
-    val pagerState = rememberPagerState { tabs.size }
+    // 应用会话记录
+    val pagerState = rememberPagerState(initialPage = session?.currentPage ?: 0) { tabs.size }
     val coroutineScope = rememberCoroutineScope()
+    if (session != null) {
+        LaunchedEffect(pagerState) {
+            snapshotFlow { pagerState.currentPage }.collect { session.currentPage = it }
+        }
+    }
 
     // 切到点赞/收藏 Tab 时懒加载
     LaunchedEffect(pagerState.currentPage, tabKinds) {
@@ -140,20 +153,64 @@ fun ProfileScreen(
     }
 
     // 折叠 header 状态
-    var headerHeightPx by remember { mutableIntStateOf(0) }
-    var tabBarHeightPx by remember { mutableIntStateOf(0) }
-    var topBarHeightPx by remember { mutableIntStateOf(0) }
-    var headerOffsetPx by remember { mutableFloatStateOf(0f) }
+    var headerHeightPx by remember { mutableIntStateOf(session?.headerHeightPx ?: 0) }
+    var tabBarHeightPx by remember { mutableIntStateOf(session?.tabBarHeightPx ?: 0) }
+    var topBarHeightPx by remember { mutableIntStateOf(session?.topBarHeightPx ?: 0) }
+    var headerOffsetPx by remember { mutableFloatStateOf(session?.headerOffsetPx ?: 0f) }
     val density = LocalDensity.current
     val gapPxConst = with(density) { 4.dp.toPx() }
+    if (session != null) {
+        LaunchedEffect(Unit) {
+            snapshotFlow { headerOffsetPx }.collect { session.headerOffsetPx = it }
+        }
+        LaunchedEffect(Unit) {
+            snapshotFlow { Triple(headerHeightPx, tabBarHeightPx, topBarHeightPx) }.collect {
+                session.headerHeightPx = it.first
+                session.tabBarHeightPx = it.second
+                session.topBarHeightPx = it.third
+            }
+        }
+    }
+
+    // 恢复会话记录的tab滚动位置
+    val notesScrollState = rememberLazyStaggeredGridState(
+        initialFirstVisibleItemIndex = session?.tabScroll?.get(ProfileTab.Notes.ordinal)?.first ?: 0,
+        initialFirstVisibleItemScrollOffset = session?.tabScroll?.get(ProfileTab.Notes.ordinal)?.second ?: 0,
+    )
+    val likesScrollState = rememberLazyStaggeredGridState(
+        initialFirstVisibleItemIndex = session?.tabScroll?.get(ProfileTab.Likes.ordinal)?.first ?: 0,
+        initialFirstVisibleItemScrollOffset = session?.tabScroll?.get(ProfileTab.Likes.ordinal)?.second ?: 0,
+    )
+    val favoritesScrollState = rememberLazyStaggeredGridState(
+        initialFirstVisibleItemIndex = session?.tabScroll?.get(ProfileTab.Favorites.ordinal)?.first ?: 0,
+        initialFirstVisibleItemScrollOffset = session?.tabScroll?.get(ProfileTab.Favorites.ordinal)?.second ?: 0,
+    )
+    if (session != null) {
+        LaunchedEffect(notesScrollState) {
+            snapshotFlow { notesScrollState.firstVisibleItemIndex to notesScrollState.firstVisibleItemScrollOffset }
+                .collect { session.tabScroll[ProfileTab.Notes.ordinal] = it }
+        }
+        LaunchedEffect(likesScrollState) {
+            snapshotFlow { likesScrollState.firstVisibleItemIndex to likesScrollState.firstVisibleItemScrollOffset }
+                .collect { session.tabScroll[ProfileTab.Likes.ordinal] = it }
+        }
+        LaunchedEffect(favoritesScrollState) {
+            snapshotFlow { favoritesScrollState.firstVisibleItemIndex to favoritesScrollState.firstVisibleItemScrollOffset }
+                .collect { session.tabScroll[ProfileTab.Favorites.ordinal] = it }
+        }
+    }
 
     // 背景图主色提取
     val context = androidx.compose.ui.platform.LocalContext.current
     val backgroundUrl = (uiState as? ProfileUiState.Success)?.user?.backgroundImage
-    var dominantColor by remember { mutableStateOf(Color.Black) }
+    // 主色存进会话
+    var dominantColor by remember {
+        mutableStateOf(session?.backgroundDominantRgb?.let { Color(it) } ?: Color.Black)
+    }
     LaunchedEffect(backgroundUrl) {
         val rgb = backgroundUrl?.let { extractGradientColor(context, it) }
         dominantColor = if (rgb != null) Color(rgb) else Color.Black
+        if (rgb != null) session?.backgroundDominantRgb = rgb
     }
     val gradientEndColor = dominantColor.copy(alpha = 0.95f)
 
@@ -181,6 +238,16 @@ fun ProfileScreen(
         }
     }
 
+    // 右滑手势分区
+    var tabContentTopPx by remember { mutableFloatStateOf(Float.MAX_VALUE) }// tab区域
+
+    SwipeBackScaffold(
+        backEnabled = userId != null,
+        tabContentRegion = if (userId != null) {
+            { pos -> pos.y >= tabContentTopPx }
+        } else null,
+        tabAtLeftmost = { pagerState.currentPage == 0 && pagerState.currentPageOffsetFraction >= 0f },
+    ) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0),
@@ -223,6 +290,7 @@ fun ProfileScreen(
             val gapPx = with(density) { 4.dp.toPx() }
             val visibleHeaderPx = (headerHeightPx + headerOffsetPx).coerceAtLeast(0f)// header 当前实际可见的高度
             val tabBarTopPx = (visibleHeaderPx - overlapPx).coerceAtLeast(topBarHeightPx.toFloat() + gapPx)// tab 栏距离顶部的距离
+            SideEffect { tabContentTopPx = tabBarTopPx + tabBarHeightPx }// tab 内容区顶部 = tab 栏底部
             val contentTopDp: Dp = with(density) { (tabBarTopPx + tabBarHeightPx).toDp() }// 列表内容起始位置
             val stickyTabBarBottomDp: Dp = with(density) {
                 (topBarHeightPx.toFloat() + gapPx + tabBarHeightPx.toFloat()).toDp()
@@ -250,6 +318,7 @@ fun ProfileScreen(
                             navController = navController,
                             onLikeToggle = notesViewModel::toggleLike,
                             onLoadMore = notesViewModel::loadMoreNotes,
+                            state = notesScrollState,
                         )
                         ProfileTab.Likes -> TabPage(
                             uiState = likesUiState,
@@ -257,6 +326,7 @@ fun ProfileScreen(
                             navController = navController,
                             onLikeToggle = notesViewModel::toggleLike,
                             onLoadMore = notesViewModel::loadMoreLikes,
+                            state = likesScrollState,
                         )
                         ProfileTab.Favorites -> TabPage(
                             uiState = favoritesUiState,
@@ -264,6 +334,7 @@ fun ProfileScreen(
                             navController = navController,
                             onLikeToggle = notesViewModel::toggleLike,
                             onLoadMore = notesViewModel::loadMoreFavorites,
+                            state = favoritesScrollState,
                         )
                         null -> Unit
                     }
@@ -348,6 +419,7 @@ fun ProfileScreen(
         }
         }
     }
+    }
 }
 
 /// Tab 页面
@@ -358,9 +430,11 @@ private fun TabPage(
     navController: NavHostController,
     onLikeToggle: (Long) -> Unit,
     onLoadMore: () -> Unit,
+    state: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
 ) {
     WaterfallFeed(
         modifier = Modifier.fillMaxSize().background(LimeLightGray),
+        state = state,
         isLoadingMore = uiState.isLoadingMore,
         onLoadMore = onLoadMore,
         contentPadding = PaddingValues(start = 5.dp, end = 5.dp, top = contentPaddingTop, bottom = 8.dp),
