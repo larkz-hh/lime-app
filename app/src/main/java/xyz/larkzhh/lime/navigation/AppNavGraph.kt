@@ -1,5 +1,10 @@
 package xyz.larkzhh.lime.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -50,6 +55,9 @@ private val bottomNavRoutes = setOf(
 /// 认证页面路由
 private val authRoutes = setOf(Screen.Login.route, Screen.Register.route)
 
+/// 需要右滑预测性返回水平滑出、滑入的页面
+private val swipeBackRoutes = setOf(Screen.Detail.ROUTE, Screen.UserProfile.ROUTE)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavGraph() {
@@ -87,7 +95,21 @@ fun AppNavGraph() {
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            modifier = if (showBottomBar) Modifier.padding(bottom = innerPadding.calculateBottomPadding()) else Modifier
+            modifier = if (showBottomBar) Modifier.padding(bottom = innerPadding.calculateBottomPadding()) else Modifier,
+            popExitTransition = {
+                if (initialState.destination.route in swipeBackRoutes) {
+                    slideOutHorizontally(animationSpec = tween(220), targetOffsetX = { it })
+                } else {
+                    ExitTransition.None
+                }
+            },
+            popEnterTransition = {
+                if (initialState.destination.route in swipeBackRoutes) {
+                    slideInHorizontally(animationSpec = tween(220), initialOffsetX = { -it / 4 })
+                } else {
+                    EnterTransition.None
+                }
+            },
         ) {
             composable(Screen.Login.route) {
                 LoginScreen(
@@ -118,16 +140,37 @@ fun AppNavGraph() {
                     },
                 )
             }
-            composable(Screen.Home.route) { HomeScreen(navController) }
-            composable(Screen.Video.route) { VideoScreen(navController) }
-            composable(Screen.Message.route) { MessageScreen(navController) }
-            composable(Screen.Profile.route) { ProfileScreen(navController) }
+            composable(Screen.Home.route) { entry -> ScrimBox(entry.id) { HomeScreen(navController) } }
+            composable(Screen.Video.route) { entry -> ScrimBox(entry.id) { VideoScreen(navController) } }
+            composable(Screen.Message.route) { entry -> ScrimBox(entry.id) { MessageScreen(navController) } }
+            composable(Screen.Profile.route) { entry -> ScrimBox(entry.id) { ProfileScreen(navController) } }
             composable(
                 route = Screen.UserProfile.ROUTE,
-                arguments = listOf(navArgument("userId") { type = NavType.LongType })
+                arguments = listOf(navArgument("userId") { type = NavType.LongType }),
+                enterTransition = {
+                    if (SwipeBackNavState.suppressForwardEnter) {
+                        EnterTransition.None
+                    } else {
+                        slideInHorizontally(initialOffsetX = { it })// 非手势从右侧滑入
+                    }
+                },
             ) { backStackEntry ->
                 val userId = backStackEntry.arguments?.getLong("userId") ?: return@composable
-                ProfileScreen(navController = navController, userId = userId)
+                // 笔记作者用户界面，复用跨返回栈会话
+                val session = AuthorProfileStore.get(userId)
+                ScrimBox(backStackEntry.id) {
+                    if (session != null) {
+                        ProfileScreen(
+                            navController = navController,
+                            userId = userId,
+                            viewModel = session.profileViewModel,
+                            notesViewModel = session.notesViewModel,
+                            session = session,
+                        )
+                    } else {
+                        ProfileScreen(navController = navController, userId = userId)
+                    }
+                }
             }
             composable(Screen.EditProfile.route) { EditProfileScreen(navController) }
             composable(Screen.QrScan.route) {
@@ -143,10 +186,12 @@ fun AppNavGraph() {
                 route = Screen.Detail.ROUTE,
                 arguments = listOf(navArgument("noteId") { type = NavType.StringType })
             ) { backStackEntry ->
-                DetailScreen(
-                    navController = navController,
-                    noteId = backStackEntry.arguments?.getString("noteId") ?: ""
-                )
+                ScrimBox(backStackEntry.id) {
+                    DetailScreen(
+                        navController = navController,
+                        noteId = backStackEntry.arguments?.getString("noteId") ?: ""
+                    )
+                }
             }
 
             // 发布流程嵌套图，共享viewmodel

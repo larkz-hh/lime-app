@@ -43,6 +43,8 @@ class DetailViewModel @Inject constructor(
     }
 
     fun loadNote(noteId: Long) {
+        // 已加载过同一笔记时直接返回，避免返回页面时重复置 loading 导致列表重建、滚动位置丢失
+        if (_uiState.value.note?.id == noteId) return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             noteRepository.getNoteDetail(noteId)
