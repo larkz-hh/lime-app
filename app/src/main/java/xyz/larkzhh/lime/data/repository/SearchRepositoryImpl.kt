@@ -4,6 +4,7 @@ import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.model.HotSearchItem
 import xyz.larkzhh.lime.data.network.model.NoteSearchResponse
 import xyz.larkzhh.lime.data.network.model.SearchReportRequest
+import xyz.larkzhh.lime.data.network.model.UserSearchResponse
 import xyz.larkzhh.lime.domain.repository.SearchRepository
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,6 +29,17 @@ class SearchRepositoryImpl @Inject constructor(
             cursor = cursor,
             size = size,
         )
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
+    /// 搜索用户
+    override suspend fun searchUsers(
+        keyword: String,
+        cursor: String?,
+        size: Int,
+    ): Result<UserSearchResponse> = runCatching {
+        val response = apiService.searchUsers(keyword = keyword, cursor = cursor, size = size)
         check(response.code == 200 && response.data != null) { response.message }
         response.data
     }
