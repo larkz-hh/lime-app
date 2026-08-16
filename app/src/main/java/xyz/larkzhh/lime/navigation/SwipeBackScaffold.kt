@@ -133,6 +133,8 @@ fun SwipeBackScaffold(
                             },
                             onLock = { isBack, _ ->
                                 gestureIsBack = isBack
+                                // 复位上次前进提交后可能残留的预览偏移，避免干扰本次手势
+                                if (offsetX.value != 0f) scope.launch { offsetX.snapTo(0f) }
                                 if (isBack) {
                                     backAccumulatedX = 0f
                                     backStarted = false
@@ -147,6 +149,8 @@ fun SwipeBackScaffold(
                                     if (!backStarted && progress >= BACK_ACTIVATION) {
                                         // 超过激活阈值，开启预测性返回会话，预览上一页并压暗
                                         backStarted = true
+                                        SwipeBackNavState.gestureDrivenPop = true// 标记本次pop由自定义手势驱动
+                                        SwipeBackNavState.suppressForwardEnter = true// 抑制前进
                                         SwipeBackScrimState.revealEntryId = revealEntryId()
                                         backDispatcher?.dispatchOnBackStarted(
                                             BackEventCompat(pos.x, pos.y, 0f, BackEventCompat.EDGE_LEFT)
@@ -183,6 +187,9 @@ fun SwipeBackScaffold(
                                             SwipeBackScrimState.progress = 0f
                                             scope.launch {
                                                 delay(BACK_COOLDOWN_MS.milliseconds)
+                                                // 滑出动画播完后复位手势标记
+                                                SwipeBackNavState.gestureDrivenPop = false
+                                                SwipeBackNavState.suppressForwardEnter = false
                                                 backCoolingDown = false
                                             }
                                         } else {
@@ -210,6 +217,8 @@ fun SwipeBackScaffold(
                                                 backDispatcher?.dispatchOnBackCancelled()
                                                 SwipeBackScrimState.revealEntryId = null
                                                 SwipeBackScrimState.progress = 0f
+                                                SwipeBackNavState.gestureDrivenPop = false
+                                                SwipeBackNavState.suppressForwardEnter = false
                                                 backCoolingDown = false
                                             }
                                         }
@@ -224,8 +233,8 @@ fun SwipeBackScaffold(
                                         ) {
                                             offsetX.animateTo(-screenWidthPx, tween(220))
                                             onCommitForward()
-                                            withFrameNanos { }
-                                            withFrameNanos { }
+                                            // 等新页面完成首帧绘制再撤销预览
+                                            repeat(6) { withFrameNanos { } }
                                             offsetX.snapTo(0f)
                                         } else {
                                             offsetX.animateTo(0f, tween(220))

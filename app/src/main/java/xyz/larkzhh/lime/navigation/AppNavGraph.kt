@@ -42,6 +42,7 @@ import xyz.larkzhh.lime.ui.publish.PhotoPickerScreen
 import xyz.larkzhh.lime.ui.publish.PublishScreen
 import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
 import xyz.larkzhh.lime.ui.qrscan.QrScanScreen
+import xyz.larkzhh.lime.ui.search.SearchScreen
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.ui.video.VideoScreen
 
@@ -57,7 +58,7 @@ private val bottomNavRoutes = setOf(
 private val authRoutes = setOf(Screen.Login.route, Screen.Register.route)
 
 /// 需要右滑预测性返回水平滑出、滑入的页面
-private val swipeBackRoutes = setOf(Screen.Detail.ROUTE, Screen.UserProfile.ROUTE)
+private val swipeBackRoutes = setOf(Screen.Detail.ROUTE, Screen.UserProfile.ROUTE, Screen.Search.route)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,6 +79,7 @@ fun AppNavGraph() {
 
     LaunchedEffect(currentRoute) {
         SwipeBackNavState.suppressPopAnim = false
+        SwipeBackNavState.gestureDrivenPop = false
     }
 
     Scaffold(
@@ -105,7 +107,9 @@ fun AppNavGraph() {
             popExitTransition = {
                 when {
                     SwipeBackNavState.suppressPopAnim -> ExitTransition.None
-                    initialState.destination.route in swipeBackRoutes ->
+                    // 自定义右滑手势驱动的pop才滑出
+                    SwipeBackNavState.gestureDrivenPop &&
+                        initialState.destination.route in swipeBackRoutes ->
                         slideOutHorizontally(animationSpec = tween(220), targetOffsetX = { it })
                     else -> ExitTransition.None
                 }
@@ -113,7 +117,8 @@ fun AppNavGraph() {
             popEnterTransition = {
                 when {
                     SwipeBackNavState.suppressPopAnim -> EnterTransition.None
-                    initialState.destination.route in swipeBackRoutes ->
+                    SwipeBackNavState.gestureDrivenPop &&
+                        initialState.destination.route in swipeBackRoutes ->
                         slideInHorizontally(animationSpec = tween(220), initialOffsetX = { -it / 4 })
                     else -> EnterTransition.None
                 }
@@ -168,6 +173,13 @@ fun AppNavGraph() {
                         else -> slideInHorizontally(animationSpec = tween(220), initialOffsetX = { -it / 4 })
                     }
                 },
+                // 返回时右侧滑出
+                popExitTransition = {
+                    when {
+                        SwipeBackNavState.suppressPopAnim -> ExitTransition.None
+                        else -> slideOutHorizontally(animationSpec = tween(220), targetOffsetX = { it })
+                    }
+                },
             ) { backStackEntry ->
                 val userId = backStackEntry.arguments?.getLong("userId") ?: return@composable
                 // 笔记作者用户界面，复用跨返回栈会话
@@ -185,6 +197,19 @@ fun AppNavGraph() {
                         ProfileScreen(navController = navController, userId = userId)
                     }
                 }
+            }
+            composable(
+                route = Screen.Search.route,
+                // 前进时从右侧滑入
+                enterTransition = {
+                    if (SwipeBackNavState.suppressForwardEnter) {
+                        EnterTransition.None
+                    } else {
+                        slideInHorizontally(initialOffsetX = { it })// 从右侧滑入
+                    }
+                },
+            ) { entry ->
+                ScrimBox(entry.id) { SearchScreen(navController) }
             }
             composable(Screen.EditProfile.route) { EditProfileScreen(navController) }
             composable(Screen.QrScan.route) {
