@@ -215,6 +215,7 @@ interface ApiService {
     suspend fun searchNotes(
         @Query("keyword") keyword: String,
         @Query("sort") sort: String,
+        @Query("within") within: String,
         @Query("cursor") cursor: String?,
         @Query("size") size: Int,
     ): ApiResponse<NoteSearchResponse>
