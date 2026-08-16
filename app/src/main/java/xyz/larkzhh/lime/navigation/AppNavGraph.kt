@@ -12,6 +12,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,6 +75,11 @@ fun AppNavGraph() {
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = currentRoute in bottomNavRoutes && !isFullScreenActive
 
+
+    LaunchedEffect(currentRoute) {
+        SwipeBackNavState.suppressPopAnim = false
+    }
+
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
@@ -97,17 +103,19 @@ fun AppNavGraph() {
             startDestination = startDestination,
             modifier = if (showBottomBar) Modifier.padding(bottom = innerPadding.calculateBottomPadding()) else Modifier,
             popExitTransition = {
-                if (initialState.destination.route in swipeBackRoutes) {
-                    slideOutHorizontally(animationSpec = tween(220), targetOffsetX = { it })
-                } else {
-                    ExitTransition.None
+                when {
+                    SwipeBackNavState.suppressPopAnim -> ExitTransition.None
+                    initialState.destination.route in swipeBackRoutes ->
+                        slideOutHorizontally(animationSpec = tween(220), targetOffsetX = { it })
+                    else -> ExitTransition.None
                 }
             },
             popEnterTransition = {
-                if (initialState.destination.route in swipeBackRoutes) {
-                    slideInHorizontally(animationSpec = tween(220), initialOffsetX = { -it / 4 })
-                } else {
-                    EnterTransition.None
+                when {
+                    SwipeBackNavState.suppressPopAnim -> EnterTransition.None
+                    initialState.destination.route in swipeBackRoutes ->
+                        slideInHorizontally(animationSpec = tween(220), initialOffsetX = { -it / 4 })
+                    else -> EnterTransition.None
                 }
             },
         ) {
@@ -152,6 +160,12 @@ fun AppNavGraph() {
                         EnterTransition.None
                     } else {
                         slideInHorizontally(initialOffsetX = { it })// 非手势从右侧滑入
+                    }
+                },
+                popEnterTransition = {
+                    when {
+                        SwipeBackNavState.suppressPopAnim -> EnterTransition.None
+                        else -> slideInHorizontally(animationSpec = tween(220), initialOffsetX = { -it / 4 })
                     }
                 },
             ) { backStackEntry ->

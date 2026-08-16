@@ -50,8 +50,10 @@ class ProfileViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<ProfileUiState>(
         if (requestedUserId == null)
             userRepository.userFlow.value?.let { ProfileUiState.Success(it) } ?: ProfileUiState.Loading
-        else ProfileUiState.Loading
-    )  // 本人页面有缓存时直接显示，指定用户页Loading
+        else
+            userRepository.getCachedUserById(requestedUserId)?.let { ProfileUiState.Success(it) }
+                ?: ProfileUiState.Loading
+    )
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     private val _uploadError = MutableStateFlow<String?>(null)// 头像上传错误
@@ -89,12 +91,16 @@ class ProfileViewModel @Inject constructor(
     /// 加载指定用户的公开资料
     fun loadUserById(userId: Long) {
         viewModelScope.launch {
-            _uiState.value = ProfileUiState.Loading
+            if (_uiState.value !is ProfileUiState.Success) {
+                _uiState.value = ProfileUiState.Loading
+            }
             userRepository.getUserById(userId).onSuccess { user ->
                 _uiState.value = ProfileUiState.Success(user)
             }.onFailure { e ->
                 if (e is CancellationException) return@onFailure
-                _uiState.value = ProfileUiState.Error(e.message ?: "加载失败")
+                if (_uiState.value !is ProfileUiState.Success) {
+                    _uiState.value = ProfileUiState.Error(e.message ?: "加载失败")
+                }
             }
         }
     }
