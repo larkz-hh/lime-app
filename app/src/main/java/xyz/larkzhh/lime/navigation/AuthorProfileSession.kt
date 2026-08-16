@@ -2,6 +2,7 @@ package xyz.larkzhh.lime.navigation
 
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesViewModel
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileViewModel
+import xyz.larkzhh.lime.util.LruCache
 
 /**
  * 笔记作者主页的跨返回栈状态会话。
@@ -35,4 +36,19 @@ object AuthorProfileStore {
     fun remove(authorId: Long) {
         sessions.remove(authorId)
     }
+}
+
+
+class ProfileLayoutMetrics {
+    var headerHeightPx: Int = 0
+    var tabBarHeightPx: Int = 0
+    var topBarHeightPx: Int = 0
+    var headerOffsetPx: Float = 0f
+}
+
+// 个人资料页布局缓存
+object ProfileLayoutStore {
+    private val metrics = LruCache<Long, ProfileLayoutMetrics>(maxSize = 50)
+
+    fun getOrCreate(userId: Long): ProfileLayoutMetrics = metrics.getOrPut(userId) { ProfileLayoutMetrics() }
 }

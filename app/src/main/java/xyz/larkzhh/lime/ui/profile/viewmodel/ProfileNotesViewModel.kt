@@ -58,9 +58,19 @@ class ProfileNotesViewModel @Inject constructor(
     private val requestedUserId: Long? = savedStateHandle["userId"]
 
     init {
+        val cached = requestedUserId?.let { noteRepository.getCachedUserNotes(it) }
+        if (cached != null) {
+            notesCursor = cached.nextCursor
+            _notesState.value = ProfileNotesUiState(
+                items = cached.items,
+                likedIds = cached.items.filter { it.liked }.map { it.id }.toSet(),
+                hasMore = cached.hasMore,
+                isLoading = false,
+            )
+        }
         viewModelScope.launch {
             userId = requestedUserId ?: userRepository.userFlow.filterNotNull().first().id
-            loadNotes()
+            loadNotes(silent = cached != null)
         }
         observeNoteEvents()
     }
@@ -96,10 +106,13 @@ class ProfileNotesViewModel @Inject constructor(
      * 笔记 tab
      */
 
-    private fun loadNotes() {
+    private fun loadNotes(silent: Boolean = false) {
         val uid = userId ?: return
         viewModelScope.launch {
-            _notesState.update { it.copy(isLoading = true, error = null, items = emptyList(), hasMore = true) }
+            // 非静默刷新时加载
+            if (!silent) {
+                _notesState.update { it.copy(isLoading = true, error = null, items = emptyList(), hasMore = true) }
+            }
             notesCursor = null
             noteRepository.getUserNotes(userId = uid, cursor = null).fold(
                 onSuccess = { response ->

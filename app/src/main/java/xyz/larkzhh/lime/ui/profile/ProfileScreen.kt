@@ -37,6 +37,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -59,6 +60,7 @@ import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import xyz.larkzhh.lime.navigation.AuthorProfileSession
+import xyz.larkzhh.lime.navigation.ProfileLayoutStore
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.ui.components.NoteCard
@@ -153,12 +155,25 @@ fun ProfileScreen(
     }
 
     // 折叠 header 状态
-    var headerHeightPx by remember { mutableIntStateOf(session?.headerHeightPx ?: 0) }
-    var tabBarHeightPx by remember { mutableIntStateOf(session?.tabBarHeightPx ?: 0) }
-    var topBarHeightPx by remember { mutableIntStateOf(session?.topBarHeightPx ?: 0) }
-    var headerOffsetPx by remember { mutableFloatStateOf(session?.headerOffsetPx ?: 0f) }
+    val layoutMetrics = remember(userId) { userId?.let { ProfileLayoutStore.getOrCreate(it) } }
+    var headerHeightPx by rememberSaveable { mutableIntStateOf(layoutMetrics?.headerHeightPx ?: session?.headerHeightPx ?: 0) }
+    var tabBarHeightPx by rememberSaveable { mutableIntStateOf(layoutMetrics?.tabBarHeightPx ?: session?.tabBarHeightPx ?: 0) }
+    var topBarHeightPx by rememberSaveable { mutableIntStateOf(layoutMetrics?.topBarHeightPx ?: session?.topBarHeightPx ?: 0) }
+    var headerOffsetPx by rememberSaveable { mutableFloatStateOf(layoutMetrics?.headerOffsetPx ?: session?.headerOffsetPx ?: 0f) }
     val density = LocalDensity.current
     val gapPxConst = with(density) { 4.dp.toPx() }
+    if (layoutMetrics != null) {
+        LaunchedEffect(Unit) {
+            snapshotFlow { headerOffsetPx }.collect { layoutMetrics.headerOffsetPx = it }
+        }
+        LaunchedEffect(Unit) {
+            snapshotFlow { Triple(headerHeightPx, tabBarHeightPx, topBarHeightPx) }.collect {
+                layoutMetrics.headerHeightPx = it.first
+                layoutMetrics.tabBarHeightPx = it.second
+                layoutMetrics.topBarHeightPx = it.third
+            }
+        }
+    }
     if (session != null) {
         LaunchedEffect(Unit) {
             snapshotFlow { headerOffsetPx }.collect { session.headerOffsetPx = it }
