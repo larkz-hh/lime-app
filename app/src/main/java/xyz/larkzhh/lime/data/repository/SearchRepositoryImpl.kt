@@ -17,10 +17,17 @@ class SearchRepositoryImpl @Inject constructor(
     override suspend fun searchNotes(
         keyword: String,
         sort: String,
+        within: String,
         cursor: String?,
         size: Int,
     ): Result<NoteSearchResponse> = runCatching {
-        val response = apiService.searchNotes(keyword = keyword, sort = sort, cursor = cursor, size = size)
+        val response = apiService.searchNotes(
+            keyword = keyword,
+            sort = sort,
+            within = within,
+            cursor = cursor,
+            size = size,
+        )
         check(response.code == 200 && response.data != null) { response.message }
         response.data
     }

@@ -33,11 +33,11 @@ enum class NoteSort(val label: String, val apiValue: String) {
 }
 
 /// 发布时间筛选
-enum class SearchTimeRange(val label: String) {
-    All("不限"),
-    Day("一天内"),
-    Week("一周内"),
-    HalfYear("半年内"),
+enum class SearchTimeRange(val label: String, val apiValue: String) {
+    All("不限", "all"),
+    Day("一天内", "day"),
+    Week("一周内", "week"),
+    HalfYear("半年内", "halfYear"),
 }
 
 data class SearchUiState(
@@ -185,9 +185,11 @@ class SearchViewModel @Inject constructor(
         if (_uiState.value.mode == SearchMode.Result) loadFirstPage()
     }
 
-    /// 切换发布时间
+    /// 切换发布时间，重置分页并重新搜索
     fun onTimeRangeChange(timeRange: SearchTimeRange) {
+        if (_uiState.value.timeRange == timeRange) return
         _uiState.update { it.copy(timeRange = timeRange) }
+        if (_uiState.value.mode == SearchMode.Result) loadFirstPage()
     }
 
     /// 重置筛选条件并重新搜索
@@ -216,7 +218,12 @@ class SearchViewModel @Inject constructor(
                 it.copy(isResultLoading = true, resultError = null, resultItems = emptyList(), hasMore = true)
             }
             resultCursor = null
-            searchRepository.searchNotes(keyword = state.query, sort = state.sort.apiValue, cursor = null).fold(
+            searchRepository.searchNotes(
+                keyword = state.query,
+                sort = state.sort.apiValue,
+                within = state.timeRange.apiValue,
+                cursor = null,
+            ).fold(
                 onSuccess = { response ->
                     resultCursor = response.nextCursor
                     _uiState.update {
@@ -244,6 +251,7 @@ class SearchViewModel @Inject constructor(
             searchRepository.searchNotes(
                 keyword = state.query,
                 sort = state.sort.apiValue,
+                within = state.timeRange.apiValue,
                 cursor = resultCursor,
             ).fold(
                 onSuccess = { response ->
