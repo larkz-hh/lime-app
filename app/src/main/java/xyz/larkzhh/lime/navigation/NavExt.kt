@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 object SwipeBackNavState {
     var suppressForwardEnter = false
     var suppressPopAnim = false
+    var gestureDrivenPop = false// 自定义右滑返回手势驱动的pop才播放滑出动画
 }
 
 /**
