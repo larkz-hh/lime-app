@@ -22,6 +22,7 @@ import xyz.larkzhh.lime.data.network.model.LoginRequest
 import xyz.larkzhh.lime.data.network.model.NoteData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.NoteSearchResponse
+import xyz.larkzhh.lime.data.network.model.UserSearchResponse
 import xyz.larkzhh.lime.data.network.model.PostCommentRequest
 import xyz.larkzhh.lime.data.network.model.PostReplyRequest
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
@@ -219,6 +220,14 @@ interface ApiService {
         @Query("cursor") cursor: String?,
         @Query("size") size: Int,
     ): ApiResponse<NoteSearchResponse>
+
+    /// 搜索用户
+    @GET("api/search/users")
+    suspend fun searchUsers(
+        @Query("keyword") keyword: String,
+        @Query("cursor") cursor: String?,
+        @Query("size") size: Int,
+    ): ApiResponse<UserSearchResponse>
 
     /// 搜索联想
     @GET("api/search/suggest")
