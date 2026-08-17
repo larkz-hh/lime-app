@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.navigateToUserProfile
 import xyz.larkzhh.lime.ui.search.components.SearchSuggestList
 import xyz.larkzhh.lime.ui.search.components.SearchTopBar
 import xyz.larkzhh.lime.ui.search.viewmodel.SearchMode
@@ -80,6 +81,11 @@ fun SearchScreen(
                 onSortChange = viewModel::onSortChange,
                 onTimeRangeChange = viewModel::onTimeRangeChange,
                 onResetFilter = viewModel::resetFilter,
+                onUserTabEnter = viewModel::onUserTabEnter,
+                onLoadMoreUsers = viewModel::loadMoreUsers,
+                onUserClick = { userId ->
+                    navController.navigateToUserProfile(userId, suppressEnterAnimation = true)
+                },
             )
         }
     }

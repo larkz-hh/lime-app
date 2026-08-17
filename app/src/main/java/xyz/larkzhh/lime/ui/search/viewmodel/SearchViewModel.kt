@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.local.SearchHistoryStorage
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.data.network.model.HotSearchItem
+import xyz.larkzhh.lime.data.network.model.UserSearchItem
 import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.NoteRepository
@@ -53,6 +54,12 @@ data class SearchUiState(
     val isLoadingMore: Boolean = false,
     val hasMore: Boolean = true,
     val resultError: String? = null,
+    // 用户搜索结果
+    val userItems: List<UserSearchItem> = emptyList(),
+    val isUserLoading: Boolean = false,
+    val isUserLoadingMore: Boolean = false,
+    val userHasMore: Boolean = true,
+    val userError: String? = null,
     // 筛选
     val sort: NoteSort = NoteSort.Composite,
     val timeRange: SearchTimeRange = SearchTimeRange.All,
@@ -75,7 +82,9 @@ class SearchViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SearchUiState(history = historyStorage.load()))
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
     private val suggestQuery = MutableStateFlow("")// 联想去抖动的输入流
-    private var resultCursor: String? = null// 结果分页游标
+    private var resultCursor: String? = null// 笔记结果分页游标
+    private var userCursor: String? = null// 用户结果分页游标
+    private var loadedUserQuery: String? = null// 用户结关键词，去重用
 
     init {
         loadHotSearches()
@@ -156,12 +165,16 @@ class SearchViewModel @Inject constructor(
         val trimmed = keyword.trim()
         if (trimmed.isEmpty()) return
         historyStorage.add(trimmed)
+        userCursor = null
+        loadedUserQuery = null// 清空标记，下次重新请求
         _uiState.update {
             it.copy(
                 query = trimmed,
                 mode = SearchMode.Result,
                 history = historyStorage.load(),
                 suggestions = emptyList(),
+                userItems = emptyList(),
+                userError = null,
             )
         }
         viewModelScope.launch { searchRepository.reportSearch(trimmed) }// 上报失败静默
@@ -267,6 +280,65 @@ class SearchViewModel @Inject constructor(
                 },
                 onFailure = { e ->
                     _uiState.update { it.copy(isLoadingMore = false, resultError = e.message) }
+                },
+            )
+        }
+    }
+
+    /// 进入用户结果页，加载第一页
+    fun onUserTabEnter() {
+        val state = _uiState.value
+        if (state.mode != SearchMode.Result) return
+        if (loadedUserQuery == state.query) return// 按当前关键词去重
+        loadUserFirstPage(state.query)
+    }
+
+    /// 加载用户结果第一页
+    private fun loadUserFirstPage(query: String) {
+        loadedUserQuery = query
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(isUserLoading = true, userError = null, userItems = emptyList(), userHasMore = true)
+            }
+            userCursor = null
+            searchRepository.searchUsers(keyword = query, cursor = null).fold(
+                onSuccess = { response ->
+                    userCursor = response.nextCursor
+                    _uiState.update {
+                        it.copy(
+                            isUserLoading = false,
+                            userItems = response.items,
+                            userHasMore = response.hasMore,
+                        )
+                    }
+                },
+                onFailure = { e ->
+                    loadedUserQuery = null
+                    _uiState.update { it.copy(isUserLoading = false, userError = e.message) }
+                },
+            )
+        }
+    }
+
+    /// 加载更多用户结果
+    fun loadMoreUsers() {
+        val state = _uiState.value
+        if (state.isUserLoadingMore || !state.userHasMore || state.isUserLoading) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isUserLoadingMore = true) }
+            searchRepository.searchUsers(keyword = state.query, cursor = userCursor).fold(
+                onSuccess = { response ->
+                    userCursor = response.nextCursor
+                    _uiState.update {
+                        it.copy(
+                            isUserLoadingMore = false,
+                            userItems = it.userItems + response.items,
+                            userHasMore = response.hasMore,
+                        )
+                    }
+                },
+                onFailure = { e ->
+                    _uiState.update { it.copy(isUserLoadingMore = false, userError = e.message) }
                 },
             )
         }
