@@ -11,8 +11,28 @@ import xyz.larkzhh.lime.data.network.model.NoteDetailData
 interface NoteRepository {
     /// 上传单张笔记图片，返回服务器 URL
     suspend fun uploadImage(uri: Uri): Result<String>
+    /// 上传笔记视频，返回服务器 URL
+    suspend fun uploadVideo(uri: Uri): Result<String>
+
     /// 发布图文笔记
-    suspend fun publishNote(title: String?, content: String?, imageUrls: List<String>, status: Int = 1): Result<Unit>
+    suspend fun publishNote(
+        title: String?,
+        content: String?,
+        imageUrls: List<String>,
+        status: Int = 1
+    ): Result<Unit>
+
+    /// 发布视频笔记
+    suspend fun publishVideoNote(
+        title: String?,
+        content: String?,
+        videoUrl: String,
+        durationMs: Long,
+        width: Int,
+        height: Int,
+        coverUrl: String?,
+        status: Int = 1,
+    ): Result<Unit>
     /// 获取信息流，cursor 为空时从最新开始
     suspend fun getFeed(cursor: Long?, size: Int = 10): Result<FeedResponse>
     /// 获取指定用户已发布的笔记列表
