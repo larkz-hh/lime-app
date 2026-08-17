@@ -16,6 +16,12 @@ interface UserRepository {
     /// 从服务端拉取最新数据，成功后写入缓存
     suspend fun refreshUser(): Result<UserData>
 
+    /// 获取指定用户的公开资料
+    suspend fun getUserById(userId: Long): Result<UserData>
+
+    /// 同步读取指定用户已缓存的资料
+    fun getCachedUserById(userId: Long): UserData?
+
     /// 注销时清除本地缓存
     fun clearUser()
 }

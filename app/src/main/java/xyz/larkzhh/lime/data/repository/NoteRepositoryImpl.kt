@@ -14,6 +14,7 @@ import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.NoteImageRequest
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
 import xyz.larkzhh.lime.domain.repository.NoteRepository
+import xyz.larkzhh.lime.util.LruCache
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,6 +23,8 @@ class NoteRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
     @param:ApplicationContext private val context: Context,
 ) : NoteRepository {
+
+    private val userNotesFirstPageCache = LruCache<Long, FeedResponse>(maxSize = 50)
 
     /// 上传笔记图片
     override suspend fun uploadImage(uri: Uri): Result<String> = runCatching {
@@ -52,8 +55,12 @@ class NoteRepositoryImpl @Inject constructor(
     override suspend fun getUserNotes(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
         val response = apiService.getUserNotes(userId = userId, cursor = cursor, size = size)
         check(response.code == 200 && response.data != null) { response.message }
+        if (cursor == null) userNotesFirstPageCache[userId] = response.data// 仅缓存首页
         response.data
     }
+
+    /// 同步读取指定用户缓存的笔记首页
+    override fun getCachedUserNotes(userId: Long): FeedResponse? = userNotesFirstPageCache[userId]
 
     /// 获取指定用户的点赞笔记列表
     override suspend fun getUserLikes(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {

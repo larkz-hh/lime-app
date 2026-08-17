@@ -17,9 +17,12 @@ import xyz.larkzhh.lime.data.network.model.CommentListResponse
 import xyz.larkzhh.lime.data.network.model.DeleteHistoryRequest
 import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.HistoryResponse
+import xyz.larkzhh.lime.data.network.model.HotSearchItem
 import xyz.larkzhh.lime.data.network.model.LoginRequest
 import xyz.larkzhh.lime.data.network.model.NoteData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
+import xyz.larkzhh.lime.data.network.model.NoteSearchResponse
+import xyz.larkzhh.lime.data.network.model.UserSearchResponse
 import xyz.larkzhh.lime.data.network.model.PostCommentRequest
 import xyz.larkzhh.lime.data.network.model.PostReplyRequest
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
@@ -27,6 +30,7 @@ import xyz.larkzhh.lime.data.network.model.RefreshTokenRequest
 import xyz.larkzhh.lime.data.network.model.RegisterRequest
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.data.network.model.ReplyListResponse
+import xyz.larkzhh.lime.data.network.model.SearchReportRequest
 import xyz.larkzhh.lime.data.network.model.SendCodeRequest
 import xyz.larkzhh.lime.data.network.model.TokenData
 import xyz.larkzhh.lime.data.network.model.UpdateProfileRequest
@@ -58,6 +62,10 @@ interface ApiService {
     /// 获取当前用户信息
     @GET("api/user/me")
     suspend fun getMe(): ApiResponse<UserData>
+
+    /// 获取指定用户公开资料
+    @GET("api/user/{userId}")
+    suspend fun getUserById(@Path("userId") userId: Long): ApiResponse<UserData>
 
     /// 修改个人资料
     @PUT("api/user/me")
@@ -202,4 +210,39 @@ interface ApiService {
     /// 删除评论/回复
     @DELETE("api/comments/{commentId}")
     suspend fun deleteComment(@Path("commentId") commentId: Long): ApiResponse<Unit>
+
+    /// 搜索笔记
+    @GET("api/search/notes")
+    suspend fun searchNotes(
+        @Query("keyword") keyword: String,
+        @Query("sort") sort: String,
+        @Query("within") within: String,
+        @Query("cursor") cursor: String?,
+        @Query("size") size: Int,
+    ): ApiResponse<NoteSearchResponse>
+
+    /// 搜索用户
+    @GET("api/search/users")
+    suspend fun searchUsers(
+        @Query("keyword") keyword: String,
+        @Query("cursor") cursor: String?,
+        @Query("size") size: Int,
+    ): ApiResponse<UserSearchResponse>
+
+    /// 搜索联想
+    @GET("api/search/suggest")
+    suspend fun getSearchSuggestions(
+        @Query("q") q: String,
+        @Query("size") size: Int,
+    ): ApiResponse<List<String>>
+
+    /// 热搜榜
+    @GET("api/search/hot")
+    suspend fun getHotSearches(
+        @Query("size") size: Int,
+    ): ApiResponse<List<HotSearchItem>>
+
+    /// 上报搜索
+    @POST("api/search/report")
+    suspend fun reportSearch(@Body request: SearchReportRequest): ApiResponse<Unit>
 }

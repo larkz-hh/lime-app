@@ -12,6 +12,8 @@ data class UserData(
     val birthday: String?,
     val region: String?,
     val role: String,
+    val likePrivate: Boolean = false,// 点赞列表是否私密
+    val favPrivate: Boolean = false,// 收藏列表是否私密
 )
 
 /// 修改个人资料请求（null 字段不序列化，bio/region 传 "" 可清空）

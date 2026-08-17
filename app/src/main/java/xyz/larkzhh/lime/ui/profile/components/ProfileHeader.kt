@@ -42,6 +42,7 @@ import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
 import xyz.larkzhh.lime.ui.theme.LimeGray
+import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryLight
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
@@ -50,10 +51,13 @@ import java.time.LocalDate
 @Composable
 fun ProfileHeader(
     uiState: ProfileUiState,
+    isSelf: Boolean,
     onEditAvatar: () -> Unit,
     modifier: Modifier = Modifier,
     gradientEndColor: Color = Color.Black.copy(alpha = 0.9f),
     onBrowseHistory: () -> Unit = {},
+    onFollowClick: () -> Unit = {},
+    onMessageClick: () -> Unit = {},
 ) {
     val user = (uiState as? ProfileUiState.Success)?.user
     val backgroundUrl = user?.backgroundImage
@@ -110,7 +114,7 @@ fun ProfileHeader(
 
             /// 头像与昵称
             Row(verticalAlignment = Alignment.CenterVertically) {
-                AvatarSection(avatarUrl = user?.avatar, onClick = onEditAvatar)
+                AvatarSection(user = user, editable = isSelf, onClick = onEditAvatar)
                 Spacer(Modifier.width(16.dp))
                 UserInfoSection(user = user)
             }
@@ -159,23 +163,44 @@ fun ProfileHeader(
 
             Spacer(Modifier.height(16.dp))
 
-            // 浏览记录/群聊
-            Row(modifier = Modifier.fillMaxWidth()) {
-                QuickCard(
-                    icon = Icons.Default.History,
-                    label = "浏览记录",
-                    subtitle = "看过的笔记",
-                    modifier = Modifier.weight(1f),
-                    onClick = onBrowseHistory,
-                )
-                Spacer(Modifier.width(12.dp))
-                QuickCard(
-                    icon = Icons.Default.Groups,
-                    label = "群聊",
-                    subtitle = "查看详情",
-                    modifier = Modifier.weight(1f),
-                    onClick = { /* TODO */ },
-                )
+            if (isSelf) {
+                // 浏览记录/群聊
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    QuickCard(
+                        icon = Icons.Default.History,
+                        label = "浏览记录",
+                        subtitle = "看过的笔记",
+                        modifier = Modifier.weight(1f),
+                        onClick = onBrowseHistory,
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    QuickCard(
+                        icon = Icons.Default.Groups,
+                        label = "群聊",
+                        subtitle = "查看详情",
+                        modifier = Modifier.weight(1f),
+                        onClick = { /* TODO */ },
+                    )
+                }
+            } else {
+                // 关注/发私信
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    ActionButton(
+                        text = "关注",
+                        filled = true,
+                        modifier = Modifier.weight(1f),
+                        onClick = onFollowClick,
+                    )
+                    ActionButton(
+                        text = "发私信",
+                        filled = false,
+                        modifier = Modifier.weight(1f),
+                        onClick = onMessageClick,
+                    )
+                }
             }
 
             Spacer(Modifier.height(16.dp))
@@ -185,23 +210,23 @@ fun ProfileHeader(
 
 /// 头像区域
 @Composable
-private fun AvatarSection(avatarUrl: String?, onClick: () -> Unit) {
+private fun AvatarSection(user: UserData?, editable: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(76.dp)
             .clip(CircleShape)
             .background(Color(0xFFD4EAE0))
-            .clickable(onClick = onClick),
+            .then(if (editable) Modifier.clickable(onClick = onClick) else Modifier),
         contentAlignment = Alignment.Center,
     ) {
-        if (avatarUrl != null) {
+        if (user?.avatar != null) {
             AsyncImage(
-                model = avatarUrl,
+                model = user.avatar,
                 contentDescription = "头像",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
             )
-        } else {
+        } else if (editable) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
@@ -218,6 +243,13 @@ private fun AvatarSection(avatarUrl: String?, onClick: () -> Unit) {
                     color = LimeGray,
                 )
             }
+        } else {
+            // 他人无头像
+            Text(
+                text = user?.nickname?.take(1) ?: "?",
+                style = MaterialTheme.typography.titleLarge,
+                color = LimePrimary,
+            )
         }
     }
 }
@@ -343,6 +375,34 @@ private fun QuickCard(
                 )
             }
         }
+    }
+}
+
+/// 关注/发私信按钮
+@Composable
+private fun ActionButton(
+    text: String,
+    filled: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(22.dp))
+            .then(
+                if (filled) Modifier.background(LimePrimary)
+                else Modifier.background(Color.White.copy(alpha = 0.3f))
+            )
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = LimeWhite,
+        )
     }
 }
 

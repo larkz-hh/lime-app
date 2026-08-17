@@ -64,7 +64,7 @@ fun HomeScreen(navController: NavHostController) {
             tabs = tabs,
             selectedIndex = pagerState.currentPage,
             onChatClick = { /* TODO: AI 聊天 */ },
-            onSearchClick = { /* TODO: 搜索 */ },
+            onSearchClick = { navController.navigate(Screen.Search.route) },
             onTabSelected = { index ->
                 coroutineScope.launch { pagerState.animateScrollToPage(index) }
             },
