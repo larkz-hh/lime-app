@@ -5,6 +5,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -22,7 +23,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
@@ -35,6 +40,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,10 +50,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.data.network.model.UserSearchItem
 import xyz.larkzhh.lime.ui.components.NoteCard
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.search.viewmodel.NoteSort
@@ -68,11 +80,19 @@ fun SearchResultContent(
     onSortChange: (NoteSort) -> Unit,
     onTimeRangeChange: (SearchTimeRange) -> Unit,
     onResetFilter: () -> Unit,
+    onUserTabEnter: () -> Unit,
+    onLoadMoreUsers: () -> Unit,
+    onUserClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val tabs = listOf("全部", "用户")
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var filterExpanded by rememberSaveable { mutableStateOf(false) }
+
+    // 切换到用户tab或在此更换关键词
+    LaunchedEffect(selectedTab, uiState.query) {
+        if (selectedTab == 1) onUserTabEnter()
+    }
 
     Column(modifier = modifier.fillMaxSize()) {
         // tab 栏
@@ -142,12 +162,11 @@ fun SearchResultContent(
                     onNoteClick = onNoteClick,
                 )
                 // 搜索用户内容
-                1 -> Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(text = "用户搜索施工中", color = LimeGray, fontSize = 14.sp)
-                }
+                1 -> UserResultList(
+                    uiState = uiState,
+                    onLoadMore = onLoadMoreUsers,
+                    onUserClick = onUserClick,
+                )
             }
 
             FilterOverlay(
@@ -261,6 +280,189 @@ private fun NoteResultList(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+/// 用户搜索结果列表
+@Composable
+private fun UserResultList(
+    uiState: SearchUiState,
+    onLoadMore: () -> Unit,
+    onUserClick: (Long) -> Unit,
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        when {
+            uiState.isUserLoading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .align(Alignment.Center),
+                    color = LimePrimary,
+                    trackColor = LimeWhite,
+                    strokeWidth = 2.dp,
+                )
+            }
+            uiState.userError != null && uiState.userItems.isEmpty() -> {
+                Text(
+                    text = uiState.userError ?: "加载失败",
+                    modifier = Modifier.align(Alignment.Center),
+                    color = LimeGray,
+                )
+            }
+            uiState.userItems.isEmpty() -> {
+                Text(
+                    text = "暂无相关用户",
+                    modifier = Modifier.align(Alignment.Center),
+                    color = LimeGray,
+                )
+            }
+            else -> {
+                val listState = rememberLazyListState()
+                // 滚动接近底部时加载更多
+                val shouldLoadMore by remember {
+                    derivedStateOf {
+                        val layoutInfo = listState.layoutInfo
+                        val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+                        layoutInfo.totalItemsCount > 0 && lastVisible >= layoutInfo.totalItemsCount - 2
+                    }
+                }
+                LaunchedEffect(shouldLoadMore) {
+                    if (shouldLoadMore) onLoadMore()
+                }
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    items(uiState.userItems, key = { it.id }) { user ->
+                        UserResultCard(user = user, onClick = { onUserClick(user.id) })
+                        HorizontalDivider(
+                            thickness = 0.5.dp,
+                            color = LimeLightGray,
+                            modifier = Modifier.padding(start = 80.dp),// 16+52+12
+                        )
+                    }
+                    if (uiState.isUserLoadingMore) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = LimePrimary,
+                                    trackColor = LimeWhite,
+                                    strokeWidth = 2.dp,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// 用户搜索结果卡片
+@Composable
+private fun UserResultCard(
+    user: UserSearchItem,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // 头像
+            val avatarModifier = Modifier
+                .size(52.dp)
+                .clip(CircleShape)
+            if (user.avatar != null) {
+                AsyncImage(
+                    model = user.avatar,
+                    contentDescription = null,
+                    modifier = avatarModifier,
+                    contentScale = ContentScale.Crop,
+                )
+            } else {
+                Box(
+                    modifier = avatarModifier.background(LimePrimaryPale),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = user.nickname.take(1),
+                        fontSize = 20.sp,
+                        color = LimePrimary,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                // 昵称
+                Text(
+                    text = user.nickname,
+                    fontSize = 15.sp,
+                    lineHeight = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                // 粉丝数
+                Text(
+                    text = "粉丝 0",
+                    fontSize = 12.sp,
+                    lineHeight = 14.sp,
+                    color = LimeGray,
+                    modifier = Modifier.padding(top = 1.dp),
+                )
+                Text(
+                    text = "LimeID：${user.handle}",
+                    fontSize = 12.sp,
+                    lineHeight = 14.sp,
+                    color = LimeGray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 1.dp),
+                )
+            }
+            // 关注按钮，本人不显示
+            if (!user.isMe) {
+                Surface(
+                    onClick = { /* TODO */ },
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, LimePrimary),
+                ) {
+                    Text(
+                        text = "关注",
+                        fontSize = 13.sp,
+                        color = LimePrimary,
+                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 6.dp),
+                    )
+                }
+            }
+        }
+        // 本人标记
+        if (user.isMe) {
+            Surface(
+                shape = RoundedCornerShape(4.dp),
+                color = LimeLightGray,
+                modifier = Modifier.padding(start = 64.dp, top = 3.dp),// 52+12
+            ) {
+                Text(
+                    text = "我自己",
+                    fontSize = 10.sp,
+                    lineHeight = 10.sp,
+                    color = LimeGray,
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                )
             }
         }
     }
