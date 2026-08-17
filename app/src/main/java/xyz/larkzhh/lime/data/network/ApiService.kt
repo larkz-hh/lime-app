@@ -26,6 +26,7 @@ import xyz.larkzhh.lime.data.network.model.UserSearchResponse
 import xyz.larkzhh.lime.data.network.model.PostCommentRequest
 import xyz.larkzhh.lime.data.network.model.PostReplyRequest
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
+import xyz.larkzhh.lime.data.network.model.PublishVideoNoteRequest
 import xyz.larkzhh.lime.data.network.model.RefreshTokenRequest
 import xyz.larkzhh.lime.data.network.model.RegisterRequest
 import xyz.larkzhh.lime.data.network.model.ReplyData
@@ -86,6 +87,11 @@ interface ApiService {
     @POST("api/notes/images")
     suspend fun uploadNoteImage(@Part file: MultipartBody.Part): ApiResponse<UploadNoteImageResponse>
 
+    /// 上传笔记视频
+    @Multipart
+    @POST("api/notes/videos")
+    suspend fun uploadNoteVideo(@Part file: MultipartBody.Part): ApiResponse<UploadNoteImageResponse>
+
     /// 上传评论图片
     @Multipart
     @POST("api/comments/images")
@@ -99,6 +105,10 @@ interface ApiService {
     /// 发布图文笔记
     @POST("api/notes")
     suspend fun publishNote(@Body request: PublishNoteRequest): ApiResponse<NoteData>
+
+    /// 发布视频笔记
+    @POST("api/notes")
+    suspend fun publishVideoNote(@Body request: PublishVideoNoteRequest): ApiResponse<NoteData>
 
     /// 点赞笔记
     @POST("api/notes/{id}/like")

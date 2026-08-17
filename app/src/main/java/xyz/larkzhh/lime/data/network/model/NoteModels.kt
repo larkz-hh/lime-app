@@ -16,6 +16,24 @@ data class PublishNoteRequest(
     val status: Int = 1,  // 0=草稿，1=已发布
 )
 
+/// 视频笔记的视频字段
+data class VideoRequest(
+    val url: String,
+    val durationMs: Long,
+    val width: Int,
+    val height: Int,
+    val coverUrl: String?,
+)
+
+/// 发布视频笔记请求
+data class PublishVideoNoteRequest(
+    val title: String?,
+    val content: String?,
+    val noteType: Int = 2,// 视频类型
+    val video: VideoRequest,
+    val status: Int = 1,  // 0=草稿，1=已发布
+)
+
 data class NoteImageData(
     val id: Long,
     val url: String,
