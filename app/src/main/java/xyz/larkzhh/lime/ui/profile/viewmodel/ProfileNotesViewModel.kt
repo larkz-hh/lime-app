@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.ui.profile.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,6 +34,7 @@ data class ProfileNotesUiState(
  */
 @HiltViewModel
 class ProfileNotesViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val noteRepository: NoteRepository,
     private val userRepository: UserRepository,
     private val eventBus: NoteEventBus,
@@ -52,12 +54,23 @@ class ProfileNotesViewModel @Inject constructor(
     private var favoritesCursor: Long? = null
     private var userId: Long? = null
 
+    /// 提取路由参数中的目标用户id
+    private val requestedUserId: Long? = savedStateHandle["userId"]
+
     init {
+        val cached = requestedUserId?.let { noteRepository.getCachedUserNotes(it) }
+        if (cached != null) {
+            notesCursor = cached.nextCursor
+            _notesState.value = ProfileNotesUiState(
+                items = cached.items,
+                likedIds = cached.items.filter { it.liked }.map { it.id }.toSet(),
+                hasMore = cached.hasMore,
+                isLoading = false,
+            )
+        }
         viewModelScope.launch {
-            /// 等待用户数据
-            val user = userRepository.userFlow.filterNotNull().first()
-            userId = user.id
-            loadNotes()
+            userId = requestedUserId ?: userRepository.userFlow.filterNotNull().first().id
+            loadNotes(silent = cached != null)
         }
         observeNoteEvents()
     }
@@ -93,10 +106,13 @@ class ProfileNotesViewModel @Inject constructor(
      * 笔记 tab
      */
 
-    private fun loadNotes() {
+    private fun loadNotes(silent: Boolean = false) {
         val uid = userId ?: return
         viewModelScope.launch {
-            _notesState.update { it.copy(isLoading = true, error = null, items = emptyList(), hasMore = true) }
+            // 非静默刷新时加载
+            if (!silent) {
+                _notesState.update { it.copy(isLoading = true, error = null, items = emptyList(), hasMore = true) }
+            }
             notesCursor = null
             noteRepository.getUserNotes(userId = uid, cursor = null).fold(
                 onSuccess = { response ->

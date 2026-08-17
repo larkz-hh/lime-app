@@ -1,6 +1,8 @@
 package xyz.larkzhh.lime.ui.detail.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +19,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +42,7 @@ import xyz.larkzhh.lime.ui.theme.LimePrimary
 fun AuthorBar(
     note: NoteDetailData,
     onBack: () -> Unit,
+    onAuthorClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -56,28 +60,40 @@ fun AuthorBar(
         }
 
         // 头像
-        AsyncImage(
-            model = note.author.avatar,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
+        Row(
             modifier = Modifier
-                .size(38.dp)
-                .clip(CircleShape)
-                .background(LimeLightGray),
-        )
+                .weight(1f)
+                .clip(RoundedCornerShape(20.dp))
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick = onAuthorClick,
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AsyncImage(
+                model = note.author.avatar,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(LimeLightGray),
+            )
 
-        Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(10.dp))
 
-        // 昵称
-        Text(
-            text = note.author.nickname,
-            fontWeight = FontWeight.Medium,
-            fontSize = 15.sp,
-            color = LimeDark,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
+            // 昵称
+            Text(
+                text = note.author.nickname,
+                fontWeight = FontWeight.Medium,
+                fontSize = 15.sp,
+                color = LimeDark,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+        }
 
         Spacer(modifier = Modifier.width(8.dp))
 

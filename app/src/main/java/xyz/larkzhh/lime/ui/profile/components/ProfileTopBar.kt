@@ -17,8 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.Dp
@@ -51,7 +52,9 @@ fun ProfileTopBar(
     miniAvatarAlpha: Float,
     miniAvatarOffsetDp: Dp,
     editButtonAlpha: Float,
-    onMenuClick: () -> Unit,
+    leadingIcon: ImageVector,
+    onLeadingClick: () -> Unit,
+    showTrailingActions: Boolean,
     onEditProfileClick: () -> Unit,
     onQrScanClick: () -> Unit,
     onSizeChanged: (IntSize) -> Unit = {},
@@ -69,11 +72,13 @@ fun ProfileTopBar(
                 .padding(horizontal = 4.dp)
                 .height(52.dp),
         ) {
+            val leadingLabel =
+                if (leadingIcon == Icons.AutoMirrored.Filled.ArrowBack) "返回" else "菜单"
             IconButton(
-                onClick = onMenuClick,
+                onClick = onLeadingClick,
                 modifier = Modifier.align(Alignment.CenterStart),
             ) {
-                Icon(Icons.Default.Menu, contentDescription = "菜单", tint = LimeWhite)
+                Icon(leadingIcon, contentDescription = leadingLabel, tint = LimeWhite)
             }
 
             Box(
@@ -106,34 +111,42 @@ fun ProfileTopBar(
                 }
             }
 
-            Row(
-                modifier = Modifier.align(Alignment.CenterEnd),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+            if (showTrailingActions) {
                 Row(
-                    modifier = Modifier
-                        .alpha(editButtonAlpha)
-                        .background(LimeGray.copy(alpha = 0.4f), shape = RoundedCornerShape(20.dp))
-                        .clickable(enabled = editButtonAlpha > 0.05f, onClick = onEditProfileClick)
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    modifier = Modifier.align(Alignment.CenterEnd),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = null,
-                        tint = LimeWhite,
-                        modifier = Modifier.size(14.dp),
-                    )
-                    Text(
-                        text = "编辑主页",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = LimePrimaryPale,
-                    )
-                }
-                Spacer(Modifier.width(4.dp))
-                IconButton(onClick = onQrScanClick) {
-                    Icon(Icons.Default.QrCodeScanner, contentDescription = "扫一扫", tint = LimeWhite)
+                    Row(
+                        modifier = Modifier
+                            .alpha(editButtonAlpha)
+                            .background(
+                                LimeGray.copy(alpha = 0.4f),
+                                shape = RoundedCornerShape(20.dp)
+                            )
+                            .clickable(
+                                enabled = editButtonAlpha > 0.05f,
+                                onClick = onEditProfileClick
+                            )
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            tint = LimeWhite,
+                            modifier = Modifier.size(14.dp),
+                        )
+                        Text(
+                            text = "编辑主页",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = LimePrimaryPale,
+                        )
+                    }
+                    Spacer(Modifier.width(4.dp))
+                    IconButton(onClick = onQrScanClick) {
+                        Icon(Icons.Default.QrCodeScanner, contentDescription = "扫一扫", tint = LimeWhite)
+                    }
                 }
             }
         }

@@ -49,6 +49,8 @@ import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.SwipeBackScaffold
+import xyz.larkzhh.lime.navigation.navigateToUserProfile
 import xyz.larkzhh.lime.ui.components.CommentInputSheet
 import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet
 import xyz.larkzhh.lime.ui.components.GroupedSheetAction
@@ -67,6 +69,7 @@ import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
 import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.ui.detail.components.NoteBottomBar
 import xyz.larkzhh.lime.ui.detail.components.NoteImagePager
+import xyz.larkzhh.lime.ui.profile.ProfileScreen
 import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
@@ -123,6 +126,40 @@ fun DetailScreen(
         }
     }
 
+    val authorId = uiState.note?.author?.id
+    val selfUserId = commentViewModel.currentUserId
+    val sessionHost: AuthorSessionHost = hiltViewModel()
+    val authorSession = authorId?.let { id -> remember(id) { sessionHost.ensure(id) } }// 绑定作者主页会话
+    // 作者主页正是详情页的上一页，关闭左滑前进预览
+    val prevEntry = navController.previousBackStackEntry
+    val authorAlreadyInStack = authorId != null && when (prevEntry?.destination?.route) {
+        Screen.Profile.route -> selfUserId != null && authorId == selfUserId
+        Screen.UserProfile.ROUTE -> prevEntry.arguments?.getLong("userId") == authorId
+        else -> false
+    }
+
+    SwipeBackScaffold(
+        backEnabled = navController.previousBackStackEntry != null,
+        revealEntryId = { navController.previousBackStackEntry?.id },
+        forwardPeek = if (authorAlreadyInStack) null else authorId?.let { id ->
+            authorSession?.let { session ->
+                {
+                    ProfileScreen(
+                        navController = navController,
+                        userId = id,
+                        viewModel = session.profileViewModel,
+                        notesViewModel = session.notesViewModel,
+                        session = session,
+                    )
+                }
+            }
+        },
+        onCommitForward = {
+            if (authorId != null) {
+                navController.navigateToUserProfile(authorId, selfUserId, suppressEnterAnimation = true)
+            }
+        },
+    ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -156,6 +193,9 @@ fun DetailScreen(
                     AuthorBar(
                         note = uiState.note!!,
                         onBack = { navController.popBackStack() },
+                        onAuthorClick = {
+                            navController.navigateToUserProfile(uiState.note!!.author.id, selfUserId)
+                        },
                     )
                     NoteContent(
                         note = uiState.note!!,
@@ -193,6 +233,9 @@ fun DetailScreen(
                             } else {
                                 navController.navigate(Screen.CommentPhotoPicker.route)
                             }
+                        },
+                        onAuthorClick = { userId ->
+                            navController.navigateToUserProfile(userId, selfUserId)
                         },
                     )
                     NoteBottomBar(
@@ -352,6 +395,7 @@ fun DetailScreen(
             )
         }
     }
+    }
 }
 
 @Composable
@@ -372,12 +416,16 @@ private fun NoteContent(
     onCommentBoxClick: () -> Unit,
     onVoiceClick: () -> Unit,
     onAlbumClick: () -> Unit,
+    onAuthorClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val selectionActions = remember(context) {
         listOf(
-            SelectionAction("复制", Icons.Outlined.ContentCopy) { it.copyToClipboard(context); "已复制".showToast(context) },
+            SelectionAction(
+                "复制",
+                Icons.Outlined.ContentCopy
+            ) { it.copyToClipboard(context); "已复制".showToast(context) },
             SelectionAction("搜索", Icons.Outlined.Search) { },
             SelectionAction("问AI", Icons.Outlined.AutoAwesome) { },
         )
@@ -496,6 +544,7 @@ private fun NoteContent(
                 onVoiceStop = { playingVoiceId = null },
                 onLongPress = { onCommentLongPress(comment) },
                 onReplyLongPress = { reply -> onCommentReplyLongPress(comment.id, reply) },
+                onAuthorClick = onAuthorClick,
             )
             HorizontalDivider(color = LimeLightGray, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
         }
