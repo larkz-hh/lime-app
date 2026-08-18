@@ -40,7 +40,10 @@ import xyz.larkzhh.lime.ui.profile.ProfileScreen
 import xyz.larkzhh.lime.ui.profile.history.BrowseHistoryScreen
 import xyz.larkzhh.lime.ui.publish.PhotoPickerScreen
 import xyz.larkzhh.lime.ui.publish.PublishScreen
+import xyz.larkzhh.lime.ui.publish.VideoPublishScreen
+import xyz.larkzhh.lime.ui.publish.CoverPickerScreen
 import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
+import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
 import xyz.larkzhh.lime.ui.qrscan.QrScanScreen
 import xyz.larkzhh.lime.ui.search.SearchScreen
 import xyz.larkzhh.lime.ui.theme.LimeWhite
@@ -243,7 +246,12 @@ fun AppNavGraph() {
                         navController.getBackStackEntry(Screen.Publish.route)
                     }
                     val viewModel: PublishViewModel = hiltViewModel(parentEntry)
-                    PhotoPickerScreen(navController = navController, viewModel = viewModel)
+                    val videoViewModel: VideoPublishViewModel = hiltViewModel(parentEntry)
+                    PhotoPickerScreen(
+                        navController = navController,
+                        viewModel = viewModel,
+                        videoViewModel = videoViewModel,
+                    )
                 }// 生命周期与整个发布流程绑定
                 composable(Screen.NotePublish.route) { entry ->
                     val parentEntry = remember(entry) {
@@ -251,6 +259,20 @@ fun AppNavGraph() {
                     }
                     val viewModel: PublishViewModel = hiltViewModel(parentEntry)
                     PublishScreen(navController = navController, viewModel = viewModel)
+                }
+                composable(Screen.VideoPublish.route) { entry ->
+                    val parentEntry = remember(entry) {
+                        navController.getBackStackEntry(Screen.Publish.route)
+                    }
+                    val videoViewModel: VideoPublishViewModel = hiltViewModel(parentEntry)
+                    VideoPublishScreen(navController = navController, viewModel = videoViewModel)
+                }
+                composable(Screen.CoverPicker.route) { entry ->
+                    val parentEntry = remember(entry) {
+                        navController.getBackStackEntry(Screen.Publish.route)
+                    }
+                    val videoViewModel: VideoPublishViewModel = hiltViewModel(parentEntry)
+                    CoverPickerScreen(navController = navController, viewModel = videoViewModel)
                 }
             }
         }
