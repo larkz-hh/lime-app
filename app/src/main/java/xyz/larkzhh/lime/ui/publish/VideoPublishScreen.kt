@@ -19,6 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,12 +30,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.video.videoFrameMillis
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.publish.components.NotePublishScaffold
+import xyz.larkzhh.lime.ui.publish.components.PickerVideoPreview
 import xyz.larkzhh.lime.ui.publish.viewmodel.CoverSource
 import xyz.larkzhh.lime.ui.publish.viewmodel.DEFAULT_COVER_FRAME_MS
 import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
@@ -48,6 +54,9 @@ fun VideoPublishScreen(
 
     val videoUri = pickerState.selectedVideo?.uri
     val hasCover = publishState.cover !is CoverSource.None
+
+    // 视频预览
+    var showPreview by remember { mutableStateOf(false) }
 
     // 视频预览尺寸，高度固定
     val previewHeight = 120.dp
@@ -79,7 +88,8 @@ fun VideoPublishScreen(
                 .height(previewHeight)
                 .width(previewWidth)
                 .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)),
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+                .clickable(enabled = videoUri != null) { showPreview = true },
         ) {
             // 封面来源
             val coverModel: Any? = when (val cover = publishState.cover) {
@@ -134,6 +144,26 @@ fun VideoPublishScreen(
                     fontWeight = FontWeight.Medium,
                 )
             }
+        }
+    }
+
+    // 视频全屏预览
+    val previewVideo = pickerState.selectedVideo
+    if (showPreview && previewVideo != null) {
+        Dialog(
+            onDismissRequest = { showPreview = false },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false,
+            ),
+        ) {
+            PickerVideoPreview(
+                videos = listOf(previewVideo),
+                initialIndex = 0,
+                selectedId = null,
+                onToggle = null,
+                onDismiss = { showPreview = false },
+            )
         }
     }
 }
