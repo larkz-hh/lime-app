@@ -137,13 +137,14 @@ fun CoverPickerScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color.Black)
             .statusBarsPadding()
     ) {
         // 顶栏
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(Color.Black)
                 .padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -151,6 +152,7 @@ fun CoverPickerScreen(
                 text = "选择封面",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
+                color = Color.White,
                 modifier = Modifier.padding(start = 12.dp),
             )
         }
@@ -193,6 +195,7 @@ fun CoverPickerScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp)
+                .background(Color.Black)
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -221,6 +224,7 @@ fun CoverPickerScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(Color.Black)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -228,14 +232,14 @@ fun CoverPickerScreen(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                    .background(Color.White.copy(alpha = 0.08f))
                     .clickable {
                         navController.popBackStack()
                     }
                     .padding(vertical = 12.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("退出", fontWeight = FontWeight.SemiBold)
+                Text("退出", color = Color.White, fontWeight = FontWeight.SemiBold)
             }
             Box(
                 modifier = Modifier
@@ -281,7 +285,7 @@ private fun AlbumCropOverlay(
     }
 }
 
-/// 封面裁剪预览层。
+/// 封面裁剪预览层
 @Composable
 private fun CoverCropOverlay(
     mediaRatio: Float,

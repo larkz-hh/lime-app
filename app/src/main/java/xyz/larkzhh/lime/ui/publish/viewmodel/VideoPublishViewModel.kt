@@ -206,6 +206,27 @@ class VideoPublishViewModel @Inject constructor(
         }
     }
 
+    /// 点击视频格，选中/取消选中
+    fun toggleVideoSelection(video: LocalVideo) {
+        val current = _pickerState.value.selectedVideo
+        if (current?.uri == video.uri) {
+            _pickerState.update { it.copy(selectedVideo = null) }
+            _publishState.update {
+                it.copy(
+                    videoWidth = 0,
+                    videoHeight = 0,
+                    cover = CoverSource.None,
+                    editingAlbumUri = null,
+                    editingFrameMs = DEFAULT_COVER_FRAME_MS,
+                    editingIsAlbum = false,
+                    editingTransform = CropTransform(),
+                )
+            }
+        } else {
+            selectVideo(video)
+        }
+    }
+
     /// 进入封面页，还原上次状态
     fun beginCoverEdit() {
         _publishState.update {
