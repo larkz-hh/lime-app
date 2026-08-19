@@ -83,8 +83,8 @@ fun VideoPublishScreen(
         ) {
             // 封面来源
             val coverModel: Any? = when (val cover = publishState.cover) {
-                is CoverSource.Album -> cover.uri
-                is CoverSource.Frame -> videoUri?.let {
+                is CoverSource.Album -> cover.croppedUri ?: cover.uri
+                is CoverSource.Frame -> cover.croppedUri ?: videoUri?.let {
                     ImageRequest.Builder(context).data(it).videoFrameMillis(cover.timeMs).build()
                 }
 
