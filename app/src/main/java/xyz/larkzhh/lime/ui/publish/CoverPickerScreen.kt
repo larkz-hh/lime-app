@@ -1,32 +1,31 @@
 package xyz.larkzhh.lime.ui.publish
 
-import android.view.SurfaceView
+import android.view.TextureView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.annotation.OptIn
+import androidx.compose.animation.core.animate
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,35 +33,49 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.lerp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.navigation.NavHostController
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.video.videoFrameMillis
-import kotlin.math.roundToLong
+import coil3.compose.rememberAsyncImagePainter
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.ui.publish.components.AlbumSquare
+import xyz.larkzhh.lime.ui.publish.components.FrameScrubTrack
+import xyz.larkzhh.lime.ui.publish.viewmodel.CropTransform
 import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 
-/// 滑轨缩略图数量
-private const val THUMB_COUNT = 8
+/// 预览层最大放大倍数
+private const val MAX_COVER_SCALE = 8f
+
+/// 越界最大溢出
+private const val RUBBER_LIMIT = 0.05f
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -89,11 +102,16 @@ fun CoverPickerScreen(
     val isAlbum = publishState.editingIsAlbum
     val albumUri = publishState.editingAlbumUri
     val frameMs = publishState.editingFrameMs
+    val transform = publishState.editingTransform
 
-    // 预览宽高比
-    val ratio = if (publishState.videoHeight > 0) {
+    // 裁剪框宽高比
+    val isLandscape = publishState.videoHeight > 0 && publishState.videoWidth > publishState.videoHeight
+    val cropRatio = if (isLandscape) 4f / 3f else 3f / 4f
+
+    // 视频画面真实宽高比
+    val videoRatio = if (publishState.videoHeight > 0) {
         publishState.videoWidth.toFloat() / publishState.videoHeight
-    } else 3f / 4f
+    } else cropRatio
 
     // 初始化 ExoPlayer
     val exoPlayer = remember(videoUri) {
@@ -111,7 +129,7 @@ fun CoverPickerScreen(
     DisposableEffect(exoPlayer) {
         onDispose { exoPlayer?.release() }
     }
-    // 帧位置变化即 seek（含进入时的状态还原）；相册模式不动播放器
+
     LaunchedEffect(frameMs, isAlbum, exoPlayer) {
         if (!isAlbum) exoPlayer?.seekTo(frameMs)
     }
@@ -137,34 +155,36 @@ fun CoverPickerScreen(
             )
         }
 
-        // 预览区
+        // 预览裁剪区
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(16.dp),
+                .clipToBounds()
+                .background(Color.Black),
             contentAlignment = Alignment.Center,
         ) {
             if (isAlbum && albumUri != null) {
-                AsyncImage(
-                    model = albumUri,
-                    contentDescription = "封面预览",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize(),
+                AlbumCropOverlay(
+                    uri = albumUri,
+                    cropRatio = cropRatio,
+                    transform = transform,
+                    onTransform = viewModel::setCoverTransform,
                 )
             } else if (exoPlayer != null) {
-                // 竖屏撑高、横屏撑宽
-                val surfaceModifier = if (ratio < 1f) {
-                    Modifier.fillMaxHeight().aspectRatio(ratio)
-                } else {
-                    Modifier.fillMaxWidth().aspectRatio(ratio)
+                CoverCropOverlay(
+                    mediaRatio = videoRatio,
+                    cropRatio = cropRatio,
+                    transform = transform,
+                    onTransform = viewModel::setCoverTransform,
+                ) { m ->
+                    AndroidView(
+                        factory = { ctx ->
+                            TextureView(ctx).also { exoPlayer.setVideoTextureView(it) }
+                        },
+                        modifier = m,
+                    )
                 }
-                AndroidView(
-                    factory = { ctx ->
-                        SurfaceView(ctx).also { exoPlayer.setVideoSurfaceView(it) }
-                    },
-                    modifier = surfaceModifier,
-                )
             }
         }
 
@@ -235,164 +255,166 @@ fun CoverPickerScreen(
     }
 }
 
-/// 相册入口
+/// 相册封面裁剪层
 @Composable
-private fun AlbumSquare(
-    albumUri: android.net.Uri?,
-    selected: Boolean,
-    onPick: () -> Unit,
-    onUseAlbum: () -> Unit,
-    onClear: () -> Unit,
+private fun AlbumCropOverlay(
+    uri: android.net.Uri,
+    cropRatio: Float,
+    transform: CropTransform,
+    onTransform: (CropTransform) -> Unit,
 ) {
-    Box(
-        modifier = Modifier
-            .size(56.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
-            .clickable {
-                when {
-                    albumUri == null -> onPick()// 打开相册
-                    !selected -> onUseAlbum()// 切回相册图
-                    else -> onPick()// 重新选一张
-                }
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        if (albumUri != null) {
-            AsyncImage(
-                model = albumUri,
-                contentDescription = "相册封面",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-            if (selected) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(LimePrimary.copy(alpha = 0.18f))
-                )
-            }
-            // 清掉相册图回截帧
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(2.dp)
-                    .size(16.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.Black.copy(alpha = 0.55f))
-                    .clickable { onClear() },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Filled.Close,
-                    contentDescription = "取消相册封面",
-                    tint = Color.White,
-                    modifier = Modifier.size(11.dp),
-                )
-            }
-        } else {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    Icons.Filled.Add,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .padding(top = 4.dp)
-                        .size(18.dp),
-                )
-                Text(
-                    "相册",
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
+    val painter = rememberAsyncImagePainter(model = uri)
+    val size = painter.intrinsicSize// 获取图片的原始物理尺寸
+    val ratio = if (size.width > 0f && size.height > 0f) size.width / size.height else cropRatio
+    CoverCropOverlay(
+        mediaRatio = ratio,
+        cropRatio = cropRatio,
+        transform = transform,
+        onTransform = onTransform,
+    ) { m ->
+        Image(
+            painter = painter,
+            contentDescription = "封面预览",
+            contentScale = ContentScale.Crop,
+            modifier = m,
+        )
     }
 }
 
-/// 截帧滑轨
+/// 封面裁剪预览层。
 @Composable
-private fun FrameScrubTrack(
-    videoUri: android.net.Uri,
-    durationMs: Long,
-    currentMs: Long,
-    selected: Boolean,
-    onScrub: (Long) -> Unit,
-    context: android.content.Context,
-    modifier: Modifier = Modifier,
+private fun CoverCropOverlay(
+    mediaRatio: Float,
+    cropRatio: Float,
+    transform: CropTransform,
+    onTransform: (CropTransform) -> Unit,
+    media: @Composable (Modifier) -> Unit,
 ) {
     val density = LocalDensity.current
-    var handleX by remember { mutableLongStateOf(currentMs) }
-    LaunchedEffect(currentMs) { handleX = currentMs }
+    // 手势更新本地变换
+    var live by remember { mutableStateOf(transform) }
+    LaunchedEffect(transform) { live = transform }
+    val scope = rememberCoroutineScope()
 
-    BoxWithConstraints(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .clip(RoundedCornerShape(6.dp)),
-    ) {
-        val trackWidthPx = with(density) { maxWidth.toPx() }
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val contW = with(density) { maxWidth.toPx() }
+        val contH = with(density) { maxHeight.toPx() }
+        // 裁剪框
+        val boxW = contW
+        val boxH = boxW / cropRatio
+        val boxLeft = 0f
+        val boxTop = (contH - boxH) / 2f
+        val strokePx = with(density) { 1.5.dp.toPx() }// 裁剪框边框宽度
+        val fillWidth = mediaRatio <= cropRatio
+        val baseW = if (fillWidth) contW else boxH * mediaRatio// 图比框窄，宽度填满
+        val baseH = if (fillWidth) contW / mediaRatio else boxH// 图比框宽，高度填满
 
-        // 缩略图轨道
-        Row(modifier = Modifier.fillMaxSize()) {
-            repeat(THUMB_COUNT) { i ->
-                val t = durationMs * i / THUMB_COUNT
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(videoUri)
-                        .videoFrameMillis(t)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxSize(),
-                )
-            }
+        val s = live.scale
+        // 平移量
+        val tx = (0.5f - live.focusX) * baseW * s
+        val ty = (0.5f - live.focusY) * baseH * s
+
+        // 媒体层
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .requiredSize(with(density) { baseW.toDp() }, with(density) { baseH.toDp() })
+                .graphicsLayer(
+                    scaleX = s,
+                    scaleY = s,
+                    translationX = tx,
+                    translationY = ty,
+                    transformOrigin = TransformOrigin(0.5f, 0.5f),
+                ),
+        ) {
+            media(Modifier.fillMaxSize())
         }
 
-        // 未生效时压暗轨道
-        if (!selected) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.35f))
+        // 蒙版与白框
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val scrim = Color.Black.copy(alpha = 0.55f)
+            drawRect(scrim, topLeft = Offset(0f, 0f), size = Size(contW, boxTop))
+            drawRect(scrim, topLeft = Offset(0f, boxTop + boxH), size = Size(contW, contH - boxTop - boxH))
+            drawRect(scrim, topLeft = Offset(0f, boxTop), size = Size(boxLeft, boxH))
+            drawRect(scrim, topLeft = Offset(boxLeft + boxW, boxTop), size = Size(contW - boxLeft - boxW, boxH))
+            drawRect(
+                color = Color.White,
+                topLeft = Offset(boxLeft, boxTop),
+                size = Size(boxW, boxH),
+                style = Stroke(width = strokePx),
             )
         }
 
-        // 拖动手柄
-        val handleFraction = if (durationMs > 0) handleX.toFloat() / durationMs else 0f
-        val handleWidthDp = 4.dp
-        val handleOffsetDp = with(density) {
-            ((trackWidthPx - handleWidthDp.toPx()) * handleFraction).toDp()
-        }
-        Box(
+        // 双指提示
+        Text(
+            text = "使用双指进行缩放",
+            color = Color.White.copy(alpha = 0.85f),
+            fontSize = 13.sp,
             modifier = Modifier
-                .padding(start = handleOffsetDp)
-                .width(handleWidthDp)
-                .fillMaxSize()
-                .background(Color.White)
+                .align(Alignment.TopCenter)
+                .padding(top = 16.dp),
         )
 
-        //轨道的拖动、点按手势
+        // 平移、缩放手势
+        var snapJob by remember { mutableStateOf<Job?>(null) }
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(durationMs, trackWidthPx) {
-                    val update = { x: Float ->
-                        val fraction = (x / trackWidthPx).coerceIn(0f, 1f)
-                        val newMs = (fraction * durationMs).roundToLong()
-                        handleX = newMs
-                        onScrub(newMs)
+                .pointerInput(mediaRatio, cropRatio) {
+                    awaitEachGesture {
+                        awaitFirstDown(requireUnconsumed = false)
+                        snapJob?.cancel()// 有新触摸，打断上次回弹
+                        do {
+                            val event = awaitPointerEvent()
+                            val zoom = event.calculateZoom()// 计算双指捏合的缩放因子
+                            val pan = event.calculatePan()// 计算单指拖动的像素偏移量
+                            if (zoom != 1f || pan != Offset.Zero) {
+                                val cur = live
+                                val scale = (cur.scale * zoom).coerceIn(1f, MAX_COVER_SCALE)
+                                // 屏幕位移，焦点位移
+                                val dFocusX = -pan.x / (baseW * scale)
+                                val dFocusY = -pan.y / (baseH * scale)
+                                // 裁剪框占图比例
+                                val hx = boxW / (baseW * scale) / 2f
+                                val hy = boxH / (baseH * scale) / 2f
+                                val fx = rubberBand(cur.focusX + dFocusX, hx, 1f - hx)
+                                val fy = rubberBand(cur.focusY + dFocusY, hy, 1f - hy)
+                                live = CropTransform(scale = scale, focusX = fx, focusY = fy)
+                                event.changes.forEach { if (it.positionChanged()) it.consume() }
+                            }
+                        } while (event.changes.any { it.pressed })
+                        // 松手回弹
+                        val end = live
+                        val hx = boxW / (baseW * end.scale) / 2f
+                        val hy = boxH / (baseH * end.scale) / 2f
+                        val targetX = end.focusX.coerceIn(hx, 1f - hx)
+                        val targetY = end.focusY.coerceIn(hy, 1f - hy)
+                        if (targetX != end.focusX || targetY != end.focusY) {
+                            snapJob = scope.launch {
+                                animate(initialValue = 0f, targetValue = 1f) { t, _ ->
+                                    live = end.copy(
+                                        focusX = lerp(end.focusX, targetX, t),
+                                        focusY = lerp(end.focusY, targetY, t),
+                                    )
+                                }
+                                onTransform(live)
+                            }
+                        } else {
+                            onTransform(live)
+                        }
                     }
-                    detectDragGestures(
-                        onDragStart = { offset -> update(offset.x) },
-                        onDrag = { change, _ ->
-                            change.consume()
-                            update(change.position.x)
-                        },
-                    )
                 }
         )
     }
 }
+/// 超出边界阻尼
+private fun rubberBand(value: Float, min: Float, max: Float, limit: Float = RUBBER_LIMIT): Float = when {
+    min > max -> (min + max) / 2f
+    value < min -> min - rubberDelta(min - value, limit)
+    value > max -> max + rubberDelta(value - max, limit)
+    else -> value
+}
+
+/// 阻尼位移
+private fun rubberDelta(over: Float, limit: Float): Float =
+    limit * (1f - 1f / (over / limit + 1f))

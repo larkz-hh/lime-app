@@ -47,9 +47,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.video.videoFrameMillis
+import android.provider.MediaStore
+import android.util.Size
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.withContext
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -94,7 +103,9 @@ fun PhotoPickerScreen(
 
     LaunchedEffect(granted) {
         if (granted) {
-            viewModel.loadDeviceImages()
+            if (pickerState.images.isEmpty()) {
+                viewModel.loadDeviceImages()
+            }
         } else {
             requestPermission()
         }
@@ -175,8 +186,23 @@ fun PhotoPickerScreen(
                 if (pickerState.isLoading) {
                     LoadingBox()
                 } else {
+                    val gridState = rememberLazyGridState()
+                    LaunchedEffect(gridState) {
+                        snapshotFlow {
+                            gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                        }
+                            .distinctUntilChanged()
+                            .collect { lastIndex ->
+                                if (lastIndex >= pickerState.images.size - 6 &&
+                                    pickerState.hasMore && !pickerState.isLoadingMore
+                                ) {
+                                    viewModel.loadMoreImages()
+                                }
+                            }
+                    }
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(3),
+                        state = gridState,
                         modifier = Modifier.weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(2.dp),
                         verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -188,6 +214,11 @@ fun PhotoPickerScreen(
                                 onToggle = { viewModel.toggleImageSelection(image.uri) },
                             )
                         }
+                        if (pickerState.isLoadingMore) {
+                            item(span = { GridItemSpan(3) }) {
+                                LoadingBox()
+                            }
+                        }
                     }
                 }
             }
@@ -196,8 +227,23 @@ fun PhotoPickerScreen(
                 if (videoPickerState.isLoading) {
                     LoadingBox()
                 } else {
+                    val gridState = rememberLazyGridState()
+                    LaunchedEffect(gridState) {
+                        snapshotFlow {
+                            gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                        }
+                            .distinctUntilChanged()
+                            .collect { lastIndex ->
+                                if (lastIndex >= videoPickerState.videos.size - 6 &&
+                                    videoPickerState.hasMore && !videoPickerState.isLoadingMore
+                                ) {
+                                    videoViewModel.loadMoreVideos()
+                                }
+                            }
+                    }
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(3),
+                        state = gridState,
                         modifier = Modifier.weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(2.dp),
                         verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -214,6 +260,11 @@ fun PhotoPickerScreen(
                                     }
                                 },
                             )
+                        }
+                        if (videoPickerState.isLoadingMore) {
+                            item(span = { GridItemSpan(3) }) {
+                                LoadingBox()
+                            }
                         }
                     }
                 }
@@ -305,20 +356,38 @@ private fun VideoGridItem(
     onClick: () -> Unit,
 ) {
     val context = LocalContext.current
+    // 用系统视频缩略图
+    val thumb by produceState<ImageBitmap?>(initialValue = null, video.uri) {
+        value = withContext(Dispatchers.IO) {
+            runCatching {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    context.contentResolver.loadThumbnail(video.uri, Size(360, 360), null)
+                } else {
+                    @Suppress("DEPRECATION")
+                    MediaStore.Video.Thumbnails.getThumbnail(
+                        context.contentResolver,
+                        video.id,
+                        MediaStore.Video.Thumbnails.MINI_KIND,
+                        null,
+                    )
+                }
+            }.getOrNull()?.asImageBitmap()
+        }
+    }
     Box(
         modifier = Modifier
             .aspectRatio(1f)
             .clickable(onClick = onClick),
     ) {
-        AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(video.uri)
-                .videoFrameMillis(0)
-                .build(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
-        )
+        val bmp = thumb
+        if (bmp != null) {
+            Image(
+                bitmap = bmp,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
         // 不可选置灰
         if (!video.selectable) {
             Box(
