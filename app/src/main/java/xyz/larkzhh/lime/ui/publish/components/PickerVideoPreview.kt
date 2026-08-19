@@ -61,7 +61,7 @@ fun PickerVideoPreview(
     videos: List<LocalVideo>,
     initialIndex: Int,
     selectedId: Long?,
-    onToggle: (LocalVideo) -> Unit,
+    onToggle: ((LocalVideo) -> Unit)?,
     onDismiss: () -> Unit,
 ) {
     BackHandler(onBack = onDismiss)
@@ -112,7 +112,7 @@ fun PickerVideoPreview(
                         onClick = onDismiss,
                     ),
             )
-            if (current.selectable) {
+            if (onToggle != null && current.selectable) {
                 SelectionCircle(
                     selected = selectedId == current.id,
                     label = null,
