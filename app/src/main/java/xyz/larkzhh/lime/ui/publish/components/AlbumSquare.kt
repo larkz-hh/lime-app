@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,7 +38,7 @@ fun AlbumSquare(
         modifier = Modifier
             .size(56.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+            .background(Color.White.copy(alpha = 0.08f))
             .clickable {
                 when {
                     albumUri == null -> onPick()// 打开相册
@@ -86,7 +85,7 @@ fun AlbumSquare(
                 Icon(
                     Icons.Filled.Add,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = Color.White.copy(alpha = 0.6f),
                     modifier = Modifier
                         .padding(top = 4.dp)
                         .size(18.dp),
@@ -94,7 +93,7 @@ fun AlbumSquare(
                 Text(
                     "相册",
                     fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.6f),
                 )
             }
         }

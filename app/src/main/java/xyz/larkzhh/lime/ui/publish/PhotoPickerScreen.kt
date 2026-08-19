@@ -3,6 +3,7 @@ package xyz.larkzhh.lime.ui.publish
 import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,6 +47,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
 import android.provider.MediaStore
 import android.util.Size
@@ -65,6 +68,8 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.components.ImageGridItem
+import xyz.larkzhh.lime.ui.publish.components.PickerImagePreview
+import xyz.larkzhh.lime.ui.publish.components.PickerVideoPreview
 import xyz.larkzhh.lime.ui.publish.viewmodel.LocalVideo
 import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
 import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
@@ -85,6 +90,10 @@ fun PhotoPickerScreen(
     val context = LocalContext.current
 
     var tab by remember { mutableStateOf(PickerTab.PHOTO) }
+
+    // 预览浮层
+    var previewImageIndex by remember { mutableStateOf<Int?>(null) }
+    var previewVideoIndex by remember { mutableStateOf<Int?>(null) }
 
     // 权限申请
     val granted: Boolean
@@ -121,23 +130,25 @@ fun PhotoPickerScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color.Black)
             .statusBarsPadding()
     ) {
         // 顶部栏
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(Color.Black)
                 .padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.Filled.Close, contentDescription = "关闭")
+                Icon(Icons.Filled.Close, contentDescription = "关闭", tint = Color.White)
             }
             Text(
                 text = "选择",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
+                color = Color.White,
                 modifier = Modifier.weight(1f),
             )
             if (tab == PickerTab.PHOTO) {
@@ -155,7 +166,10 @@ fun PhotoPickerScreen(
 
         // 照片、视频 tab
         Row(
-            modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.Black)
+                .padding(start = 16.dp, top = 4.dp, bottom = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             PickerTabItem("照片", tab == PickerTab.PHOTO) { tab = PickerTab.PHOTO }
@@ -171,7 +185,7 @@ fun PhotoPickerScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("需要相册访问权限才能选择")
+                        Text("需要相册访问权限才能选择", color = Color.White)
                         Button(
                             onClick = requestPermission,
                             modifier = Modifier.padding(top = 12.dp),
@@ -212,6 +226,9 @@ fun PhotoPickerScreen(
                                 uri = image.uri,
                                 selectionIndex = pickerState.selectedUris.indexOf(image.uri),
                                 onToggle = { viewModel.toggleImageSelection(image.uri) },
+                                onPreview = {
+                                    previewImageIndex = pickerState.images.indexOf(image)
+                                },
                             )
                         }
                         if (pickerState.isLoadingMore) {
@@ -252,9 +269,12 @@ fun PhotoPickerScreen(
                             VideoGridItem(
                                 video = video,
                                 isSelected = videoPickerState.selectedVideo?.id == video.id,
-                                onClick = {
+                                onPreview = {
+                                    previewVideoIndex = videoPickerState.videos.indexOf(video)
+                                },
+                                onToggle = {
                                     if (video.selectable) {
-                                        videoViewModel.selectVideo(video)
+                                        videoViewModel.toggleVideoSelection(video)
                                     } else {
                                         "视频需为 mp4，且不超过 200MB、10 分钟".showToast(context)
                                     }
@@ -275,6 +295,7 @@ fun PhotoPickerScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(Color.Black)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.End,
         ) {
@@ -297,6 +318,46 @@ fun PhotoPickerScreen(
             }
         }
     }
+
+    // 图片预览浮层
+    val imgIdx = previewImageIndex
+    if (imgIdx != null && imgIdx in pickerState.images.indices) {
+        Dialog(
+            onDismissRequest = { previewImageIndex = null },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false,
+            ),
+        ) {
+            PickerImagePreview(
+                images = pickerState.images,
+                initialIndex = imgIdx,
+                selectedUris = pickerState.selectedUris,
+                onToggle = { viewModel.toggleImageSelection(it) },
+                onDismiss = { previewImageIndex = null },
+            )
+        }
+    }
+
+    // 视频预览浮层
+    val vidIdx = previewVideoIndex
+    if (vidIdx != null && vidIdx in videoPickerState.videos.indices) {
+        Dialog(
+            onDismissRequest = { previewVideoIndex = null },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false,
+            ),
+        ) {
+            PickerVideoPreview(
+                videos = videoPickerState.videos,
+                initialIndex = vidIdx,
+                selectedId = videoPickerState.selectedVideo?.id,
+                onToggle = { videoViewModel.toggleVideoSelection(it) },
+                onDismiss = { previewVideoIndex = null },
+            )
+        }
+    }
 }
 
 @Composable
@@ -309,8 +370,8 @@ private fun PickerTabItem(text: String, selected: Boolean, onClick: () -> Unit) 
             text = text,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            color = if (selected) MaterialTheme.colorScheme.onSurface
-            else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (selected) Color.White
+            else Color.White.copy(alpha = 0.6f),
         )
         Box(
             modifier = Modifier
@@ -341,8 +402,8 @@ private fun NextButton(text: String, enabled: Boolean, onClick: () -> Unit) {
         shape = RoundedCornerShape(20.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
-            disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledContainerColor = Color.White.copy(alpha = 0.12f),
+            disabledContentColor = Color.White.copy(alpha = 0.6f),
         ),
     ) {
         Text(text = text, fontWeight = FontWeight.Medium)
@@ -353,7 +414,8 @@ private fun NextButton(text: String, enabled: Boolean, onClick: () -> Unit) {
 private fun VideoGridItem(
     video: LocalVideo,
     isSelected: Boolean,
-    onClick: () -> Unit,
+    onPreview: () -> Unit,
+    onToggle: () -> Unit,
 ) {
     val context = LocalContext.current
     // 用系统视频缩略图
@@ -377,7 +439,7 @@ private fun VideoGridItem(
     Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onPreview),
     ) {
         val bmp = thumb
         if (bmp != null) {
@@ -413,22 +475,33 @@ private fun VideoGridItem(
                 .padding(4.dp),
         )
         // 选中标记
-        if (isSelected && video.selectable) {
+        if (video.selectable) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(5.dp)
                     .size(24.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primary),
+                    .then(
+                        if (isSelected) {
+                            Modifier.background(MaterialTheme.colorScheme.primary)
+                        } else {
+                            Modifier
+                                .background(Color.Black.copy(alpha = 0.3f))
+                                .border(2.dp, Color.White, RoundedCornerShape(12.dp))
+                        }
+                    )
+                    .clickable(onClick = onToggle),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    Icons.Filled.Check,
-                    contentDescription = "已选",
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp),
-                )
+                if (isSelected) {
+                    Icon(
+                        Icons.Filled.Check,
+                        contentDescription = "已选",
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
             }
         }
     }

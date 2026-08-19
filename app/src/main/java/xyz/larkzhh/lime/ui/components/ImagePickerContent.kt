@@ -32,13 +32,14 @@ fun ImageGridItem(
     uri: Uri,
     selectionIndex: Int,
     onToggle: () -> Unit,
+    onPreview: (() -> Unit)? = null,
 ) {
     val isSelected = selectionIndex >= 0
 
     Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .clickable(onClick = onToggle)
+            .clickable(onClick = onPreview ?: onToggle)
     ) {
         AsyncImage(
             model = uri,
@@ -69,7 +70,8 @@ fun ImageGridItem(
                             .background(Color.Black.copy(alpha = 0.3f))
                             .border(2.dp, Color.White, CircleShape)
                     }
-                ),
+                )
+                .then(if (onPreview != null) Modifier.clickable(onClick = onToggle) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
             if (isSelected) {
