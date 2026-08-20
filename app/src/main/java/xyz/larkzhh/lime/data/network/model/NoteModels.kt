@@ -57,6 +57,22 @@ data class FeedAuthor(
     val avatar: String?,
 )
 
+/// 视频笔记的视频信息响应
+data class VideoInfo(
+    val playUrl: String,
+    val coverUrl: String?,
+    val durationMs: Long,
+    val width: Int,
+    val height: Int,
+    val orientation: String,
+)
+
+/// 视频朝向
+enum class VideoOrientation { PORTRAIT, LANDSCAPE }
+
+fun VideoInfo.orientationEnum() =
+    if (orientation.equals("LANDSCAPE", true)) VideoOrientation.LANDSCAPE else VideoOrientation.PORTRAIT
+
 data class NoteDetailData(
     val id: Long,
     val title: String?,
@@ -72,6 +88,8 @@ data class NoteDetailData(
     val author: FeedAuthor,
     val createTime: String? = null,
     val updateTime: String? = null,
+    val noteType: Int = 1,// 1=图文，2=视频
+    val video: VideoInfo? = null,
 )
 
 data class FeedItem(
@@ -82,6 +100,8 @@ data class FeedItem(
     val liked: Boolean,
     val author: FeedAuthor,
     val viewCount: Int? = null,// 本人才有值
+    val noteType: Int = 1,// 1=图文，2=视频
+    val video: VideoInfo? = null,
 )
 
 data class FeedResponse(

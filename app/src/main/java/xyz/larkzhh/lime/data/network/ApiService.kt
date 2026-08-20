@@ -120,7 +120,10 @@ interface ApiService {
 
     /// 获取笔记详情
     @GET("api/notes/{id}")
-    suspend fun getNoteDetail(@Path("id") id: Long): ApiResponse<NoteDetailData>
+    suspend fun getNoteDetail(
+        @Path("id") id: Long,
+        @Query("noView") noView: Boolean = false,
+    ): ApiResponse<NoteDetailData>
 
     /// 收藏笔记
     @POST("api/notes/{id}/favorite")
@@ -134,6 +137,15 @@ interface ApiService {
     @GET("api/notes/feed")
     suspend fun getFeed(
         @Query("cursor") cursor: Long?,
+        @Query("size") size: Int,
+    ): ApiResponse<FeedResponse>
+
+    /// 获取视频信息流
+    @GET("api/notes/video-feed")
+    suspend fun getVideoFeed(
+        @Query("cursor") cursor: Long?,
+        @Query("seedNoteId") seedNoteId: Long?,
+        @Query("orientation") orientation: String?,
         @Query("size") size: Int,
     ): ApiResponse<FeedResponse>
 
