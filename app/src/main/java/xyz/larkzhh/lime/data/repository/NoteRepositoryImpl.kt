@@ -83,6 +83,23 @@ class NoteRepositoryImpl @Inject constructor(
         response.data
     }
 
+    /// 获取视频信息流
+    override suspend fun getVideoFeed(
+        cursor: Long?,
+        seedNoteId: Long?,
+        orientation: String?,
+        size: Int,
+    ): Result<FeedResponse> = runCatching {
+        val response = apiService.getVideoFeed(
+            cursor = cursor,
+            seedNoteId = seedNoteId,
+            orientation = orientation,
+            size = size,
+        )
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
     /// 获取指定用户已发布的笔记列表
     override suspend fun getUserNotes(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
         val response = apiService.getUserNotes(userId = userId, cursor = cursor, size = size)
@@ -133,8 +150,8 @@ class NoteRepositoryImpl @Inject constructor(
     }
 
     /// 获取笔记详情
-    override suspend fun getNoteDetail(id: Long): Result<NoteDetailData> = runCatching {
-        val response = apiService.getNoteDetail(id)
+    override suspend fun getNoteDetail(id: Long, noView: Boolean): Result<NoteDetailData> = runCatching {
+        val response = apiService.getNoteDetail(id, noView = noView)
         check(response.code == 200 && response.data != null) { response.message }
         response.data
     }

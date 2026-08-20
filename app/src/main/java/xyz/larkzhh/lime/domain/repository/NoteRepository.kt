@@ -35,6 +35,13 @@ interface NoteRepository {
     ): Result<Unit>
     /// 获取信息流，cursor 为空时从最新开始
     suspend fun getFeed(cursor: Long?, size: Int = 10): Result<FeedResponse>
+    /// 获取视频信息流
+    suspend fun getVideoFeed(
+        cursor: Long?,
+        seedNoteId: Long?,
+        orientation: String? = null,
+        size: Int = 10,
+    ): Result<FeedResponse>
     /// 获取指定用户已发布的笔记列表
     suspend fun getUserNotes(userId: Long, cursor: Long?, size: Int = 10): Result<FeedResponse>
     /// 同步读取指定用户已缓存的笔记首页
@@ -44,7 +51,7 @@ interface NoteRepository {
     /// 获取指定用户的收藏笔记列表
     suspend fun getUserFavorites(userId: Long, cursor: Long?, size: Int = 10): Result<FeedResponse>
     /// 获取笔记详情
-    suspend fun getNoteDetail(id: Long): Result<NoteDetailData>
+    suspend fun getNoteDetail(id: Long, noView: Boolean = false): Result<NoteDetailData>
     /// 点赞笔记
     suspend fun likeNote(id: Long): Result<Unit>
     /// 取消点赞笔记
