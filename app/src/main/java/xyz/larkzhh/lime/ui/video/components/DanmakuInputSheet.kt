@@ -141,7 +141,7 @@ fun DanmakuInputSheet(
                     cursorBrush = SolidColor(LimePrimary),
                     decorationBox = { inner ->
                         if (text.isEmpty()) {
-                            Text(text = "发个弹幕呗… (∠・ω< )⌒☆", color = LimeGray, fontSize = 10.sp)
+                            Text(text = "发个弹幕呗… (∠・ω< )⌒☆", color = LimeGray, fontSize = 12.sp)
                         }
                         inner()
                     },

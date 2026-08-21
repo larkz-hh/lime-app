@@ -96,6 +96,8 @@ fun VideoPage(
     modifier: Modifier = Modifier,
     controlEnabled: Boolean = true,// 是否由本页掌控该播放器
     forcePaused: Boolean = false,// 外部强制暂停
+    showPauseIcon: Boolean = true,// 是否播放图标
+    gestureModifier: Modifier? = null,// 自定义手势层
     content: @Composable BoxScope.(player: ExoPlayer?) -> Unit = {},// chrome 浮层
 ) {
     val context = LocalContext.current
@@ -133,10 +135,12 @@ fun VideoPage(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black)
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() },
-                onClick = onTogglePlay,
+            .then(
+                gestureModifier ?: Modifier.clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick = onTogglePlay,
+                ),
             ),
         contentAlignment = Alignment.Center,
     ) {
@@ -157,7 +161,7 @@ fun VideoPage(
         )
 
         // 暂停图标
-        if (userPaused) {
+        if (userPaused && showPauseIcon) {
             Box(
                 modifier = Modifier
                     .size(64.dp)
