@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,13 +19,10 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -52,6 +48,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.delay
 import xyz.larkzhh.lime.ui.publish.viewmodel.LocalVideo
+import xyz.larkzhh.lime.ui.video.components.ScrubBar
+import xyz.larkzhh.lime.ui.video.components.formatTime
 import kotlin.time.Duration.Companion.milliseconds
 
 /// 视频全屏预览浮层
@@ -263,78 +261,3 @@ private fun VideoPage(
     }
 }
 
-/// 可拖动进度条
-@kotlin.OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ScrubBar(
-    fraction: Float,
-    onDragStart: () -> Unit,
-    onSeek: (Float) -> Unit,
-    onDragEnd: (Float) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var dragValue by remember { mutableFloatStateOf(fraction) }
-    var dragging by remember { mutableStateOf(false) }
-    // 未拖动时跟随播放进度
-    LaunchedEffect(fraction) { if (!dragging) dragValue = fraction }
-
-    Slider(
-        value = dragValue,
-        onValueChange = { v ->
-            if (!dragging) {
-                dragging = true
-                onDragStart()
-            }
-            dragValue = v
-            onSeek(v)
-        },
-        onValueChangeFinished = {
-            onDragEnd(dragValue)
-            dragging = false
-        },
-        modifier = modifier,
-        thumb = {
-            Box(
-                modifier = Modifier.height(24.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .clip(CircleShape)
-                        .background(Color.White),
-                )
-            }
-        },
-        track = { state ->
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(24.dp),
-                contentAlignment = Alignment.CenterStart,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(3.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(Color.White.copy(alpha = 0.3f)),
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(state.value.coerceIn(0f, 1f))
-                        .height(3.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(Color.White),
-                )
-            }
-        },
-    )
-}
-
-private fun formatTime(ms: Long): String {
-    val totalSec = ms / 1000
-    val m = totalSec / 60
-    val s = totalSec % 60
-    return "%02d:%02d".format(m, s)
-}
