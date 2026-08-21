@@ -6,11 +6,13 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import xyz.larkzhh.lime.data.repository.AuthRepositoryImpl
 import xyz.larkzhh.lime.data.repository.CommentRepositoryImpl
+import xyz.larkzhh.lime.data.repository.DanmakuRepositoryImpl
 import xyz.larkzhh.lime.data.repository.NoteRepositoryImpl
 import xyz.larkzhh.lime.data.repository.SearchRepositoryImpl
 import xyz.larkzhh.lime.data.repository.UserRepositoryImpl
 import xyz.larkzhh.lime.domain.repository.AuthRepository
 import xyz.larkzhh.lime.domain.repository.CommentRepository
+import xyz.larkzhh.lime.domain.repository.DanmakuRepository
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.SearchRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
@@ -38,6 +40,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindCommentRepository(impl: CommentRepositoryImpl): CommentRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindDanmakuRepository(impl: DanmakuRepositoryImpl): DanmakuRepository
 
     @Binds
     @Singleton

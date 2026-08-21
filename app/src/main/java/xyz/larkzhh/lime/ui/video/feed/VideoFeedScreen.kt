@@ -2,7 +2,9 @@ package xyz.larkzhh.lime.ui.video.feed
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.annotation.OptIn
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -44,9 +46,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,7 +62,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.CommentData
+import xyz.larkzhh.lime.data.network.model.DanmakuData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.navigation.Screen
@@ -66,6 +72,8 @@ import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
 import xyz.larkzhh.lime.ui.components.CommentInputSheet
 import xyz.larkzhh.lime.ui.video.components.ExpandableText
+import xyz.larkzhh.lime.ui.video.components.DanmakuInputSheet
+import xyz.larkzhh.lime.ui.video.components.DanmakuOverlay
 import xyz.larkzhh.lime.ui.video.components.FollowButton
 import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet
 import xyz.larkzhh.lime.ui.components.GroupedSheetAction
@@ -94,6 +102,7 @@ fun VideoFeedScreen(
 ) {
     val viewModel: VideoFeedViewModel = hiltViewModel()
     val commentViewModel: CommentViewModel = hiltViewModel()
+    val danmakuViewModel: DanmakuViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
 
     Box(
@@ -118,6 +127,7 @@ fun VideoFeedScreen(
                     navController = navController,
                     viewModel = viewModel,
                     commentViewModel = commentViewModel,
+                    danmakuViewModel = danmakuViewModel,
                 )
             }
         }
@@ -130,11 +140,21 @@ private fun VideoFeedContent(
     navController: NavHostController,
     viewModel: VideoFeedViewModel,
     commentViewModel: CommentViewModel,
+    danmakuViewModel: DanmakuViewModel,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val commentUiState by commentViewModel.uiState.collectAsState()
+    val danmakuUiState by danmakuViewModel.uiState.collectAsState()
     val playerManager = rememberVideoPlayerManager()
     val context = LocalContext.current
+
+    // 弹幕发送失败提示
+    LaunchedEffect(danmakuUiState.sendError) {
+        danmakuUiState.sendError?.let {
+            it.showToast(context)
+            danmakuViewModel.consumeSendError()
+        }
+    }
 
     var scrubbing by remember { mutableStateOf(false) }
     var showCommentDrawer by remember { mutableStateOf(false) }  // 评论抽屉
@@ -170,6 +190,11 @@ private fun VideoFeedContent(
     // 换页重置评论
     LaunchedEffect(currentItem?.id) {
         currentItem?.id?.let { commentViewModel.init(it) }
+    }
+
+    // 换页加载弹幕
+    LaunchedEffect(currentItem?.id) {
+        currentItem?.id?.let { danmakuViewModel.setCurrentNote(it) }
     }
 
     // 观察从图片选择页面返回的图片
@@ -239,8 +264,11 @@ private fun VideoFeedContent(
                     isActive = isActive,
                     userPaused = userPaused,
                     playerManager = playerManager,
-                    onTogglePlay = { userPaused = !userPaused },
+                    onTogglePlay = {
+                        if (!danmakuViewModel.dismissBubble()) userPaused = !userPaused
+                    },
                     controlEnabled = !uiState.fullscreen,// 全屏时竖屏页让出播放器与画布
+                    forcePaused = danmakuUiState.showInput,// 发弹幕时暂停当前视频
                 ) { player ->
                     if (isActive) {
                         VideoChrome(
@@ -255,6 +283,15 @@ private fun VideoFeedContent(
                             onToggleLike = viewModel::toggleLike,
                             onToggleFavorite = viewModel::toggleFavorite,
                             onCommentClick = { showCommentDrawer = true },
+                            danmakuList = danmakuUiState.danmakuByNote[item.id].orEmpty(),
+                            danmakuEnabled = danmakuUiState.enabled,
+                            currentUserId = danmakuViewModel.currentUserId,
+                            pausedDanmakuId = danmakuUiState.pausedDanmakuId,
+                            frozenDanmakuMs = danmakuUiState.frozenMs,
+                            onDanmakuClick = { id, nowMs -> danmakuViewModel.onDanmakuClick(id, nowMs) },
+                            onDismissBubble = { danmakuViewModel.dismissBubble() },
+                            onSendDanmakuClick = { danmakuViewModel.openInput() },
+                            onDeleteDanmaku = { danmakuViewModel.deleteDanmaku(item.id, it.id) },
                             showFullscreenButton = item.isLandscape,
                             onFullscreen = { viewModel.enterFullscreen() },
                         )
@@ -407,10 +444,31 @@ private fun VideoFeedContent(
             )
         }
 
+        // 弹幕输入框
+        if (danmakuUiState.showInput) {
+            DanmakuInputSheet(
+                color = danmakuUiState.color,
+                onColorChange = danmakuViewModel::setColor,
+                onToggleOff = {
+                    danmakuViewModel.toggleEnabled()// 关闭弹幕
+                    danmakuViewModel.closeInput()
+                    "弹幕已关闭".showToast(context)
+                },
+                onSend = { text ->
+                    val item = currentItem ?: return@DanmakuInputSheet
+                    val pos = playerManager.currentPositionOf(item.id)
+                    danmakuViewModel.sendDanmaku(item.id, text, pos)
+                    danmakuViewModel.closeInput()
+                },
+                onDismiss = danmakuViewModel::closeInput,
+            )
+        }
+
         // 横屏全屏
         if (uiState.fullscreen) {
             LandscapeFullscreenHost(
                 viewModel = viewModel,
+                danmakuViewModel = danmakuViewModel,
                 playerManager = playerManager,
                 onExit = viewModel::exitFullscreen,
             )
@@ -433,6 +491,7 @@ private data class LongPressMenu(
 )
 
 /// 视频页 chrome 浮层
+@OptIn(UnstableApi::class)
 @Composable
 private fun VideoChrome(
     item: VideoItem,
@@ -446,6 +505,15 @@ private fun VideoChrome(
     onToggleLike: () -> Unit,
     onToggleFavorite: () -> Unit,
     onCommentClick: () -> Unit,
+    danmakuList: List<DanmakuData> = emptyList(),
+    danmakuEnabled: Boolean = true,
+    currentUserId: Long? = null,
+    pausedDanmakuId: Long? = null,
+    frozenDanmakuMs: Long = 0L,
+    onDanmakuClick: (danmakuId: Long, nowMs: Long) -> Unit = { _, _ -> },
+    onDismissBubble: () -> Unit = {},
+    onSendDanmakuClick: () -> Unit = {},
+    onDeleteDanmaku: (DanmakuData) -> Unit = {},
     showFullscreenButton: Boolean = false,
     onFullscreen: () -> Unit = {},// 进入横屏全屏
 ) {
@@ -465,44 +533,65 @@ private fun VideoChrome(
     val fraction = if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // 顶部栏
+        // 顶部栏与弹幕区
         if (!scrubbing) {
-            Row(
+            Column(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    .statusBarsPadding(),
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "返回",
-                    tint = Color.White,
+                Row(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() },
-                            onClick = onBack,
-                        )
-                        .padding(8.dp),
-                )
-                Spacer(Modifier.weight(1f))
-                Icon(
-                    imageVector = Icons.Filled.Share,
-                    contentDescription = "分享",
-                    tint = Color.White,
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "返回",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() },
+                                onClick = onBack,
+                            )
+                            .padding(8.dp),
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Icon(
+                        imageVector = Icons.Filled.Share,
+                        contentDescription = "分享",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() },
+                                onClick = onShare,
+                            )
+                            .padding(8.dp),
+                    )
+                }
+                // 弹幕区
+                DanmakuOverlay(
+                    danmakuList = danmakuList,
+                    player = player,
+                    enabled = danmakuEnabled,
+                    currentUserId = currentUserId,
+                    noteAuthorId = item.author.id,
+                    pausedDanmakuId = pausedDanmakuId,
+                    frozenMs = frozenDanmakuMs,
+                    onDanmakuClick = onDanmakuClick,
+                    onDismissBubble = onDismissBubble,
+                    onDelete = onDeleteDanmaku,
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() },
-                            onClick = onShare,
-                        )
-                        .padding(8.dp),
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
                 )
             }
         }
@@ -519,8 +608,19 @@ private fun VideoChrome(
                         Row(
                             modifier = Modifier
                                 .align(Alignment.CenterHorizontally)
+                                .shadow(
+                                    elevation = 8.dp,
+                                    shape = RoundedCornerShape(50),
+                                    ambientColor = Color.Black,
+                                    spotColor = Color.Black,
+                                )
                                 .clip(RoundedCornerShape(50))
-                                .background(Color.White.copy(alpha = 0.18f))
+                                .background(Color.White.copy(alpha = 0.08f))
+                                .border(
+                                    width = 0.5.dp,
+                                    color = Color.White.copy(alpha = 0.25f),
+                                    shape = RoundedCornerShape(50),
+                                )
                                 .clickable(
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() },
@@ -578,6 +678,19 @@ private fun VideoChrome(
                         )
                         FollowButton(followed = false, onClick = onFollow)
                         Spacer(Modifier.weight(1f))
+                        // 发弹幕
+                        Icon(
+                            painter = painterResource(R.drawable.ic_barrage),
+                            contentDescription = "发弹幕",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    onClick = onSendDanmakuClick,
+                                ),
+                        )
                     }
                     Spacer(Modifier.height(10.dp))
                     // 可展开标题与正文
