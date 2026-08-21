@@ -254,7 +254,7 @@ private fun VideoFeedContent(
             ) { page ->
                 val item = uiState.items[page]
                 val isActive = page == pagerState.settledPage && !uiState.fullscreen
-                var userPaused by remember(page) { mutableStateOf(false) }
+                val userPaused = item.id in uiState.pausedNoteIds
 
                 VideoPage(
                     noteId = item.id,
@@ -265,7 +265,7 @@ private fun VideoFeedContent(
                     userPaused = userPaused,
                     playerManager = playerManager,
                     onTogglePlay = {
-                        if (!danmakuViewModel.dismissBubble()) userPaused = !userPaused
+                        if (!danmakuViewModel.dismissBubble()) viewModel.togglePaused(item.id)
                     },
                     controlEnabled = !uiState.fullscreen,// 全屏时竖屏页让出播放器与画布
                     forcePaused = danmakuUiState.showInput,// 发弹幕时暂停当前视频

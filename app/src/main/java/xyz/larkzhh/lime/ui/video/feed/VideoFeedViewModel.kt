@@ -45,6 +45,7 @@ data class VideoFeedUiState(
     val isLoadingMore: Boolean = false,
     val hasMore: Boolean = false,
     val fullscreen: Boolean = false,
+    val pausedNoteIds: Set<Long> = emptySet(),
     val error: String? = null,
     // 横屏全屏会话
     val landscapeItems: List<VideoItem> = emptyList(),
@@ -222,33 +223,23 @@ class VideoFeedViewModel @Inject constructor(
     fun toggleLike() {
         val state = _uiState.value
         val item = state.items.getOrNull(state.currentIndex) ?: return
-        val id = item.id
-        _uiState.update { s ->
-            s.copy(items = s.items.map {
-                if (it.id == id) it.copy(
-                    liked = !it.liked,
-                    likeCount = if (it.liked) it.likeCount - 1 else it.likeCount + 1,
-                ) else it
-            })
-        }
+        toggleLikeById(item.id)
+    }
+
+    fun toggleLikeById(id: Long) {
+        _uiState.update { s -> s.copy(items = s.items.turnLike(id), landscapeItems = s.landscapeItems.turnLike(id)) }
         viewModelScope.launch {
-            val nowLiked = _uiState.value.items.first { it.id == id }.liked
+            val nowLiked = _uiState.value.likeStateOf(id) ?: return@launch
             val result = if (!nowLiked) noteRepository.unlikeNote(id) else noteRepository.likeNote(id)
             result.fold(
                 onSuccess = {
-                    val updated = _uiState.value.items.first { it.id == id }
-                    eventBus.emit(NoteEvent.LikeChanged(id, updated.liked, updated.likeCount))
+                    val liked = _uiState.value.likeStateOf(id) ?: return@fold
+                    val count = _uiState.value.likeCountOf(id) ?: return@fold
+                    eventBus.emit(NoteEvent.LikeChanged(id, liked, count))
                 },
                 onFailure = {
                     // 回滚
-                    _uiState.update { s ->
-                        s.copy(items = s.items.map {
-                            if (it.id == id) it.copy(
-                                liked = !it.liked,
-                                likeCount = if (it.liked) it.likeCount - 1 else it.likeCount + 1,
-                            ) else it
-                        })
-                    }
+                    _uiState.update { s -> s.copy(items = s.items.turnLike(id), landscapeItems = s.landscapeItems.turnLike(id)) }
                 },
             )
         }
@@ -257,32 +248,22 @@ class VideoFeedViewModel @Inject constructor(
     fun toggleFavorite() {
         val state = _uiState.value
         val item = state.items.getOrNull(state.currentIndex) ?: return
-        val id = item.id
-        _uiState.update { s ->
-            s.copy(items = s.items.map {
-                if (it.id == id) it.copy(
-                    favorited = !it.favorited,
-                    favCount = if (it.favorited) it.favCount - 1 else it.favCount + 1,
-                ) else it
-            })
-        }
+        toggleFavoriteById(item.id)
+    }
+    
+    fun toggleFavoriteById(id: Long) {
+        _uiState.update { s -> s.copy(items = s.items.turnFav(id), landscapeItems = s.landscapeItems.turnFav(id)) }
         viewModelScope.launch {
-            val nowFav = _uiState.value.items.first { it.id == id }.favorited
+            val nowFav = _uiState.value.favStateOf(id) ?: return@launch
             val result = if (!nowFav) noteRepository.unfavoriteNote(id) else noteRepository.favoriteNote(id)
             result.fold(
                 onSuccess = {
-                    val updated = _uiState.value.items.first { it.id == id }
-                    eventBus.emit(NoteEvent.FavoriteChanged(id, updated.favorited, updated.favCount))
+                    val fav = _uiState.value.favStateOf(id) ?: return@fold
+                    val count = _uiState.value.favCountOf(id) ?: return@fold
+                    eventBus.emit(NoteEvent.FavoriteChanged(id, fav, count))
                 },
                 onFailure = {
-                    _uiState.update { s ->
-                        s.copy(items = s.items.map {
-                            if (it.id == id) it.copy(
-                                favorited = !it.favorited,
-                                favCount = if (it.favorited) it.favCount - 1 else it.favCount + 1,
-                            ) else it
-                        })
-                    }
+                    _uiState.update { s -> s.copy(items = s.items.turnFav(id), landscapeItems = s.landscapeItems.turnFav(id)) }
                 },
             )
         }
@@ -294,14 +275,24 @@ class VideoFeedViewModel @Inject constructor(
             eventBus.events.collect { event ->
                 when (event) {
                     is NoteEvent.LikeChanged -> _uiState.update { s ->
-                        s.copy(items = s.items.map {
-                            if (it.id == event.noteId) it.copy(liked = event.liked, likeCount = event.likeCount) else it
-                        })
+                        s.copy(
+                            items = s.items.map {
+                                if (it.id == event.noteId) it.copy(liked = event.liked, likeCount = event.likeCount) else it
+                            },
+                            landscapeItems = s.landscapeItems.map {
+                                if (it.id == event.noteId) it.copy(liked = event.liked, likeCount = event.likeCount) else it
+                            },
+                        )
                     }
                     is NoteEvent.FavoriteChanged -> _uiState.update { s ->
-                        s.copy(items = s.items.map {
-                            if (it.id == event.noteId) it.copy(favorited = event.favorited, favCount = event.favCount) else it
-                        })
+                        s.copy(
+                            items = s.items.map {
+                                if (it.id == event.noteId) it.copy(favorited = event.favorited, favCount = event.favCount) else it
+                            },
+                            landscapeItems = s.landscapeItems.map {
+                                if (it.id == event.noteId) it.copy(favorited = event.favorited, favCount = event.favCount) else it
+                            },
+                        )
                     }
                 }
             }
@@ -443,4 +434,30 @@ class VideoFeedViewModel @Inject constructor(
 
     /// 消费跳转目标
     fun consumePendingScroll() = _uiState.update { it.copy(pendingScrollTarget = null) }
+
+    /// 暂停
+    fun togglePaused(noteId: Long) = _uiState.update {
+        it.copy(
+            pausedNoteIds = if (noteId in it.pausedNoteIds) it.pausedNoteIds - noteId
+            else it.pausedNoteIds + noteId,
+        )
+    }
 }
+
+/// 点赞或取消
+private fun List<VideoItem>.turnLike(id: Long): List<VideoItem> = map {
+    if (it.id == id) it.copy(liked = !it.liked, likeCount = if (it.liked) it.likeCount - 1 else it.likeCount + 1) else it
+}
+
+/// 收藏或取消
+private fun List<VideoItem>.turnFav(id: Long): List<VideoItem> = map {
+    if (it.id == id) it.copy(favorited = !it.favorited, favCount = if (it.favorited) it.favCount - 1 else it.favCount + 1) else it
+}
+
+/// 从队列取某 id 的项
+private fun VideoFeedUiState.find(id: Long): VideoItem? =
+    items.firstOrNull { it.id == id } ?: landscapeItems.firstOrNull { it.id == id }
+private fun VideoFeedUiState.likeStateOf(id: Long): Boolean? = find(id)?.liked
+private fun VideoFeedUiState.likeCountOf(id: Long): Int? = find(id)?.likeCount
+private fun VideoFeedUiState.favStateOf(id: Long): Boolean? = find(id)?.favorited
+private fun VideoFeedUiState.favCountOf(id: Long): Int? = find(id)?.favCount

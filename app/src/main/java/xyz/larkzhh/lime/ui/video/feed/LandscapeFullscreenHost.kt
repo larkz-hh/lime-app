@@ -3,9 +3,12 @@ package xyz.larkzhh.lime.ui.video.feed
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,17 +16,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,20 +43,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.util.UnstableApi
 import kotlinx.coroutines.delay
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.ui.components.LikeButton
 import xyz.larkzhh.lime.ui.video.components.DanmakuInputSheet
 import xyz.larkzhh.lime.ui.video.components.DanmakuOverlay
 import xyz.larkzhh.lime.ui.video.components.ScrubBar
+import xyz.larkzhh.lime.ui.video.components.VerticalSlider
 import xyz.larkzhh.lime.ui.video.components.formatTime
 import xyz.larkzhh.lime.ui.video.player.VideoPage
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.util.LockLandscapeImmersive
+import xyz.larkzhh.lime.util.rememberBrightnessController
+import xyz.larkzhh.lime.util.rememberVolumeController
 import xyz.larkzhh.lime.util.showToast
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -86,6 +104,13 @@ fun LandscapeFullscreenHost(
     BackHandler { onExit() } // 退出全屏
 
     var scrubbing by remember { mutableStateOf(false) }
+    val volumeController = rememberVolumeController()
+    val brightnessController = rememberBrightnessController()
+
+    // 退出全屏时恢复窗口亮度
+    DisposableEffect(Unit) {
+        onDispose { brightnessController.reset() }
+    }
 
     Box(
         modifier = Modifier
@@ -107,7 +132,27 @@ fun LandscapeFullscreenHost(
         ) { page ->
             val item = items[page]
             val isActive = page == pagerState.settledPage
-            var userPaused by remember(page) { mutableStateOf(false) }
+            val userPaused = item.id in uiState.pausedNoteIds
+            var controlsVisible by remember(page) { mutableStateOf(true) }// 控制层显隐
+            var adjustMode by remember(page) { mutableStateOf<String?>(null) }
+            var brightness by remember(page) { mutableFloatStateOf(0f) }
+            var volume by remember(page) { mutableFloatStateOf(0f) }
+
+            // 播放中自动隐藏控制层
+            LaunchedEffect(controlsVisible, userPaused, isActive, scrubbing) {
+                if (isActive && controlsVisible && !userPaused && !scrubbing) {
+                    delay(3000.milliseconds)
+                    controlsVisible = false
+                }
+            }
+
+            // 调节柱自动隐藏
+            LaunchedEffect(adjustMode, brightness, volume) {
+                if (adjustMode != null) {
+                    delay(2000.milliseconds)
+                    adjustMode = null
+                }
+            }
 
             VideoPage(
                 noteId = item.id,
@@ -117,10 +162,26 @@ fun LandscapeFullscreenHost(
                 isActive = isActive,
                 userPaused = userPaused,
                 playerManager = playerManager,
-                onTogglePlay = {
-                    if (!danmakuViewModel.dismissBubble()) userPaused = !userPaused
-                },
+                onTogglePlay = {},// 全屏启用自定义手势
                 forcePaused = danmakuUiState.showInput,// 发弹幕时暂停当前视频
+                showPauseIcon = false,
+                gestureModifier = Modifier.pointerInput(item.id) {
+                    detectTapGestures(
+                        // 单击，优先关气泡、调节柱，再切换控制层
+                        onTap = {
+                            when {
+                                danmakuViewModel.dismissBubble() -> {}
+                                adjustMode != null -> adjustMode = null
+                                else -> controlsVisible = !controlsVisible
+                            }
+                        },
+                        // 双击，暂停播放
+                        onDoubleTap = {
+                            danmakuViewModel.dismissBubble()
+                            viewModel.togglePaused(item.id)
+                        },
+                    )
+                },
             ) { player ->
                 if (isActive) {
                     // 播放进度轮询
@@ -137,25 +198,6 @@ fun LandscapeFullscreenHost(
                         }
                     }
                     val fraction = if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
-
-                    // 左上返回
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "退出全屏",
-                        tint = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .displayCutoutPadding()
-                            .padding(12.dp)
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() },
-                                onClick = { onExit() },
-                            )
-                            .padding(8.dp),
-                    )
 
                     // 顶部弹幕区
                     DanmakuOverlay(
@@ -176,47 +218,160 @@ fun LandscapeFullscreenHost(
                             .padding(top = 60.dp, start = 60.dp, end = 60.dp),
                     )
 
-                    // 弹幕键
-                    Icon(
-                        painter = painterResource(R.drawable.ic_barrage),
-                        contentDescription = "发弹幕",
-                        tint = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .displayCutoutPadding()
-                            .padding(16.dp)
-                            .size(28.dp)
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() },
-                                onClick = { danmakuViewModel.openInput() },
-                            ),
-                    )
-
-                    // 底部进度条
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .displayCutoutPadding()
-                            .padding(horizontal = 16.dp, vertical = 10.dp),
-                    ) {
-                        Text(
-                            text = "${formatTime(positionMs)} / ${formatTime(durationMs)}",
-                            color = Color.White,
-                            fontSize = 12.sp,
-                        )
-                        ScrubBar(
-                            fraction = fraction,
-                            onDragStart = { scrubbing = true },
-                            onSeek = { v -> player?.seekTo((v * durationMs).toLong()) },
-                            onDragEnd = { v ->
-                                player?.seekTo((v * durationMs).toLong())
-                                scrubbing = false
+                    // 调节模式，显示柱子，隐藏控制层
+                    if (adjustMode != null) {
+                        val isBrightness = adjustMode == "brightness"
+                        VerticalSlider(
+                            fraction = if (isBrightness) brightness else volume,
+                            icon = if (isBrightness) painterResource(R.drawable.ic_brightness)
+                            else rememberVectorPainter(Icons.AutoMirrored.Filled.VolumeUp),
+                            onFractionChange = { f ->
+                                if (isBrightness) {
+                                    brightness = f
+                                    brightnessController.set(f)
+                                } else {
+                                    volume = f
+                                    volumeController.set(f)
+                                }
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .align(if (isBrightness) Alignment.CenterStart else Alignment.CenterEnd)
+                                .padding(horizontal = 48.dp),
                         )
-                        Spacer(Modifier.height(8.dp))
+                        return@VideoPage
+                    }
+
+                    // 控制层
+                    if (controlsVisible) {
+                        // 返回、标题
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .displayCutoutPadding()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "退出全屏",
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        onClick = { onExit() },
+                                    )
+                                    .padding(8.dp),
+                            )
+                            item.title?.takeIf { it.isNotBlank() }?.let { t ->
+                                Text(
+                                    text = t,
+                                    color = Color.White,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
+                                    modifier = Modifier
+                                        .padding(start = 4.dp)
+                                        .width(280.dp),
+                                )
+                            }
+                        }
+
+                        // 中央播放、暂停
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .size(64.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.3f))
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    onClick = { viewModel.togglePaused(item.id) },
+                                ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = if (userPaused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
+                                contentDescription = if (userPaused) "播放" else "暂停",
+                                tint = Color.White.copy(alpha = 0.5f),
+                                modifier = Modifier.size(40.dp),
+                            )
+                        }
+
+                        // 左侧亮度
+                        SideAdjustButton(
+                            icon = painterResource(R.drawable.ic_brightness),
+                            desc = "亮度",
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .displayCutoutPadding()
+                                .padding(start = 24.dp),
+                            onClick = {
+                                brightness = brightnessController.current()
+                                adjustMode = "brightness"
+                            },
+                        )
+
+                        // 右侧音量
+                        SideAdjustButton(
+                            icon = rememberVectorPainter(Icons.AutoMirrored.Filled.VolumeUp),
+                            desc = "音量",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .displayCutoutPadding()
+                                .padding(end = 24.dp),
+                            onClick = {
+                                volume = volumeController.current()
+                                adjustMode = "volume"
+                            },
+                        )
+
+                        // 底部进度条与动作栏
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .fillMaxWidth()
+                                .displayCutoutPadding()
+                                .padding(horizontal = 16.dp, vertical = 10.dp),
+                        ) {
+                            Text(
+                                text = "${formatTime(positionMs)} / ${formatTime(durationMs)}",
+                                color = Color.White,
+                                fontSize = 12.sp,
+                            )
+                            ScrubBar(
+                                fraction = fraction,
+                                onDragStart = { scrubbing = true },
+                                onSeek = { v -> player?.seekTo((v * durationMs).toLong()) },
+                                onDragEnd = { v ->
+                                    player?.seekTo((v * durationMs).toLong())
+                                    scrubbing = false
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(24.dp),
+                            )
+                            // 动作栏
+                            LandscapeActionBar(
+                                danmakuEnabled = danmakuUiState.enabled,
+                                liked = item.liked,
+                                likeCount = item.likeCount,
+                                favorited = item.favorited,
+                                favCount = item.favCount,
+                                onToggleLike = { viewModel.toggleLikeById(item.id) },
+                                onToggleFavorite = { viewModel.toggleFavoriteById(item.id) },
+                                onToggleDanmaku = {
+                                    val wasEnabled = danmakuUiState.enabled
+                                    danmakuViewModel.toggleEnabled()
+                                    if (wasEnabled) "弹幕已关闭".showToast(context) else "弹幕已开启".showToast(context)
+                                },
+                                onDanmakuBoxClick = { danmakuViewModel.openInput() },
+                            )
+                            Spacer(Modifier.height(4.dp))
+                        }
                     }
                 }
             }
@@ -241,6 +396,140 @@ fun LandscapeFullscreenHost(
                 },
                 onDismiss = danmakuViewModel::closeInput,
             )
+        }
+    }
+}
+
+/// 侧边亮度、音量图标
+@Composable
+private fun SideAdjustButton(
+    icon: Painter,
+    desc: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .background(Color.Black.copy(alpha = 0.4f))
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            painter = icon,
+            contentDescription = desc,
+            tint = Color.White,
+            modifier = Modifier.size(24.dp),
+        )
+    }
+}
+
+/// 底部动作栏
+@Composable
+private fun LandscapeActionBar(
+    danmakuEnabled: Boolean,
+    liked: Boolean,
+    likeCount: Int,
+    favorited: Boolean,
+    favCount: Int,
+    onToggleLike: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onToggleDanmaku: () -> Unit,
+    onDanmakuBoxClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        // 点赞
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            LikeButton(
+                liked = liked,
+                onToggle = onToggleLike,
+                iconSize = 24.dp,
+                animationSize = 48.dp,
+                inactiveColor = Color.White,
+            )
+            Text(
+                text = if (likeCount > 0) likeCount.toString() else "点赞",
+                fontSize = 12.sp,
+                color = Color.White,
+            )
+        }
+        // 收藏
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                        onClick = onToggleFavorite,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(if (favorited) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
+                    contentDescription = if (favorited) "取消收藏" else "收藏",
+                    tint = if (favorited) Color(0xFFFFD700) else Color.White,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+            Text(
+                text = if (favCount > 0) favCount.toString() else "收藏",
+                fontSize = 12.sp,
+                color = Color.White,
+            )
+        }
+        // 弹幕框
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(50))
+                .background(Color.White.copy(alpha = 0.18f))
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            // 弹幕开关键
+            Icon(
+                painter = painterResource(R.drawable.ic_barrage),
+                contentDescription = if (danmakuEnabled) "关闭弹幕" else "开启弹幕",
+                tint = if (danmakuEnabled) Color.White else Color.White.copy(alpha = 0.4f),
+                modifier = Modifier
+                    .size(22.dp)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                        onClick = onToggleDanmaku,
+                    ),
+            )
+            // 发弹幕占位
+            if (danmakuEnabled) {
+                Box(
+                    modifier = Modifier
+                        .width(150.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = onDanmakuBoxClick,
+                        ),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    Text(text = "点我发弹幕", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
+                }
+            }
         }
     }
 }
