@@ -60,6 +60,9 @@ class VideoPlayerManager(
             cache[id] = p
         }
 
+    /// 读取指定视频当前播放进度
+    fun currentPositionOf(id: Long): Long = cache[id]?.currentPosition ?: 0L
+
     // 释放全部播放器
     fun release() {
         cache.values.forEach { it.release() }
@@ -92,6 +95,7 @@ fun VideoPage(
     onTogglePlay: () -> Unit,
     modifier: Modifier = Modifier,
     controlEnabled: Boolean = true,// 是否由本页掌控该播放器
+    forcePaused: Boolean = false,// 外部强制暂停
     content: @Composable BoxScope.(player: ExoPlayer?) -> Unit = {},// chrome 浮层
 ) {
     val context = LocalContext.current
@@ -103,8 +107,8 @@ fun VideoPage(
         null
     }
 
-    LaunchedEffect(player, isActive, userPaused, controlEnabled) {
-        if (controlEnabled) player?.playWhenReady = isActive && !userPaused
+    LaunchedEffect(player, isActive, userPaused, controlEnabled, forcePaused) {
+        if (controlEnabled) player?.playWhenReady = isActive && !userPaused && !forcePaused
     }
 
     // 服务端视频比例
