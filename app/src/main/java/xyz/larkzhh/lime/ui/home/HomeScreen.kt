@@ -221,9 +221,19 @@ private fun DiscoverTab(navController: NavHostController) {
                                 liked = item.id in uiState.likedIds,
                                 onLikeToggle = { viewModel.toggleLike(item.id) },
                                 onClick = {
-                                    navController.navigate(
-                                        Screen.Detail.createRoute(item.id.toString())
-                                    )
+                                    // 视频笔记进竖屏视频页，图文笔记进详情页
+                                    if (item.noteType == 2) {
+                                        navController.navigate(
+                                            Screen.VideoFeed.createRoute(
+                                                item.id,
+                                                Screen.VideoFeed.SOURCE_RECOMMENDATION,
+                                            )
+                                        )
+                                    } else {
+                                        navController.navigate(
+                                            Screen.Detail.createRoute(item.id.toString())
+                                        )
+                                    }
                                 },
                             )
                         }

@@ -62,6 +62,8 @@ import kotlin.math.roundToInt
 import xyz.larkzhh.lime.navigation.AuthorProfileSession
 import xyz.larkzhh.lime.navigation.ProfileLayoutStore
 import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.ui.video.feed.PersonalVideoPayload
+import xyz.larkzhh.lime.ui.video.feed.VideoFeedSessionStore
 import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.ui.components.NoteCard
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
@@ -509,9 +511,27 @@ private fun LazyStaggeredGridScope.tabContent(
                     liked = item.id in uiState.likedIds,
                     onLikeToggle = { onLikeToggle(item.id) },
                     onClick = {
-                        navController.navigate(
-                            Screen.Detail.createRoute(item.id.toString())
-                        )
+                        // 视频笔记进竖屏视频页（个人列表来源），图文进详情
+                        if (item.noteType == 2) {
+                            // 预取的个人列表走进程内存储传递
+                            VideoFeedSessionStore.put(
+                                item.id,
+                                PersonalVideoPayload(
+                                    items = uiState.items,
+                                    startIndex = uiState.items.indexOfFirst { it.id == item.id }.coerceAtLeast(0),
+                                ),
+                            )
+                            navController.navigate(
+                                Screen.VideoFeed.createRoute(
+                                    item.id,
+                                    Screen.VideoFeed.SOURCE_PERSONAL,
+                                )
+                            )
+                        } else {
+                            navController.navigate(
+                                Screen.Detail.createRoute(item.id.toString())
+                            )
+                        }
                     },
                 )
             }

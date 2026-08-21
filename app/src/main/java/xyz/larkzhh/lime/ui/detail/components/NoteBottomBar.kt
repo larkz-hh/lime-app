@@ -38,10 +38,17 @@ fun NoteBottomBar(
     onToggleLike: () -> Unit,
     onToggleFavorite: () -> Unit,
     onCommentClick: () -> Unit,
+    // 颜色/样式参数，默认值即详情页原样；视频页浮层传透明背景+白色内容
+    containerColor: Color = MaterialTheme.colorScheme.background,
+    contentColor: Color = LimeDark,
+    inputBackground: Color = LimeLightGray,
+    elevated: Boolean = true,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        shadowElevation = 8.dp,
-        color = MaterialTheme.colorScheme.background,
+        modifier = modifier,
+        shadowElevation = if (elevated) 8.dp else 0.dp,
+        color = containerColor,
     ) {
         Row(
             modifier = Modifier
@@ -56,7 +63,7 @@ fun NoteBottomBar(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(50))
-                    .background(LimeLightGray)
+                    .background(inputBackground)
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() },
@@ -78,9 +85,13 @@ fun NoteBottomBar(
                     onToggle = onToggleLike,
                     iconSize = 24.dp,
                     animationSize = 48.dp,
-                    inactiveColor = LimeDark,
+                    inactiveColor = contentColor,
                 )
-                Text(text = note.likeCount.toString(), fontSize = 12.sp, color = LimeDark)
+                Text(
+                    text = if (note.likeCount > 0) note.likeCount.toString() else "点赞",
+                    fontSize = 12.sp,
+                    color = contentColor,
+                )
             }
 
             // 收藏
@@ -101,11 +112,15 @@ fun NoteBottomBar(
                     Icon(
                         painter = painterResource(if (note.favorited) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
                         contentDescription = if (note.favorited) "取消收藏" else "收藏",
-                        tint = if (note.favorited) Color(0xFFFFD700) else LimeDark,
+                        tint = if (note.favorited) Color(0xFFFFD700) else contentColor,
                         modifier = Modifier.size(24.dp),
                     )
                 }
-                Text(text = note.favCount.toString(), fontSize = 12.sp, color = LimeDark)
+                Text(
+                    text = if (note.favCount > 0) note.favCount.toString() else "收藏",
+                    fontSize = 12.sp,
+                    color = contentColor,
+                )
             }
 
             // 评论
@@ -117,14 +132,14 @@ fun NoteBottomBar(
                     Icon(
                         painter = painterResource(R.drawable.ic_chat),
                         contentDescription = "评论",
-                        tint = LimeDark,
+                        tint = contentColor,
                         modifier = Modifier.size(22.dp),
                     )
                 }
                 Text(
-                    text = if (note.commentCount > 0) note.commentCount.toString() else "",
+                    text = if (note.commentCount > 0) note.commentCount.toString() else "评论",
                     fontSize = 12.sp,
-                    color = LimeDark,
+                    color = contentColor,
                 )
             }
         }

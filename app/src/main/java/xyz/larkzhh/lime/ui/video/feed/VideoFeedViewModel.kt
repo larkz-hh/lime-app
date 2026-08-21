@@ -1,0 +1,446 @@
+package xyz.larkzhh.lime.ui.video.feed
+
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.data.network.model.FeedAuthor
+import xyz.larkzhh.lime.data.network.model.FeedItem
+import xyz.larkzhh.lime.data.network.model.NoteDetailData
+import xyz.larkzhh.lime.data.network.model.VideoInfo
+import xyz.larkzhh.lime.data.network.model.VideoOrientation
+import xyz.larkzhh.lime.data.network.model.orientationEnum
+import xyz.larkzhh.lime.domain.NoteEvent
+import xyz.larkzhh.lime.domain.NoteEventBus
+import xyz.larkzhh.lime.domain.repository.NoteRepository
+import xyz.larkzhh.lime.navigation.Screen
+import javax.inject.Inject
+
+/// 视频页模型
+data class VideoItem(
+    val id: Long,
+    val title: String?,
+    val body: String?,
+    val author: FeedAuthor,
+    val video: VideoInfo,
+    val liked: Boolean,
+    val likeCount: Int,
+    val favorited: Boolean,
+    val favCount: Int,
+    val commentCount: Int,
+    val hydrated: Boolean = false,// 是否已补水
+) {
+    val isLandscape: Boolean get() = video.orientationEnum() == VideoOrientation.LANDSCAPE
+}
+
+data class VideoFeedUiState(
+    val items: List<VideoItem> = emptyList(),
+    val currentIndex: Int = 0,
+    val isLoading: Boolean = true,
+    val isLoadingMore: Boolean = false,
+    val hasMore: Boolean = false,
+    val fullscreen: Boolean = false,
+    val error: String? = null,
+    // 横屏全屏会话
+    val landscapeItems: List<VideoItem> = emptyList(),
+    val landscapeIndex: Int = 0,
+    val isLandscapeLoading: Boolean = false,
+    val landscapeHasMore: Boolean = false,
+    val pendingScrollTarget: Int? = null,
+)
+
+/// 信息流来源
+sealed interface FeedSource {
+    data class Recommendation(val seedNoteId: Long) : FeedSource// 推荐
+    data object PersonalList : FeedSource// 个人
+}
+
+private fun FeedItem.toVideoItemOrNull(): VideoItem? {
+    val v = video ?: return null
+    return VideoItem(
+        id = id,
+        title = title,
+        body = null,
+        author = author,
+        video = v,
+        liked = liked,
+        likeCount = likeCount,
+        favorited = false,
+        favCount = 0,
+        commentCount = 0,
+        hydrated = false,
+    )
+}
+
+@HiltViewModel
+class VideoFeedViewModel @Inject constructor(
+    private val noteRepository: NoteRepository,
+    private val eventBus: NoteEventBus,
+    savedStateHandle: SavedStateHandle,
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(VideoFeedUiState())
+    val uiState: StateFlow<VideoFeedUiState> = _uiState.asStateFlow()
+
+    private val noteId: Long = savedStateHandle.get<Long>("noteId") ?: 0L
+    private val sourceArg: String =
+        savedStateHandle.get<String>("source") ?: Screen.VideoFeed.SOURCE_RECOMMENDATION
+
+    private var source: FeedSource = FeedSource.Recommendation(noteId)
+    private var cursor: Long? = null
+
+    init {
+        loadInitial()
+        observeNoteEvents()
+    }
+
+    private fun loadInitial() {
+        // 个人列表，优先读取会话缓存
+        if (sourceArg == Screen.VideoFeed.SOURCE_PERSONAL) {
+            val payload = VideoFeedSessionStore.take(noteId)
+            if (payload != null) {
+                source = FeedSource.PersonalList
+                val videos = payload.items.mapNotNull { it.toVideoItemOrNull() }// 过滤无效数据
+                val startId = payload.items.getOrNull(payload.startIndex)?.id ?: noteId
+                val start = videos.indexOfFirst { it.id == startId }.coerceAtLeast(0)
+                _uiState.update {
+                    it.copy(
+                        items = videos,
+                        currentIndex = start,
+                        isLoading = false,
+                        hasMore = false,
+                    )
+                }
+                hydrateAround(start)
+                return
+            }
+        }
+        source = FeedSource.Recommendation(noteId)// 取不到降级为推荐流
+        loadRecommendationFirst()
+    }
+
+    private fun loadRecommendationFirst() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            cursor = null
+            noteRepository.getVideoFeed(cursor = null, seedNoteId = noteId, orientation = null).fold(
+                onSuccess = { response ->
+                    cursor = response.nextCursor
+                    val videos = response.items.mapNotNull { it.toVideoItemOrNull() }
+                    val start = videos.indexOfFirst { it.id == noteId }.coerceAtLeast(0)
+                    _uiState.update {
+                        it.copy(
+                            items = videos,
+                            currentIndex = start,
+                            isLoading = false,
+                            hasMore = response.hasMore,
+                        )
+                    }
+                    hydrateAround(start)
+                },
+                onFailure = { e ->
+                    _uiState.update { it.copy(isLoading = false, error = e.message) }
+                },
+            )
+        }
+    }
+
+    fun loadMore() {
+        val state = _uiState.value
+        if (source !is FeedSource.Recommendation) return
+        if (state.isLoadingMore || !state.hasMore || state.isLoading) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingMore = true) }
+            noteRepository.getVideoFeed(cursor = cursor, seedNoteId = null, orientation = null).fold(
+                onSuccess = { response ->
+                    cursor = response.nextCursor
+                    val existing = _uiState.value.items.map { it.id }.toSet()
+                    val more = response.items.mapNotNull { it.toVideoItemOrNull() }
+                        .filter { it.id !in existing }
+                    _uiState.update {
+                        it.copy(
+                            isLoadingMore = false,
+                            items = it.items + more,
+                            hasMore = response.hasMore,
+                        )
+                    }
+                },
+                onFailure = { e ->
+                    _uiState.update { it.copy(isLoadingMore = false, error = e.message) }
+                },
+            )
+        }
+    }
+
+    /// 切页
+    fun onPageSettled(index: Int) {
+        _uiState.update { it.copy(currentIndex = index) }
+        val state = _uiState.value
+        if (index >= state.items.size - 2) loadMore()
+        hydrateAround(index)
+    }
+
+    /// 对当前页未补水的前后项拉取笔记详情
+    private fun hydrateAround(index: Int) {
+        val items = _uiState.value.items
+        for (i in (index - 1)..(index + 1)) {
+            val item = items.getOrNull(i) ?: continue
+            if (item.hydrated) continue
+            hydrate(item.id)
+        }
+    }
+
+    private fun hydrate(id: Long) {
+        viewModelScope.launch {
+            noteRepository.getNoteDetail(id, noView = true).onSuccess { detail ->
+                _uiState.update { state ->
+                    state.copy(items = state.items.map { it.mergeDetail(id, detail) })
+                }
+            }
+        }
+    }
+
+    private fun VideoItem.mergeDetail(id: Long, detail: NoteDetailData): VideoItem {
+        if (this.id != id) return this
+        return copy(
+            title = detail.title ?: title,
+            body = detail.content,
+            liked = detail.liked,
+            likeCount = detail.likeCount,
+            favorited = detail.favorited,
+            favCount = detail.favCount,
+            commentCount = detail.commentCount,
+            hydrated = true,// 补水完成
+        )
+    }
+
+    fun toggleLike() {
+        val state = _uiState.value
+        val item = state.items.getOrNull(state.currentIndex) ?: return
+        val id = item.id
+        _uiState.update { s ->
+            s.copy(items = s.items.map {
+                if (it.id == id) it.copy(
+                    liked = !it.liked,
+                    likeCount = if (it.liked) it.likeCount - 1 else it.likeCount + 1,
+                ) else it
+            })
+        }
+        viewModelScope.launch {
+            val nowLiked = _uiState.value.items.first { it.id == id }.liked
+            val result = if (!nowLiked) noteRepository.unlikeNote(id) else noteRepository.likeNote(id)
+            result.fold(
+                onSuccess = {
+                    val updated = _uiState.value.items.first { it.id == id }
+                    eventBus.emit(NoteEvent.LikeChanged(id, updated.liked, updated.likeCount))
+                },
+                onFailure = {
+                    // 回滚
+                    _uiState.update { s ->
+                        s.copy(items = s.items.map {
+                            if (it.id == id) it.copy(
+                                liked = !it.liked,
+                                likeCount = if (it.liked) it.likeCount - 1 else it.likeCount + 1,
+                            ) else it
+                        })
+                    }
+                },
+            )
+        }
+    }
+
+    fun toggleFavorite() {
+        val state = _uiState.value
+        val item = state.items.getOrNull(state.currentIndex) ?: return
+        val id = item.id
+        _uiState.update { s ->
+            s.copy(items = s.items.map {
+                if (it.id == id) it.copy(
+                    favorited = !it.favorited,
+                    favCount = if (it.favorited) it.favCount - 1 else it.favCount + 1,
+                ) else it
+            })
+        }
+        viewModelScope.launch {
+            val nowFav = _uiState.value.items.first { it.id == id }.favorited
+            val result = if (!nowFav) noteRepository.unfavoriteNote(id) else noteRepository.favoriteNote(id)
+            result.fold(
+                onSuccess = {
+                    val updated = _uiState.value.items.first { it.id == id }
+                    eventBus.emit(NoteEvent.FavoriteChanged(id, updated.favorited, updated.favCount))
+                },
+                onFailure = {
+                    _uiState.update { s ->
+                        s.copy(items = s.items.map {
+                            if (it.id == id) it.copy(
+                                favorited = !it.favorited,
+                                favCount = if (it.favorited) it.favCount - 1 else it.favCount + 1,
+                            ) else it
+                        })
+                    }
+                },
+            )
+        }
+    }
+
+    /// 同步
+    private fun observeNoteEvents() {
+        viewModelScope.launch {
+            eventBus.events.collect { event ->
+                when (event) {
+                    is NoteEvent.LikeChanged -> _uiState.update { s ->
+                        s.copy(items = s.items.map {
+                            if (it.id == event.noteId) it.copy(liked = event.liked, likeCount = event.likeCount) else it
+                        })
+                    }
+                    is NoteEvent.FavoriteChanged -> _uiState.update { s ->
+                        s.copy(items = s.items.map {
+                            if (it.id == event.noteId) it.copy(favorited = event.favorited, favCount = event.favCount) else it
+                        })
+                    }
+                }
+            }
+        }
+    }
+
+    // 横屏全屏
+    private var landscapeCursor: Long? = null
+    private var landscapeEntryIndex: Int = 0// 进入横屏时主队列下标
+
+    /// 进入横屏
+    fun enterFullscreen() {
+        val state = _uiState.value
+        val current = state.items.getOrNull(state.currentIndex) ?: return
+        landscapeEntryIndex = state.currentIndex
+        when (source) {
+            is FeedSource.PersonalList -> {
+                val ls = state.items.filter { it.isLandscape }
+                val idx = ls.indexOfFirst { it.id == current.id }.coerceAtLeast(0)
+                _uiState.update {
+                    it.copy(
+                        fullscreen = true,
+                        landscapeItems = ls,
+                        landscapeIndex = idx,
+                        landscapeHasMore = false,
+                    )
+                }
+            }
+            is FeedSource.Recommendation -> {
+                _uiState.update {
+                    it.copy(
+                        fullscreen = true,
+                        landscapeItems = listOf(current),
+                        landscapeIndex = 0,
+                        isLandscapeLoading = true,
+                        landscapeHasMore = false,
+                    )
+                }
+                viewModelScope.launch {
+                    landscapeCursor = null
+                    noteRepository.getVideoFeed(cursor = null, seedNoteId = current.id, orientation = "landscape").fold(
+                        onSuccess = { response ->
+                            landscapeCursor = response.nextCursor
+                            val videos = response.items.mapNotNull { it.toVideoItemOrNull() }.filter { it.isLandscape }// 过滤
+                            // 保证当前视频在首位
+                            val list = if (videos.any { it.id == current.id }) videos else listOf(current) + videos
+                            val idx = list.indexOfFirst { it.id == current.id }.coerceAtLeast(0)
+                            _uiState.update {
+                                it.copy(
+                                    landscapeItems = list,
+                                    landscapeIndex = idx,
+                                    isLandscapeLoading = false,
+                                    landscapeHasMore = response.hasMore,
+                                )
+                            }
+                        },
+                        onFailure = {
+                            _uiState.update { it.copy(isLandscapeLoading = false) }
+                        },
+                    )
+                }
+            }
+        }
+    }
+
+    /// 横屏切页
+    fun onLandscapePageSettled(index: Int) {
+        _uiState.update { it.copy(landscapeIndex = index) }
+        val state = _uiState.value
+        if (source is FeedSource.Recommendation && index >= state.landscapeItems.size - 2) {
+            loadMoreLandscape()
+        }
+    }
+
+    private fun loadMoreLandscape() {
+        val state = _uiState.value
+        if (source !is FeedSource.Recommendation) return
+        if (state.isLandscapeLoading || !state.landscapeHasMore) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLandscapeLoading = true) }
+            noteRepository.getVideoFeed(cursor = landscapeCursor, seedNoteId = null, orientation = "landscape").fold(
+                onSuccess = { response ->
+                    landscapeCursor = response.nextCursor
+                    val existing = _uiState.value.landscapeItems.map { it.id }.toSet()
+                    val more = response.items.mapNotNull { it.toVideoItemOrNull() }
+                        .filter { it.isLandscape && it.id !in existing }// 去重
+                    _uiState.update {
+                        it.copy(
+                            isLandscapeLoading = false,
+                            landscapeItems = it.landscapeItems + more,
+                            landscapeHasMore = response.hasMore,
+                        )
+                    }
+                },
+                onFailure = {
+                    _uiState.update { it.copy(isLandscapeLoading = false) }
+                },
+            )
+        }
+    }
+
+    /// 退出横屏，推荐流插回主队列并停在当前，个人队列只移动游标
+    fun exitFullscreen() {
+        val state = _uiState.value
+        val landscapeCurrent = state.landscapeItems.getOrNull(state.landscapeIndex)
+        when (source) {
+            is FeedSource.PersonalList -> {
+                val mainIdx = landscapeCurrent?.let { lc -> state.items.indexOfFirst { it.id == lc.id } } ?: -1
+                val target = if (mainIdx >= 0) mainIdx else state.currentIndex// 移动游标
+                _uiState.update {
+                    it.copy(
+                        fullscreen = false,
+                        currentIndex = target,
+                        pendingScrollTarget = target,
+                        landscapeItems = emptyList(),
+                    )
+                }
+            }
+            is FeedSource.Recommendation -> {
+                val existing = state.items.map { it.id }.toSet()
+                val played = state.landscapeItems.filter { it.id !in existing }
+                val insertAt = (landscapeEntryIndex + 1).coerceIn(0, state.items.size)// 把会话中播放过的横屏视频插回主队列
+                val newItems = state.items.toMutableList().apply { addAll(insertAt, played) }
+                val targetId = landscapeCurrent?.id
+                val newIndex = targetId?.let { id -> newItems.indexOfFirst { it.id == id } }
+                    ?.takeIf { it >= 0 } ?: state.currentIndex// 重新定位
+                _uiState.update {
+                    it.copy(
+                        fullscreen = false,
+                        items = newItems,
+                        currentIndex = newIndex,
+                        pendingScrollTarget = newIndex,
+                        landscapeItems = emptyList(),
+                    )
+                }
+            }
+        }
+    }
+
+    /// 消费跳转目标
+    fun consumePendingScroll() = _uiState.update { it.copy(pendingScrollTarget = null) }
+}
