@@ -53,6 +53,11 @@ data class VideoFeedUiState(
     val isLandscapeLoading: Boolean = false,
     val landscapeHasMore: Boolean = false,
     val pendingScrollTarget: Int? = null,
+    // 播放偏好
+    val playbackSpeed: Float = 1f,// 播放倍速
+    val autoPlayNext: Boolean = false,// 自动连播
+    val clearScreen: Boolean = false,// 清屏播放
+    val danmakuOpacity: Float = 1f,// 弹幕不透明度
 )
 
 /// 信息流来源
@@ -442,6 +447,19 @@ class VideoFeedViewModel @Inject constructor(
             else it.pausedNoteIds + noteId,
         )
     }
+
+    /// 设置播放倍速
+    fun setPlaybackSpeed(speed: Float) = _uiState.update { it.copy(playbackSpeed = speed) }
+
+    /// 切换自动连播
+    fun toggleAutoPlayNext() = _uiState.update { it.copy(autoPlayNext = !it.autoPlayNext) }
+
+    /// 切换清屏播放
+    fun toggleClearScreen() = _uiState.update { it.copy(clearScreen = !it.clearScreen) }
+
+    /// 设置弹幕不透明度
+    fun setDanmakuOpacity(opacity: Float) =
+        _uiState.update { it.copy(danmakuOpacity = opacity.coerceIn(0.2f, 1f)) }
 }
 
 /// 点赞或取消

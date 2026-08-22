@@ -37,6 +37,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -54,11 +55,14 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.util.UnstableApi
 import kotlinx.coroutines.delay
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.ui.components.FavoriteButton
 import xyz.larkzhh.lime.ui.components.LikeButton
 import xyz.larkzhh.lime.ui.video.components.DanmakuInputSheet
 import xyz.larkzhh.lime.ui.video.components.DanmakuOverlay
 import xyz.larkzhh.lime.ui.video.components.ScrubBar
+import xyz.larkzhh.lime.ui.video.components.SpeedDrawer
 import xyz.larkzhh.lime.ui.video.components.VerticalSlider
+import xyz.larkzhh.lime.ui.video.components.formatSpeed
 import xyz.larkzhh.lime.ui.video.components.formatTime
 import xyz.larkzhh.lime.ui.video.player.VideoPage
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
@@ -66,6 +70,8 @@ import xyz.larkzhh.lime.util.LockLandscapeImmersive
 import xyz.larkzhh.lime.util.rememberBrightnessController
 import xyz.larkzhh.lime.util.rememberVolumeController
 import xyz.larkzhh.lime.util.showToast
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration.Companion.milliseconds
 
 /// 横屏全屏
@@ -104,8 +110,11 @@ fun LandscapeFullscreenHost(
     BackHandler { onExit() } // 退出全屏
 
     var scrubbing by remember { mutableStateOf(false) }
+    var showSpeedDrawer by remember { mutableStateOf(false) }// 速度面板
+    var pressBoost by remember { mutableStateOf(false) }
     val volumeController = rememberVolumeController()
     val brightnessController = rememberBrightnessController()
+    val scope = rememberCoroutineScope()
 
     // 退出全屏时恢复窗口亮度
     DisposableEffect(Unit) {
@@ -165,23 +174,43 @@ fun LandscapeFullscreenHost(
                 onTogglePlay = {},// 全屏启用自定义手势
                 forcePaused = danmakuUiState.showInput,// 发弹幕时暂停当前视频
                 showPauseIcon = false,
-                gestureModifier = Modifier.pointerInput(item.id) {
-                    detectTapGestures(
-                        // 单击，优先关气泡、调节柱，再切换控制层
-                        onTap = {
-                            when {
-                                danmakuViewModel.dismissBubble() -> {}
-                                adjustMode != null -> adjustMode = null
-                                else -> controlsVisible = !controlsVisible
-                            }
-                        },
-                        // 双击，暂停播放
-                        onDoubleTap = {
-                            danmakuViewModel.dismissBubble()
-                            viewModel.togglePaused(item.id)
-                        },
-                    )
+                playbackSpeed = if (pressBoost) 2f else uiState.playbackSpeed,// 长按2倍速
+                autoPlayNext = uiState.autoPlayNext,
+                onPlaybackEnded = {
+                    // 自动连播
+                    val next = page + 1
+                    if (next <= lastIndex) scope.launch { pagerState.animateScrollToPage(next) }
                 },
+                gestureModifier = Modifier
+                    .pointerInput(item.id) {
+                        val longPressMs = viewConfiguration.longPressTimeoutMillis
+                        detectTapGestures(
+                            // 单击，优先关气泡、调节柱，再切换控制层
+                            onTap = {
+                                when {
+                                    danmakuViewModel.dismissBubble() -> {}
+                                    adjustMode != null -> adjustMode = null
+                                    else -> controlsVisible = !controlsVisible
+                                }
+                            },
+                            // 双击，暂停播放
+                            onDoubleTap = {
+                                danmakuViewModel.dismissBubble()
+                                viewModel.togglePaused(item.id)
+                            },
+                            // 长按标记
+                            onLongPress = {},
+                            onPress = {
+                                val released = withTimeoutOrNull(longPressMs.milliseconds) { tryAwaitRelease() }
+                                if (released == null) {
+                                    pressBoost = true
+                                    "倍速中".showToast(context)
+                                    tryAwaitRelease()// 等待松手
+                                    pressBoost = false
+                                }
+                            },
+                        )
+                    },
             ) { player ->
                 if (isActive) {
                     // 播放进度轮询
@@ -208,6 +237,7 @@ fun LandscapeFullscreenHost(
                         noteAuthorId = item.author.id,
                         pausedDanmakuId = danmakuUiState.pausedDanmakuId,
                         frozenMs = danmakuUiState.frozenMs,
+                        opacity = uiState.danmakuOpacity,
                         onDanmakuClick = { id, nowMs -> danmakuViewModel.onDanmakuClick(id, nowMs) },
                         onDismissBubble = { danmakuViewModel.dismissBubble() },
                         onDelete = { danmakuViewModel.deleteDanmaku(item.id, it.id) },
@@ -361,6 +391,7 @@ fun LandscapeFullscreenHost(
                                 likeCount = item.likeCount,
                                 favorited = item.favorited,
                                 favCount = item.favCount,
+                                currentSpeed = uiState.playbackSpeed,
                                 onToggleLike = { viewModel.toggleLikeById(item.id) },
                                 onToggleFavorite = { viewModel.toggleFavoriteById(item.id) },
                                 onToggleDanmaku = {
@@ -369,6 +400,10 @@ fun LandscapeFullscreenHost(
                                     if (wasEnabled) "弹幕已关闭".showToast(context) else "弹幕已开启".showToast(context)
                                 },
                                 onDanmakuBoxClick = { danmakuViewModel.openInput() },
+                                onSpeedClick = {
+                                    controlsVisible = false// 隐藏控制层
+                                    showSpeedDrawer = true
+                                },
                             )
                             Spacer(Modifier.height(4.dp))
                         }
@@ -376,6 +411,17 @@ fun LandscapeFullscreenHost(
                 }
             }
         }
+
+        // 倍速抽屉
+        SpeedDrawer(
+            visible = showSpeedDrawer,
+            currentSpeed = uiState.playbackSpeed,
+            onSpeedChange = {
+                viewModel.setPlaybackSpeed(it)
+                showSpeedDrawer = false
+            },
+            onDismiss = { showSpeedDrawer = false },
+        )
 
         // 弹幕输入框
         if (danmakuUiState.showInput) {
@@ -437,65 +483,86 @@ private fun LandscapeActionBar(
     likeCount: Int,
     favorited: Boolean,
     favCount: Int,
+    currentSpeed: Float,
     onToggleLike: () -> Unit,
     onToggleFavorite: () -> Unit,
     onToggleDanmaku: () -> Unit,
     onDanmakuBoxClick: () -> Unit,
+    onSpeedClick: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        // 点赞
+    Box(modifier = Modifier.fillMaxWidth()) {
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            LikeButton(
-                liked = liked,
-                onToggle = onToggleLike,
-                iconSize = 24.dp,
-                animationSize = 48.dp,
-                inactiveColor = Color.White,
-            )
-            Text(
-                text = if (likeCount > 0) likeCount.toString() else "点赞",
-                fontSize = 12.sp,
-                color = Color.White,
-            )
-        }
-        // 收藏
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
+            // 点赞
             Box(
+                modifier = Modifier.width(63.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    LikeButton(
+                        liked = liked,
+                        onToggle = onToggleLike,
+                        iconSize = 24.dp,
+                        animationSize = 32.dp,
+                        inactiveColor = Color.White,
+                    )
+                    Text(
+                        text = if (likeCount > 0) likeCount.toString() else "点赞",
+                        fontSize = 12.sp,
+                        color = Color.White,
+                    )
+                }
+            }
+            // 收藏
+            Box(
+                modifier = Modifier.width(63.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    FavoriteButton(
+                        favorited = favorited,
+                        onToggle = onToggleFavorite,
+                        modifier = Modifier.size(32.dp),
+                        iconSize = 24.dp,
+                        inactiveColor = Color.White,
+                    )
+                    Text(
+                        text = if (favCount > 0) favCount.toString() else "收藏",
+                        fontSize = 12.sp,
+                        color = Color.White,
+                    )
+                }
+            }
+            Spacer(Modifier.weight(1f))
+            // 倍速入口
+            Text(
+                text = if (currentSpeed == 1f) "倍速" else formatSpeed(currentSpeed),
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
                 modifier = Modifier
-                    .size(32.dp)
+                    .clip(RoundedCornerShape(50))
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() },
-                        onClick = onToggleFavorite,
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(if (favorited) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
-                    contentDescription = if (favorited) "取消收藏" else "收藏",
-                    tint = if (favorited) Color(0xFFFFD700) else Color.White,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
-            Text(
-                text = if (favCount > 0) favCount.toString() else "收藏",
-                fontSize = 12.sp,
-                color = Color.White,
+                        onClick = onSpeedClick,
+                    )
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
             )
         }
         // 弹幕框
         Row(
             modifier = Modifier
+                .align(Alignment.Center)
                 .clip(RoundedCornerShape(50))
                 .background(Color.White.copy(alpha = 0.18f))
                 .padding(horizontal = 12.dp, vertical = 8.dp),

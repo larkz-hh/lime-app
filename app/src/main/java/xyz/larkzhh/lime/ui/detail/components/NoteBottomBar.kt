@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
+import xyz.larkzhh.lime.ui.components.FavoriteButton
 import xyz.larkzhh.lime.ui.components.LikeButton
 import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
@@ -38,13 +40,15 @@ fun NoteBottomBar(
     onToggleLike: () -> Unit,
     onToggleFavorite: () -> Unit,
     onCommentClick: () -> Unit,
-    // 颜色/样式参数，默认值即详情页原样；视频页浮层传透明背景+白色内容
+    modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.background,
     contentColor: Color = LimeDark,
     inputBackground: Color = LimeLightGray,
     elevated: Boolean = true,
-    modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
+    val rowVertical = if (compact) 6.dp else 10.dp
+    val inputVertical = if (compact) 6.dp else 10.dp
     Surface(
         modifier = modifier,
         shadowElevation = if (elevated) 8.dp else 0.dp,
@@ -54,9 +58,9 @@ fun NoteBottomBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .padding(horizontal = 12.dp, vertical = rowVertical),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             // 评论输入框
             Box(
@@ -69,78 +73,86 @@ fun NoteBottomBar(
                         interactionSource = remember { MutableInteractionSource() },
                         onClick = onCommentClick,
                     )
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                    .padding(horizontal = 14.dp, vertical = inputVertical),
                 contentAlignment = Alignment.CenterStart,
             ) {
                 Text(text = "说点什么…", color = LimeGray, fontSize = 13.sp)
             }
 
             // 点赞
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(3.dp),
+            Box(
+                modifier = Modifier.width(63.dp),
+                contentAlignment = Alignment.Center,
             ) {
-                LikeButton(
-                    liked = note.liked,
-                    onToggle = onToggleLike,
-                    iconSize = 24.dp,
-                    animationSize = 48.dp,
-                    inactiveColor = contentColor,
-                )
-                Text(
-                    text = if (note.likeCount > 0) note.likeCount.toString() else "点赞",
-                    fontSize = 12.sp,
-                    color = contentColor,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    LikeButton(
+                        liked = note.liked,
+                        onToggle = onToggleLike,
+                        iconSize = 24.dp,
+                        animationSize = 32.dp,
+                        inactiveColor = contentColor,
+                    )
+                    Text(
+                        text = if (note.likeCount > 0) note.likeCount.toString() else "点赞",
+                        fontSize = 12.sp,
+                        color = contentColor,
+                        maxLines = 1,
+                    )
+                }
             }
 
             // 收藏
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(3.dp),
+            Box(
+                modifier = Modifier.width(63.dp),
+                contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() },
-                            onClick = onToggleFavorite,
-                        ),
-                    contentAlignment = Alignment.Center,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
                 ) {
-                    Icon(
-                        painter = painterResource(if (note.favorited) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
-                        contentDescription = if (note.favorited) "取消收藏" else "收藏",
-                        tint = if (note.favorited) Color(0xFFFFD700) else contentColor,
-                        modifier = Modifier.size(24.dp),
+                    FavoriteButton(
+                        favorited = note.favorited,
+                        onToggle = onToggleFavorite,
+                        modifier = Modifier.size(32.dp),
+                        iconSize = 24.dp,
+                        inactiveColor = contentColor,
+                    )
+                    Text(
+                        text = if (note.favCount > 0) note.favCount.toString() else "收藏",
+                        fontSize = 12.sp,
+                        color = contentColor,
+                        maxLines = 1,
                     )
                 }
-                Text(
-                    text = if (note.favCount > 0) note.favCount.toString() else "收藏",
-                    fontSize = 12.sp,
-                    color = contentColor,
-                )
             }
 
             // 评论
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(3.dp),
+            Box(
+                modifier = Modifier.width(63.dp),
+                contentAlignment = Alignment.Center,
             ) {
-                IconButton(onClick = onCommentClick, modifier = Modifier.size(32.dp)) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_chat),
-                        contentDescription = "评论",
-                        tint = contentColor,
-                        modifier = Modifier.size(22.dp),
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    IconButton(onClick = onCommentClick, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_chat),
+                            contentDescription = "评论",
+                            tint = contentColor,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                    Text(
+                        text = if (note.commentCount > 0) note.commentCount.toString() else "评论",
+                        fontSize = 12.sp,
+                        color = contentColor,
+                        maxLines = 1,
                     )
                 }
-                Text(
-                    text = if (note.commentCount > 0) note.commentCount.toString() else "评论",
-                    fontSize = 12.sp,
-                    color = contentColor,
-                )
             }
         }
     }

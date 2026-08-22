@@ -35,10 +35,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -71,9 +74,6 @@ private val DANMAKU_HIT_PADDING = 8.dp// 弹幕点击命中外扩量
 /**
  * 顶部弹幕区
  *
- * 单 Canvas 绘制：逐帧只在绘制阶段读取播放进度，不触发重组；宽度用 TextMeasurer 预先量好，
- * 按「轨道空闲检测」分轨避免重叠。点击命中在 pointerInput 里按坐标反查，未命中不消费、穿透到视频层。
- *
  * @param danmakuList 当前视频弹幕
  * @param player 播放器
  * @param enabled 弹幕开关
@@ -81,6 +81,7 @@ private val DANMAKU_HIT_PADDING = 8.dp// 弹幕点击命中外扩量
  * @param noteAuthorId 视频作者
  * @param pausedDanmakuId 当前被冻结的弹幕 id
  * @param frozenMs 冻结时刻的播放进度
+ * @param opacity 弹幕不透明度 0.2~1.0
  * @param onDanmakuClick 点击某条弹幕
  * @param onDismissBubble 关闭气泡
  * @param onDelete 删除回调
@@ -99,6 +100,7 @@ fun DanmakuOverlay(
     onDismissBubble: () -> Unit,
     onDelete: (DanmakuData) -> Unit,
     modifier: Modifier = Modifier,
+    opacity: Float = 1f,
 ) {
     val regionHeight = LANE_HEIGHT * DANMAKU_LANES
 
@@ -129,8 +131,8 @@ fun DanmakuOverlay(
         val gapPx = with(density) { DANMAKU_GAP.toPx() }
 
         // 测量宽度，分配空闲轨道
-        val placed = remember(danmakuList, containerW) {
-            layoutDanmaku(danmakuList, containerW, gapPx, textMeasurer)
+        val placed = remember(danmakuList, containerW, currentUserId) {
+            layoutDanmaku(danmakuList, containerW, gapPx, textMeasurer, currentUserId)
         }
 
         Canvas(
@@ -164,12 +166,12 @@ fun DanmakuOverlay(
                 if (pausedDanmakuId == p.data.id) return@forEach
                 val progress = (nowMs - p.data.videoTimeMs).toFloat() / DANMAKU_DURATION_MS
                 if (progress !in 0f..1f) return@forEach// 不在窗口内
-                drawPlaced(p, progress, containerW, laneHeightPx)
+                drawPlaced(p, progress, containerW, laneHeightPx, opacity)
             }
             // 冻结弹幕置顶重画
             placed.firstOrNull { it.data.id == pausedDanmakuId }?.let { p ->
                 val progress = (frozenMs - p.data.videoTimeMs).toFloat() / DANMAKU_DURATION_MS
-                drawPlaced(p, progress, containerW, laneHeightPx)
+                drawPlaced(p, progress, containerW, laneHeightPx, 1f)
             }
         }
 
@@ -287,6 +289,7 @@ private data class PlacedDanmaku(
     val layout: TextLayoutResult,
     val width: Float,
     val lane: Int,
+    val isMine: Boolean,
 )
 
 /// 画一条弹幕
@@ -296,10 +299,31 @@ private fun DrawScope.drawPlaced(
     progress: Float,
     containerW: Float,
     laneHeightPx: Float,
+    opacity: Float,
 ) {
     val x = containerW - progress * (containerW + p.width)
     val y = p.lane * laneHeightPx + (laneHeightPx - p.layout.size.height) / 2f
-    drawText(p.layout, topLeft = Offset(x, y))
+    // 本人弹幕
+    if (p.isMine) {
+        val padX = 4.dp.toPx()
+        val padY = 4.dp.toPx()
+        val topLeft = Offset(x - padX, y - padY)
+        val size = Size(p.width + padX * 2, p.layout.size.height + padY * 2)
+        drawRect(
+            color = Color.Black.copy(alpha = 0.25f),
+            topLeft = topLeft,
+            size = size,
+            alpha = opacity,
+        )
+        drawRect(
+            color = Color.White,
+            topLeft = topLeft,
+            size = size,
+            style = Stroke(width = 0.5.dp.toPx()),
+            alpha = opacity,
+        )
+    }
+    drawText(p.layout, topLeft = Offset(x, y), alpha = opacity)
 }
 
 /// 预量宽度与轨道分配
@@ -308,6 +332,7 @@ private fun layoutDanmaku(
     containerW: Float,
     gapPx: Float,
     measurer: TextMeasurer,
+    currentUserId: Long?,
 ): List<PlacedDanmaku> {
     val sorted = list.sortedBy { it.videoTimeMs }
     val laneFreeAt = FloatArray(DANMAKU_LANES) { Float.NEGATIVE_INFINITY }// 每轨空出时刻
@@ -331,7 +356,8 @@ private fun layoutDanmaku(
         val lane = (0 until DANMAKU_LANES).firstOrNull { laneFreeAt[it] <= enter }
             ?: laneFreeAt.indices.minByOrNull { laneFreeAt[it] }!!// 全部占用挑最早空出
         laneFreeAt[lane] = tailClearsAt
-        result.add(PlacedDanmaku(d, layout, w, lane))
+        val isMine = currentUserId != null && currentUserId == d.author.id
+        result.add(PlacedDanmaku(d, layout, w, lane, isMine))
     }
     return result
 }

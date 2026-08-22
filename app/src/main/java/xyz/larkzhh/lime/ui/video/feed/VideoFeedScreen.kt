@@ -6,6 +6,7 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +41,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -47,7 +50,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -62,6 +67,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.DanmakuData
@@ -75,6 +81,7 @@ import xyz.larkzhh.lime.ui.video.components.ExpandableText
 import xyz.larkzhh.lime.ui.video.components.DanmakuInputSheet
 import xyz.larkzhh.lime.ui.video.components.DanmakuOverlay
 import xyz.larkzhh.lime.ui.video.components.FollowButton
+import xyz.larkzhh.lime.ui.video.components.VideoActionPanel
 import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet
 import xyz.larkzhh.lime.ui.components.GroupedSheetAction
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
@@ -85,12 +92,14 @@ import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
 import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.ui.detail.components.NoteBottomBar
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
+import xyz.larkzhh.lime.ui.video.components.LikeBurst
 import xyz.larkzhh.lime.ui.video.components.ScrubBar
 import xyz.larkzhh.lime.ui.video.components.formatTime
 import xyz.larkzhh.lime.ui.video.feed.components.CommentDrawer
 import xyz.larkzhh.lime.ui.video.player.VideoPage
 import xyz.larkzhh.lime.ui.video.player.rememberVideoPlayerManager
 import xyz.larkzhh.lime.util.copyToClipboard
+import xyz.larkzhh.lime.util.saveVideoToGallery
 import xyz.larkzhh.lime.util.showToast
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -147,6 +156,7 @@ private fun VideoFeedContent(
     val danmakuUiState by danmakuViewModel.uiState.collectAsState()
     val playerManager = rememberVideoPlayerManager()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     // 弹幕发送失败提示
     LaunchedEffect(danmakuUiState.sendError) {
@@ -157,7 +167,11 @@ private fun VideoFeedContent(
     }
 
     var scrubbing by remember { mutableStateOf(false) }
-    var showCommentDrawer by remember { mutableStateOf(false) }  // 评论抽屉
+    var showCommentDrawer by remember { mutableStateOf(false) } // 评论抽屉
+    var showActionPanel by remember { mutableStateOf(false) }// 长按操作面板
+    // 双击爱心动画
+    var likeBurst by remember { mutableStateOf<Offset?>(null) }
+    var likeBurstKey by remember { mutableIntStateOf(0) }
     // 评论交互
     var voiceSheetHeightDp by remember { mutableIntStateOf(0) }
     var longPressTarget by remember { mutableStateOf<LongPressTarget?>(null) }
@@ -218,7 +232,14 @@ private fun VideoFeedContent(
         else -> false
     }// 作者主页已在返回栈，关闭左滑前进
 
-    BackHandler(enabled = showCommentDrawer) { showCommentDrawer = false }
+    BackHandler(enabled = showCommentDrawer || longPressTarget != null) {
+        // 优先关闭长按操作栏
+        if (longPressTarget != null) {
+            longPressTarget = null
+        } else {
+            showCommentDrawer = false
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         SwipeBackScaffold(
@@ -253,6 +274,7 @@ private fun VideoFeedContent(
                     .background(Color.Black),
             ) { page ->
                 val item = uiState.items[page]
+                val latestItem by rememberUpdatedState(item)
                 val isActive = page == pagerState.settledPage && !uiState.fullscreen
                 val userPaused = item.id in uiState.pausedNoteIds
 
@@ -269,12 +291,39 @@ private fun VideoFeedContent(
                     },
                     controlEnabled = !uiState.fullscreen,// 全屏时竖屏页让出播放器与画布
                     forcePaused = danmakuUiState.showInput,// 发弹幕时暂停当前视频
+                    playbackSpeed = uiState.playbackSpeed,
+                    autoPlayNext = uiState.autoPlayNext,
+                    onPlaybackEnded = {
+                        // 自动连播
+                        val next = page + 1
+                        if (next <= lastIndex) scope.launch { pagerState.animateScrollToPage(next) }
+                    },
+                    gestureModifier = Modifier.pointerInput(item.id) {
+                        detectTapGestures(
+                            onTap = {
+                                if (!danmakuViewModel.dismissBubble()) {
+                                    viewModel.togglePaused(item.id)
+                                }
+                            },
+                            onDoubleTap = { offset ->
+                                danmakuViewModel.dismissBubble()
+                                if (!latestItem.liked) viewModel.toggleLikeById(item.id)// 双击点赞
+                                likeBurst = offset
+                                likeBurstKey++
+                            },
+                            onLongPress = {
+                                danmakuViewModel.dismissBubble()
+                                showActionPanel = true
+                            },
+                        )
+                    },
                 ) { player ->
                     if (isActive) {
                         VideoChrome(
                             item = item,
                             player = player,
                             scrubbing = scrubbing,
+                            clearScreen = uiState.clearScreen,
                             onScrubbingChange = { scrubbing = it },
                             onBack = { navController.popBackStack() },
                             onShare = {},
@@ -285,6 +334,7 @@ private fun VideoFeedContent(
                             onCommentClick = { showCommentDrawer = true },
                             danmakuList = danmakuUiState.danmakuByNote[item.id].orEmpty(),
                             danmakuEnabled = danmakuUiState.enabled,
+                            danmakuOpacity = uiState.danmakuOpacity,
                             currentUserId = danmakuViewModel.currentUserId,
                             pausedDanmakuId = danmakuUiState.pausedDanmakuId,
                             frozenDanmakuMs = danmakuUiState.frozenMs,
@@ -295,6 +345,8 @@ private fun VideoFeedContent(
                             showFullscreenButton = item.isLandscape,
                             onFullscreen = { viewModel.enterFullscreen() },
                         )
+                        // 双击点赞爱心
+                        LikeBurst(position = likeBurst, triggerKey = likeBurstKey)
                     }
                 }
             }
@@ -464,6 +516,42 @@ private fun VideoFeedContent(
             )
         }
 
+        // 长按操作面板
+        VideoActionPanel(
+            visible = showActionPanel,
+            onDismiss = { showActionPanel = false },
+            currentSpeed = uiState.playbackSpeed,
+            onSpeedChange = {
+                viewModel.setPlaybackSpeed(it)
+                showActionPanel = false
+                "已切换 ${it}倍速".showToast(context)
+            },
+            danmakuEnabled = danmakuUiState.enabled,
+            onToggleDanmaku = {
+                val wasEnabled = danmakuUiState.enabled
+                danmakuViewModel.toggleEnabled()
+                if (wasEnabled) "弹幕已关闭".showToast(context) else "弹幕已开启".showToast(context)
+            },
+            danmakuOpacity = uiState.danmakuOpacity,
+            onOpacityChange = viewModel::setDanmakuOpacity,
+            autoPlayNext = uiState.autoPlayNext,
+            onToggleAutoPlayNext = {
+                val wasOn = uiState.autoPlayNext
+                viewModel.toggleAutoPlayNext()
+                if (wasOn) "自动连播已关闭".showToast(context) else "自动连播已开启".showToast(context)
+            },
+            onClearScreen = { viewModel.toggleClearScreen() },
+            clearScreen = uiState.clearScreen,
+            onSaveVideo = {
+                val url = currentItem?.video?.playUrl ?: return@VideoActionPanel
+                "开始保存…".showToast(context)
+                scope.launch {
+                    val ok = saveVideoToGallery(context, url)
+                    (if (ok) "已保存到相册" else "保存失败").showToast(context)
+                }
+            },
+        )
+
         // 横屏全屏
         if (uiState.fullscreen) {
             LandscapeFullscreenHost(
@@ -497,6 +585,7 @@ private fun VideoChrome(
     item: VideoItem,
     player: ExoPlayer?,
     scrubbing: Boolean,
+    clearScreen: Boolean = false,
     onScrubbingChange: (Boolean) -> Unit,
     onBack: () -> Unit,
     onShare: () -> Unit,
@@ -507,6 +596,7 @@ private fun VideoChrome(
     onCommentClick: () -> Unit,
     danmakuList: List<DanmakuData> = emptyList(),
     danmakuEnabled: Boolean = true,
+    danmakuOpacity: Float = 1f,
     currentUserId: Long? = null,
     pausedDanmakuId: Long? = null,
     frozenDanmakuMs: Long = 0L,
@@ -534,13 +624,14 @@ private fun VideoChrome(
 
     Box(modifier = Modifier.fillMaxSize()) {
         // 顶部栏与弹幕区
-        if (!scrubbing) {
-            Column(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth()
-                    .statusBarsPadding(),
-            ) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .statusBarsPadding(),
+        ) {
+            // 顶部控制栏
+            if (!scrubbing && !clearScreen) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -577,7 +668,12 @@ private fun VideoChrome(
                             .padding(8.dp),
                     )
                 }
-                // 弹幕区
+            } else if (!scrubbing) {
+                // 清屏时占住顶部栏高度，弹幕不随之上移
+                Spacer(Modifier.height(52.dp))
+            }
+            // 弹幕区
+            if (!scrubbing) {
                 DanmakuOverlay(
                     danmakuList = danmakuList,
                     player = player,
@@ -586,6 +682,7 @@ private fun VideoChrome(
                     noteAuthorId = item.author.id,
                     pausedDanmakuId = pausedDanmakuId,
                     frozenMs = frozenDanmakuMs,
+                    opacity = danmakuOpacity,
                     onDanmakuClick = onDanmakuClick,
                     onDismissBubble = onDismissBubble,
                     onDelete = onDeleteDanmaku,
@@ -601,7 +698,7 @@ private fun VideoChrome(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth(),
         ) {
-            if (!scrubbing) {
+            if (!scrubbing && !clearScreen) {
                 Column(modifier = Modifier.padding(horizontal = 12.dp)) {
                     // 全屏观看入口
                     if (showFullscreenButton) {
@@ -642,7 +739,7 @@ private fun VideoChrome(
                                 fontSize = 13.sp,
                             )
                         }
-                        Spacer(Modifier.height(10.dp))
+                        Spacer(Modifier.height(16.dp))
                     }
                     // 作者头像、昵称、关注
                     Row(
@@ -737,6 +834,7 @@ private fun VideoChrome(
                 contentColor = Color.White,
                 inputBackground = Color.White.copy(alpha = 0.18f),
                 elevated = false,
+                compact = true,
                 modifier = Modifier.alpha(if (scrubbing) 0f else 1f),
             )
         }

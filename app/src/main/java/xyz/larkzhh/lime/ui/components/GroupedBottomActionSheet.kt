@@ -11,8 +11,10 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -43,27 +46,26 @@ data class GroupedSheetAction(
     val textColor: Color = Color(0xFF1C1C1E),
     val fontWeight: FontWeight = FontWeight.Normal,
     val iconSize: Dp = 24.dp,
+    val fontSize: TextUnit = 17.sp,
     val onClick: () -> Unit,
 )
 
 /**
- * 分组底部操作菜单组件
+ * 分组底部操作菜单外壳
  *
  * @param visible 菜单的显示与隐藏状态
  * @param onDismiss 关闭回调
- * @param groups 操作分组列表
  * @param modifier 外部传入的 Modifier
  * @param sheetColor 抽屉背景色
- * @param cardColor 卡片背景色
+ * @param content 抽屉内容
  */
 @Composable
 fun GroupedBottomActionSheet(
     visible: Boolean,
     onDismiss: () -> Unit,
-    groups: List<List<GroupedSheetAction>>,
     modifier: Modifier = Modifier,
     sheetColor: Color = Color(0xFFF2F2F7),
-    cardColor: Color = Color.White,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         AnimatedVisibility(
@@ -109,57 +111,106 @@ fun GroupedBottomActionSheet(
                         interactionSource = remember { MutableInteractionSource() },
                         onClick = {},
                     ),
-            ) {
-                groups.forEachIndexed { groupIndex, actions ->
-                    if (groupIndex > 0) {
-                        Spacer(modifier = Modifier.size(12.dp))
-                    }
-                    // 每组独立卡片
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(cardColor),
-                    ) {
-                        actions.forEachIndexed { actionIndex, action ->
-                            if (actionIndex > 0) {
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(start = 56.dp),
-                                    color = Color(0xFFE5E5E5),
-                                    thickness = 0.5.dp,
-                                )
-                            }
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() },
-                                    ) {
-                                        onDismiss()
-                                        action.onClick()
-                                    }
-                                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(
-                                    imageVector = action.icon,
-                                    contentDescription = action.label,
-                                    tint = action.textColor,
-                                    modifier = Modifier.size(action.iconSize),
-                                )
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text(
-                                    text = action.label,
-                                    color = action.textColor,
-                                    fontSize = 17.sp,
-                                    fontWeight = action.fontWeight,
-                                )
-                            }
-                        }
-                    }
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                content = content,
+            )
+        }
+    }
+}
+
+/**
+ * 分组底部操作菜单
+ *
+ * @param visible 抽屉是否可见
+ * @param onDismiss 菜单关闭回调
+ * @param groups 操作分组列表
+ * @param modifier 修饰符
+ * @param sheetColor 抽屉背景色
+ * @param cardColor 操作卡片分组背景色
+ */
+@Composable
+fun GroupedBottomActionSheet(
+    visible: Boolean,
+    onDismiss: () -> Unit,
+    groups: List<List<GroupedSheetAction>>,
+    modifier: Modifier = Modifier,
+    sheetColor: Color = Color(0xFFF2F2F7),
+    cardColor: Color = Color.White,
+) {
+    GroupedBottomActionSheet(
+        visible = visible,
+        onDismiss = onDismiss,
+        modifier = modifier,
+        sheetColor = sheetColor,
+    ) {
+        groups.forEach { actions ->
+            SheetGroup(cardColor = cardColor) {
+                actions.forEachIndexed { index, action ->
+                    if (index > 0) SheetRowDivider()
+                    SheetActionRow(action = action, onDismiss = onDismiss)
                 }
             }
         }
+    }
+}
+
+/// 分组卡片容器
+@Composable
+fun SheetGroup(
+    modifier: Modifier = Modifier,
+    cardColor: Color = Color.White,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(cardColor),
+        content = content,
+    )
+}
+
+/// 分隔线
+@Composable
+fun SheetRowDivider(startIndent: Dp = 56.dp) {
+    HorizontalDivider(
+        modifier = Modifier.padding(start = startIndent),
+        color = Color(0xFFE5E5E5),
+        thickness = 0.5.dp,
+    )
+}
+
+/// 操作行
+@Composable
+fun SheetActionRow(
+    action: GroupedSheetAction,
+    onDismiss: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+            ) {
+                onDismiss()
+                action.onClick()
+            }
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = action.icon,
+            contentDescription = action.label,
+            tint = action.textColor,
+            modifier = Modifier.size(action.iconSize),
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = action.label,
+            color = action.textColor,
+            fontSize = action.fontSize,
+            fontWeight = action.fontWeight,
+        )
     }
 }

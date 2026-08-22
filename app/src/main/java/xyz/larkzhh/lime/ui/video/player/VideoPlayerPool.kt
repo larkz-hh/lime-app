@@ -19,7 +19,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +35,9 @@ import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 // 播放器池
 @UnstableApi
@@ -97,6 +102,9 @@ fun VideoPage(
     controlEnabled: Boolean = true,// 是否由本页掌控该播放器
     forcePaused: Boolean = false,// 外部强制暂停
     showPauseIcon: Boolean = true,// 是否播放图标
+    playbackSpeed: Float = 1f,// 播放倍速
+    autoPlayNext: Boolean = false,// 自动连播
+    onPlaybackEnded: () -> Unit = {},// 播放结尾回调
     gestureModifier: Modifier? = null,// 自定义手势层
     content: @Composable BoxScope.(player: ExoPlayer?) -> Unit = {},// chrome 浮层
 ) {
@@ -109,8 +117,42 @@ fun VideoPage(
         null
     }
 
-    LaunchedEffect(player, isActive, userPaused, controlEnabled, forcePaused) {
-        if (controlEnabled) player?.playWhenReady = isActive && !userPaused && !forcePaused
+    // 感知前后台
+    val lifecycleOwner =LocalLifecycleOwner.current
+    var isForeground by remember { mutableStateOf(true) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> isForeground = true
+                Lifecycle.Event.ON_STOP -> isForeground = false
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(player, isActive, userPaused, controlEnabled, forcePaused, isForeground) {
+        if (controlEnabled) player?.playWhenReady = isActive && !userPaused && !forcePaused && isForeground
+    }
+
+    // 应用倍速
+    LaunchedEffect(player, playbackSpeed, controlEnabled) {
+        if (controlEnabled) player?.setPlaybackSpeed(playbackSpeed)
+    }
+
+    // 自动连播
+    val currentOnEnded by rememberUpdatedState(onPlaybackEnded)
+    DisposableEffect(player, isActive, autoPlayNext, controlEnabled) {
+        val p = player?.takeIf { controlEnabled } ?: return@DisposableEffect onDispose { }
+        p.repeatMode = if (autoPlayNext) Player.REPEAT_MODE_OFF else Player.REPEAT_MODE_ONE
+        val listener = object : Player.Listener {
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == Player.STATE_ENDED && isActive && autoPlayNext) currentOnEnded()
+            }
+        }
+        p.addListener(listener)
+        onDispose { p.removeListener(listener) }
     }
 
     // 服务端视频比例

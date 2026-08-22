@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,11 +55,13 @@ fun ScrubBar(
         modifier = modifier,
         thumb = {
             Box(
-                modifier = Modifier.height(24.dp),
-                contentAlignment = Alignment.Center,
+                modifier = Modifier.height(16.dp),
+                contentAlignment = Alignment.BottomCenter,
             ) {
                 Box(
                     modifier = Modifier
+                        // 14.5-(16-6)
+                        .offset(y = 4.5.dp)
                         .size(12.dp)
                         .clip(CircleShape)
                         .background(Color.White),
@@ -69,8 +72,8 @@ fun ScrubBar(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(24.dp),
-                contentAlignment = Alignment.CenterStart,
+                    .height(16.dp),
+                contentAlignment = Alignment.BottomStart,
             ) {
                 Box(
                     modifier = Modifier
