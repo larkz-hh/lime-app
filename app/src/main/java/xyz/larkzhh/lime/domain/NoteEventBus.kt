@@ -8,6 +8,7 @@ import javax.inject.Singleton
 sealed class NoteEvent {
     data class LikeChanged(val noteId: Long, val liked: Boolean, val likeCount: Int) : NoteEvent()
     data class FavoriteChanged(val noteId: Long, val favorited: Boolean, val favCount: Int) : NoteEvent()
+    data class CommentCountChanged(val noteId: Long, val delta: Int) : NoteEvent()
 }
 
 @Singleton

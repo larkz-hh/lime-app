@@ -1,8 +1,10 @@
 package xyz.larkzhh.lime.ui.publish.viewmodel
 
+import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
+import android.os.Bundle
 import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,7 +17,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.domain.repository.NoteRepository
+import xyz.larkzhh.lime.util.readImageDimensions
 import javax.inject.Inject
 
 data class LocalImage(val id: Long, val uri: Uri)
@@ -24,7 +28,9 @@ data class LocalImage(val id: Long, val uri: Uri)
 data class PhotoPickerUiState(
     val images: List<LocalImage> = emptyList(),
     val selectedUris: List<Uri> = emptyList(),
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = false,// 首次加载
+    val isLoadingMore: Boolean = false,// 分页加载更多
+    val hasMore: Boolean = true,
 )
 
 /// 笔记发布页 UI 状态
@@ -55,23 +61,52 @@ class PublishViewModel @Inject constructor(
     private val _publishState = MutableStateFlow(PublishUiState())
     val publishState: StateFlow<PublishUiState> = _publishState.asStateFlow()
 
+    private val imagePageSize = 200
+
     /// 加载设备图片列表
     fun loadDeviceImages() {
         viewModelScope.launch {
             _pickerState.update { it.copy(isLoading = true) }
-            val images = queryImages()
-            _pickerState.update { it.copy(images = images, isLoading = false) }
+            val images = queryImages(limit = imagePageSize, offset = 0)
+            _pickerState.update {
+                it.copy(images = images, isLoading = false, hasMore = images.size >= imagePageSize)
+            }
+        }
+    }
+
+    /// 滚动到底加载更多图片
+    fun loadMoreImages() {
+        val current = _pickerState.value
+        if (!current.hasMore || current.isLoading || current.isLoadingMore) return
+        viewModelScope.launch {
+            _pickerState.update { it.copy(isLoadingMore = true) }
+            val more = queryImages(limit = imagePageSize, offset = current.images.size)
+            _pickerState.update {
+                it.copy(
+                    images = it.images + more,
+                    isLoadingMore = false,
+                    hasMore = more.size >= imagePageSize,
+                )
+            }
         }
     }
 
     /// 查询设备本地存储中的图片文件
-    private suspend fun queryImages(): List<LocalImage> = withContext(Dispatchers.IO) {
+    private suspend fun queryImages(limit: Int, offset: Int): List<LocalImage> = withContext(Dispatchers.IO) {
         val result = mutableListOf<LocalImage>()
         val projection = arrayOf(MediaStore.Images.Media._ID)
-        val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
+        val args = Bundle().apply {
+            putStringArray(
+                ContentResolver.QUERY_ARG_SORT_COLUMNS,
+                arrayOf(MediaStore.Images.Media.DATE_ADDED),
+            )
+            putInt(ContentResolver.QUERY_ARG_SORT_DIRECTION, ContentResolver.QUERY_SORT_DIRECTION_DESCENDING)
+            putInt(ContentResolver.QUERY_ARG_LIMIT, limit)
+            putInt(ContentResolver.QUERY_ARG_OFFSET, offset)
+        }
         context.contentResolver.query(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            projection, null, null, sortOrder
+            projection, args, null
         )?.use { cursor ->
             val idCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)// 获取相应列索引
             while (cursor.moveToNext()) {
@@ -133,15 +168,21 @@ class PublishViewModel @Inject constructor(
             _publishState.update { it.copy(isPublishing = true, error = null, publishProgress = 0) }
             try {
                 val uploadedUrls = mutableListOf<String>()// 已上传图片
+                var coverSize: ImageSize? = null
                 state.selectedUris.forEachIndexed { index, uri ->
                     val url = noteRepository.uploadImage(uri).getOrThrow()// 逐张上传图片，获取服务端返回的url
                     uploadedUrls.add(url)
+                    if (index == 0) {
+                        val dim = readImageDimensions(context, uri)
+                        coverSize = if (dim.width > 0 && dim.height > 0) ImageSize(dim.width, dim.height) else null
+                    }
                     _publishState.update { it.copy(publishProgress = index + 1) }
                 }
                 noteRepository.publishNote(
                     title = state.title.ifBlank { null },
                     content = state.content.ifBlank { null },
                     imageUrls = uploadedUrls,
+                    coverSize = coverSize,
                     status = status,
                 ).getOrThrow()
                 val isDraft = status == 0

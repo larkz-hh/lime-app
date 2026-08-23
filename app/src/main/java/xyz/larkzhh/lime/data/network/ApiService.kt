@@ -14,6 +14,8 @@ import retrofit2.http.Query
 import xyz.larkzhh.lime.data.network.model.ApiResponse
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.CommentListResponse
+import xyz.larkzhh.lime.data.network.model.DanmakuData
+import xyz.larkzhh.lime.data.network.model.DanmakuListResponse
 import xyz.larkzhh.lime.data.network.model.DeleteHistoryRequest
 import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.HistoryResponse
@@ -24,8 +26,10 @@ import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.NoteSearchResponse
 import xyz.larkzhh.lime.data.network.model.UserSearchResponse
 import xyz.larkzhh.lime.data.network.model.PostCommentRequest
+import xyz.larkzhh.lime.data.network.model.PostDanmakuRequest
 import xyz.larkzhh.lime.data.network.model.PostReplyRequest
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
+import xyz.larkzhh.lime.data.network.model.PublishVideoNoteRequest
 import xyz.larkzhh.lime.data.network.model.RefreshTokenRequest
 import xyz.larkzhh.lime.data.network.model.RegisterRequest
 import xyz.larkzhh.lime.data.network.model.ReplyData
@@ -86,6 +90,11 @@ interface ApiService {
     @POST("api/notes/images")
     suspend fun uploadNoteImage(@Part file: MultipartBody.Part): ApiResponse<UploadNoteImageResponse>
 
+    /// 上传笔记视频
+    @Multipart
+    @POST("api/notes/videos")
+    suspend fun uploadNoteVideo(@Part file: MultipartBody.Part): ApiResponse<UploadNoteImageResponse>
+
     /// 上传评论图片
     @Multipart
     @POST("api/comments/images")
@@ -100,6 +109,10 @@ interface ApiService {
     @POST("api/notes")
     suspend fun publishNote(@Body request: PublishNoteRequest): ApiResponse<NoteData>
 
+    /// 发布视频笔记
+    @POST("api/notes")
+    suspend fun publishVideoNote(@Body request: PublishVideoNoteRequest): ApiResponse<NoteData>
+
     /// 点赞笔记
     @POST("api/notes/{id}/like")
     suspend fun likeNote(@Path("id") id: Long): ApiResponse<Unit>
@@ -110,7 +123,10 @@ interface ApiService {
 
     /// 获取笔记详情
     @GET("api/notes/{id}")
-    suspend fun getNoteDetail(@Path("id") id: Long): ApiResponse<NoteDetailData>
+    suspend fun getNoteDetail(
+        @Path("id") id: Long,
+        @Query("noView") noView: Boolean = false,
+    ): ApiResponse<NoteDetailData>
 
     /// 收藏笔记
     @POST("api/notes/{id}/favorite")
@@ -124,6 +140,15 @@ interface ApiService {
     @GET("api/notes/feed")
     suspend fun getFeed(
         @Query("cursor") cursor: Long?,
+        @Query("size") size: Int,
+    ): ApiResponse<FeedResponse>
+
+    /// 获取视频信息流
+    @GET("api/notes/video-feed")
+    suspend fun getVideoFeed(
+        @Query("cursor") cursor: Long?,
+        @Query("seedNoteId") seedNoteId: Long?,
+        @Query("orientation") orientation: String?,
         @Query("size") size: Int,
     ): ApiResponse<FeedResponse>
 
@@ -210,6 +235,25 @@ interface ApiService {
     /// 删除评论/回复
     @DELETE("api/comments/{commentId}")
     suspend fun deleteComment(@Path("commentId") commentId: Long): ApiResponse<Unit>
+
+    /// 发弹幕
+    @POST("api/notes/{noteId}/danmaku")
+    suspend fun postDanmaku(
+        @Path("noteId") noteId: Long,
+        @Body request: PostDanmakuRequest,
+    ): ApiResponse<DanmakuData>
+
+    /// 拉取弹幕列表
+    @GET("api/notes/{noteId}/danmaku")
+    suspend fun getDanmaku(@Path("noteId") noteId: Long): ApiResponse<DanmakuListResponse>
+
+    /// 删除弹幕
+    @DELETE("api/notes/{noteId}/danmaku/{danmakuId}")
+    suspend fun deleteDanmaku(
+        @Path("noteId") noteId: Long,
+        @Path("danmakuId") danmakuId: Long,
+    ): ApiResponse<Unit>
+
 
     /// 搜索笔记
     @GET("api/search/notes")

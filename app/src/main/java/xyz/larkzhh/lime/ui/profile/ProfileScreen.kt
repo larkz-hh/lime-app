@@ -62,6 +62,8 @@ import kotlin.math.roundToInt
 import xyz.larkzhh.lime.navigation.AuthorProfileSession
 import xyz.larkzhh.lime.navigation.ProfileLayoutStore
 import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.ui.video.feed.PersonalVideoPayload
+import xyz.larkzhh.lime.ui.video.feed.VideoFeedSessionStore
 import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.ui.components.NoteCard
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
@@ -81,6 +83,8 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import xyz.larkzhh.lime.openVideo
 import xyz.larkzhh.lime.util.extractGradientColor
 
 /// 主页 Tab 类型
@@ -216,7 +220,7 @@ fun ProfileScreen(
     }
 
     // 背景图主色提取
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     val backgroundUrl = (uiState as? ProfileUiState.Success)?.user?.backgroundImage
     // 主色存进会话
     var dominantColor by remember {
@@ -504,14 +508,34 @@ private fun LazyStaggeredGridScope.tabContent(
         }
         else -> {
             items(uiState.items, key = { it.id }) { item ->
+                val context = LocalContext.current
                 NoteCard(
                     item = item,
                     liked = item.id in uiState.likedIds,
                     onLikeToggle = { onLikeToggle(item.id) },
                     onClick = {
-                        navController.navigate(
-                            Screen.Detail.createRoute(item.id.toString())
-                        )
+                        // 视频笔记进竖屏视频页（个人列表来源），图文进详情
+                        if (item.noteType == 2) {
+                            // 预取的个人列表走进程内存储传递
+                            VideoFeedSessionStore.put(
+                                item.id,
+                                PersonalVideoPayload(
+                                    items = uiState.items,
+                                    startIndex = uiState.items.indexOfFirst { it.id == item.id }.coerceAtLeast(0),
+                                ),
+                            )
+                            if (navController.graph.findNode(Screen.VideoFeed.ROUTE) != null) {
+                                navController.navigate(
+                                    Screen.VideoFeed.createRoute(item.id, Screen.VideoFeed.SOURCE_PERSONAL),
+                                )
+                            } else {
+                                context.openVideo(item.id, Screen.VideoFeed.SOURCE_PERSONAL)
+                            }
+                        } else {
+                            navController.navigate(
+                                Screen.Detail.createRoute(item.id.toString())
+                            )
+                        }
                     },
                 )
             }

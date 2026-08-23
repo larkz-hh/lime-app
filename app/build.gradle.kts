@@ -34,6 +34,9 @@ android {
     buildFeatures {
         compose = true
     }
+    kotlinOptions {
+        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+    }
 }
 
 kotlin {
@@ -105,7 +108,10 @@ dependencies {
 
     // Media3 ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.common.ktx)
+    implementation(libs.androidx.media3.ui.compose)
+    implementation(libs.androidx.media3.ui.compose.material3)
+    implementation(libs.androidx.media3.session)
 
     // Permissions
     implementation(libs.accompanist.permissions)

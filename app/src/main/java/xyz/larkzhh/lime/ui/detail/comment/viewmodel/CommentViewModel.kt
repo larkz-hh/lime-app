@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.ReplyData
+import xyz.larkzhh.lime.domain.NoteEvent
+import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.CommentRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
 import android.net.Uri
@@ -66,6 +68,7 @@ data class ReplyTarget(
 class CommentViewModel @Inject constructor(
     private val commentRepository: CommentRepository,
     private val userRepository: UserRepository,
+    private val eventBus: NoteEventBus,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CommentUiState())
@@ -82,6 +85,7 @@ class CommentViewModel @Inject constructor(
     fun init(noteId: Long) {
         if (this.noteId == noteId) return
         this.noteId = noteId
+        _uiState.update { it.copy(commentCountDelta = 0) }
         loadComments(refresh = true)
     }
 
@@ -129,6 +133,7 @@ class CommentViewModel @Inject constructor(
         val voice = _uiState.value.pendingVoice
         if (content.isBlank() && images.isEmpty() && voice == null) return
         val target = _uiState.value.replyTarget
+        val targetNoteId = noteId// 锁定评论归属的笔记
         _uiState.update { it.copy(isSubmitting = true) }
         viewModelScope.launch {
             // 上传图片
@@ -157,7 +162,7 @@ class CommentViewModel @Inject constructor(
             val textContent = content.ifBlank { null }
 
             if (target == null) {
-                commentRepository.sentComment(noteId, textContent, imageUrls, voiceUrl, voice?.durationSeconds)
+                commentRepository.sentComment(targetNoteId, textContent, imageUrls, voiceUrl, voice?.durationSeconds)
                     .onSuccess { newComment ->
                         val comment = when {
                             !imageUrls.isNullOrEmpty() -> newComment.copy(images = imageUrls)
@@ -174,10 +179,11 @@ class CommentViewModel @Inject constructor(
                             pendingVoice = null,
                         ) }
                         voice?.file?.delete()
+                        eventBus.emit(NoteEvent.CommentCountChanged(targetNoteId, 1))
                     }
                     .onFailure { _uiState.update { it.copy(isSubmitting = false) } }
             } else {
-                commentRepository.sentReply(noteId, target.commentId, textContent, imageUrls, target.replyToUserId, voiceUrl, voice?.durationSeconds)
+                commentRepository.sentReply(targetNoteId, target.commentId, textContent, imageUrls, target.replyToUserId, voiceUrl, voice?.durationSeconds)
                     .onSuccess { newReply ->
                         val reply = when {
                             !imageUrls.isNullOrEmpty() -> newReply.copy(images = imageUrls)
@@ -211,6 +217,7 @@ class CommentViewModel @Inject constructor(
                             )
                         }
                         voice?.file?.delete()
+                        eventBus.emit(NoteEvent.CommentCountChanged(targetNoteId, 1))
                         // 不刷新列表，重进详情页才同步服务端的排序
                     }
                     .onFailure { _uiState.update { it.copy(isSubmitting = false) } }
@@ -349,20 +356,23 @@ class CommentViewModel @Inject constructor(
     fun deleteComment(commentId: Long) {
         val comment = _uiState.value.comments.find { it.id == commentId }
         val backup = _uiState.value
+        val targetNoteId = noteId
+        val delta = -1 - (comment?.replyCount ?: 0)
         _uiState.update { s -> s.copy(
             comments = s.comments.filter { c -> c.id != commentId },
-            commentCountDelta = s.commentCountDelta - 1 - (comment?.replyCount ?: 0),
+            commentCountDelta = s.commentCountDelta + delta,
         ) }
         viewModelScope.launch {
-            commentRepository.deleteComment(commentId).onFailure {
-                _uiState.update { backup }
-            }
+            commentRepository.deleteComment(commentId)
+                .onSuccess { eventBus.emit(NoteEvent.CommentCountChanged(targetNoteId, delta)) }
+                .onFailure { _uiState.update { backup } }
         }
     }
 
     /// 删除回复
     fun deleteReply(commentId: Long, replyId: Long) {
         val backup = _uiState.value
+        val targetNoteId = noteId
         _uiState.update { s ->
             s.copy(
                 comments = s.comments.map { c ->
@@ -381,9 +391,9 @@ class CommentViewModel @Inject constructor(
             )
         }
         viewModelScope.launch {
-            commentRepository.deleteComment(replyId).onFailure {
-                _uiState.update { backup }
-            }
+            commentRepository.deleteComment(replyId)
+                .onSuccess { eventBus.emit(NoteEvent.CommentCountChanged(targetNoteId, -1)) }
+                .onFailure { _uiState.update { backup } }
         }
     }
 }

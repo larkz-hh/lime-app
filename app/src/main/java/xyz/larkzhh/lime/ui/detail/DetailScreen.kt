@@ -239,7 +239,9 @@ fun DetailScreen(
                         },
                     )
                     NoteBottomBar(
-                        note = uiState.note!!,
+                        note = uiState.note!!.copy(
+                            commentCount = uiState.note!!.commentCount + commentUiState.commentCountDelta
+                        ),
                         onToggleLike = viewModel::toggleLike,
                         onToggleFavorite = viewModel::toggleFavorite,
                         onCommentClick = { commentViewModel.openInputSheet(null) },
