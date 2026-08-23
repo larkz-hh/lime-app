@@ -22,7 +22,7 @@ import javax.inject.Named
  */
 class AuthInterceptor @Inject constructor(
     private val tokenStorage: TokenStorage,
-    @Named("base_url") private val baseUrl: String,
+    @param:Named("base_url") private val baseUrl: String,
 ) : Interceptor {
     private val refreshClient by lazy { OkHttpClient() }
     private val gson = Gson()

@@ -20,9 +20,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.util.cropCoverToCache
 import xyz.larkzhh.lime.util.extractFrameToCache
+import xyz.larkzhh.lime.util.readImageDimensions
 import xyz.larkzhh.lime.util.readVideoDimensions
 import javax.inject.Inject
 
@@ -351,7 +353,7 @@ class VideoPublishViewModel @Inject constructor(
                 val videoUrl = noteRepository.uploadVideo(video.uri).getOrThrow()
 
                 _publishState.update { it.copy(uploadPhase = "上传封面") }
-                val coverUrl = resolveCoverUrl(state.cover, video.uri)
+                val (coverUrl, coverSize) = resolveCover(state.cover, video.uri)
 
                 noteRepository.publishVideoNote(
                     title = state.title.ifBlank { null },
@@ -361,6 +363,8 @@ class VideoPublishViewModel @Inject constructor(
                     width = state.videoWidth,
                     height = state.videoHeight,
                     coverUrl = coverUrl,
+                    coverWidth = coverSize?.width,
+                    coverHeight = coverSize?.height,
                     status = status,
                 ).getOrThrow()
 
@@ -382,14 +386,19 @@ class VideoPublishViewModel @Inject constructor(
         }
     }
 
-    /// 解析封面上传
-    private suspend fun resolveCoverUrl(cover: CoverSource, videoUri: Uri): String? {
+    /// 解析封面上传，读取封面图宽高
+    private suspend fun resolveCover(cover: CoverSource, videoUri: Uri): Pair<String?, ImageSize?> {
         val coverUri: Uri? = when (cover) {
             is CoverSource.Album -> cover.croppedUri ?: cover.uri
             is CoverSource.Frame -> cover.croppedUri ?: extractFrameToCache(context, videoUri, cover.timeMs)
             CoverSource.None -> extractFrameToCache(context, videoUri, DEFAULT_COVER_FRAME_MS)
         }
-        return coverUri?.let { noteRepository.uploadImage(it).getOrThrow() }
+        val url = coverUri?.let { noteRepository.uploadImage(it).getOrThrow() }
+        val size = coverUri?.let {
+            val dim = readImageDimensions(context, it)
+            if (dim.width > 0 && dim.height > 0) ImageSize(dim.width, dim.height) else null
+        }
+        return url to size
     }
 
     /// 发布视频笔记

@@ -14,6 +14,7 @@ import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.model.DeleteHistoryRequest
 import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.HistoryResponse
+import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.NoteImageRequest
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
@@ -180,10 +181,17 @@ class NoteRepositoryImpl @Inject constructor(
         title: String?,
         content: String?,
         imageUrls: List<String>,
+        coverSize: ImageSize?,
         status: Int,
     ): Result<Unit> = runCatching {
         val images = imageUrls.mapIndexed { index, url ->
-            NoteImageRequest(url = url, sortOrder = index)
+            val isCover = index == 0
+            NoteImageRequest(
+                url = url,
+                sortOrder = index,
+                width = if (isCover) coverSize?.width else null,
+                height = if (isCover) coverSize?.height else null,
+            )
         }
         val request = PublishNoteRequest(
             title = title?.ifBlank { null },
@@ -204,6 +212,8 @@ class NoteRepositoryImpl @Inject constructor(
         width: Int,
         height: Int,
         coverUrl: String?,
+        coverWidth: Int?,
+        coverHeight: Int?,
         status: Int,
     ): Result<Unit> = runCatching {
         val request = PublishVideoNoteRequest(
@@ -215,6 +225,8 @@ class NoteRepositoryImpl @Inject constructor(
                 width = width,
                 height = height,
                 coverUrl = coverUrl,
+                coverWidth = coverWidth,
+                coverHeight = coverHeight,
             ),
             status = status,
         )

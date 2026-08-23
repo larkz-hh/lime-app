@@ -17,7 +17,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.domain.repository.NoteRepository
+import xyz.larkzhh.lime.util.readImageDimensions
 import javax.inject.Inject
 
 data class LocalImage(val id: Long, val uri: Uri)
@@ -166,15 +168,21 @@ class PublishViewModel @Inject constructor(
             _publishState.update { it.copy(isPublishing = true, error = null, publishProgress = 0) }
             try {
                 val uploadedUrls = mutableListOf<String>()// 已上传图片
+                var coverSize: ImageSize? = null
                 state.selectedUris.forEachIndexed { index, uri ->
                     val url = noteRepository.uploadImage(uri).getOrThrow()// 逐张上传图片，获取服务端返回的url
                     uploadedUrls.add(url)
+                    if (index == 0) {
+                        val dim = readImageDimensions(context, uri)
+                        coverSize = if (dim.width > 0 && dim.height > 0) ImageSize(dim.width, dim.height) else null
+                    }
                     _publishState.update { it.copy(publishProgress = index + 1) }
                 }
                 noteRepository.publishNote(
                     title = state.title.ifBlank { null },
                     content = state.content.ifBlank { null },
                     imageUrls = uploadedUrls,
+                    coverSize = coverSize,
                     status = status,
                 ).getOrThrow()
                 val isDraft = status == 0
