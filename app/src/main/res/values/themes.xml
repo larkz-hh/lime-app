@@ -3,6 +3,10 @@
 
     <style name="Theme.Lime" parent="android:Theme.Material.Light.NoActionBar" />
 
+    <style name="Theme.Lime.VideoFeed" parent="Theme.Lime">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+
     <style name="Theme.UCrop.Fullscreen" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowFullscreen">true</item>
     </style>

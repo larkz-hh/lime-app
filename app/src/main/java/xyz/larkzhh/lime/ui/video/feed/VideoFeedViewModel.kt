@@ -3,6 +3,7 @@ package xyz.larkzhh.lime.ui.video.feed
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tencent.mmkv.MMKV
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,6 +57,7 @@ data class VideoFeedUiState(
     // 播放偏好
     val playbackSpeed: Float = 1f,// 播放倍速
     val autoPlayNext: Boolean = false,// 自动连播
+    val backgroundAudio: Boolean = false,// 后台继续播放
     val clearScreen: Boolean = false,// 清屏播放
     val danmakuOpacity: Float = 1f,// 弹幕不透明度
 )
@@ -90,7 +92,12 @@ class VideoFeedViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(VideoFeedUiState())
+    private val mmkv by lazy { MMKV.defaultMMKV() }
+
+    // 后台继续播放偏好
+    private val _uiState = MutableStateFlow(
+        VideoFeedUiState(backgroundAudio = mmkv.decodeBool(KEY_BACKGROUND_AUDIO, false)),
+    )
     val uiState: StateFlow<VideoFeedUiState> = _uiState.asStateFlow()
 
     private val noteId: Long = savedStateHandle.get<Long>("noteId") ?: 0L
@@ -441,11 +448,13 @@ class VideoFeedViewModel @Inject constructor(
     fun consumePendingScroll() = _uiState.update { it.copy(pendingScrollTarget = null) }
 
     /// 暂停
-    fun togglePaused(noteId: Long) = _uiState.update {
-        it.copy(
-            pausedNoteIds = if (noteId in it.pausedNoteIds) it.pausedNoteIds - noteId
-            else it.pausedNoteIds + noteId,
-        )
+    fun togglePaused(noteId: Long) = _uiState.update { state ->
+        state.setPaused(noteId, noteId !in state.pausedNoteIds)
+    }
+
+    /// 直接设置暂停状态
+    fun setPaused(noteId: Long, paused: Boolean) = _uiState.update { state ->
+        state.setPaused(noteId, paused)
     }
 
     /// 设置播放倍速
@@ -454,12 +463,23 @@ class VideoFeedViewModel @Inject constructor(
     /// 切换自动连播
     fun toggleAutoPlayNext() = _uiState.update { it.copy(autoPlayNext = !it.autoPlayNext) }
 
+    /// 切换后台继续播放音频
+    fun toggleBackgroundAudio() = _uiState.update {
+        val next = !it.backgroundAudio
+        mmkv.encode(KEY_BACKGROUND_AUDIO, next)
+        it.copy(backgroundAudio = next)
+    }
+
     /// 切换清屏播放
     fun toggleClearScreen() = _uiState.update { it.copy(clearScreen = !it.clearScreen) }
 
     /// 设置弹幕不透明度
     fun setDanmakuOpacity(opacity: Float) =
         _uiState.update { it.copy(danmakuOpacity = opacity.coerceIn(0.2f, 1f)) }
+
+    companion object {
+        private const val KEY_BACKGROUND_AUDIO = "video.background_audio"
+    }
 }
 
 /// 点赞或取消
@@ -475,6 +495,9 @@ private fun List<VideoItem>.turnFav(id: Long): List<VideoItem> = map {
 /// 从队列取某 id 的项
 private fun VideoFeedUiState.find(id: Long): VideoItem? =
     items.firstOrNull { it.id == id } ?: landscapeItems.firstOrNull { it.id == id }
+
+private fun VideoFeedUiState.setPaused(noteId: Long, paused: Boolean): VideoFeedUiState =
+    copy(pausedNoteIds = if (paused) pausedNoteIds + noteId else pausedNoteIds - noteId)
 private fun VideoFeedUiState.likeStateOf(id: Long): Boolean? = find(id)?.liked
 private fun VideoFeedUiState.likeCountOf(id: Long): Int? = find(id)?.likeCount
 private fun VideoFeedUiState.favStateOf(id: Long): Boolean? = find(id)?.favorited

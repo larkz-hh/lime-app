@@ -172,10 +172,12 @@ fun LandscapeFullscreenHost(
                 userPaused = userPaused,
                 playerManager = playerManager,
                 onTogglePlay = {},// 全屏启用自定义手势
+                title = item.title,
                 forcePaused = danmakuUiState.showInput,// 发弹幕时暂停当前视频
                 showPauseIcon = false,
                 playbackSpeed = if (pressBoost) 2f else uiState.playbackSpeed,// 长按2倍速
                 autoPlayNext = uiState.autoPlayNext,
+                backgroundAudio = uiState.backgroundAudio,
                 onPlaybackEnded = {
                     // 自动连播
                     val next = page + 1

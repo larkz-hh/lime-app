@@ -83,6 +83,8 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import xyz.larkzhh.lime.openVideo
 import xyz.larkzhh.lime.util.extractGradientColor
 
 /// 主页 Tab 类型
@@ -218,7 +220,7 @@ fun ProfileScreen(
     }
 
     // 背景图主色提取
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     val backgroundUrl = (uiState as? ProfileUiState.Success)?.user?.backgroundImage
     // 主色存进会话
     var dominantColor by remember {
@@ -506,6 +508,7 @@ private fun LazyStaggeredGridScope.tabContent(
         }
         else -> {
             items(uiState.items, key = { it.id }) { item ->
+                val context = LocalContext.current
                 NoteCard(
                     item = item,
                     liked = item.id in uiState.likedIds,
@@ -521,12 +524,7 @@ private fun LazyStaggeredGridScope.tabContent(
                                     startIndex = uiState.items.indexOfFirst { it.id == item.id }.coerceAtLeast(0),
                                 ),
                             )
-                            navController.navigate(
-                                Screen.VideoFeed.createRoute(
-                                    item.id,
-                                    Screen.VideoFeed.SOURCE_PERSONAL,
-                                )
-                            )
+                            context.openVideo(item.id, Screen.VideoFeed.SOURCE_PERSONAL)
                         } else {
                             navController.navigate(
                                 Screen.Detail.createRoute(item.id.toString())

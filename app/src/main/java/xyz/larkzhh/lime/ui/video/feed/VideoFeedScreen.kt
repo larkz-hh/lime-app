@@ -1,6 +1,8 @@
 package xyz.larkzhh.lime.ui.video.feed
 
+import android.Manifest
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
@@ -66,6 +68,9 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.R
@@ -97,7 +102,7 @@ import xyz.larkzhh.lime.ui.video.components.ScrubBar
 import xyz.larkzhh.lime.ui.video.components.formatTime
 import xyz.larkzhh.lime.ui.video.feed.components.CommentDrawer
 import xyz.larkzhh.lime.ui.video.player.VideoPage
-import xyz.larkzhh.lime.ui.video.player.rememberVideoPlayerManager
+import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.saveVideoToGallery
 import xyz.larkzhh.lime.util.showToast
@@ -108,6 +113,9 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun VideoFeedScreen(
     navController: NavHostController,
+    playerManager: VideoPlayerManager,
+    onEnterMiniPlayer: (videoWidth: Int, videoHeight: Int) -> Unit,
+    onExit: () -> Unit,
 ) {
     val viewModel: VideoFeedViewModel = hiltViewModel()
     val commentViewModel: CommentViewModel = hiltViewModel()
@@ -137,6 +145,9 @@ fun VideoFeedScreen(
                     viewModel = viewModel,
                     commentViewModel = commentViewModel,
                     danmakuViewModel = danmakuViewModel,
+                    playerManager = playerManager,
+                    onEnterMiniPlayer = onEnterMiniPlayer,
+                    onExit = onExit,
                 )
             }
         }
@@ -144,19 +155,38 @@ fun VideoFeedScreen(
 }
 
 @UnstableApi
+@kotlin.OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun VideoFeedContent(
     navController: NavHostController,
     viewModel: VideoFeedViewModel,
     commentViewModel: CommentViewModel,
     danmakuViewModel: DanmakuViewModel,
+    playerManager: VideoPlayerManager,
+    onEnterMiniPlayer: (videoWidth: Int, videoHeight: Int) -> Unit,
+    onExit: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val commentUiState by commentViewModel.uiState.collectAsState()
     val danmakuUiState by danmakuViewModel.uiState.collectAsState()
-    val playerManager = rememberVideoPlayerManager()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val notificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
+    } else {
+        null
+    }
+    var justRequested by remember { mutableStateOf(false) }
+
+    LaunchedEffect(notificationPermission?.status) {
+        if (justRequested) {
+            justRequested = false
+            val status = notificationPermission?.status ?: return@LaunchedEffect
+            if (!status.isGranted) {
+                "请在设置中开启通知".showToast(context)
+            }
+        }
+    }
 
     // 弹幕发送失败提示
     LaunchedEffect(danmakuUiState.sendError) {
@@ -289,10 +319,12 @@ private fun VideoFeedContent(
                     onTogglePlay = {
                         if (!danmakuViewModel.dismissBubble()) viewModel.togglePaused(item.id)
                     },
+                    title = item.title,
                     controlEnabled = !uiState.fullscreen,// 全屏时竖屏页让出播放器与画布
                     forcePaused = danmakuUiState.showInput,// 发弹幕时暂停当前视频
                     playbackSpeed = uiState.playbackSpeed,
                     autoPlayNext = uiState.autoPlayNext,
+                    backgroundAudio = uiState.backgroundAudio,
                     onPlaybackEnded = {
                         // 自动连播
                         val next = page + 1
@@ -325,7 +357,7 @@ private fun VideoFeedContent(
                             scrubbing = scrubbing,
                             clearScreen = uiState.clearScreen,
                             onScrubbingChange = { scrubbing = it },
-                            onBack = { navController.popBackStack() },
+                            onBack = { if (!navController.popBackStack()) onExit() },
                             onShare = {},
                             onAuthorClick = { navController.navigateToUserProfile(item.author.id, selfUserId) },
                             onFollow = {},
@@ -344,6 +376,7 @@ private fun VideoFeedContent(
                             onDeleteDanmaku = { danmakuViewModel.deleteDanmaku(item.id, it.id) },
                             showFullscreenButton = item.isLandscape,
                             onFullscreen = { viewModel.enterFullscreen() },
+                            onEnterMiniPlayer = { onEnterMiniPlayer(item.video.width, item.video.height) },
                         )
                         // 双击点赞爱心
                         LikeBurst(position = likeBurst, triggerKey = likeBurstKey)
@@ -540,6 +573,16 @@ private fun VideoFeedContent(
                 viewModel.toggleAutoPlayNext()
                 if (wasOn) "自动连播已关闭".showToast(context) else "自动连播已开启".showToast(context)
             },
+            backgroundAudio = uiState.backgroundAudio,
+            onToggleBackgroundAudio = {
+                val wasOn = uiState.backgroundAudio
+                viewModel.toggleBackgroundAudio()
+                if (!wasOn && notificationPermission != null && !notificationPermission.status.isGranted) {
+                    justRequested = true
+                    notificationPermission.launchPermissionRequest()
+                }
+                if (wasOn) "后台播放已关闭".showToast(context) else "后台播放已开启".showToast(context)
+            },
             onClearScreen = { viewModel.toggleClearScreen() },
             clearScreen = uiState.clearScreen,
             onSaveVideo = {
@@ -606,6 +649,7 @@ private fun VideoChrome(
     onDeleteDanmaku: (DanmakuData) -> Unit = {},
     showFullscreenButton: Boolean = false,
     onFullscreen: () -> Unit = {},// 进入横屏全屏
+    onEnterMiniPlayer: () -> Unit = {},
 ) {
     // 播放进度轮询
     var positionMs by remember { mutableLongStateOf(0L) }
@@ -649,6 +693,21 @@ private fun VideoChrome(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() },
                                 onClick = onBack,
+                            )
+                            .padding(8.dp),
+                    )
+                    // 小窗播放
+                    Icon(
+                        painter = painterResource(R.drawable.ic_pip),
+                        contentDescription = "小窗播放",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() },
+                                onClick = onEnterMiniPlayer,
                             )
                             .padding(8.dp),
                     )
