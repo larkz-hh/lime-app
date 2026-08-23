@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
@@ -34,6 +35,7 @@ import xyz.larkzhh.lime.ui.theme.LimeGray
  * @param lottieAsset assets 目录下的动画文件路径，默认 "lottie/like.lottie"
  * @param iconSize 静态爱心图标大小
  * @param animationSize Lottie 动画大小
+ * @param animationScale Lottie 动画视觉缩放
  * @param modifier 外部传入的 Modifier
  */
 @Composable
@@ -44,6 +46,7 @@ fun LikeButton(
     lottieAsset: String = "lottie/like.lottie",
     iconSize: Dp = 14.dp,
     animationSize: Dp = 32.dp,
+    animationScale: Float = 1.5f,
     inactiveColor: Color = LimeGray,
 ) {
     val composition by rememberLottieComposition(LottieCompositionSpec.Asset(lottieAsset))
@@ -74,7 +77,9 @@ fun LikeButton(
             LottieAnimation(
                 composition = composition,
                 progress = { progress },
-                modifier = Modifier.size(animationSize),
+                modifier = Modifier
+                    .size(animationSize)
+                    .scale(animationScale),
             )
         } else {
             if (liked) {

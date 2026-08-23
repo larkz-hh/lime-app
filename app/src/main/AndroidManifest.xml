@@ -5,12 +5,18 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
     <uses-permission
         android:name="android.permission.READ_MEDIA_IMAGES"
+        android:minSdkVersion="33" />
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_VIDEO"
         android:minSdkVersion="33" />
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
@@ -33,6 +39,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
             android:theme="@style/Theme.Lime"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -42,11 +49,38 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".VideoActivity"
+            android:exported="false"
+            android:supportsPictureInPicture="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:theme="@style/Theme.Lime.VideoFeed" />
+        <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.UCrop.Fullscreen"
             tools:ignore="LockedOrientationActivity"
             />
+        <!-- 媒体按钮接收器：MediaSession 用于响应蓝牙/耳机等媒体按键 -->
+        <receiver
+            android:name="androidx.media3.session.MediaButtonReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+        <!-- PiP 小窗自定义按钮（后退15s/暂停/前进15s）的广播接收器 -->
+        <receiver
+            android:name=".PipMediaActionReceiver"
+            android:exported="false" />
+        <!-- 后台播放服务：前台服务 + 通知栏媒体卡片（Media3 MediaSessionService） -->
+        <service
+            android:name=".ui.video.player.PlaybackService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

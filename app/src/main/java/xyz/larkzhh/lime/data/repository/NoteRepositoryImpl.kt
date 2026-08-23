@@ -3,16 +3,23 @@ package xyz.larkzhh.lime.data.repository
 import android.content.Context
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okio.BufferedSink
+import okio.source
 import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.model.DeleteHistoryRequest
 import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.HistoryResponse
+import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.NoteImageRequest
 import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
+import xyz.larkzhh.lime.data.network.model.PublishVideoNoteRequest
+import xyz.larkzhh.lime.data.network.model.VideoRequest
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.util.LruCache
 import javax.inject.Inject
@@ -44,9 +51,52 @@ class NoteRepositoryImpl @Inject constructor(
         response.data.url
     }
 
+    /// 上传笔记视频，流式写入
+    override suspend fun uploadVideo(uri: Uri): Result<String> = runCatching {
+        val mimeType = context.contentResolver.getType(uri) ?: "video/mp4"
+        val requestBody = uri.asStreamingRequestBody(mimeType.toMediaTypeOrNull())
+        val part = MultipartBody.Part.createFormData("file", "upload.mp4", requestBody)
+        val response = apiService.uploadNoteVideo(part)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data.url
+    }
+
+    /// 将内容 uri 包装为流式 RequestBody
+    private fun Uri.asStreamingRequestBody(contentType: MediaType?): RequestBody =
+        object : RequestBody() {
+            override fun contentType(): MediaType? = contentType// 声明请求体的内容类型
+
+            override fun contentLength(): Long =
+                context.contentResolver.openFileDescriptor(this@asStreamingRequestBody, "r")
+                    ?.use { it.statSize } ?: -1L// 获取文件的总大小
+
+            override fun writeTo(sink: BufferedSink) {
+                val stream = context.contentResolver.openInputStream(this@asStreamingRequestBody)
+                    ?: error("无法读取视频文件")
+                stream.source().use { source -> sink.writeAll(source) }
+            }// 流式写入
+        }
+
     /// 获取信息流
     override suspend fun getFeed(cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
         val response = apiService.getFeed(cursor = cursor, size = size)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
+    /// 获取视频信息流
+    override suspend fun getVideoFeed(
+        cursor: Long?,
+        seedNoteId: Long?,
+        orientation: String?,
+        size: Int,
+    ): Result<FeedResponse> = runCatching {
+        val response = apiService.getVideoFeed(
+            cursor = cursor,
+            seedNoteId = seedNoteId,
+            orientation = orientation,
+            size = size,
+        )
         check(response.code == 200 && response.data != null) { response.message }
         response.data
     }
@@ -101,8 +151,8 @@ class NoteRepositoryImpl @Inject constructor(
     }
 
     /// 获取笔记详情
-    override suspend fun getNoteDetail(id: Long): Result<NoteDetailData> = runCatching {
-        val response = apiService.getNoteDetail(id)
+    override suspend fun getNoteDetail(id: Long, noView: Boolean): Result<NoteDetailData> = runCatching {
+        val response = apiService.getNoteDetail(id, noView = noView)
         check(response.code == 200 && response.data != null) { response.message }
         response.data
     }
@@ -131,10 +181,17 @@ class NoteRepositoryImpl @Inject constructor(
         title: String?,
         content: String?,
         imageUrls: List<String>,
+        coverSize: ImageSize?,
         status: Int,
     ): Result<Unit> = runCatching {
         val images = imageUrls.mapIndexed { index, url ->
-            NoteImageRequest(url = url, sortOrder = index)
+            val isCover = index == 0
+            NoteImageRequest(
+                url = url,
+                sortOrder = index,
+                width = if (isCover) coverSize?.width else null,
+                height = if (isCover) coverSize?.height else null,
+            )
         }
         val request = PublishNoteRequest(
             title = title?.ifBlank { null },
@@ -143,6 +200,37 @@ class NoteRepositoryImpl @Inject constructor(
             status = status,
         )
         val response = apiService.publishNote(request)
+        check(response.code == 200) { response.message }
+    }
+
+    /// 发布视频笔记
+    override suspend fun publishVideoNote(
+        title: String?,
+        content: String?,
+        videoUrl: String,
+        durationMs: Long,
+        width: Int,
+        height: Int,
+        coverUrl: String?,
+        coverWidth: Int?,
+        coverHeight: Int?,
+        status: Int,
+    ): Result<Unit> = runCatching {
+        val request = PublishVideoNoteRequest(
+            title = title?.ifBlank { null },
+            content = content?.ifBlank { null },
+            video = VideoRequest(
+                url = videoUrl,
+                durationMs = durationMs,
+                width = width,
+                height = height,
+                coverUrl = coverUrl,
+                coverWidth = coverWidth,
+                coverHeight = coverHeight,
+            ),
+            status = status,
+        )
+        val response = apiService.publishVideoNote(request)
         check(response.code == 200) { response.message }
     }
 }

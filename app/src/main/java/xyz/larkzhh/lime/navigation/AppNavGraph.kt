@@ -20,6 +20,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,11 +41,15 @@ import xyz.larkzhh.lime.ui.profile.ProfileScreen
 import xyz.larkzhh.lime.ui.profile.history.BrowseHistoryScreen
 import xyz.larkzhh.lime.ui.publish.PhotoPickerScreen
 import xyz.larkzhh.lime.ui.publish.PublishScreen
+import xyz.larkzhh.lime.ui.publish.VideoPublishScreen
+import xyz.larkzhh.lime.ui.publish.CoverPickerScreen
 import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
+import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
 import xyz.larkzhh.lime.ui.qrscan.QrScanScreen
 import xyz.larkzhh.lime.ui.search.SearchScreen
 import xyz.larkzhh.lime.ui.theme.LimeWhite
-import xyz.larkzhh.lime.ui.video.VideoScreen
+import xyz.larkzhh.lime.ui.video.feed.VideoFeedScreen
+import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 
 
 private val bottomNavRoutes = setOf(
@@ -60,21 +65,24 @@ private val authRoutes = setOf(Screen.Login.route, Screen.Register.route)
 /// 需要右滑预测性返回水平滑出、滑入的页面
 private val swipeBackRoutes = setOf(Screen.Detail.ROUTE, Screen.UserProfile.ROUTE, Screen.Search.route)
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavGraph() {
+fun AppNavGraph(playerManager: VideoPlayerManager) {
     val authViewModel: AuthViewModel = hiltViewModel()
     val startDestination = Screen.Home.route
     var pendingRedirect by remember { mutableStateOf<String?>(null) }
     var showPublishSheet by remember { mutableStateOf(false) }
     var isFullScreenActive by remember { mutableStateOf(false) }// 是否全屏
+    var videoTabFullscreen by remember { mutableStateOf(false) }// 视频 tab 横屏全屏
+    var videoTabOverlay by remember { mutableStateOf(false) }// 视频 tab 底部浮层打开
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val showBottomBar = currentRoute in bottomNavRoutes && !isFullScreenActive
+    val showBottomBar = currentRoute in bottomNavRoutes && !isFullScreenActive && !videoTabFullscreen && !videoTabOverlay
 
 
     LaunchedEffect(currentRoute) {
@@ -84,26 +92,26 @@ fun AppNavGraph() {
 
     Scaffold(
         bottomBar = {
-            if (showBottomBar) {
-                BottomNavBar(
-                    navController = navController,
-                    currentRoute = currentRoute,
-                    isLoggedIn = authViewModel.isLoggedIn(),
-                    onRequireLogin = { targetRoute ->
-                        pendingRedirect = targetRoute
-                        if (currentRoute !in authRoutes) {
-                            navController.navigate(Screen.Login.route)
-                        }
-                    },
-                    onPublishClick = { showPublishSheet = true },
-                )
+                if (showBottomBar) {
+                    BottomNavBar(
+                        navController = navController,
+                        currentRoute = currentRoute,
+                        isLoggedIn = authViewModel.isLoggedIn(),
+                        onRequireLogin = { targetRoute ->
+                            pendingRedirect = targetRoute
+                            if (currentRoute !in authRoutes) {
+                                navController.navigate(Screen.Login.route)
+                            }
+                        },
+                        onPublishClick = { showPublishSheet = true },
+                    )
+                }
             }
-        }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = startDestination,
-            modifier = if (showBottomBar) Modifier.padding(bottom = innerPadding.calculateBottomPadding()) else Modifier,
+        ) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = startDestination,
+                modifier = if (showBottomBar) Modifier.padding(bottom = innerPadding.calculateBottomPadding()) else Modifier,
             popExitTransition = {
                 when {
                     SwipeBackNavState.suppressPopAnim -> ExitTransition.None
@@ -154,7 +162,16 @@ fun AppNavGraph() {
                 )
             }
             composable(Screen.Home.route) { entry -> ScrimBox(entry.id) { HomeScreen(navController) } }
-            composable(Screen.Video.route) { entry -> ScrimBox(entry.id) { VideoScreen(navController) } }
+            composable(Screen.Video.route) { entry ->
+                ScrimBox(entry.id) {
+                    VideoFeedScreen(
+                        navController = navController,
+                        playerManager = playerManager,
+                        onFullscreenChange = { videoTabFullscreen = it },
+                        onOverlayChange = { videoTabOverlay = it },
+                    )
+                }
+            }
             composable(Screen.Message.route) { entry -> ScrimBox(entry.id) { MessageScreen(navController) } }
             composable(Screen.Profile.route) { entry -> ScrimBox(entry.id) { ProfileScreen(navController) } }
             composable(
@@ -243,7 +260,12 @@ fun AppNavGraph() {
                         navController.getBackStackEntry(Screen.Publish.route)
                     }
                     val viewModel: PublishViewModel = hiltViewModel(parentEntry)
-                    PhotoPickerScreen(navController = navController, viewModel = viewModel)
+                    val videoViewModel: VideoPublishViewModel = hiltViewModel(parentEntry)
+                    PhotoPickerScreen(
+                        navController = navController,
+                        viewModel = viewModel,
+                        videoViewModel = videoViewModel,
+                    )
                 }// 生命周期与整个发布流程绑定
                 composable(Screen.NotePublish.route) { entry ->
                     val parentEntry = remember(entry) {
@@ -251,6 +273,20 @@ fun AppNavGraph() {
                     }
                     val viewModel: PublishViewModel = hiltViewModel(parentEntry)
                     PublishScreen(navController = navController, viewModel = viewModel)
+                }
+                composable(Screen.VideoPublish.route) { entry ->
+                    val parentEntry = remember(entry) {
+                        navController.getBackStackEntry(Screen.Publish.route)
+                    }
+                    val videoViewModel: VideoPublishViewModel = hiltViewModel(parentEntry)
+                    VideoPublishScreen(navController = navController, viewModel = videoViewModel)
+                }
+                composable(Screen.CoverPicker.route) { entry ->
+                    val parentEntry = remember(entry) {
+                        navController.getBackStackEntry(Screen.Publish.route)
+                    }
+                    val videoViewModel: VideoPublishViewModel = hiltViewModel(parentEntry)
+                    CoverPickerScreen(navController = navController, viewModel = videoViewModel)
                 }
             }
         }

@@ -17,10 +17,19 @@ sealed class Screen(val route: String) {
         const val ROUTE = "detail/{noteId}"
         fun createRoute(noteId: String) = "detail/$noteId"
     }
+    object VideoFeed : Screen("video_feed/{noteId}?source={source}") {
+        const val ROUTE = "video_feed/{noteId}?source={source}"
+        const val SOURCE_RECOMMENDATION = "recomment"// 推荐
+        const val SOURCE_PERSONAL = "personal"// 个人列表
+        const val SOURCE_TAB = "tab"// 底部栏视频
+        fun createRoute(noteId: Long, source: String) = "video_feed/$noteId?source=$source"
+    }
     object EditProfile : Screen("edit_profile")
     object QrScan : Screen("qr_scan")
     object PhotoPicker : Screen("photo_picker")
     object NotePublish : Screen("note_publish")
+    object VideoPublish : Screen("video_publish")
+    object CoverPicker : Screen("cover_picker")
     object BrowseHistory : Screen("browse_history")
     object CommentPhotoPicker : Screen("comment_photo_picker")
 }

@@ -35,6 +35,7 @@ import xyz.larkzhh.lime.ui.theme.LimeLightGray
  * @param onCommentClick 点击评论框
  * @param onVoiceClick 点击录音入口
  * @param onAlbumClick 点击相册入口
+ * @param showAvatar 是否显示左侧头像
  */
 @Composable
 fun CommentInputBar(
@@ -43,6 +44,7 @@ fun CommentInputBar(
     onVoiceClick: () -> Unit,
     onAlbumClick: () -> Unit,
     modifier: Modifier = Modifier,
+    showAvatar: Boolean = true,
 ) {
     Row(
         modifier = modifier
@@ -52,15 +54,17 @@ fun CommentInputBar(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         // 登录用户头像
-        AsyncImage(
-            model = currentUserAvatar,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(LimeLightGray),
-        )
+        if (showAvatar) {
+            AsyncImage(
+                model = currentUserAvatar,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(LimeLightGray),
+            )
+        }
 
         // 评论输入框
         Row(

@@ -8,10 +8,10 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.13.0"
 kotlin = "2.2.10"
-kotlinUser = "2.0.21"
+kotlinUser = "2.2.10"
 composeBom = "2026.02.01"
-ksp = "2.0.21-1.0.28"
-hilt = "2.52"
+ksp = "2.2.10-2.0.2"
+hilt = "2.57.2"
 hiltNavigationCompose = "1.2.0"
 navigationCompose = "2.8.7"
 pagingCompose = "3.3.5"
@@ -27,7 +27,7 @@ cameraX = "1.4.1"
 mlkitBarcode = "17.3.0"
 mlkitTranslate = "17.0.3"
 lottie = "6.7.1"
-media3 = "1.6.0"
+media3 = "1.11.0"
 accompanist = "0.37.3"
 workManager = "2.10.1"
 ucrop = "2.2.9"
@@ -105,7 +105,10 @@ lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", versio
 
 # Media3 ExoPlayer
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
-androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
+androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3" }
+androidx-media3-ui-compose = { group = "androidx.media3", name = "media3-ui-compose", version.ref = "media3" }
+androidx-media3-ui-compose-material3 = { group = "androidx.media3", name = "media3-ui-compose-material3", version.ref = "media3" }
+androidx-media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
 
 # Accompanist
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }

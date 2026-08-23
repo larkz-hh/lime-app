@@ -56,12 +56,18 @@ fun NoteCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val imageRatio = remember(item.id) {
-//        val idx = (item.id % 3).toInt().let { if (it < 0) it + 3 else it }
-//        listOf(0.75f, 0.85f, 1.0f)[idx]
-        val idx = (item.id % 4).toInt().let { if (it < 0) it + 4 else it }
-        listOf(0.65f, 0.8f, 0.95f, 1.1f)[idx]
+    // 封面宽高比
+    val imageRatio = remember(item.id, item.coverWidth, item.coverHeight) {
+        if (item.coverWidth != null && item.coverHeight != null && item.coverHeight > 0) {
+            item.coverWidth.toFloat() / item.coverHeight
+        } else 0.75f
     }
+//    val imageRatio = remember(item.id) {
+////        val idx = (item.id % 3).toInt().let { if (it < 0) it + 3 else it }
+////        listOf(0.75f, 0.85f, 1.0f)[idx]
+//        val idx = (item.id % 4).toInt().let { if (it < 0) it + 4 else it }
+//        listOf(0.65f, 0.8f, 0.95f, 1.1f)[idx]
+//    }
 
     Card(
         onClick = onClick,

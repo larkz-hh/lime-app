@@ -25,6 +25,7 @@ import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -53,6 +54,8 @@ private const val FLING_VELOCITY_DP = 320f
  * @param onCommitForward 侧滑前进的回调函数
  * @param dragSensitivity 拖动阻尼，页面移动 = 手指位移 × 阻尼系数
  * @param tabContentRegion 触摸点是否位于横向滑动区域
+ * @param excludeRegion 按下点（相对本容器的局部坐标）+ 本容器像素尺寸；返回 true 时整段手势让给子级
+ *        （如视频页底部进度条，避免抢占 Slider）。用容器自身 size 换算，坐标系与 pos 完全一致，无测量时序问题。
  * @param tabAtLeftmost 判断当前 Tab 是否处于最左侧
  * @param revealEntryId 返回栈中要露出的上一页 Entry 的 id
  * @param content 当前页面的实际内容
@@ -67,6 +70,7 @@ fun SwipeBackScaffold(
     onCommitForward: () -> Unit = {},
     dragSensitivity: Float = 0.6f,
     tabContentRegion: ((Offset) -> Boolean)? = null,// null: 整页不是tab内容区
+    excludeRegion: ((pos: Offset, size: IntSize) -> Boolean)? = null,// 排除区域
     tabAtLeftmost: () -> Boolean = { true },
     revealEntryId: () -> String? = { null },
     content: @Composable () -> Unit,
@@ -86,7 +90,7 @@ fun SwipeBackScaffold(
             .fillMaxSize()
             .then(
                 if (backActive || forwardActive) {
-                    Modifier.pointerInput(backActive, forwardActive, hasTabRegion) {
+                    Modifier.pointerInput(backActive, forwardActive, hasTabRegion, excludeRegion != null) {
                         var gestureIsBack: Boolean? = null// 单次手势的方向状态
                         var backAccumulatedX = 0f// 累计滑动距离
                         var backStarted = false// 本次右滑是否越过激活阈值
@@ -101,6 +105,7 @@ fun SwipeBackScaffold(
                                     !inTab || tabAtLeftmost()
                                 }
                             },
+                            bypassAtDown = { pos -> excludeRegion?.invoke(pos, size) ?: false },
                             resolveLock = { isBack, pos ->
                                 val canBack = backActive && !backCoolingDown
                                 if (!hasTabRegion) {
@@ -274,6 +279,7 @@ private enum class LockMode { ACT, CONSUME, RELEASE }
 
 private suspend fun PointerInputScope.detectLockingHorizontalDrag(
     interceptAtDown: (Offset) -> Boolean,
+    bypassAtDown: (Offset) -> Boolean = { false },
     resolveLock: (isBack: Boolean, position: Offset) -> LockMode,
     onLock: (isBack: Boolean, position: Offset) -> Unit,
     onDrag: (dragAmount: Float, position: Offset) -> Unit,
@@ -281,6 +287,7 @@ private suspend fun PointerInputScope.detectLockingHorizontalDrag(
 ) {
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+        if (bypassAtDown(down.position)) return@awaitEachGesture// 落在排除区，不拦截本次手势，交给子级
         val intercept = interceptAtDown(down.position)// 是否拦截
         val pointerId = down.id
         val touchSlop = viewConfiguration.touchSlop// 获取系统默认的滑动阈值
