@@ -26,8 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import xyz.larkzhh.lime.R
 
 private sealed class BottomNavItem(
     val screen: Screen,
@@ -99,27 +101,43 @@ fun BottomNavBar(
             } else {
                 val selected = currentRoute == item.screen.route
                 val requiresAuth = item.screen.route in authRequiredScreens
-                NavigationBarItem(
-                    selected = selected,
-                    onClick = {
-                        if (requiresAuth && !isLoggedIn) {
-                            onRequireLogin(item.screen.route)
-                        } else {
-                            navController.navigate(item.screen.route) {
-                                popUpTo(Screen.Home.route) { saveState = true }// 保存状态
-                                launchSingleTop = true
-                                restoreState = true// 恢复之前状态
-                            }
+                val onClick = {
+                    if (requiresAuth && !isLoggedIn) {
+                        onRequireLogin(item.screen.route)
+                    } else {
+                        navController.navigate(item.screen.route) {
+                            popUpTo(Screen.Home.route) { saveState = true }// 保存状态
+                            launchSingleTop = true
+                            restoreState = true// 恢复之前状态
                         }
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
-                            contentDescription = item.label
-                        )
-                    },
-                    label = { Text(item.label) }
-                )
+                    }
+                }
+                if (item is BottomNavItem.Video) {
+                    NavigationBarItem(
+                        selected = selected,
+                        onClick = onClick,
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_video),
+                                contentDescription = item.label,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        },
+                        label = { Text(item.label) },
+                    )
+                } else {
+                    NavigationBarItem(
+                        selected = selected,
+                        onClick = onClick,
+                        icon = {
+                            Icon(
+                                imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
+                                contentDescription = item.label,
+                            )
+                        },
+                        label = { Text(item.label) },
+                    )
+                }
             }
         }
     }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -33,9 +34,14 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -81,12 +87,14 @@ import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
+import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.components.CommentInputSheet
 import xyz.larkzhh.lime.ui.video.components.ExpandableText
 import xyz.larkzhh.lime.ui.video.components.DanmakuInputSheet
 import xyz.larkzhh.lime.ui.video.components.DanmakuOverlay
 import xyz.larkzhh.lime.ui.video.components.FollowButton
 import xyz.larkzhh.lime.ui.video.components.VideoActionPanel
+import xyz.larkzhh.lime.ui.video.components.VideoSideActionBar
 import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet
 import xyz.larkzhh.lime.ui.components.GroupedSheetAction
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
@@ -110,17 +118,28 @@ import kotlin.time.Duration.Companion.milliseconds
 
 /// 竖屏视频页
 @UnstableApi
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoFeedScreen(
     navController: NavHostController,
     playerManager: VideoPlayerManager,
-    onEnterMiniPlayer: (videoWidth: Int, videoHeight: Int) -> Unit,
-    onExit: () -> Unit,
+    onEnterMiniPlayer: ((videoWidth: Int, videoHeight: Int) -> Unit)? = null,
+    onExit: () -> Unit = {},
+    onFullscreenChange: (Boolean) -> Unit = {},
+    onOverlayChange: (Boolean) -> Unit = {},
 ) {
     val viewModel: VideoFeedViewModel = hiltViewModel()
     val commentViewModel: CommentViewModel = hiltViewModel()
     val danmakuViewModel: DanmakuViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
+
+    // 外部同步全屏状态
+    LaunchedEffect(uiState.fullscreen) {
+        onFullscreenChange(uiState.fullscreen)
+    }
+    DisposableEffect(Unit) {
+        onDispose { onFullscreenChange(false) }
+    }
 
     Box(
         modifier = Modifier
@@ -140,15 +159,40 @@ fun VideoFeedScreen(
                 )
             }
             else -> {
-                VideoFeedContent(
-                    navController = navController,
-                    viewModel = viewModel,
-                    commentViewModel = commentViewModel,
-                    danmakuViewModel = danmakuViewModel,
-                    playerManager = playerManager,
-                    onEnterMiniPlayer = onEnterMiniPlayer,
-                    onExit = onExit,
-                )
+                val content = @Composable {
+                    VideoFeedContent(
+                        navController = navController,
+                        viewModel = viewModel,
+                        commentViewModel = commentViewModel,
+                        danmakuViewModel = danmakuViewModel,
+                        playerManager = playerManager,
+                        onEnterMiniPlayer = onEnterMiniPlayer,
+                        onExit = onExit,
+                        onOverlayChange = onOverlayChange,
+                    )
+                }
+                // 下拉刷新
+                if (viewModel.isTabEntry && !uiState.fullscreen) {
+                    val refreshState = rememberPullToRefreshState()
+                    PullToRefreshBox(
+                        isRefreshing = uiState.isRefreshing,
+                        onRefresh = viewModel::refresh,
+                        state = refreshState,
+                        indicator = {
+                            PullToRefreshDefaults.Indicator(
+                                state = refreshState,
+                                isRefreshing = uiState.isRefreshing,
+                                modifier = Modifier.align(Alignment.TopCenter),
+                                containerColor = Color.White,
+                                color = LimePrimary,
+                            )
+                        },
+                    ) {
+                        content()
+                    }
+                } else {
+                    content()
+                }
             }
         }
     }
@@ -163,8 +207,9 @@ private fun VideoFeedContent(
     commentViewModel: CommentViewModel,
     danmakuViewModel: DanmakuViewModel,
     playerManager: VideoPlayerManager,
-    onEnterMiniPlayer: (videoWidth: Int, videoHeight: Int) -> Unit,
+    onEnterMiniPlayer: ((videoWidth: Int, videoHeight: Int) -> Unit)?,
     onExit: () -> Unit,
+    onOverlayChange: (Boolean) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val commentUiState by commentViewModel.uiState.collectAsState()
@@ -202,12 +247,19 @@ private fun VideoFeedContent(
     // 双击爱心动画
     var likeBurst by remember { mutableStateOf<Offset?>(null) }
     var likeBurstKey by remember { mutableIntStateOf(0) }
+    var likeBurstNoteId by remember { mutableStateOf<Long?>(null) }
     // 评论交互
     var voiceSheetHeightDp by remember { mutableIntStateOf(0) }
     var longPressTarget by remember { mutableStateOf<LongPressTarget?>(null) }
     var pendingDeleteAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     var commentPreviewImages by remember { mutableStateOf<List<String>>(emptyList()) }
     var commentPreviewIndex by remember { mutableStateOf<Int?>(null) }
+
+    // 同步底部浮层状态
+    val bottomOverlayVisible = showCommentDrawer || showActionPanel ||
+        commentUiState.showInputSheet || commentUiState.showVoiceSheet || danmakuUiState.showInput
+    LaunchedEffect(bottomOverlayVisible) { onOverlayChange(bottomOverlayVisible) }
+    DisposableEffect(Unit) { onDispose { onOverlayChange(false) } }
 
     val lastIndex = (uiState.items.size - 1).coerceAtLeast(0)
     val pagerState = rememberPagerState(
@@ -342,6 +394,7 @@ private fun VideoFeedContent(
                                 if (!latestItem.liked) viewModel.toggleLikeById(item.id)// 双击点赞
                                 likeBurst = offset
                                 likeBurstKey++
+                                likeBurstNoteId = item.id
                             },
                             onLongPress = {
                                 danmakuViewModel.dismissBubble()
@@ -375,11 +428,21 @@ private fun VideoFeedContent(
                             onSendDanmakuClick = { danmakuViewModel.openInput() },
                             onDeleteDanmaku = { danmakuViewModel.deleteDanmaku(item.id, it.id) },
                             showFullscreenButton = item.isLandscape,
+                            useSideActions = viewModel.isTabEntry,
                             onFullscreen = { viewModel.enterFullscreen() },
-                            onEnterMiniPlayer = { onEnterMiniPlayer(item.video.width, item.video.height) },
+                            onEnterMiniPlayer = onEnterMiniPlayer?.let { cb -> { cb(item.video.width, item.video.height) } },
                         )
                         // 双击点赞爱心
-                        LikeBurst(position = likeBurst, triggerKey = likeBurstKey)
+                        if (likeBurstNoteId == item.id) {
+                            LikeBurst(
+                                position = likeBurst,
+                                triggerKey = likeBurstKey,
+                                onFinished = {
+                                    likeBurstNoteId = null
+                                    likeBurst = null
+                                },
+                            )
+                        }
                     }
                 }
             }
@@ -648,8 +711,9 @@ private fun VideoChrome(
     onSendDanmakuClick: () -> Unit = {},
     onDeleteDanmaku: (DanmakuData) -> Unit = {},
     showFullscreenButton: Boolean = false,
+    useSideActions: Boolean = false,
     onFullscreen: () -> Unit = {},// 进入横屏全屏
-    onEnterMiniPlayer: () -> Unit = {},
+    onEnterMiniPlayer: (() -> Unit)? = null,
 ) {
     // 播放进度轮询
     var positionMs by remember { mutableLongStateOf(0L) }
@@ -671,46 +735,52 @@ private fun VideoChrome(
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .statusBarsPadding(),
+                .fillMaxWidth(),
         ) {
             // 顶部控制栏
             if (!scrubbing && !clearScreen) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.3f))
+                        .statusBarsPadding()
                         .padding(horizontal = 8.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "返回",
-                        tint = Color.White,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() },
-                                onClick = onBack,
-                            )
-                            .padding(8.dp),
-                    )
+                    // 返回键
+                    if (!useSideActions) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "返回",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    onClick = onBack,
+                                )
+                                .padding(8.dp),
+                        )
+                    }
                     // 小窗播放
-                    Icon(
-                        painter = painterResource(R.drawable.ic_pip),
-                        contentDescription = "小窗播放",
-                        tint = Color.White,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() },
-                                onClick = onEnterMiniPlayer,
-                            )
-                            .padding(8.dp),
-                    )
+                    if (onEnterMiniPlayer != null) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_pip),
+                            contentDescription = "小窗播放",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    onClick = { onEnterMiniPlayer() },
+                                )
+                                .padding(8.dp),
+                        )
+                    }
                     Spacer(Modifier.weight(1f))
                     Icon(
                         imageVector = Icons.Filled.Share,
@@ -728,8 +798,12 @@ private fun VideoChrome(
                     )
                 }
             } else if (!scrubbing) {
-                // 清屏时占住顶部栏高度，弹幕不随之上移
-                Spacer(Modifier.height(52.dp))
+                Spacer(
+                    Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .height(52.dp),
+                )
             }
             // 弹幕区
             if (!scrubbing) {
@@ -757,55 +831,15 @@ private fun VideoChrome(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth(),
         ) {
+            // 作者头像、昵称、关注
             if (!scrubbing && !clearScreen) {
-                Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-                    // 全屏观看入口
-                    if (showFullscreenButton) {
-                        Row(
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .shadow(
-                                    elevation = 8.dp,
-                                    shape = RoundedCornerShape(50),
-                                    ambientColor = Color.Black,
-                                    spotColor = Color.Black,
-                                )
-                                .clip(RoundedCornerShape(50))
-                                .background(Color.White.copy(alpha = 0.08f))
-                                .border(
-                                    width = 0.5.dp,
-                                    color = Color.White.copy(alpha = 0.25f),
-                                    shape = RoundedCornerShape(50),
-                                )
-                                .clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    onClick = { onFullscreen() },
-                                )
-                                .padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Fullscreen,
-                                contentDescription = "全屏观看",
-                                tint = Color.White,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Text(
-                                text = "全屏观看",
-                                color = Color.White,
-                                fontSize = 13.sp,
-                            )
-                        }
-                        Spacer(Modifier.height(16.dp))
-                    }
-                    // 作者头像、昵称、关注
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                         AsyncImage(
                             model = item.author.avatar,
                             contentDescription = item.author.nickname,
@@ -847,54 +881,147 @@ private fun VideoChrome(
                                     onClick = onSendDanmakuClick,
                                 ),
                         )
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    // 可展开标题与正文
-                    ExpandableText(title = item.title, body = item.body)
-                    Spacer(Modifier.height(10.dp))
                 }
+                Spacer(Modifier.height(10.dp))
+                // 可展开标题与正文
+                ExpandableText(
+                    title = item.title,
+                    body = item.body,
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .padding(horizontal = 12.dp),
+                )
+                Spacer(Modifier.height(10.dp))
             }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-            ) {
-                // 进度条
-                if (scrubbing) {
-                    Text(
-                        text = "${formatTime(positionMs)} / ${formatTime(durationMs)}",
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(bottom = 6.dp),
+            if (!useSideActions) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                ) {
+                    if (scrubbing) {
+                        Text(
+                            text = "${formatTime(positionMs)} / ${formatTime(durationMs)}",
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(bottom = 6.dp),
+                        )
+                    }
+                    ScrubBar(
+                        fraction = fraction,
+                        onDragStart = { onScrubbingChange(true) },
+                        onSeek = { v -> player?.seekTo((v * durationMs).toLong()) },
+                        onDragEnd = { v ->
+                            player?.seekTo((v * durationMs).toLong())
+                            onScrubbingChange(false)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
-                ScrubBar(
-                    fraction = fraction,
-                    onDragStart = { onScrubbingChange(true) },
-                    onSeek = { v -> player?.seekTo((v * durationMs).toLong()) },
-                    onDragEnd = { v ->
-                        player?.seekTo((v * durationMs).toLong())
-                        onScrubbingChange(false)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
+                // 底部栏
+                NoteBottomBar(
+                    note = item.toNoteDetailData(),
+                    onToggleLike = onToggleLike,
+                    onToggleFavorite = onToggleFavorite,
+                    onCommentClick = onCommentClick,
+                    containerColor = Color.Black,
+                    contentColor = Color.White,
+                    inputBackground = Color.White.copy(alpha = 0.18f),
+                    elevated = false,
+                    compact = true,
+                    modifier = Modifier.alpha(if (scrubbing) 0f else 1f),
+                )
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                ) {
+                    if (scrubbing) {
+                        Text(
+                            text = "${formatTime(positionMs)} / ${formatTime(durationMs)}",
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(bottom = 6.dp),
+                        )
+                    }
+                    ScrubBar(
+                        fraction = fraction,
+                        onDragStart = { onScrubbingChange(true) },
+                        onSeek = { v -> player?.seekTo((v * durationMs).toLong()) },
+                        onDragEnd = { v ->
+                            player?.seekTo((v * durationMs).toLong())
+                            onScrubbingChange(false)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        }
+
+        // 全屏观看入口
+        if (showFullscreenButton && !scrubbing && !clearScreen) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = 140.dp)
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(50),
+                        ambientColor = Color.Black,
+                        spotColor = Color.Black,
+                    )
+                    .clip(RoundedCornerShape(50))
+                    .background(Color.White.copy(alpha = 0.08f))
+                    .border(
+                        width = 0.5.dp,
+                        color = Color.White.copy(alpha = 0.25f),
+                        shape = RoundedCornerShape(50),
+                    )
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                        onClick = { onFullscreen() },
+                    )
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Fullscreen,
+                    contentDescription = "全屏观看",
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    text = "全屏观看",
+                    color = Color.White,
+                    fontSize = 13.sp,
                 )
             }
+        }
 
-            // 底部栏
-            NoteBottomBar(
-                note = item.toNoteDetailData(),
+        // 右侧竖排操作栏（底部栏视频 tab 直进，清屏/拖动进度时隐藏）
+        if (useSideActions) {
+            VideoSideActionBar(
+                liked = item.liked,
+                likeCount = item.likeCount,
+                favorited = item.favorited,
+                favCount = item.favCount,
+                commentCount = item.commentCount,
                 onToggleLike = onToggleLike,
                 onToggleFavorite = onToggleFavorite,
                 onCommentClick = onCommentClick,
-                containerColor = Color.Transparent,
-                contentColor = Color.White,
-                inputBackground = Color.White.copy(alpha = 0.18f),
-                elevated = false,
-                compact = true,
-                modifier = Modifier.alpha(if (scrubbing) 0f else 1f),
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 8.dp)
+                    .offset(y = 44.dp)
+                    .alpha(if (scrubbing || clearScreen) 0f else 1f),
             )
         }
     }

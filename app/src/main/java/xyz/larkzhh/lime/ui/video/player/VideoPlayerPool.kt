@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -30,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -65,6 +67,7 @@ class VideoPlayerManager @Inject constructor(
     private var session: MediaSession? = null
     private var sessionNoteId: Long = -1L
     private val sessionWrappers = HashMap<Long, PipSeekPlayer>()
+    private var appInForeground = true// 应用是否在前台
 
     // LRU 缓存
     private val cache = object : LinkedHashMap<Long, ExoPlayer>(0, 0.75f, true) {
@@ -118,12 +121,36 @@ class VideoPlayerManager @Inject constructor(
     private fun ensureSession(player: Player): MediaSession =
         session ?: MediaSession.Builder(context, player).build().also { s ->
             session = s
-            PlaybackService.instance?.addSession(s)
-                ?: ContextCompat.startForegroundService(
-                    context,
-                    Intent(context, PlaybackService::class.java),
-                )
+            // 前台（应用内观看）不启动服务、不挂通知；退到后台才由 onAppForegroundChanged 启动
+            if (!appInForeground) {
+                PlaybackService.instance?.addSession(s)
+                    ?: ContextCompat.startForegroundService(
+                        context,
+                        Intent(context, PlaybackService::class.java),
+                    )
+            }
         }
+
+    /// 应用前后台切换：前台停掉播放服务（通知随之消失），
+    /// 后台仅在"视频仍在播放"时才启动服务挂通知（已切走页面/已暂停都不挂）
+    fun onAppForegroundChanged(foreground: Boolean) {
+        appInForeground = foreground
+        if (foreground) {
+            if (PlaybackService.instance != null) {
+                context.stopService(Intent(context, PlaybackService::class.java))
+            }
+        } else {
+            val s = session
+            if (s != null && PlaybackService.instance == null && s.player.playWhenReady) {
+                runCatching {
+                    ContextCompat.startForegroundService(
+                        context,
+                        Intent(context, PlaybackService::class.java),
+                    )
+                }
+            }
+        }
+    }
 
     /// 返回当前会话
     fun sessionForService(): MediaSession? = session
@@ -234,6 +261,15 @@ fun VideoPage(
         if (controlEnabled) player?.playWhenReady = canPlay
     }
 
+    // 离开页面（切走 tab / 退出视频页）时暂停播放；
+    // 进入横屏全屏时 controlEnabled 已转 false（控制权交接），不暂停
+    val latestControlEnabled by rememberUpdatedState(controlEnabled)
+    DisposableEffect(Unit) {
+        onDispose {
+            if (latestControlEnabled) player?.playWhenReady = false
+        }
+    }
+
     // 上报活跃页
     LaunchedEffect(player, noteId, isActive, controlEnabled) {
         if (isActive && controlEnabled) playerManager.setActivePlayer(noteId)
@@ -280,6 +316,7 @@ fun VideoPage(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black)
+            .clipToBounds()
             .then(
                 gestureModifier ?: Modifier.clickable(
                     indication = null,
@@ -298,10 +335,12 @@ fun VideoPage(
         }
         AndroidView(
             factory = { textureView },
-            modifier = if (videoRatio > 0f) {
-                Modifier.aspectRatio(videoRatio)
-            } else {
-                Modifier.fillMaxSize()
+            modifier = when {
+                videoRatio > 0f && videoRatio < 1f ->
+                    // 竖视频撑满宽度，容器偏矮时上下裁切而不是左右留黑边
+                    Modifier.fillMaxWidth().aspectRatio(videoRatio)
+                videoRatio > 0f -> Modifier.aspectRatio(videoRatio)
+                else -> Modifier.fillMaxSize()
             },
         )
 

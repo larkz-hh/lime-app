@@ -44,6 +44,7 @@ data class VideoFeedUiState(
     val currentIndex: Int = 0,
     val isLoading: Boolean = true,
     val isLoadingMore: Boolean = false,
+    val isRefreshing: Boolean = false,
     val hasMore: Boolean = false,
     val fullscreen: Boolean = false,
     val pausedNoteIds: Set<Long> = emptySet(),
@@ -103,6 +104,8 @@ class VideoFeedViewModel @Inject constructor(
     private val noteId: Long = savedStateHandle.get<Long>("noteId") ?: 0L
     private val sourceArg: String =
         savedStateHandle.get<String>("source") ?: Screen.VideoFeed.SOURCE_RECOMMENDATION
+    // tab 栏进入
+    val isTabEntry: Boolean get() = noteId <= 0L || sourceArg == Screen.VideoFeed.SOURCE_TAB
 
     private var source: FeedSource = FeedSource.Recommendation(noteId)
     private var cursor: Long? = null
@@ -141,11 +144,12 @@ class VideoFeedViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             cursor = null
-            noteRepository.getVideoFeed(cursor = null, seedNoteId = noteId, orientation = null).fold(
+            val seed = noteId.takeIf { it > 0 }
+            noteRepository.getVideoFeed(cursor = null, seedNoteId = seed, orientation = null).fold(
                 onSuccess = { response ->
                     cursor = response.nextCursor
                     val videos = response.items.mapNotNull { it.toVideoItemOrNull() }
-                    val start = videos.indexOfFirst { it.id == noteId }.coerceAtLeast(0)
+                    val start = if (seed != null) videos.indexOfFirst { it.id == noteId }.coerceAtLeast(0) else 0
                     _uiState.update {
                         it.copy(
                             items = videos,
@@ -185,6 +189,37 @@ class VideoFeedViewModel @Inject constructor(
                 },
                 onFailure = { e ->
                     _uiState.update { it.copy(isLoadingMore = false, error = e.message) }
+                },
+            )
+        }
+    }
+
+    /// 下拉刷新
+    fun refresh() {
+        val state = _uiState.value
+        if (state.isLoading || state.isRefreshing) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
+            cursor = null
+            val seed = noteId.takeIf { it > 0 }
+            noteRepository.getVideoFeed(cursor = null, seedNoteId = seed, orientation = null).fold(
+                onSuccess = { response ->
+                    cursor = response.nextCursor
+                    val videos = response.items.mapNotNull { it.toVideoItemOrNull() }
+                    val start = if (seed != null) videos.indexOfFirst { it.id == noteId }.coerceAtLeast(0) else 0
+                    _uiState.update {
+                        it.copy(
+                            items = videos,
+                            currentIndex = start,
+                            pendingScrollTarget = start,
+                            isRefreshing = false,
+                            hasMore = response.hasMore,
+                        )
+                    }
+                    hydrateAround(start)
+                },
+                onFailure = { e ->
+                    _uiState.update { it.copy(isRefreshing = false, error = e.message) }
                 },
             )
         }
@@ -314,6 +349,7 @@ class VideoFeedViewModel @Inject constructor(
     // 横屏全屏
     private var landscapeCursor: Long? = null
     private var landscapeEntryIndex: Int = 0// 进入横屏时主队列下标
+    private var landscapeEntrySessionIndex: Int = 0// 进入横屏时会话内下标
 
     /// 进入横屏
     fun enterFullscreen() {
@@ -324,6 +360,7 @@ class VideoFeedViewModel @Inject constructor(
             is FeedSource.PersonalList -> {
                 val ls = state.items.filter { it.isLandscape }
                 val idx = ls.indexOfFirst { it.id == current.id }.coerceAtLeast(0)
+                landscapeEntrySessionIndex = idx
                 _uiState.update {
                     it.copy(
                         fullscreen = true,
@@ -334,6 +371,7 @@ class VideoFeedViewModel @Inject constructor(
                 }
             }
             is FeedSource.Recommendation -> {
+                landscapeEntrySessionIndex = 0
                 _uiState.update {
                     it.copy(
                         fullscreen = true,
@@ -352,6 +390,7 @@ class VideoFeedViewModel @Inject constructor(
                             // 保证当前视频在首位
                             val list = if (videos.any { it.id == current.id }) videos else listOf(current) + videos
                             val idx = list.indexOfFirst { it.id == current.id }.coerceAtLeast(0)
+                            landscapeEntrySessionIndex = idx
                             _uiState.update {
                                 it.copy(
                                     landscapeItems = list,
@@ -406,7 +445,7 @@ class VideoFeedViewModel @Inject constructor(
         }
     }
 
-    /// 退出横屏，推荐流插回主队列并停在当前，个人队列只移动游标
+    /// 退出横屏，推荐流回主队列并停在当前，个人队列只移动游标
     fun exitFullscreen() {
         val state = _uiState.value
         val landscapeCurrent = state.landscapeItems.getOrNull(state.landscapeIndex)
@@ -424,10 +463,22 @@ class VideoFeedViewModel @Inject constructor(
                 }
             }
             is FeedSource.Recommendation -> {
-                val existing = state.items.map { it.id }.toSet()
-                val played = state.landscapeItems.filter { it.id !in existing }
-                val insertAt = (landscapeEntryIndex + 1).coerceIn(0, state.items.size)// 把会话中播放过的横屏视频插回主队列
-                val newItems = state.items.toMutableList().apply { addAll(insertAt, played) }
+                // 浏览的横视频写入主队列
+                val session = state.landscapeItems
+                val entrySessionIdx = landscapeEntrySessionIndex.coerceIn(0, (session.size - 1).coerceAtLeast(0))
+                val browsedTail = if (state.landscapeIndex > entrySessionIdx) {
+                    session.subList(entrySessionIdx + 1, (state.landscapeIndex + 1).coerceAtMost(session.size))
+                } else {
+                    emptyList()
+                }
+                val browsedIds = browsedTail.map { it.id }.toSet()
+                val existing = state.items.map { it.id }.toSet()// 主队列已存在
+                val newRest = session.filter { it.id !in browsedIds && it.id !in existing }// 新加视频
+                val moved = browsedTail + newRest
+                val movedIds = moved.map { it.id }.toSet()
+                val base = state.items.filter { it.id !in movedIds }// 入口视频保留原位
+                val insertAt = (landscapeEntryIndex + 1).coerceIn(0, base.size)
+                val newItems = base.toMutableList().apply { addAll(insertAt, moved) }// 新队列
                 val targetId = landscapeCurrent?.id
                 val newIndex = targetId?.let { id -> newItems.indexOfFirst { it.id == id } }
                     ?.takeIf { it >= 0 } ?: state.currentIndex// 重新定位

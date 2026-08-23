@@ -524,7 +524,13 @@ private fun LazyStaggeredGridScope.tabContent(
                                     startIndex = uiState.items.indexOfFirst { it.id == item.id }.coerceAtLeast(0),
                                 ),
                             )
-                            context.openVideo(item.id, Screen.VideoFeed.SOURCE_PERSONAL)
+                            if (navController.graph.findNode(Screen.VideoFeed.ROUTE) != null) {
+                                navController.navigate(
+                                    Screen.VideoFeed.createRoute(item.id, Screen.VideoFeed.SOURCE_PERSONAL),
+                                )
+                            } else {
+                                context.openVideo(item.id, Screen.VideoFeed.SOURCE_PERSONAL)
+                            }
                         } else {
                             navController.navigate(
                                 Screen.Detail.createRoute(item.id.toString())

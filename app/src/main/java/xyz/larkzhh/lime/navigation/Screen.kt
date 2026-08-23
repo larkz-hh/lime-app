@@ -21,6 +21,7 @@ sealed class Screen(val route: String) {
         const val ROUTE = "video_feed/{noteId}?source={source}"
         const val SOURCE_RECOMMENDATION = "recomment"// 推荐
         const val SOURCE_PERSONAL = "personal"// 个人列表
+        const val SOURCE_TAB = "tab"// 底部栏视频
         fun createRoute(noteId: Long, source: String) = "video_feed/$noteId?source=$source"
     }
     object EditProfile : Screen("edit_profile")
