@@ -45,7 +45,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
 import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.openVideo
 import xyz.larkzhh.lime.ui.components.NoteCard
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.theme.LimeGray
@@ -172,6 +174,7 @@ private fun FollowTab() {
 private fun DiscoverTab(navController: NavHostController) {
     val viewModel: FeedViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     Box(modifier = Modifier.fillMaxSize().background(LimeLightGray)) {
         when {
@@ -223,11 +226,9 @@ private fun DiscoverTab(navController: NavHostController) {
                                 onClick = {
                                     // 视频笔记进竖屏视频页，图文笔记进详情页
                                     if (item.noteType == 2) {
-                                        navController.navigate(
-                                            Screen.VideoFeed.createRoute(
-                                                item.id,
-                                                Screen.VideoFeed.SOURCE_RECOMMENDATION,
-                                            )
+                                        context.openVideo(
+                                            item.id,
+                                            Screen.VideoFeed.SOURCE_RECOMMENDATION,
                                         )
                                     } else {
                                         navController.navigate(

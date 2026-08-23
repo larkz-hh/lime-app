@@ -49,7 +49,6 @@ import xyz.larkzhh.lime.ui.qrscan.QrScanScreen
 import xyz.larkzhh.lime.ui.search.SearchScreen
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.ui.video.VideoScreen
-import xyz.larkzhh.lime.ui.video.feed.VideoFeedScreen
 
 
 private val bottomNavRoutes = setOf(
@@ -63,7 +62,7 @@ private val bottomNavRoutes = setOf(
 private val authRoutes = setOf(Screen.Login.route, Screen.Register.route)
 
 /// 需要右滑预测性返回水平滑出、滑入的页面
-private val swipeBackRoutes = setOf(Screen.Detail.ROUTE, Screen.UserProfile.ROUTE, Screen.Search.route, Screen.VideoFeed.ROUTE)
+private val swipeBackRoutes = setOf(Screen.Detail.ROUTE, Screen.UserProfile.ROUTE, Screen.Search.route)
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,26 +89,26 @@ fun AppNavGraph() {
 
     Scaffold(
         bottomBar = {
-            if (showBottomBar) {
-                BottomNavBar(
-                    navController = navController,
-                    currentRoute = currentRoute,
-                    isLoggedIn = authViewModel.isLoggedIn(),
-                    onRequireLogin = { targetRoute ->
-                        pendingRedirect = targetRoute
-                        if (currentRoute !in authRoutes) {
-                            navController.navigate(Screen.Login.route)
-                        }
-                    },
-                    onPublishClick = { showPublishSheet = true },
-                )
+                if (showBottomBar) {
+                    BottomNavBar(
+                        navController = navController,
+                        currentRoute = currentRoute,
+                        isLoggedIn = authViewModel.isLoggedIn(),
+                        onRequireLogin = { targetRoute ->
+                            pendingRedirect = targetRoute
+                            if (currentRoute !in authRoutes) {
+                                navController.navigate(Screen.Login.route)
+                            }
+                        },
+                        onPublishClick = { showPublishSheet = true },
+                    )
+                }
             }
-        }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = startDestination,
-            modifier = if (showBottomBar) Modifier.padding(bottom = innerPadding.calculateBottomPadding()) else Modifier,
+        ) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = startDestination,
+                modifier = if (showBottomBar) Modifier.padding(bottom = innerPadding.calculateBottomPadding()) else Modifier,
             popExitTransition = {
                 when {
                     SwipeBackNavState.suppressPopAnim -> ExitTransition.None
@@ -235,26 +234,6 @@ fun AppNavGraph() {
                     DetailScreen(
                         navController = navController,
                         noteId = backStackEntry.arguments?.getString("noteId") ?: ""
-                    )
-                }
-            }
-            composable(
-                route = Screen.VideoFeed.ROUTE,
-                arguments = listOf(
-                    navArgument("noteId") { type = NavType.LongType },
-                    navArgument("source") {
-                        type = NavType.StringType
-                        defaultValue = Screen.VideoFeed.SOURCE_RECOMMENDATION
-                    },
-                ),
-            ) { backStackEntry ->
-                DisposableEffect(Unit) {
-                    isFullScreenActive = true
-                    onDispose { isFullScreenActive = false }
-                }
-                ScrimBox(backStackEntry.id) {
-                    VideoFeedScreen(
-                        navController = navController,
                     )
                 }
             }

@@ -108,6 +108,7 @@ dependencies {
     implementation(libs.androidx.media3.common.ktx)
     implementation(libs.androidx.media3.ui.compose)
     implementation(libs.androidx.media3.ui.compose.material3)
+    implementation(libs.androidx.media3.session)
 
     // Permissions
     implementation(libs.accompanist.permissions)

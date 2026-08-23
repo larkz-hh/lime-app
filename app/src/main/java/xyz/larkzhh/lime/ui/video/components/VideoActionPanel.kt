@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Loop
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -87,6 +88,8 @@ fun VideoActionPanel(
     onOpacityChange: (Float) -> Unit,
     autoPlayNext: Boolean,
     onToggleAutoPlayNext: () -> Unit,
+    backgroundAudio: Boolean,
+    onToggleBackgroundAudio: () -> Unit,
     clearScreen: Boolean,
     onClearScreen: () -> Unit,
     onSaveVideo: () -> Unit,
@@ -127,6 +130,13 @@ fun VideoActionPanel(
                 label = "自动连播",
                 checked = autoPlayNext,
                 onToggle = onToggleAutoPlayNext,
+            )
+            SheetRowDivider(startIndent = 52.dp)
+            SwitchRow(
+                icon = Icons.Filled.Headphones,
+                label = "后台继续播放",
+                checked = backgroundAudio,
+                onToggle = onToggleBackgroundAudio,
             )
         }
 

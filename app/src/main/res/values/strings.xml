@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Lime</string>
+    <!-- 画中画小窗按钮 -->
+    <string name="pip_seek_back">后退15秒</string>
+    <string name="pip_seek_forward">前进15秒</string>
+    <string name="pip_pause">暂停</string>
+    <string name="pip_play">播放</string>
+    <!-- 后台播放通知渠道 -->
+    <string name="playback_channel_name">正在播放</string>
 </resources>
