@@ -48,7 +48,8 @@ import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
 import xyz.larkzhh.lime.ui.qrscan.QrScanScreen
 import xyz.larkzhh.lime.ui.search.SearchScreen
 import xyz.larkzhh.lime.ui.theme.LimeWhite
-import xyz.larkzhh.lime.ui.video.VideoScreen
+import xyz.larkzhh.lime.ui.video.feed.VideoFeedScreen
+import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 
 
 private val bottomNavRoutes = setOf(
@@ -67,19 +68,21 @@ private val swipeBackRoutes = setOf(Screen.Detail.ROUTE, Screen.UserProfile.ROUT
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavGraph() {
+fun AppNavGraph(playerManager: VideoPlayerManager) {
     val authViewModel: AuthViewModel = hiltViewModel()
     val startDestination = Screen.Home.route
     var pendingRedirect by remember { mutableStateOf<String?>(null) }
     var showPublishSheet by remember { mutableStateOf(false) }
     var isFullScreenActive by remember { mutableStateOf(false) }// 是否全屏
+    var videoTabFullscreen by remember { mutableStateOf(false) }// 视频 tab 横屏全屏
+    var videoTabOverlay by remember { mutableStateOf(false) }// 视频 tab 底部浮层打开
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val showBottomBar = currentRoute in bottomNavRoutes && !isFullScreenActive
+    val showBottomBar = currentRoute in bottomNavRoutes && !isFullScreenActive && !videoTabFullscreen && !videoTabOverlay
 
 
     LaunchedEffect(currentRoute) {
@@ -159,7 +162,16 @@ fun AppNavGraph() {
                 )
             }
             composable(Screen.Home.route) { entry -> ScrimBox(entry.id) { HomeScreen(navController) } }
-            composable(Screen.Video.route) { entry -> ScrimBox(entry.id) { VideoScreen(navController) } }
+            composable(Screen.Video.route) { entry ->
+                ScrimBox(entry.id) {
+                    VideoFeedScreen(
+                        navController = navController,
+                        playerManager = playerManager,
+                        onFullscreenChange = { videoTabFullscreen = it },
+                        onOverlayChange = { videoTabOverlay = it },
+                    )
+                }
+            }
             composable(Screen.Message.route) { entry -> ScrimBox(entry.id) { MessageScreen(navController) } }
             composable(Screen.Profile.route) { entry -> ScrimBox(entry.id) { ProfileScreen(navController) } }
             composable(

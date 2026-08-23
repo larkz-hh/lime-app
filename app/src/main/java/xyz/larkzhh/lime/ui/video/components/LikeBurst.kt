@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
@@ -18,7 +19,11 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 
 @Composable
-fun BoxScope.LikeBurst(position: Offset?, triggerKey: Int) {
+fun BoxScope.LikeBurst(
+    position: Offset?,
+    triggerKey: Int,
+    onFinished: () -> Unit = {},
+) {
     if (position == null || triggerKey == 0) return
     val density = LocalDensity.current
     val sizeDp = 160.dp
@@ -48,6 +53,8 @@ fun BoxScope.LikeBurst(position: Offset?, triggerKey: Int) {
                     }
                     .size(sizeDp),
             )
+        } else {
+            LaunchedEffect(Unit) { onFinished() }// 清除状态
         }
     }
 }

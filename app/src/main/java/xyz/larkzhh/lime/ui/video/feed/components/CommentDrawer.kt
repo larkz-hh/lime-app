@@ -76,7 +76,7 @@ fun CommentDrawer(
     onCommentBoxClick: () -> Unit,
     onVoiceClick: () -> Unit,
     onAlbumClick: () -> Unit,
-    heightFraction: Float = 0.7f,
+    heightFraction: Float = 0.6f,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         // 蒙层

@@ -157,8 +157,11 @@ class VideoActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (instance === this) instance = null
-        playerManager.release()
+        // 防止播放器被释放
+        if (instance === this) {
+            instance = null
+            playerManager.release()
+        }
     }
 
     companion object {
