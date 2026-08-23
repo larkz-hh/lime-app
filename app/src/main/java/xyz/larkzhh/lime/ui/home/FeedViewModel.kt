@@ -62,6 +62,7 @@ class FeedViewModel @Inject constructor(
                         }
                     }
                     is NoteEvent.FavoriteChanged -> Unit
+                    is NoteEvent.CommentCountChanged -> Unit
                 }
             }
         }

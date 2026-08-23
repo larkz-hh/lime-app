@@ -97,6 +97,7 @@ class ProfileNotesViewModel @Inject constructor(
                         _favoritesState.update(sync)
                     }
                     is NoteEvent.FavoriteChanged -> Unit
+                    is NoteEvent.CommentCountChanged -> Unit
                 }
             }
         }

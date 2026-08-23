@@ -134,7 +134,7 @@ fun CommentDrawer(
                     ),
             ) {
                 CommentHeader(
-                    commentCount = baseCommentCount + commentUiState.commentCountDelta,
+                    commentCount = baseCommentCount,
                     sort = commentUiState.sort,
                     onSortChange = onSortChange,
                 )
