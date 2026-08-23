@@ -3,6 +3,7 @@ package xyz.larkzhh.lime.domain.repository
 import android.net.Uri
 import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.HistoryResponse
+import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 
 /**
@@ -19,6 +20,7 @@ interface NoteRepository {
         title: String?,
         content: String?,
         imageUrls: List<String>,
+        coverSize: ImageSize?,
         status: Int = 1
     ): Result<Unit>
 
@@ -31,6 +33,8 @@ interface NoteRepository {
         width: Int,
         height: Int,
         coverUrl: String?,
+        coverWidth: Int? = null,
+        coverHeight: Int? = null,
         status: Int = 1,
     ): Result<Unit>
     /// 获取信息流，cursor 为空时从最新开始

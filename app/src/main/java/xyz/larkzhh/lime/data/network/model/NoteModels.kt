@@ -4,9 +4,14 @@ data class UploadNoteImageResponse(
     val url: String,
 )
 
+/// 图片尺寸
+data class ImageSize(val width: Int, val height: Int)
+
 data class NoteImageRequest(
     val url: String,
     val sortOrder: Int,
+    val width: Int? = null,
+    val height: Int? = null,
 )
 
 data class PublishNoteRequest(
@@ -23,6 +28,8 @@ data class VideoRequest(
     val width: Int,
     val height: Int,
     val coverUrl: String?,
+    val coverWidth: Int? = null,
+    val coverHeight: Int? = null,
 )
 
 /// 发布视频笔记请求
@@ -38,6 +45,8 @@ data class NoteImageData(
     val id: Long,
     val url: String,
     val sortOrder: Int,
+    val width: Int? = null,
+    val height: Int? = null,
 )
 
 data class NoteData(
@@ -96,6 +105,8 @@ data class FeedItem(
     val id: Long,
     val title: String?,
     val coverImage: String?,
+    val coverWidth: Int? = null,// 封面宽（瀑布流卡片按比例布局用）
+    val coverHeight: Int? = null,// 封面高
     val likeCount: Int,
     val liked: Boolean,
     val author: FeedAuthor,

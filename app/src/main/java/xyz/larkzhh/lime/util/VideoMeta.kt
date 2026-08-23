@@ -2,6 +2,8 @@ package xyz.larkzhh.lime.util
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import androidx.exifinterface.media.ExifInterface
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
@@ -61,3 +63,30 @@ suspend fun extractFrameToCache(context: Context, uri: Uri, timeMs: Long): Uri? 
         }
     }
 
+/// 读取图片的像素宽高
+suspend fun readImageDimensions(context: Context, uri: Uri): VideoDimensions =
+    withContext(Dispatchers.IO) {
+        var w = 0
+        var h = 0
+        var rotate = false
+        try {
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeStream(input, null, options)
+                w = options.outWidth
+                h = options.outHeight
+            }
+            try {
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    val orientation = ExifInterface(input).getAttributeInt(
+                        ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL,
+                    )
+                    rotate = orientation == ExifInterface.ORIENTATION_ROTATE_90 ||
+                        orientation == ExifInterface.ORIENTATION_ROTATE_270
+                }
+            } catch (_: Exception) { }
+            if (rotate) VideoDimensions(width = h, height = w) else VideoDimensions(width = w, height = h)
+        } catch (_: Exception) {
+            VideoDimensions(0, 0)
+        }
+    }
