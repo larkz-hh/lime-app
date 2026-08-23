@@ -341,6 +341,16 @@ class VideoFeedViewModel @Inject constructor(
                             },
                         )
                     }
+                    is NoteEvent.CommentCountChanged -> _uiState.update { s ->
+                        s.copy(
+                            items = s.items.map {
+                                if (it.id == event.noteId) it.copy(commentCount = it.commentCount + event.delta) else it
+                            },
+                            landscapeItems = s.landscapeItems.map {
+                                if (it.id == event.noteId) it.copy(commentCount = it.commentCount + event.delta) else it
+                            },
+                        )
+                    }
                 }
             }
         }
