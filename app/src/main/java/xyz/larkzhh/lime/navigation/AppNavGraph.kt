@@ -1,5 +1,7 @@
 package xyz.larkzhh.lime.navigation
 
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -8,8 +10,8 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -101,15 +103,20 @@ fun AppNavGraph(playerManager: VideoPlayerManager) {
         SwipeBackNavState.gestureDrivenPop = false
     }
 
+    LaunchedEffect(currentRoute) {
+        if (currentRoute != Screen.Profile.route) {
+            scope.launch { drawerState.close() }
+            showTranslatePack = false
+        }
+    }
+
     Box {
         // 抽屉栏
         ModalNavigationDrawer(
             drawerState = drawerState,
             gesturesEnabled = currentRoute == Screen.Profile.route,
             drawerContent = {
-                ProfileDrawerContent(
-                    onTranslateClick = { showTranslatePack = true },
-                )
+                ProfileDrawerContent(onTranslateClick = { showTranslatePack = true })
             },
         ) {
             Scaffold(
@@ -354,6 +361,24 @@ fun AppNavGraph(playerManager: VideoPlayerManager) {
             exit = slideOutHorizontally(targetOffsetX = { it }),
         ) {
             TranslatePackScreen(onBack = { showTranslatePack = false })
+        }
+    }
+
+    // 覆盖层、抽屉优先返回
+    val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher// 获取分发器
+    val backEnabled = showTranslatePack || drawerState.isOpen
+    DisposableEffect(backDispatcher, backEnabled) {
+        if (backEnabled) {
+            val callback = object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (showTranslatePack) showTranslatePack = false
+                    else scope.launch { drawerState.close() }
+                }
+            }
+            backDispatcher?.addCallback(callback)
+            onDispose { callback.remove() }
+        } else {
+            onDispose { }
         }
     }
 
