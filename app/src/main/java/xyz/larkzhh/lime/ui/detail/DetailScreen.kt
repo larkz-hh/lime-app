@@ -2,8 +2,12 @@ package xyz.larkzhh.lime.ui.detail
 
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +18,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import xyz.larkzhh.lime.R
 import androidx.compose.material.icons.Icons
@@ -22,8 +28,10 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -69,6 +77,9 @@ import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
 import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.ui.detail.components.NoteBottomBar
 import xyz.larkzhh.lime.ui.detail.components.NoteImagePager
+import xyz.larkzhh.lime.ui.detail.translate.FullTextUiState
+import xyz.larkzhh.lime.ui.detail.translate.TranslateResultSheet
+import xyz.larkzhh.lime.ui.detail.translate.TranslateViewModel
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
 import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
@@ -98,9 +109,12 @@ fun DetailScreen(
     noteId: String,
     viewModel: DetailViewModel = hiltViewModel(),
     commentViewModel: CommentViewModel = hiltViewModel(),
+    translateViewModel: TranslateViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val commentUiState by commentViewModel.uiState.collectAsState()
+    val translateUiState by translateViewModel.uiState.collectAsState()
+    val fullTextUiState by translateViewModel.fullText.collectAsState()
 
     // 评论图片预览本地状态
     var commentPreviewImages by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -237,6 +251,14 @@ fun DetailScreen(
                         onAuthorClick = { userId ->
                             navController.navigateToUserProfile(userId, selfUserId)
                         },
+                        onTranslate = translateViewModel::translate,
+                        fullText = fullTextUiState,
+                        onToggleFullText = {
+                            translateViewModel.toggleFullTextTranslation(
+                                uiState.note?.title,
+                                uiState.note?.content,
+                            )
+                        },
                     )
                     NoteBottomBar(
                         note = uiState.note!!.copy(
@@ -313,6 +335,25 @@ fun DetailScreen(
             )
         }
 
+        // 选词翻译译文面板
+        if (translateUiState.visible) {
+            TranslateResultSheet(
+                state = translateUiState,
+                onDismiss = translateViewModel::dismiss,
+                onRetry = translateViewModel::retry,
+                onBackgroundDownload = {
+                    translateViewModel.scheduleBackgroundDownload()
+                    translateViewModel.dismiss()
+                    "已加入后台下载，完成后即可离线翻译".showToast(context)
+                },
+                onSwitchDirection = translateViewModel::switchDirection,
+                onCopy = { text ->
+                    text.copyToClipboard(context)
+                    "已复制".showToast(context)
+                },
+            )
+        }
+
         // 长按操作菜单
         val pressed = longPressTarget
         val currentUserId = commentViewModel.currentUserId// 当前登录用户
@@ -370,6 +411,14 @@ fun DetailScreen(
                             "已复制".showToast(context)
                         },
                     ),
+                    GroupedSheetAction(
+                        label = "翻译",
+                        icon = Icons.Outlined.Translate,
+                        iconSize = 20.dp,
+                        onClick = {
+                            m.copyText?.let { translateViewModel.translate(it) }
+                        },
+                    ),
                 ))
                 if (m.canDelete) {
                     add(listOf(
@@ -419,16 +468,20 @@ private fun NoteContent(
     onVoiceClick: () -> Unit,
     onAlbumClick: () -> Unit,
     onAuthorClick: (Long) -> Unit,
+    onTranslate: (String) -> Unit,
+    fullText: FullTextUiState,
+    onToggleFullText: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val selectionActions = remember(context) {
+    val selectionActions = remember(context, onTranslate) {
         listOf(
             SelectionAction(
                 "复制",
                 Icons.Outlined.ContentCopy
             ) { it.copyToClipboard(context); "已复制".showToast(context) },
             SelectionAction("搜索", Icons.Outlined.Search) { },
+            SelectionAction("翻译", Icons.Outlined.Translate) { onTranslate(it) },
             SelectionAction("问AI", Icons.Outlined.AutoAwesome) { },
         )
     }
@@ -437,6 +490,13 @@ private fun NoteContent(
 
     // 评论语音播放互斥
     var playingVoiceId by remember { mutableStateOf<Long?>(null) }
+
+    // 翻译失败提示
+    LaunchedEffect(fullText.error) {
+        if (fullText.error) {
+            "翻译失败，请检查网络后重试".showToast(context)
+        }
+    }
 
     LaunchedEffect(listState.canScrollForward) {
         if (!listState.canScrollForward && commentUiState.hasMore && !commentUiState.isLoadingMore) {
@@ -452,10 +512,11 @@ private fun NoteContent(
             }
         }
         // 标题
-        if (!note.title.isNullOrBlank()) {
+        val displayTitle = if (fullText.translated) fullText.translatedTitle ?: note.title else note.title
+        if (!displayTitle.isNullOrBlank()) {
             item {
                 SelectableText(
-                    text = note.title,
+                    text = displayTitle,
                     actions = selectionActions,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
@@ -467,10 +528,11 @@ private fun NoteContent(
         }
 
         // 正文
-        if (!note.content.isNullOrBlank()) {
+        val displayContent = if (fullText.translated) fullText.translatedContent ?: note.content else note.content
+        if (!displayContent.isNullOrBlank()) {
             item {
                 SelectableText(
-                    text = note.content,
+                    text = displayContent,
                     actions = selectionActions,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = LimeDark,
@@ -481,14 +543,52 @@ private fun NoteContent(
             }
         }
 
-        // 更新时间
+        // 更新时间、一键翻译
         item {
-            Text(
-                text = formatRelativeTime(note.updateTime.orEmpty()),
-                color = LimeGray,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(start = 16.dp, top = 10.dp, bottom = 16.dp),
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = formatRelativeTime(note.updateTime.orEmpty()),
+                    color = LimeGray,
+                    fontSize = 12.sp,
+                    modifier = Modifier.weight(1f),
+                )
+                if (fullText.translating) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(14.dp),
+                        color = LimePrimary,
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() },
+                            ) { onToggleFullText() }
+                            .padding(horizontal = 6.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Translate,
+                            contentDescription = null,
+                            tint = LimePrimary,
+                            modifier = Modifier.size(13.dp),
+                        )
+                        Text(
+                            text = if (fullText.translated) "查看原文" else "一键翻译",
+                            color = LimePrimary,
+                            fontSize = 12.sp,
+                        )
+                    }
+                }
+            }
         }
         item { HorizontalDivider(color = LimeLightGray, thickness = 1.dp) }
 
