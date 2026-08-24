@@ -12,7 +12,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.data.local.TokenStorage
+import xyz.larkzhh.lime.data.local.TranslateMode
+import xyz.larkzhh.lime.data.local.TranslateSettings
 import xyz.larkzhh.lime.data.local.TranslatorHolder
+import xyz.larkzhh.lime.domain.repository.AiRepository
 import xyz.larkzhh.lime.util.detectLanguageTag
 import xyz.larkzhh.lime.work.TranslatePrefetchWorker
 import javax.inject.Inject
@@ -45,6 +49,9 @@ data class FullTextUiState(
 @HiltViewModel
 class TranslateViewModel @Inject constructor(
     private val translatorHolder: TranslatorHolder,
+    private val aiRepository: AiRepository,
+    private val tokenStorage: TokenStorage,
+    private val settings: TranslateSettings,
     @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
@@ -128,12 +135,10 @@ class TranslateViewModel @Inject constructor(
             original = text,
             sourceTag = source,
             targetTag = target,
-            phase = TranslatePhase.Downloading,
+            phase = TranslatePhase.Translating,
         )
         job = viewModelScope.launch {
             try {
-                translatorHolder.ensureModel(source, target)
-                _uiState.update { it.copy(phase = TranslatePhase.Translating) }
                 val outcome = translateSmart(text, source, allowAutoFlip)
                 _uiState.update {
                     it.copy(
@@ -149,7 +154,7 @@ class TranslateViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         phase = TranslatePhase.Error,
-                        error = "翻译失败：首次使用需要联网下载语言包，请检查网络后重试",
+                        error = "翻译失败：请检查网络后重试",
                     )
                 }
             }
@@ -158,15 +163,35 @@ class TranslateViewModel @Inject constructor(
 
     private data class TranslateOutcome(val result: String, val source: String, val target: String)
 
-    /// 本地翻译，结果为空或等于原文时重翻
+    /// 翻译入口，模式选择
     private suspend fun translateSmart(
         text: String,
         source: String,
         allowAutoFlip: Boolean = true,
     ): TranslateOutcome {
+        return when (settings.mode.value) {
+            TranslateMode.Offline -> offlineTranslate(text, source, allowAutoFlip)
+
+            TranslateMode.Auto -> {
+                aiTranslate(text, source)?.takeIf { it.isNotBlank() && it != text }?.let { ai ->
+                    return TranslateOutcome(ai, source, if (source == "zh") "en" else "zh")
+                }
+                offlineTranslate(text, source, allowAutoFlip)
+            }
+        }
+    }
+
+    /// 离线翻译
+    private suspend fun offlineTranslate(
+        text: String,
+        source: String,
+        allowAutoFlip: Boolean,
+    ): TranslateOutcome {
         var src = source
         var tgt = if (source == "zh") "en" else "zh"
+        _uiState.update { it.copy(phase = TranslatePhase.Downloading) }
         translatorHolder.ensureModel(src, tgt)
+        _uiState.update { it.copy(phase = TranslatePhase.Translating) }
         var result = translatorHolder.translate(text, src, tgt)
         if (allowAutoFlip && (result.isBlank() || result == text)) {
             val flippedSrc = tgt
@@ -181,5 +206,13 @@ class TranslateViewModel @Inject constructor(
             }
         }
         return TranslateOutcome(result, src, tgt)
+    }
+
+    /// AI 翻译，未登录或失败降级离线
+    private suspend fun aiTranslate(text: String, source: String): String? {
+        if (!tokenStorage.isLoggedIn()) return null
+        val targetLang = if (source == "zh") "英语" else "中文"
+        val sourceLang = if (source == "zh") "中文" else "英语"
+        return aiRepository.translate(text, targetLang, sourceLang).getOrNull()
     }
 }

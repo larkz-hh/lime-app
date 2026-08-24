@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import xyz.larkzhh.lime.data.local.TranslateMode
+import xyz.larkzhh.lime.data.local.TranslateSettings
 import xyz.larkzhh.lime.data.local.TranslatorHolder
 import javax.inject.Inject
 
@@ -28,10 +30,16 @@ data class PackUiState(val status: PackStatus = PackStatus.Checking)
 @HiltViewModel
 class TranslatePackViewModel @Inject constructor(
     private val translatorHolder: TranslatorHolder,
+    private val settings: TranslateSettings,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PackUiState())
     val uiState: StateFlow<PackUiState> = _uiState.asStateFlow()
+
+    /// 翻译方式
+    val mode: StateFlow<TranslateMode> = settings.mode
+
+    fun setMode(mode: TranslateMode) = settings.setMode(mode)
 
     private var job: Job? = null
 

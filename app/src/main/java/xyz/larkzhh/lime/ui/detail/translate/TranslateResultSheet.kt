@@ -124,7 +124,7 @@ fun TranslateResultSheet(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
                             Text(
-                                text = "${languageDisplayName(state.sourceTag)} → ${languageDisplayName(state.targetTag)} · 离线",
+                                text = "${languageDisplayName(state.sourceTag)} → ${languageDisplayName(state.targetTag)}",
                                 fontSize = 11.sp,
                                 color = LimeGray,
                             )

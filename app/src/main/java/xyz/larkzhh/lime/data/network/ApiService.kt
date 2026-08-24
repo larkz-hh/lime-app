@@ -12,6 +12,8 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 import xyz.larkzhh.lime.data.network.model.ApiResponse
+import xyz.larkzhh.lime.data.network.model.AiTranslateRequest
+import xyz.larkzhh.lime.data.network.model.AiTranslateResponse
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.CommentListResponse
 import xyz.larkzhh.lime.data.network.model.DanmakuData
@@ -289,4 +291,8 @@ interface ApiService {
     /// 上报搜索
     @POST("api/search/report")
     suspend fun reportSearch(@Body request: SearchReportRequest): ApiResponse<Unit>
+
+    /// AI 翻译
+    @POST("api/ai/translate")
+    suspend fun aiTranslate(@Body request: AiTranslateRequest): ApiResponse<AiTranslateResponse>
 }
