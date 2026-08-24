@@ -14,6 +14,7 @@ import com.tencent.mmkv.MMKV
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
+import xyz.larkzhh.lime.work.TranslatePrefetchWorker
 
 @UnstableApi
 @HiltAndroidApp
@@ -25,8 +26,10 @@ class LimeApplication : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
         MMKV.initialize(this)
+        // 首次启动后台预下载
+        TranslatePrefetchWorker.enqueueOnFirstLaunch(this)
         // 跟踪应用前后台
-        var startedCount = 0// 可见书数量
+        var startedCount = 0// 可见数量
         val handler = Handler(Looper.getMainLooper())
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityStarted(activity: Activity) {
