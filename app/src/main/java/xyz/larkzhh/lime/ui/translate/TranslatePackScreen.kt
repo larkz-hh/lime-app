@@ -1,8 +1,8 @@
 package xyz.larkzhh.lime.ui.translate
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,7 +44,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import xyz.larkzhh.lime.data.local.TranslateMode
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
+import xyz.larkzhh.lime.ui.components.SheetGroup
+import xyz.larkzhh.lime.ui.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
@@ -55,11 +59,11 @@ fun TranslatePackScreen(
     onBack: () -> Unit,
     viewModel: TranslatePackViewModel = hiltViewModel(),
 ) {
-    BackHandler { onBack() }
-    // 次进入页面时刷新语言包状态
+    // 进入页面时刷新语言包状态
     LaunchedEffect(Unit) { viewModel.refresh() }
 
     val uiState by viewModel.uiState.collectAsState()
+    val mode by viewModel.mode.collectAsState()
     var showDeleteConfirm by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val packSizeLabel = remember { TranslateModelInfo.downloadSizeLabel(context) }
@@ -69,7 +73,7 @@ fun TranslatePackScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "翻译语言包",
+                        text = "翻译设置",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium,
                     )
@@ -98,6 +102,12 @@ fun TranslatePackScreen(
                 .padding(top = 12.dp),
         ) {
             // 离线包分组
+            Text(
+                text = "离线包",
+                fontSize = 13.sp,
+                color = LimeGray,
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -134,6 +144,46 @@ fun TranslatePackScreen(
                         onDownload = viewModel::download,
                         onDelete = { showDeleteConfirm = true },
                     )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 翻译方式
+            Text(
+                text = "翻译方式",
+                fontSize = 13.sp,
+                color = LimeGray,
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+            )
+            SheetGroup(cardColor = Color.White) {
+                TranslateMode.entries.forEachIndexed { index, modeItem ->
+                    if (index > 0) SheetRowDivider(startIndent = 16.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() },
+                            ) { viewModel.setMode(modeItem) }
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = modeItem.label,
+                            fontSize = 15.sp,
+                            color = Color(0xFF1C1C1E),
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (mode == modeItem) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = null,
+                                tint = LimePrimary,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
                 }
             }
 
