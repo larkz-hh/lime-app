@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.retrofit2.converter.gson)
     implementation(libs.okhttp3)
     implementation(libs.okhttp3.logging.interceptor)
+    implementation(libs.okio)
 
     // Image & Video Loading
     implementation(libs.coil.compose)
