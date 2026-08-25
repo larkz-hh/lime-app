@@ -14,3 +14,19 @@ data class AiTranslateResponse(
     val sourceLang: String? = null,
     val targetLang: String? = null,
 )
+
+/// AI 写作辅助请求
+data class AiWriteAssistRequest(
+    val action: String,
+    val content: String? = null,
+    val imageUrls: List<String>? = null,
+    val model: String? = null,
+)
+
+/// AI 写作辅助 SSE 事件
+data class AiWriteEventDto(
+    val type: String? = null,
+    val content: String? = null,
+    val message: String? = null,
+    val model: String? = null,
+)
