@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "xyz.larkzhh.lime"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "xyz.larkzhh.lime"
@@ -34,14 +34,12 @@ android {
     buildFeatures {
         compose = true
     }
-    kotlinOptions {
-        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
-    }
 }
 
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
+        freeCompilerArgs.add("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
     }
 }
 
@@ -136,6 +134,10 @@ dependencies {
 
     // Telephoto zoomable image
     implementation(libs.telephoto.zoomable.image.coil3)
+
+    // Markdown
+    implementation(libs.markdown.renderer.m3)
+    implementation(libs.markdown.renderer.coil3)
 
     // Splash Screen
     implementation(libs.androidx.core.splashscreen)

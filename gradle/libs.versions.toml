@@ -1,6 +1,6 @@
 [versions]
 agp = "9.2.1"
-agpUser = "8.9.1"
+agpUser = "9.2.1"
 coreKtx = "1.18.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -15,7 +15,7 @@ hilt = "2.57.2"
 hiltNavigationCompose = "1.2.0"
 navigationCompose = "2.8.7"
 pagingCompose = "3.3.5"
-room = "2.6.1"
+room = "2.8.0"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
 okio = "3.9.1"
@@ -37,6 +37,7 @@ reorderable = "3.1.0"
 toasty = "1.5.2"
 telephoto = "0.14.0"
 collection = "1.5.0"
+markdown = "0.41.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -138,6 +139,10 @@ toasty = { group = "com.github.GrenderG", name = "Toasty", version.ref = "toasty
 
 # Telephoto zoomable image
 telephoto-zoomable-image-coil3 = { group = "me.saket.telephoto", name = "zoomable-image-coil3", version.ref = "telephoto" }
+
+# Markdown
+markdown-renderer-m3 = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-m3", version.ref = "markdown" }
+markdown-renderer-coil3 = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-coil3", version.ref = "markdown" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agpUser" }
