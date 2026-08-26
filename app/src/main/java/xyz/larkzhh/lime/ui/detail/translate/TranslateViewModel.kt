@@ -1,6 +1,7 @@
 package xyz.larkzhh.lime.ui.detail.translate
 
 import android.content.Context
+import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import xyz.larkzhh.lime.data.local.TokenStorage
 import xyz.larkzhh.lime.data.local.TranslateMode
 import xyz.larkzhh.lime.data.local.TranslateSettings
@@ -20,6 +22,7 @@ import xyz.larkzhh.lime.domain.repository.AiRepository
 import xyz.larkzhh.lime.util.detectLanguageTag
 import xyz.larkzhh.lime.work.TranslatePrefetchWorker
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 /// 翻译阶段
 enum class TranslatePhase { Downloading, Translating, Done, Error }
@@ -64,11 +67,19 @@ class TranslateViewModel @Inject constructor(
     private var job: Job? = null
     private var fullTextJob: Job? = null
 
+    /// 去重防抖
+    private var lastTranslateText: String? = null
+    private var lastTranslateTime: Long = 0L
+
     /// 翻译选中文本
     fun translate(selectedText: String) {
         val text = selectedText.trim()
         if (text.isEmpty()) return
-        translateWith(text, detectLanguageTag(text), allowAutoFlip = true)
+        val now = SystemClock.elapsedRealtime()
+        if (text == lastTranslateText && now - lastTranslateTime < TRANSLATE_DEBOUNCE_MS) return
+        lastTranslateText = text
+        lastTranslateTime = now
+        startTranslate(text)
     }
 
     /// 手动切换翻译方向后重译
@@ -114,7 +125,7 @@ class TranslateViewModel @Inject constructor(
     // 重试
     fun retry() {
         val original = _uiState.value.original
-        if (original.isNotEmpty()) translate(original)
+        if (original.isNotEmpty()) startTranslate(original)
     }
 
     /// 下载离线包
@@ -125,6 +136,11 @@ class TranslateViewModel @Inject constructor(
     fun dismiss() {
         job?.cancel()
         _uiState.value = TranslateUiState()
+    }
+
+    /// 真正发起翻译（不走去重，供 retry 等主动重译使用）
+    private fun startTranslate(text: String) {
+        translateWith(text, detectLanguageTag(text), allowAutoFlip = true)
     }
 
     private fun translateWith(text: String, source: String, allowAutoFlip: Boolean) {
@@ -213,6 +229,14 @@ class TranslateViewModel @Inject constructor(
         if (!tokenStorage.isLoggedIn()) return null
         val targetLang = if (source == "zh") "英语" else "中文"
         val sourceLang = if (source == "zh") "中文" else "英语"
-        return aiRepository.translate(text, targetLang, sourceLang).getOrNull()
+        // 8 秒内没出结果降级离线
+        return withTimeoutOrNull(8_000.milliseconds) {
+            aiRepository.translate(text, targetLang, sourceLang).getOrNull()
+        }
+    }
+
+    private companion object {
+        /// 相同文本翻译的去重窗口（毫秒），防止连点双发
+        const val TRANSLATE_DEBOUNCE_MS = 600L
     }
 }

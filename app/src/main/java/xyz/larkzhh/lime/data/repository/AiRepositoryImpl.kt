@@ -41,8 +41,11 @@ class AiRepositoryImpl @Inject constructor(
             AiTranslateRequest(text = text, targetLang = targetLang, sourceLang = sourceLang)
         )
         check(response.code == 200 && response.data != null) { response.message }
-        response.data.translatedText
+        response.data.translatedText.stripDataTags()
     }
+
+    private fun String.stripDataTags(): String =
+        replace("<data>", "").replace("</data>", "").trim()
 
     /// AI 写作辅助
     override fun writeAssist(

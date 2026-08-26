@@ -2,7 +2,10 @@ package xyz.larkzhh.lime.ui.publish.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,13 +39,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
+import xyz.larkzhh.lime.ui.publish.ai.AiWriteAction
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.util.showToast
@@ -68,10 +76,14 @@ fun NotePublishScaffold(
     onClearDraftSuccess: () -> Unit,
     onSaveDraft: () -> Unit,
     onPublish: () -> Unit,
+    onAiAssist: () -> Unit,
+    onAiAction: (AiWriteAction) -> Unit,
+    hasImages: Boolean,
     topContent: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
     var showDraftDialog by remember { mutableStateOf(false) }
+    val aiEnabled = (content.isNotBlank() || hasImages) && !isPublishing// 有图或有正文、未发布中
 
     // 发布成功后返回首页
     LaunchedEffect(isSuccess) {
@@ -129,6 +141,19 @@ fun NotePublishScaffold(
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
             )
+            // AI 帮写入口：有图或正文非空、且非发布中时可用
+            IconButton(
+                onClick = onAiAssist,
+                enabled = aiEnabled,
+            ) {
+                Icon(
+                    painterResource(R.drawable.ic_ai),
+                    contentDescription = "AI 帮写",
+                    tint = if (aiEnabled) LimePrimary
+                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
+                    modifier = Modifier.size(20.dp),
+                )
+            }
         }
 
         Column(
@@ -181,6 +206,46 @@ fun NotePublishScaffold(
                     focusedBorderColor = Color.Transparent,
                 ),
             )
+        }
+
+        // AI 帮写动作条
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                painterResource(R.drawable.ic_ai),
+                contentDescription = null,
+                tint = LimePrimary,
+                modifier = Modifier.size(16.dp),
+            )
+            Text(
+                text = "AI 帮写",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            AiWriteAction.visibleFor(hasImages).forEach { action ->
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
+                        .clickable(enabled = aiEnabled) { onAiAction(action) }
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                ) {
+                    Text(
+                        text = action.label,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = if (aiEnabled) MaterialTheme.colorScheme.onSurface
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                    )
+                }
+            }
         }
 
         // 错误提示
