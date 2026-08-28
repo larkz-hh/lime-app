@@ -21,7 +21,7 @@ class ChatLocalDataSource @Inject constructor(
         chatDao.conversationsPagingSource()
 
     /// 查单个会话
-    suspend fun getConversation(id: Long): ConversationEntity? = chatDao.getConversation(id)
+    suspend fun getConversation(id: String): ConversationEntity? = chatDao.getConversation(id)
 
     /// 查最新会话
     suspend fun getLatestConversation(): ConversationEntity? = chatDao.getLatestConversation()
@@ -40,16 +40,16 @@ class ChatLocalDataSource @Inject constructor(
         chatDao.upsertConversations(conversations)
 
     /// 删除会话与相关消息
-    suspend fun deleteConversation(id: Long) {
+    suspend fun deleteConversation(id: String) {
         chatDao.deleteConversationWithMessages(id)
     }
 
     /// 观察实时消息
-    fun observeMessages(conversationId: Long): Flow<List<MessageEntity>> =
+    fun observeMessages(conversationId: String): Flow<List<MessageEntity>> =
         chatDao.observeMessages(conversationId)
 
     /// 查询消息列表
-    suspend fun getMessages(conversationId: Long): List<MessageEntity> =
+    suspend fun getMessages(conversationId: String): List<MessageEntity> =
         chatDao.getMessages(conversationId)
 
     /// 插入并返回消息 id
@@ -72,14 +72,14 @@ class ChatLocalDataSource @Inject constructor(
         status: String,
     ) = chatDao.updateMessageFull(localId, serverId, content, images, status)
 
-    /// 批量迁移会话 id
-    suspend fun moveMessagesToConversation(oldId: Long, newId: Long) =
-        chatDao.moveMessagesToConversation(oldId, newId)
+    /// 按服务端消息 id 更新内容与状态
+    suspend fun updateMessageByServerId(serverId: Long, content: String, status: String) =
+        chatDao.updateMessageByServerId(serverId, content, status)
 
     /// 删除消息
     suspend fun deleteMessage(localId: Long) = chatDao.deleteMessage(localId)
 
-    suspend fun clearMessages(conversationId: Long) = chatDao.clearMessages(conversationId)
+    suspend fun clearMessages(conversationId: String) = chatDao.clearMessages(conversationId)
 
     /// 清理进行中消息
     suspend fun resetStaleMessages() = chatDao.resetStaleMessages()

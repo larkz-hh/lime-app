@@ -12,6 +12,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.google.mlkit.common.model.DownloadConditions
 import com.tencent.mmkv.MMKV
+import kotlinx.coroutines.CancellationException
 import xyz.larkzhh.lime.data.local.TranslatorHolder
 
 /**
@@ -36,6 +37,8 @@ class TranslatePrefetchWorker(
             // 打上一次性标记：以后启动不再重复唤醒
             MMKV.defaultMMKV().encode(KEY_PREFETCH_DONE, true)
             Result.success()
+        } catch (ce: CancellationException) {
+            throw ce
         } catch (e: Exception) {
             Result.retry()
         }
