@@ -22,11 +22,3 @@ data class AiWriteAssistRequest(
     val imageUrls: List<String>? = null,
     val model: String? = null,
 )
-
-/// AI 写作辅助 SSE 事件
-data class AiWriteEventDto(
-    val type: String? = null,
-    val content: String? = null,
-    val message: String? = null,
-    val model: String? = null,
-)
