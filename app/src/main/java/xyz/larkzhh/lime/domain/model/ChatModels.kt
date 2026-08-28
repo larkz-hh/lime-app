@@ -12,27 +12,23 @@ enum class ChatMessageStatus {
     STOPPED,
 }
 
-/// 本地临时会话 id 基数
-const val TEMP_CONVERSATION_ID_BASE = -1_000_000L
-
-/// 聊天消息域模型。
+/// 聊天消息域模型
 data class ChatMessage(
     val localId: Long = 0L,// 未落库
-    val conversationId: Long,
+    val conversationId: String,
     val serverId: Long? = null,
+    val clientId: String? = null,// 客户端生成的消息幂等键（用户消息）
     val role: ChatRole,
     val content: String = "",
     val images: List<String> = emptyList(),
     val localImageUris: List<String> = emptyList(),
     val status: ChatMessageStatus = ChatMessageStatus.DONE,
     val createTime: Long = System.currentTimeMillis(),
-    val attemptCount: Int = 0,
-    val nextRetryAt: Long = 0L,
 )
 
 /// 会话域模型
 data class ChatConversation(
-    val id: Long,
+    val id: String,
     val title: String,
     val updateTime: Long = System.currentTimeMillis(),
 )
@@ -41,7 +37,6 @@ data class ChatConversation(
 sealed interface ChatStreamEvent {
     data class Delta(val content: String) : ChatStreamEvent
     data class Done(
-        val conversationId: Long,
         val userMessageId: Long?,
         val assistantMessageId: Long?,
         val model: String?,

@@ -19,7 +19,7 @@ interface ChatDao {
 
     /// 查单个会话
     @Query("SELECT * FROM ai_conversations WHERE id = :id")
-    suspend fun getConversation(id: Long): ConversationEntity?
+    suspend fun getConversation(id: String): ConversationEntity?
 
     /// 查最新会话
     @Query("SELECT * FROM ai_conversations ORDER BY updateTime DESC LIMIT 1")
@@ -37,15 +37,15 @@ interface ChatDao {
     suspend fun deleteAllConversations()
 
     @Query("DELETE FROM ai_conversations WHERE id = :id")
-    suspend fun deleteConversation(id: Long)
+    suspend fun deleteConversation(id: String)
 
     // 观察消息列表
     @Query("SELECT * FROM ai_messages WHERE conversationId = :conversationId ORDER BY createTime ASC, localId ASC")
-    fun observeMessages(conversationId: Long): Flow<List<MessageEntity>>
+    fun observeMessages(conversationId: String): Flow<List<MessageEntity>>
 
     /// 查询消息列表
     @Query("SELECT * FROM ai_messages WHERE conversationId = :conversationId ORDER BY createTime ASC, localId ASC")
-    suspend fun getMessages(conversationId: Long): List<MessageEntity>
+    suspend fun getMessages(conversationId: String): List<MessageEntity>
 
     /// 插入并返回消息 id
     @Upsert
@@ -65,20 +65,20 @@ interface ChatDao {
     @Query("UPDATE ai_messages SET status = :status, content = :content, serverId = :serverId, images = :images WHERE localId = :localId")
     suspend fun updateMessageFull(localId: Long, serverId: Long?, content: String, images: String?, status: String)
 
-    /// 批量迁移会话 id
-    @Query("UPDATE ai_messages SET conversationId = :newId WHERE conversationId = :oldId")
-    suspend fun moveMessagesToConversation(oldId: Long, newId: Long)
+    /// 按服务端消息 id 更新内容与状态
+    @Query("UPDATE ai_messages SET content = :content, status = :status WHERE serverId = :serverId")
+    suspend fun updateMessageByServerId(serverId: Long, content: String, status: String)
 
     /// 删除、清空消息
     @Query("DELETE FROM ai_messages WHERE localId = :localId")
     suspend fun deleteMessage(localId: Long)
 
     @Query("DELETE FROM ai_messages WHERE conversationId = :conversationId")
-    suspend fun clearMessages(conversationId: Long)
+    suspend fun clearMessages(conversationId: String)
 
     /// 原子删除会话与其所有消息
     @Transaction
-    suspend fun deleteConversationWithMessages(id: Long) {
+    suspend fun deleteConversationWithMessages(id: String) {
         deleteConversation(id)
         clearMessages(id)
     }
@@ -86,6 +86,4 @@ interface ChatDao {
     /// 重置失败
     @Query("UPDATE ai_messages SET status = 'FAILED' WHERE status IN ('SENDING', 'STREAMING')")
     suspend fun resetStaleMessages()
-
-
 }

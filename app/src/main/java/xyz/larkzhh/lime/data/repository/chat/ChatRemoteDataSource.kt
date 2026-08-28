@@ -31,7 +31,8 @@ class ChatRemoteDataSource @Inject constructor(
 
     /// 流式聊天
     fun chatStream(
-        conversationId: Long?,
+        conversationId: String,
+        messageClientId: String,
         message: String,
         imageUrls: List<String>?,
         model: String?,
@@ -39,15 +40,11 @@ class ChatRemoteDataSource @Inject constructor(
         collectSse(
             client = sseClient,
             url = "${baseUrl}api/ai/chat",
-            jsonBody = gson.toJson(AiChatRequest(message, conversationId, imageUrls, model)),
+            jsonBody = gson.toJson(AiChatRequest(conversationId, messageClientId, message, imageUrls, model)),
         ) { dto ->
             when (dto.type) {
                 "delta" -> dto.content?.let { ChatStreamEvent.Delta(it) }
-                "done" -> {
-                    val cid = dto.conversationId
-                    if (cid == null) ChatStreamEvent.Error("AI 服务暂时不可用")
-                    else ChatStreamEvent.Done(cid, dto.userMessageId, dto.assistantMessageId, dto.model)
-                }
+                "done" -> ChatStreamEvent.Done(dto.userMessageId, dto.assistantMessageId, dto.model)
                 "error" -> ChatStreamEvent.Error(dto.message ?: "AI 服务暂时不可用")
                 else -> null
             }
@@ -75,26 +72,26 @@ class ChatRemoteDataSource @Inject constructor(
     }
 
     /// 获取会话历史消息
-    suspend fun fetchMessages(conversationId: Long): Result<List<ChatMessage>> = runCatching {
+    suspend fun fetchMessages(conversationId: String): Result<List<ChatMessage>> = runCatching {
         val response = apiService.getConversationMessages(conversationId)
         check(response.code == 200 && response.data != null) { response.message }
         response.data.map { it.toDomain(conversationId) }
     }
 
     /// 删除会话
-    suspend fun deleteConversation(conversationId: Long): Result<Unit> = runCatching {
+    suspend fun deleteConversation(conversationId: String): Result<Unit> = runCatching {
         val response = apiService.deleteConversation(conversationId)
         check(response.code == 200) { response.message }
     }
 
     /// 删除指定消息
-    suspend fun deleteMessage(conversationId: Long, messageId: Long): Result<Unit> = runCatching {
+    suspend fun deleteMessage(conversationId: String, messageId: Long): Result<Unit> = runCatching {
         val response = apiService.deleteConversationMessage(conversationId, messageId)
         check(response.code == 200) { response.message }
     }
 
     /// 清空会话消息
-    suspend fun clearMessages(conversationId: Long): Result<Unit> = runCatching {
+    suspend fun clearMessages(conversationId: String): Result<Unit> = runCatching {
         val response = apiService.clearConversationMessages(conversationId)
         check(response.code == 200) { response.message }
     }

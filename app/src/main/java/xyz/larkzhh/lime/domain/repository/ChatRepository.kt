@@ -13,7 +13,8 @@ interface ChatRepository {
 
     /// AI 聊天 SSE 流
     fun chatStream(
-        conversationId: Long?,
+        conversationId: String,
+        messageClientId: String,
         message: String,
         imageUrls: List<String>?,
         model: String?,
@@ -22,22 +23,22 @@ interface ChatRepository {
     /// 拉取模型
     suspend fun fetchModels(): Result<List<AiModelInfo>>
 
-    /// 远端历史消息合并进本地缓存
-    suspend fun syncMessages(conversationId: Long): Result<Unit>
+    /// 远端历史消息合并进本地缓存；返回服务端是否仍在生成（true=需继续轮询）
+    suspend fun syncMessages(conversationId: String): Result<Boolean>
 
     /// 删除远端会话、消息
-    suspend fun deleteConversationRemote(conversationId: Long): Result<Unit>
-    suspend fun deleteMessageRemote(conversationId: Long, messageId: Long): Result<Unit>
-    suspend fun clearMessagesRemote(conversationId: Long): Result<Unit>
+    suspend fun deleteConversationRemote(conversationId: String): Result<Unit>
+    suspend fun deleteMessageRemote(conversationId: String, messageId: Long): Result<Unit>
+    suspend fun clearMessagesRemote(conversationId: String): Result<Unit>
 
     /// 会话列表分页流
     fun conversationsPager(): Flow<PagingData<ChatConversation>>
 
     /// 观察实时信息
-    fun observeLocalMessages(conversationId: Long): Flow<List<ChatMessage>>
+    fun observeLocalMessages(conversationId: String): Flow<List<ChatMessage>>
 
     /// 读取本地单个会话
-    suspend fun getLocalConversation(conversationId: Long): ChatConversation?
+    suspend fun getLocalConversation(conversationId: String): ChatConversation?
 
     /// 最近一次更新的会话
     suspend fun getLatestConversation(): ChatConversation?
@@ -58,13 +59,10 @@ interface ChatRepository {
         status: ChatMessageStatus,
     )
 
-    /// 临时会话迁移
-    suspend fun moveMessagesToConversation(oldId: Long, newId: Long)
-
     /// 删除本地会话、消息
-    suspend fun deleteLocalConversation(conversationId: Long)
+    suspend fun deleteLocalConversation(conversationId: String)
     suspend fun deleteLocalMessage(localId: Long)
-    suspend fun clearLocalMessages(conversationId: Long)
+    suspend fun clearLocalMessages(conversationId: String)
 
     /// 将残留消息标记为失败
     suspend fun resetStaleMessages()

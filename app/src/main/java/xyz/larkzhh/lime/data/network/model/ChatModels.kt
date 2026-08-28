@@ -2,8 +2,9 @@ package xyz.larkzhh.lime.data.network.model
 
 /// AI 聊天请求体 SSE
 data class AiChatRequest(
+    val conversationId: String,
+    val messageClientId: String,
     val message: String,
-    val conversationId: Long? = null,
     val imageUrls: List<String>? = null,
     val model: String? = null,
 )
@@ -18,7 +19,7 @@ data class AiModelDto(
 
 /// 会话列表条目
 data class ConversationDto(
-    val id: Long,
+    val id: String,
     val title: String,
     val createTime: String? = null,
     val updateTime: String? = null,
@@ -34,7 +35,9 @@ data class ConversationListData(
 /// 会话历史消息
 data class ChatMessageDto(
     val id: Long,
+    val clientId: String? = null,
     val role: String,// user / assistant
+    val status: String? = null,// streaming / done / failed
     val content: String,
     val images: List<String>? = null,
     val noteId: Long? = null,

@@ -313,23 +313,23 @@ interface ApiService {
     /// 会话历史消息
     @GET("api/ai/conversations/{conversationId}/messages")
     suspend fun getConversationMessages(
-        @Path("conversationId") conversationId: Long,
+        @Path("conversationId") conversationId: String,
     ): ApiResponse<List<ChatMessageDto>>
 
     /// 删除会话
     @DELETE("api/ai/conversations/{conversationId}")
-    suspend fun deleteConversation(@Path("conversationId") conversationId: Long): ApiResponse<Unit>
+    suspend fun deleteConversation(@Path("conversationId") conversationId: String): ApiResponse<Unit>
 
     /// 删除会话中的单条消息
     @DELETE("api/ai/conversations/{conversationId}/messages/{messageId}")
     suspend fun deleteConversationMessage(
-        @Path("conversationId") conversationId: Long,
+        @Path("conversationId") conversationId: String,
         @Path("messageId") messageId: Long,
     ): ApiResponse<Unit>
 
     /// 清空会话消息
     @HTTP(method = "DELETE", path = "api/ai/conversations/{conversationId}/messages", hasBody = false)
     suspend fun clearConversationMessages(
-        @Path("conversationId") conversationId: Long,
+        @Path("conversationId") conversationId: String,
     ): ApiResponse<Unit>
 }

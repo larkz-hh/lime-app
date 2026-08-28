@@ -21,7 +21,6 @@ data class AiSseEventDto(
     val content: String? = null,
     val message: String? = null,
     val model: String? = null,
-    val conversationId: Long? = null,
     val userMessageId: Long? = null,
     val assistantMessageId: Long? = null,
 )

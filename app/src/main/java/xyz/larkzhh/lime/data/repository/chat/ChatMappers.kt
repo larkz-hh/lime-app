@@ -42,13 +42,19 @@ internal fun ChatConversation.toEntity(): ConversationEntity = ConversationEntit
 )
 
 /// 消息
-internal fun ChatMessageDto.toDomain(conversationId: Long): ChatMessage = ChatMessage(
+internal fun ChatMessageDto.toDomain(conversationId: String): ChatMessage = ChatMessage(
     conversationId = conversationId,
     serverId = id,
+    clientId = clientId,
     role = if (role == "user") ChatRole.USER else ChatRole.ASSISTANT,
     content = content,
     images = images.orEmpty(),
-    status = ChatMessageStatus.DONE,
+    status = when (status) {
+        "streaming" -> ChatMessageStatus.STREAMING
+        "failed" -> ChatMessageStatus.FAILED
+        "stopped" -> ChatMessageStatus.STOPPED
+        else -> ChatMessageStatus.DONE
+    },
     createTime = createTime.toEpochMillis().ifPositive() ?: System.currentTimeMillis(),
 )
 
@@ -56,28 +62,26 @@ internal fun MessageEntity.toDomain(): ChatMessage = ChatMessage(
     localId = localId,
     conversationId = conversationId,
     serverId = serverId,
+    clientId = clientId,
     role = if (role == "user") ChatRole.USER else ChatRole.ASSISTANT,
     content = content,
     images = images.fromJson(),
     localImageUris = localImageUris.fromJson(),
     status = runCatching { ChatMessageStatus.valueOf(status) }.getOrDefault(ChatMessageStatus.DONE),
     createTime = createTime,
-    attemptCount = attemptCount,
-    nextRetryAt = nextRetryAt,
 )
 
 internal fun ChatMessage.toEntity(): MessageEntity = MessageEntity(
     localId = localId,
     conversationId = conversationId,
     serverId = serverId,
+    clientId = clientId,
     role = if (role == ChatRole.USER) "user" else "assistant",
     content = content,
     images = images.toJson(),
     localImageUris = localImageUris.toJson(),
     status = status.name,
     createTime = createTime,
-    attemptCount = attemptCount,
-    nextRetryAt = nextRetryAt,
 )
 
 internal fun List<String>.toJson(): String =
