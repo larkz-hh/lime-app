@@ -23,6 +23,9 @@ interface ChatRepository {
     /// 拉取模型
     suspend fun fetchModels(): Result<List<AiModelInfo>>
 
+    /// 打断正在生成的回复
+    suspend fun cancelGeneration(messageClientId: String, partialContent: String?): Result<Unit>
+
     /// 远端历史消息合并进本地缓存；返回服务端是否仍在生成（true=需继续轮询）
     suspend fun syncMessages(conversationId: String): Result<Boolean>
 

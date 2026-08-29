@@ -19,6 +19,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,11 +30,13 @@ import xyz.larkzhh.lime.ui.theme.LimePrimary
  * 通用自定义 AlertDialog 弹窗。
  *
  * @param title 弹窗显示的标题文本
- * @param onFirstButtonClick 点击左侧按钮时的回
+ * @param text 标题下方说明文本（可选）
+ * @param onFirstButtonClick 点击左侧按钮时的回调
  * @param onSecondButtonClick 点击右侧按钮时回调
  * @param onDismissRequest 当用户点击弹窗外部区域或按下返回键时触发的回调
  * @param firstButtonText 左侧按钮的文本，默认为 "取消"。
  * @param secondButtonText 右侧按钮的文本，默认为 "确定"。
+ * @param secondButtonColor 右侧按钮颜色，默认为主色
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,14 +45,18 @@ fun LimeAlertDialog(
     onFirstButtonClick: () -> Unit,
     onSecondButtonClick: () -> Unit,
     onDismissRequest: () -> Unit,
+    text: String? = null,
     firstButtonText: String = "取消",
     secondButtonText: String = "确定",
+    secondButtonColor: Color = LimePrimary,
 ) {
     BasicAlertDialog(onDismissRequest = onDismissRequest) {
         LimeAlertDialogContent(
             title = title,
+            text = text,
             firstButtonText = firstButtonText,
             secondButtonText = secondButtonText,
+            secondButtonColor = secondButtonColor,
             onFirstButtonClick = onFirstButtonClick,
             onSecondButtonClick = onSecondButtonClick,
         )
@@ -60,8 +67,10 @@ fun LimeAlertDialog(
 @Composable
 private fun LimeAlertDialogContent(
     title: String,
+    text: String?,
     firstButtonText: String,
     secondButtonText: String,
+    secondButtonColor: Color,
     onFirstButtonClick: () -> Unit,
     onSecondButtonClick: () -> Unit,
 ) {
@@ -79,6 +88,17 @@ private fun LimeAlertDialogContent(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 20.dp),
             )
+            if (text != null) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp, bottom = 18.dp),
+                )
+            }
             HorizontalDivider()
             Row(
                 modifier = Modifier
@@ -96,7 +116,7 @@ private fun LimeAlertDialogContent(
                     onClick = onSecondButtonClick,
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                 ) {
-                    Text(secondButtonText, color = LimePrimary, fontWeight = FontWeight.SemiBold)
+                    Text(secondButtonText, color = secondButtonColor, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -109,8 +129,10 @@ private fun LimeAlertDialogPreview() {
     MaterialTheme {
         LimeAlertDialogContent(
             title = "确认保存笔记至草稿箱吗？",
+            text = null,
             firstButtonText = "取消",
             secondButtonText = "确定",
+            secondButtonColor = LimePrimary,
             onFirstButtonClick = {},
             onSecondButtonClick = {},
         )

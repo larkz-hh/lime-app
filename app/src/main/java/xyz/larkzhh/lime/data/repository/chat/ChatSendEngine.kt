@@ -153,6 +153,6 @@ class ChatSendEngine @Inject constructor(
 
     private companion object {
         const val MAX_MESSAGE_LENGTH = 2000
-        const val PERSIST_INTERVAL_MS = 300L
+        const val PERSIST_INTERVAL_MS = 120L
     }
 }

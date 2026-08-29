@@ -37,6 +37,10 @@ class ChatRepositoryImpl @Inject constructor(
     /// 拉取模型
     override suspend fun fetchModels(): Result<List<AiModelInfo>> = remote.fetchModels()
 
+    /// 打断正在生成的回复
+    override suspend fun cancelGeneration(messageClientId: String, partialContent: String?): Result<Unit> =
+        remote.cancelGeneration(messageClientId, partialContent)
+
     /// 远端历史消息合并进本地缓存
     override suspend fun syncMessages(conversationId: String): Result<Boolean> = runCatching {
         val remoteMessages = remote.fetchMessages(conversationId).getOrThrow()

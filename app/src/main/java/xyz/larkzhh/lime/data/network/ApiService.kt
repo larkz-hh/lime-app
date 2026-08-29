@@ -12,6 +12,7 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 import xyz.larkzhh.lime.data.network.model.ApiResponse
+import xyz.larkzhh.lime.data.network.model.AiChatCancelRequest
 import xyz.larkzhh.lime.data.network.model.AiModelDto
 import xyz.larkzhh.lime.data.network.model.AiTranslateRequest
 import xyz.larkzhh.lime.data.network.model.AiTranslateResponse
@@ -302,6 +303,10 @@ interface ApiService {
     /// AI 模型列表
     @GET("api/ai/models")
     suspend fun getAiModels(): ApiResponse<List<AiModelDto>>
+
+    /// 打断正在生成的回复
+    @POST("api/ai/chat/cancel")
+    suspend fun cancelAiGeneration(@Body request: AiChatCancelRequest): ApiResponse<Unit>
 
     /// AI 会话列表
     @GET("api/ai/conversations")
