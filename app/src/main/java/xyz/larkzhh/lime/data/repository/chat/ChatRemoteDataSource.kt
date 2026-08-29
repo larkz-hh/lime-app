@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.flowOn
 import okhttp3.OkHttpClient
 import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.collectSse
+import xyz.larkzhh.lime.data.network.model.AiChatCancelRequest
 import xyz.larkzhh.lime.data.network.model.AiChatRequest
 import xyz.larkzhh.lime.domain.model.AiModelInfo
 import xyz.larkzhh.lime.domain.model.ChatConversation
@@ -58,6 +59,12 @@ class ChatRemoteDataSource @Inject constructor(
         response.data.map {
             AiModelInfo(it.name, it.displayName, it.description, it.supportsVision)
         }
+    }
+
+    /// 打断正在生成的回复
+    suspend fun cancelGeneration(messageClientId: String, partialContent: String?): Result<Unit> = runCatching {
+        val response = apiService.cancelAiGeneration(AiChatCancelRequest(messageClientId, partialContent))
+        check(response.code == 200) { response.message }
     }
 
     /// 获取会话列表一页

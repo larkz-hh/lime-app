@@ -36,6 +36,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.ui.ai.AiChatScreen
 import xyz.larkzhh.lime.ui.auth.LoginScreen
 import xyz.larkzhh.lime.ui.auth.RegisterScreen
 import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
@@ -296,6 +297,10 @@ fun AppNavGraph(playerManager: VideoPlayerManager) {
                         QrScanScreen(navController)
                     }
                     composable(Screen.BrowseHistory.route) { BrowseHistoryScreen(navController) }
+                    composable(
+                        route = Screen.AiChat.ROUTE,
+                        arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
+                    ) { AiChatScreen() }
                     composable(Screen.CommentPhotoPicker.route) {
                         CommentPhotoPickerScreen(navController)
                     }

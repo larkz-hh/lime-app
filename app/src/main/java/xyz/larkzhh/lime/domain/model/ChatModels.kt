@@ -17,7 +17,7 @@ data class ChatMessage(
     val localId: Long = 0L,// 未落库
     val conversationId: String,
     val serverId: Long? = null,
-    val clientId: String? = null,// 客户端生成的消息幂等键（用户消息）
+    val clientId: String? = null,
     val role: ChatRole,
     val content: String = "",
     val images: List<String> = emptyList(),

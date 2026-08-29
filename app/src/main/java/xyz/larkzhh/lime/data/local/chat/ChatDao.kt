@@ -40,11 +40,11 @@ interface ChatDao {
     suspend fun deleteConversation(id: String)
 
     // 观察消息列表
-    @Query("SELECT * FROM ai_messages WHERE conversationId = :conversationId ORDER BY createTime ASC, localId ASC")
+    @Query("SELECT * FROM ai_messages WHERE conversationId = :conversationId ORDER BY localId ASC")
     fun observeMessages(conversationId: String): Flow<List<MessageEntity>>
 
     /// 查询消息列表
-    @Query("SELECT * FROM ai_messages WHERE conversationId = :conversationId ORDER BY createTime ASC, localId ASC")
+    @Query("SELECT * FROM ai_messages WHERE conversationId = :conversationId ORDER BY localId ASC")
     suspend fun getMessages(conversationId: String): List<MessageEntity>
 
     /// 插入并返回消息 id

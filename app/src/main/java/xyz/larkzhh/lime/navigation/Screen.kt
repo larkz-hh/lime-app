@@ -32,4 +32,10 @@ sealed class Screen(val route: String) {
     object CoverPicker : Screen("cover_picker")
     object BrowseHistory : Screen("browse_history")
     object CommentPhotoPicker : Screen("comment_photo_picker")
+    object AiChat : Screen("ai_chat/{conversationId}") {
+        const val ROUTE = "ai_chat/{conversationId}"
+        const val NEW_CONVERSATION = "new"
+        const val LATEST_CONVERSATION = "latest"
+        fun createRoute(conversationId: String) = "ai_chat/$conversationId"
+    }
 }

@@ -1,0 +1,242 @@
+package xyz.larkzhh.lime.ui.components.chat
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.ui.theme.LimeGray
+import xyz.larkzhh.lime.ui.theme.LimeLightGray
+import xyz.larkzhh.lime.ui.theme.LimeWhite
+
+private val InputPillColor = LimeWhite
+private val SendColor = Color(0xFF111111)
+private val SendDisabledColor = Color(0xFFBBBBBB)
+
+/**
+ * 通用聊天输入栏
+ */
+@Composable
+fun ChatInputBar(
+    text: String,
+    onTextChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    images: List<ChatInputImage> = emptyList(),
+    sending: Boolean = false,
+    canSend: Boolean = true,
+    placeholder: String = "尽管问，带图也行",
+    onAddClick: () -> Unit = {},
+    onRemoveImage: (uri: String) -> Unit = {},
+    onRetryImage: (uri: String) -> Unit = {},
+    onSend: () -> Unit = {},
+    onStop: () -> Unit = {},
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .navigationBarsPadding(),
+    ) {
+        // 已选图片缩略图
+        if (images.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                images.forEach { image ->
+                    PendingImageThumb(
+                        image = image,
+                        onRemove = { onRemoveImage(image.uri) },
+                        onRetry = { onRetryImage(image.uri) },
+                    )
+                }
+            }
+        }
+
+        // 底部输入框
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(6.dp, RoundedCornerShape(28.dp), spotColor = Color.Black.copy(alpha = 0.12f))
+                .clip(RoundedCornerShape(28.dp))
+                .background(InputPillColor)
+                .border(1.dp, Color.Black.copy(alpha = 0.05f), RoundedCornerShape(28.dp))
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // 左侧加号
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(LimeLightGray)
+                    .clickable(onClick = onAddClick),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Outlined.Add,
+                    contentDescription = "添加",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+            Spacer(Modifier.width(10.dp))
+
+            // 输入框
+            Box(modifier = Modifier.weight(1f)) {
+                BasicTextField(
+                    value = text,
+                    onValueChange = onTextChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 40.dp, max = 120.dp)
+                        .padding(vertical = 8.dp),
+                    textStyle = TextStyle(
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontSize = 16.sp,
+                        lineHeight = 22.sp,
+                    ),
+                    maxLines = 6,
+                    decorationBox = { innerTextField ->
+                        Box {
+                            if (text.isEmpty()) {
+                                Text(
+                                    text = placeholder,
+                                    color = LimeGray,
+                                    fontSize = 16.sp,
+                                )
+                            }
+                            innerTextField()
+                        }
+                    },
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+
+            // 发送、停止
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(
+                        when {
+                            sending -> SendColor
+                            canSend -> SendColor
+                            else -> SendDisabledColor
+                        }
+                    )
+                    .clickable(enabled = sending || canSend) {
+                        if (sending) onStop() else onSend()
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                if (sending) {
+                    Icon(
+                        Icons.Filled.Stop,
+                        contentDescription = "停止生成",
+                        tint = LimeWhite,
+                        modifier = Modifier.size(18.dp),
+                    )
+                } else {
+                    Icon(
+                        Icons.Filled.ArrowUpward,
+                        contentDescription = "发送",
+                        tint = LimeWhite,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PendingImageThumb(
+    image: ChatInputImage,
+    onRemove: () -> Unit,
+    onRetry: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(64.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .then(
+                if (image.state == ChatInputImageState.FAILED) {
+                    Modifier.border(1.5.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(10.dp))
+                } else Modifier
+            )
+            .clickable(enabled = image.state == ChatInputImageState.FAILED, onClick = onRetry),
+    ) {
+        AsyncImage(
+            model = image.uri,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+        )
+        if (image.state == ChatInputImageState.UPLOADING) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(Color.Black.copy(alpha = 0.35f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp,
+                    color = LimeWhite,
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(18.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.55f))
+                .clickable(onClick = onRemove),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Outlined.Close,
+                contentDescription = "移除图片",
+                tint = LimeWhite,
+                modifier = Modifier.size(12.dp),
+            )
+        }
+    }
+}

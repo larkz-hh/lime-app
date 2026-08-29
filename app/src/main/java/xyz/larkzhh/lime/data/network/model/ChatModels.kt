@@ -9,6 +9,12 @@ data class AiChatRequest(
     val model: String? = null,
 )
 
+/// 打断正在生成的回复
+data class AiChatCancelRequest(
+    val messageClientId: String,
+    val partialContent: String? = null,
+)
+
 /// AI 模型信息
 data class AiModelDto(
     val name: String,
