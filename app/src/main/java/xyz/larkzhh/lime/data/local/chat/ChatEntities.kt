@@ -30,6 +30,9 @@ data class MessageEntity(
     val content: String = "",
     val images: String? = null,
     val localImageUris: String? = null,
+    val noteId: Long? = null,
+    val noteTitle: String? = null,
+    val noteCover: String? = null,
     val status: String = "DONE",
     val createTime: Long,
 )

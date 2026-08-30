@@ -31,8 +31,9 @@ class ChatRepositoryImpl @Inject constructor(
         messageClientId: String,
         message: String,
         imageUrls: List<String>?,
+        noteId: Long?,
         model: String?,
-    ): Flow<ChatStreamEvent> = remote.chatStream(conversationId, messageClientId, message, imageUrls, model)
+    ): Flow<ChatStreamEvent> = remote.chatStream(conversationId, messageClientId, message, imageUrls, noteId, model)
 
     /// 拉取模型
     override suspend fun fetchModels(): Result<List<AiModelInfo>> = remote.fetchModels()

@@ -36,12 +36,13 @@ class ChatRemoteDataSource @Inject constructor(
         messageClientId: String,
         message: String,
         imageUrls: List<String>?,
+        noteId: Long?,
         model: String?,
     ): Flow<ChatStreamEvent> = flow {
         collectSse(
             client = sseClient,
             url = "${baseUrl}api/ai/chat",
-            jsonBody = gson.toJson(AiChatRequest(conversationId, messageClientId, message, imageUrls, model)),
+            jsonBody = gson.toJson(AiChatRequest(conversationId, messageClientId, message, imageUrls, noteId, model)),
         ) { dto ->
             when (dto.type) {
                 "delta" -> dto.content?.let { ChatStreamEvent.Delta(it) }

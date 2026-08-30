@@ -1,5 +1,7 @@
 package xyz.larkzhh.lime.ui.components.chat
 
+import xyz.larkzhh.lime.domain.model.ChatNote
+
 /**
  * 通用聊天气泡数据模型
  */
@@ -8,6 +10,7 @@ data class ChatBubbleData(
     val isSelf: Boolean,
     val content: String,
     val images: List<String> = emptyList(),
+    val note: ChatNote? = null,
     val avatarUrl: String? = null,
     val nickname: String? = null,
     val timeText: String? = null,
