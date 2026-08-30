@@ -24,7 +24,6 @@ import androidx.compose.ui.res.painterResource
 import xyz.larkzhh.lime.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Reply
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Search
@@ -56,9 +55,11 @@ import androidx.compose.ui.graphics.Color
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.ReplyData
+import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
+import xyz.larkzhh.lime.navigation.PendingChatStore
 import xyz.larkzhh.lime.ui.components.CommentInputSheet
 import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet
 import xyz.larkzhh.lime.ui.components.GroupedSheetAction
@@ -252,6 +253,16 @@ fun DetailScreen(
                             navController.navigateToUserProfile(userId, selfUserId)
                         },
                         onTranslate = translateViewModel::translate,
+                        onSearch = { text ->
+                            navController.navigate(Screen.Search.createRoute(text))
+                        },
+                        onAskAi = { text ->
+                            val n = uiState.note
+                            PendingChatStore.askAiNote =
+                                n?.let { ChatNote(it.id, it.title, it.images.firstOrNull()?.url) }
+                            PendingChatStore.askAiText = text
+                            navController.navigate(Screen.AiChat.createRoute(Screen.AiChat.NEW_CONVERSATION))
+                        },
                         fullText = fullTextUiState,
                         onToggleFullText = {
                             translateViewModel.toggleFullTextTranslation(
@@ -469,20 +480,23 @@ private fun NoteContent(
     onAlbumClick: () -> Unit,
     onAuthorClick: (Long) -> Unit,
     onTranslate: (String) -> Unit,
+    onSearch: (String) -> Unit,
+    onAskAi: (String) -> Unit,
     fullText: FullTextUiState,
     onToggleFullText: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val selectionActions = remember(context, onTranslate) {
+    val chatActionPainter = painterResource(R.drawable.ic_chat)
+    val selectionActions = remember(context, onTranslate, onSearch, onAskAi) {
         listOf(
             SelectionAction(
                 "复制",
                 Icons.Outlined.ContentCopy
             ) { it.copyToClipboard(context); "已复制".showToast(context) },
-            SelectionAction("搜索", Icons.Outlined.Search) { },
+            SelectionAction("搜索", Icons.Outlined.Search) { onSearch(it) },
             SelectionAction("翻译", Icons.Outlined.Translate) { onTranslate(it) },
-            SelectionAction("问AI", Icons.Outlined.AutoAwesome) { },
+            SelectionAction("问AI", painter = chatActionPainter) { onAskAi(it) },
         )
     }
 

@@ -1,11 +1,19 @@
 package xyz.larkzhh.lime.navigation
 
+import android.net.Uri
+
 sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Register : Screen("register")
     object Home : Screen("home")
     object Video : Screen("video")
-    object Search : Screen("search")
+    object Search : Screen("search?query={query}") {
+        const val ROUTE = "search?query={query}"
+        const val ARG_QUERY = "query"
+        const val BASE_ROUTE = "search"
+        fun createRoute(query: String) =
+            if (query.isBlank()) BASE_ROUTE else "search?query=${Uri.encode(query)}"
+    }
     object Publish : Screen("publish")
     object Message : Screen("message")
     object Profile : Screen("profile")
