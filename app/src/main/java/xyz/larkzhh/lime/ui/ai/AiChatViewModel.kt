@@ -23,6 +23,7 @@ import xyz.larkzhh.lime.domain.model.ChatMessageStatus
 import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.domain.model.ChatRole
 import xyz.larkzhh.lime.domain.repository.ChatRepository
+import xyz.larkzhh.lime.navigation.PendingChatStore
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.util.NetworkMonitor
 import java.util.UUID
@@ -46,6 +47,7 @@ data class AiChatUiState(
     val inputText: String = "",
     val pendingImages: List<PendingImage> = emptyList(),
     val selectedNote: ChatNote? = null,
+    val requestInputFocus: Boolean = false,
     val busy: Boolean = false,
     val streaming: Boolean = false,
     val isOffline: Boolean = false,
@@ -81,6 +83,12 @@ class AiChatViewModel @Inject constructor(
         val enteredId =
             savedStateHandle.get<String>("conversationId") ?: Screen.AiChat.NEW_CONVERSATION
 
+        // 详情页引用笔记与选中文字
+        val pendingNote = PendingChatStore.askAiNote
+        val pendingText = PendingChatStore.askAiText
+        PendingChatStore.askAiNote = null
+        PendingChatStore.askAiText = null
+
         viewModelScope.launch {
             chatRepository.resetStaleMessages()
             when {
@@ -92,6 +100,15 @@ class AiChatViewModel @Inject constructor(
 
                 enteredId != Screen.AiChat.NEW_CONVERSATION -> openConversation(enteredId)
                 else -> resetToNewConversation()
+            }
+            if (pendingNote != null || !pendingText.isNullOrEmpty()) {
+                _state.update {
+                    it.copy(
+                        selectedNote = pendingNote,
+                        inputText = pendingText.orEmpty(),
+                        requestInputFocus = true,
+                    )
+                }
             }
         }
 
@@ -293,6 +310,11 @@ class AiChatViewModel @Inject constructor(
     /// 移除引用笔记
     fun removeNote() {
         _state.update { it.copy(selectedNote = null) }
+    }
+
+    /// 输入框聚焦请求消费
+    fun onInputFocusConsumed() {
+        _state.update { it.copy(requestInputFocus = false) }
     }
 
     /// 重发失败的用户消息

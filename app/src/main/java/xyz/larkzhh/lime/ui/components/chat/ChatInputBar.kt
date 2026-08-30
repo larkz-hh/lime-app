@@ -34,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
@@ -58,6 +60,7 @@ fun ChatInputBar(
     text: String,
     onTextChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    focusRequester: FocusRequester? = null,
     images: List<ChatInputImage> = emptyList(),
     note: ChatNote? = null,
     sending: Boolean = false,
@@ -138,6 +141,7 @@ fun ChatInputBar(
                     value = text,
                     onValueChange = onTextChange,
                     modifier = Modifier
+                        .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
                         .fillMaxWidth()
                         .heightIn(min = 40.dp, max = 120.dp)
                         .padding(vertical = 8.dp),

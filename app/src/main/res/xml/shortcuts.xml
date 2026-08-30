@@ -1,0 +1,35 @@
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="search"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_search"
+        android:shortcutShortLabel="@string/shortcut_search"
+        android:shortcutLongLabel="@string/shortcut_search">
+        <intent
+            android:action="xyz.larkzhh.lime.action.SEARCH"
+            android:targetPackage="xyz.larkzhh.lime"
+            android:targetClass="xyz.larkzhh.lime.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="ai_chat"
+        android:enabled="true"
+        android:icon="@drawable/ic_chat"
+        android:shortcutShortLabel="@string/shortcut_ai"
+        android:shortcutLongLabel="@string/shortcut_ai">
+        <intent
+            android:action="xyz.larkzhh.lime.action.AI_CHAT"
+            android:targetPackage="xyz.larkzhh.lime"
+            android:targetClass="xyz.larkzhh.lime.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="qr_scan"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_scan"
+        android:shortcutShortLabel="@string/shortcut_scan"
+        android:shortcutLongLabel="@string/shortcut_scan">
+        <intent
+            android:action="xyz.larkzhh.lime.action.QR_SCAN"
+            android:targetPackage="xyz.larkzhh.lime"
+            android:targetClass="xyz.larkzhh.lime.MainActivity" />
+    </shortcut>
+</shortcuts>

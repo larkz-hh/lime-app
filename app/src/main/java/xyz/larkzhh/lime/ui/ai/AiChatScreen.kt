@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.ui.ai
 
+import android.Manifest
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
@@ -73,6 +74,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -87,6 +89,9 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import xyz.larkzhh.lime.domain.model.ChatConversation
 import xyz.larkzhh.lime.domain.model.ChatMessage
 import xyz.larkzhh.lime.domain.model.ChatMessageStatus
@@ -115,7 +120,7 @@ import kotlin.math.roundToInt
 /// 抽屉占屏宽比例
 private const val DRAWER_WIDTH_FRACTION = 0.82f
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun AiChatScreen(
     viewModel: AiChatViewModel = hiltViewModel(),
@@ -161,11 +166,29 @@ fun AiChatScreen(
         }
     }
 
+    // 相机权限
+    val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
+    var pendingCamera by remember { mutableStateOf(false) }
+    LaunchedEffect(cameraPermission.status.isGranted) {
+        if (cameraPermission.status.isGranted && pendingCamera) {
+            pendingCamera = false
+            cameraUri?.let { takePictureLauncher.launch(it) }
+        }
+    }
+
     // 错误提示
     LaunchedEffect(state.error) {
         state.error?.let {
             it.showToast(context)
             viewModel.consumeError()
+        }
+    }
+
+    val inputFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(state.requestInputFocus) {
+        if (state.requestInputFocus) {
+            inputFocusRequester.requestFocus()
+            viewModel.onInputFocusConsumed()
         }
     }
 
@@ -474,6 +497,7 @@ fun AiChatScreen(
                     ChatInputBar(
                         text = state.inputText,
                         onTextChange = viewModel::onInputChange,
+                        focusRequester = inputFocusRequester,
                         images = state.pendingImages.map {
                             ChatInputImage(
                                 uri = it.localUri,
@@ -587,7 +611,12 @@ fun AiChatScreen(
                     val uri = createCameraImageUri(context)
                     if (uri != null) {
                         cameraUri = uri
-                        takePictureLauncher.launch(uri)
+                        if (cameraPermission.status.isGranted) {
+                            takePictureLauncher.launch(uri)
+                        } else {
+                            pendingCamera = true
+                            cameraPermission.launchPermissionRequest()
+                        }
                     } else {
                         "无法创建拍照文件".showToast(context)
                     }

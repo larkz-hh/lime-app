@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.ui.search.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,6 +19,7 @@ import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.SearchRepository
+import xyz.larkzhh.lime.navigation.Screen
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -77,6 +79,7 @@ class SearchViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
     private val historyStorage: SearchHistoryStorage,
     private val eventBus: NoteEventBus,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState(history = historyStorage.load()))
@@ -90,6 +93,10 @@ class SearchViewModel @Inject constructor(
         loadHotSearches()
         observeSuggestQuery()
         observeNoteEvents()
+        // 详情页进入
+        savedStateHandle.get<String>(Screen.Search.ARG_QUERY)
+            ?.takeIf { it.isNotBlank() }
+            ?.let { confirmSearch(it) }
     }
 
     /// 加载热搜榜

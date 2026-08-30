@@ -74,12 +74,16 @@ private val authRoutes = setOf(Screen.Login.route, Screen.Register.route)
 
 /// 需要右滑预测性返回水平滑出、滑入的页面
 private val swipeBackRoutes =
-    setOf(Screen.Detail.ROUTE, Screen.UserProfile.ROUTE, Screen.Search.route)
+    setOf(Screen.Detail.ROUTE, Screen.UserProfile.ROUTE, Screen.Search.ROUTE)
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavGraph(playerManager: VideoPlayerManager) {
+fun AppNavGraph(
+    playerManager: VideoPlayerManager,
+    shortcutAction: String? = null,
+    onShortcutHandled: () -> Unit = {},
+) {
     val authViewModel: AuthViewModel = hiltViewModel()
     val startDestination = Screen.Home.route
     var pendingRedirect by remember { mutableStateOf<String?>(null) }
@@ -97,6 +101,20 @@ fun AppNavGraph(playerManager: VideoPlayerManager) {
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar =
         currentRoute in bottomNavRoutes && !isFullScreenActive && !videoTabFullscreen && !videoTabOverlay
+
+    // 长按图标快捷入口
+    LaunchedEffect(shortcutAction) {
+        val route = when (shortcutAction) {
+            ShortcutActions.SEARCH -> Screen.Search.BASE_ROUTE
+            ShortcutActions.AI_CHAT -> Screen.AiChat.createRoute(Screen.AiChat.NEW_CONVERSATION)
+            ShortcutActions.QR_SCAN -> Screen.QrScan.route
+            else -> null
+        }
+        if (route != null) {
+            navController.navigate(route) { launchSingleTop = true }
+            onShortcutHandled()
+        }
+    }
 
 
     LaunchedEffect(currentRoute) {
@@ -277,6 +295,12 @@ fun AppNavGraph(playerManager: VideoPlayerManager) {
                     }
                     composable(
                         route = Screen.Search.route,
+                        arguments = listOf(
+                            navArgument(Screen.Search.ARG_QUERY) {
+                                type = NavType.StringType
+                                defaultValue = ""
+                            },
+                        ),
                         // 前进时从右侧滑入
                         enterTransition = {
                             if (SwipeBackNavState.suppressForwardEnter) {
