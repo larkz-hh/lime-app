@@ -6,6 +6,7 @@ data class AiChatRequest(
     val messageClientId: String,
     val message: String,
     val imageUrls: List<String>? = null,
+    val noteId: Long? = null,
     val model: String? = null,
 )
 
@@ -47,5 +48,7 @@ data class ChatMessageDto(
     val content: String,
     val images: List<String>? = null,
     val noteId: Long? = null,
+    val noteTitle: String? = null,
+    val noteCover: String? = null,
     val createTime: String? = null,
 )

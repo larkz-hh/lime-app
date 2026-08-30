@@ -10,6 +10,7 @@ import xyz.larkzhh.lime.data.network.model.ConversationDto
 import xyz.larkzhh.lime.domain.model.ChatConversation
 import xyz.larkzhh.lime.domain.model.ChatMessage
 import xyz.larkzhh.lime.domain.model.ChatMessageStatus
+import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.domain.model.ChatRole
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -49,6 +50,7 @@ internal fun ChatMessageDto.toDomain(conversationId: String): ChatMessage = Chat
     role = if (role == "user") ChatRole.USER else ChatRole.ASSISTANT,
     content = content,
     images = images.orEmpty(),
+    note = noteId?.let { ChatNote(it, noteTitle, noteCover) },
     status = when (status) {
         "streaming" -> ChatMessageStatus.STREAMING
         "failed" -> ChatMessageStatus.FAILED
@@ -67,6 +69,7 @@ internal fun MessageEntity.toDomain(): ChatMessage = ChatMessage(
     content = content,
     images = images.fromJson(),
     localImageUris = localImageUris.fromJson(),
+    note = noteId?.let { ChatNote(it, noteTitle, noteCover) },
     status = runCatching { ChatMessageStatus.valueOf(status) }.getOrDefault(ChatMessageStatus.DONE),
     createTime = createTime,
 )
@@ -80,6 +83,9 @@ internal fun ChatMessage.toEntity(): MessageEntity = MessageEntity(
     content = content,
     images = images.toJson(),
     localImageUris = localImageUris.toJson(),
+    noteId = note?.id,
+    noteTitle = note?.title,
+    noteCover = note?.cover,
     status = status.name,
     createTime = createTime,
 )

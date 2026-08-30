@@ -41,6 +41,10 @@ fun ChatMessageList(
     contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
     onRetry: (ChatBubbleData) -> Unit = {},
     onCopy: (ChatBubbleData) -> Unit = {},
+    onRegenerate: (ChatBubbleData) -> Unit = {},
+    onSpeak: (ChatBubbleData) -> Unit = {},
+    onDelete: (ChatBubbleData) -> Unit = {},
+    onSelectText: (ChatBubbleData) -> Unit = {},
     onImageClick: (index: Int, images: List<String>) -> Unit = { _, _ -> },
 ) {
     val listState = rememberLazyListState()
@@ -58,6 +62,9 @@ fun ChatMessageList(
     }
 
     val reversed = remember(messages, typing) { messages.reversed() }
+
+    // 会话最后一条消息
+    val lastMessageId = messages.lastOrNull()?.id
 
     LazyColumn(
         state = listState,
@@ -90,6 +97,18 @@ fun ChatMessageList(
                     } else null,
                     onCopy = if (!data.isSelf && data.content.isNotBlank()) {
                         { onCopy(data) }
+                    } else null,
+                    onRegenerate = if (!data.isSelf && data.status == ChatBubbleStatus.DONE &&
+                        data.id == lastMessageId
+                    ) {
+                        { onRegenerate(data) }
+                    } else null,
+                    onSpeak = if (!data.isSelf && data.status == ChatBubbleStatus.DONE && data.content.isNotBlank()) {
+                        { onSpeak(data) }
+                    } else null,
+                    onDelete = { onDelete(data) },
+                    onSelectText = if (data.content.isNotBlank()) {
+                        { onSelectText(data) }
                     } else null,
                     onImageClick = onImageClick,
                 )

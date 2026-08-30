@@ -1,11 +1,20 @@
 package xyz.larkzhh.lime.ui.ai
 
+import android.content.ContentValues
+import android.content.Context
+import android.net.Uri
+import android.provider.MediaStore
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -30,8 +39,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Menu
@@ -39,13 +51,16 @@ import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,6 +72,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -74,10 +90,9 @@ import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.domain.model.ChatConversation
 import xyz.larkzhh.lime.domain.model.ChatMessage
 import xyz.larkzhh.lime.domain.model.ChatMessageStatus
+import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.domain.model.ChatRole
-import xyz.larkzhh.lime.ui.components.BottomActionSheet
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
-import xyz.larkzhh.lime.ui.components.SheetAction
 import xyz.larkzhh.lime.ui.components.chat.ChatAddSheet
 import xyz.larkzhh.lime.ui.components.chat.ChatBubbleData
 import xyz.larkzhh.lime.ui.components.chat.ChatBubbleStatus
@@ -92,12 +107,15 @@ import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.formatRelativeTime
 import xyz.larkzhh.lime.util.showToast
+import xyz.larkzhh.lime.util.stripMarkdown
+import xyz.larkzhh.lime.util.TtsManager
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /// 抽屉占屏宽比例
 private const val DRAWER_WIDTH_FRACTION = 0.82f
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiChatScreen(
     viewModel: AiChatViewModel = hiltViewModel(),
@@ -106,14 +124,23 @@ fun AiChatScreen(
     val context = LocalContext.current
     val conversations = viewModel.conversations.collectAsLazyPagingItems()
 
+    DisposableEffect(Unit) {
+        onDispose { TtsManager.shutdown() }
+    }
+
     // 图片预览
     var previewImages by remember { mutableStateOf<List<String>>(emptyList()) }
     var previewIndex by remember { mutableIntStateOf(0) }
-    // 抽屉长按操作菜单
-    var menuTarget by remember { mutableStateOf<ChatConversation?>(null) }
+    // 待删除的会话
     var deleteTarget by remember { mutableStateOf<ChatConversation?>(null) }
     // 输入栏底部栏
     var showAddSheet by remember { mutableStateOf(false) }
+    // 笔记选择器
+    var showNotePicker by remember { mutableStateOf(false) }
+    // 纯文本内容
+    var selectTextContent by remember { mutableStateOf<String?>(null) }
+    // 待删除的消息
+    var pendingDeleteMessage by remember { mutableStateOf<ChatMessage?>(null) }
 
     // 选图
     val pickImagesLauncher = rememberLauncherForActivityResult(
@@ -121,6 +148,16 @@ fun AiChatScreen(
     ) { uris ->
         if (uris.isNotEmpty()) {
             viewModel.addImages(uris.map { it.toString() })
+        }
+    }
+
+    // 拍照
+    var cameraUri by remember { mutableStateOf<Uri?>(null) }
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            cameraUri?.let { viewModel.addImages(listOf(it.toString())) }
         }
     }
 
@@ -164,6 +201,8 @@ fun AiChatScreen(
 
         // 收起抽屉
         BackHandler(enabled = drawerOpen) { closeDrawer() }
+        // 关闭笔记选择页
+        BackHandler(enabled = showNotePicker) { showNotePicker = false }
 
         // 打开抽屉刷新会话列表
         LaunchedEffect(drawerOpen) {
@@ -231,7 +270,15 @@ fun AiChatScreen(
                         viewModel.openConversation(conversation.id)
                         closeDrawer()
                     },
-                    onLongPressConversation = { menuTarget = it },
+                    onClearConversation = { conversation ->
+                        viewModel.clearMessages(conversation) { ok ->
+                            if (ok) "已清空".showToast(context)
+                        }
+                        closeDrawer()
+                    },
+                    onDeleteConversation = { conversation ->
+                        deleteTarget = conversation
+                    },
                 )
             }
 
@@ -244,6 +291,7 @@ fun AiChatScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .background(LimeLightGray)
                         .imePadding(),
                 ) {
                     // 顶部栏
@@ -251,80 +299,124 @@ fun AiChatScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .statusBarsPadding()
-                            .padding(horizontal = 4.dp, vertical = 2.dp),
+                            .padding(horizontal = 8.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        IconButton(onClick = { if (drawerOpen) closeDrawer() else openDrawer() }) {
+                        // 菜单按钮
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .shadow(2.dp, CircleShape)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .clickable { if (drawerOpen) closeDrawer() else openDrawer() },
+                            contentAlignment = Alignment.Center,
+                        ) {
                             Icon(
                                 Icons.Outlined.Menu,
                                 contentDescription = "打开历史会话",
                                 tint = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.size(20.dp),
                             )
                         }
-                        Text(
-                            text = state.title.ifBlank { "新对话" },
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                        )
-                        // 模型选择
-                        Box {
-                            TextButton(onClick = viewModel::toggleModelPicker) {
-                                Text(
-                                    text = state.models.firstOrNull { it.name == state.selectedModel }?.displayName
-                                        ?: "默认模型",
-                                    color = LimeGray,
-                                    fontSize = 13.sp,
-                                )
-                            }
-                            DropdownMenu(
-                                expanded = state.showModelPicker,
-                                onDismissRequest = { viewModel.toggleModelPicker() },
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("默认模型") },
-                                    onClick = { viewModel.selectModel(null) },
-                                )
-                                state.models.forEach { model ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Column {
-                                                Text(
-                                                    text = model.displayName,
-                                                    fontWeight = if (model.name == state.selectedModel) {
-                                                        FontWeight.SemiBold
-                                                    } else {
-                                                        FontWeight.Normal
-                                                    },
-                                                )
-                                                if (!model.description.isNullOrBlank()) {
-                                                    Text(
-                                                        text = model.description,
-                                                        fontSize = 11.sp,
-                                                        color = LimeGray,
-                                                    )
-                                                }
-                                            }
-                                        },
-                                        onClick = { viewModel.selectModel(model) },
+                        Spacer(Modifier.width(10.dp))
+                        // 标题、模型选择
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = state.title.ifBlank { "新对话" },
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Box {
+                                Row(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .clickable { viewModel.toggleModelPicker() }
+                                        .padding(horizontal = 4.dp, vertical = 0.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = state.models.firstOrNull { it.name == state.selectedModel }?.displayName
+                                            ?: "默认模型",
+                                        color = LimeGray,
+                                        fontSize = 12.sp,
                                     )
+                                    Icon(
+                                        Icons.Filled.ArrowDropDown,
+                                        contentDescription = null,
+                                        tint = LimeGray,
+                                        modifier = Modifier.size(14.dp),
+                                    )
+                                }
+                                DropdownMenu(
+                                    expanded = state.showModelPicker,
+                                    onDismissRequest = { viewModel.toggleModelPicker() },
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("默认模型") },
+                                        onClick = { viewModel.selectModel(null) },
+                                    )
+                                    state.models.forEach { model ->
+                                        DropdownMenuItem(
+                                            text = {
+                                                Column {
+                                                    Text(
+                                                        text = model.displayName,
+                                                        fontWeight = if (model.name == state.selectedModel) {
+                                                            FontWeight.SemiBold
+                                                        } else {
+                                                            FontWeight.Normal
+                                                        },
+                                                    )
+                                                    if (!model.description.isNullOrBlank()) {
+                                                        Text(
+                                                            text = model.description,
+                                                            fontSize = 11.sp,
+                                                            color = LimeGray,
+                                                        )
+                                                    }
+                                                }
+                                            },
+                                            onClick = { viewModel.selectModel(model) },
+                                        )
+                                    }
                                 }
                             }
                         }
-                        // 清空对话
-                        IconButton(
-                            onClick = viewModel::requestClearConversation,
-                            enabled = state.serverConversationId != null,
+                        // 新建会话、清空
+                        Row(
+                            modifier = Modifier
+                                .shadow(2.dp, RoundedCornerShape(20.dp))
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(Color.White),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(
-                                Icons.Outlined.DeleteSweep,
-                                contentDescription = "清空对话",
-                                tint = if (state.serverConversationId != null) LimeGray
-                                else LimeGray.copy(alpha = 0.3f),
-                                modifier = Modifier.size(21.dp),
-                            )
+                            IconButton(onClick = { viewModel.startNewConversation() }) {
+                                Icon(
+                                    Icons.Outlined.Add,
+                                    contentDescription = "新建会话",
+                                    tint = MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
+                            IconButton(
+                                onClick = viewModel::requestClearConversation,
+                                enabled = state.serverConversationId != null,
+                            ) {
+                                Icon(
+                                    Icons.Outlined.DeleteSweep,
+                                    contentDescription = "清空对话",
+                                    tint = if (state.serverConversationId != null) {
+                                        MaterialTheme.colorScheme.onBackground
+                                    } else {
+                                        LimeGray.copy(alpha = 0.4f)
+                                    },
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
                         }
                     }
 
@@ -360,6 +452,18 @@ fun AiChatScreen(
                             bubble.content.copyToClipboard(context)
                             "已复制".showToast(context)
                         },
+                        onRegenerate = { bubble ->
+                            messagesById[bubble.id]?.let { viewModel.regenerate(it) }
+                        },
+                        onSpeak = { bubble ->
+                            TtsManager.speak(context, bubble.id, bubble.content)
+                        },
+                        onDelete = { bubble ->
+                            messagesById[bubble.id]?.let { pendingDeleteMessage = it }
+                        },
+                        onSelectText = { bubble ->
+                            selectTextContent = bubble.content
+                        },
                         onImageClick = { index, images ->
                             previewImages = images
                             previewIndex = index
@@ -381,7 +485,9 @@ fun AiChatScreen(
                             )
                         },
                         sending = state.streaming || state.busy,
-                        canSend = (state.inputText.isNotBlank() || state.pendingImages.isNotEmpty()) && !state.isOffline,
+                        canSend = (state.inputText.isNotBlank() || state.pendingImages.isNotEmpty() || state.selectedNote != null) && !state.isOffline,
+                        note = state.selectedNote,
+                        onRemoveNote = viewModel::removeNote,
                         onAddClick = { showAddSheet = true },
                         onRemoveImage = viewModel::removeImage,
                         onRetryImage = viewModel::retryImage,
@@ -423,35 +529,6 @@ fun AiChatScreen(
             }
         }
 
-        // 覆盖层
-        menuTarget?.let { target ->
-            BottomActionSheet(
-                visible = true,
-                onDismiss = { menuTarget = null },
-                actions = listOf(
-                    SheetAction(
-                        label = "清空对话",
-                        onClick = {
-                            viewModel.clearMessages(target) { ok ->
-                                if (ok) "已清空".showToast(context)
-                            }
-                            closeDrawer()
-                        },
-                    ),
-                    SheetAction(
-                        label = "删除会话",
-                        textColor = MaterialTheme.colorScheme.error,
-                        onClick = { deleteTarget = target },
-                    ),
-                    SheetAction(
-                        label = "取消",
-                        textColor = LimeGray,
-                        onClick = {},
-                    ),
-                ),
-            )
-        }
-
         deleteTarget?.let { target ->
             LimeAlertDialog(
                 title = "删除会话",
@@ -484,13 +561,36 @@ fun AiChatScreen(
             )
         }
 
+        // 删除单条消息确认
+        pendingDeleteMessage?.let { msg ->
+            LimeAlertDialog(
+                title = "删除消息",
+                text = "将删除这条消息及其关联的提问/回复，且不可恢复。",
+                firstButtonText = "取消",
+                secondButtonText = "删除",
+                secondButtonColor = MaterialTheme.colorScheme.error,
+                onFirstButtonClick = { pendingDeleteMessage = null },
+                onSecondButtonClick = {
+                    viewModel.deleteMessagePair(msg)
+                    pendingDeleteMessage = null
+                },
+                onDismissRequest = { pendingDeleteMessage = null },
+            )
+        }
+
         // 输入栏底部栏
         if (showAddSheet) {
             ChatAddSheet(
                 onDismiss = { showAddSheet = false },
                 onCamera = {
                     showAddSheet = false
-                    "拍照功能开发中".showToast(context)
+                    val uri = createCameraImageUri(context)
+                    if (uri != null) {
+                        cameraUri = uri
+                        takePictureLauncher.launch(uri)
+                    } else {
+                        "无法创建拍照文件".showToast(context)
+                    }
                 },
                 onAlbum = {
                     showAddSheet = false
@@ -500,7 +600,22 @@ fun AiChatScreen(
                 },
                 onNote = {
                     showAddSheet = false
-                    "笔迹功能开发中".showToast(context)
+                    showNotePicker = true
+                },
+            )
+        }
+
+        // 笔记选择页（
+        AnimatedVisibility(
+            visible = showNotePicker,
+            enter = slideInHorizontally(animationSpec = tween(280), initialOffsetX = { it }) + fadeIn(),
+            exit = slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { it }) + fadeOut(),
+        ) {
+            NotePickerPage(
+                onDismiss = { showNotePicker = false },
+                onConfirm = { item ->
+                    showNotePicker = false
+                    viewModel.selectNote(ChatNote(id = item.id, title = item.title, cover = item.coverImage))
                 },
             )
         }
@@ -512,6 +627,36 @@ fun AiChatScreen(
                 onDismiss = { previewImages = emptyList() },
             )
         }
+
+        // 选取文字底部栏
+        selectTextContent?.let { content ->
+            val pureText = content.stripMarkdown()
+            ModalBottomSheet(
+                onDismissRequest = { selectTextContent = null },
+                containerColor = MaterialTheme.colorScheme.surface,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 24.dp),
+                ) {
+                    Text(
+                        text = "选择文本",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    SelectionContainer {
+                        Text(
+                            text = pureText,
+                            style = MaterialTheme.typography.bodyLarge,
+                            lineHeight = 24.sp,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -522,9 +667,11 @@ private fun DrawerContent(
     currentId: String?,
     onNewConversation: () -> Unit,
     onOpenConversation: (ChatConversation) -> Unit,
-    onLongPressConversation: (ChatConversation) -> Unit,
+    onClearConversation: (ChatConversation) -> Unit,
+    onDeleteConversation: (ChatConversation) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var menuId by remember { mutableStateOf<String?>(null) }
     Column(modifier = modifier.fillMaxSize()) {
         // 标题、新建对话
         Row(
@@ -571,12 +718,35 @@ private fun DrawerContent(
                     key = { index -> conversations[index]?.id ?: index },
                 ) { index ->
                     val conversation = conversations[index] ?: return@items
-                    DrawerConversationRow(
-                        conversation = conversation,
-                        selected = conversation.id == currentId,
-                        onClick = { onOpenConversation(conversation) },
-                        onLongClick = { onLongPressConversation(conversation) },
-                    )
+                    Box {
+                        DrawerConversationRow(
+                            conversation = conversation,
+                            selected = conversation.id == currentId,
+                            onClick = { onOpenConversation(conversation) },
+                            onLongClick = { menuId = conversation.id },
+                        )
+                        // 长按菜单
+                        DropdownMenu(
+                            expanded = menuId == conversation.id,
+                            onDismissRequest = { menuId = null },
+                            containerColor = MaterialTheme.colorScheme.surface,
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("清空对话") },
+                                onClick = {
+                                    menuId = null
+                                    onClearConversation(conversation)
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("删除会话", color = MaterialTheme.colorScheme.error) },
+                                onClick = {
+                                    menuId = null
+                                    onDeleteConversation(conversation)
+                                },
+                            )
+                        }
+                    }
                 }
                 when (conversations.loadState.append) {
                     is LoadState.Loading -> item(key = "loading_more") {
@@ -658,6 +828,7 @@ private fun ChatMessage.toBubbleData(): ChatBubbleData = ChatBubbleData(
     isSelf = role == ChatRole.USER,
     content = content,
     images = images.ifEmpty { localImageUris },
+    note = note,
     timestamp = createTime,
     status = when (status) {
         ChatMessageStatus.SENDING -> ChatBubbleStatus.SENDING
@@ -668,3 +839,14 @@ private fun ChatMessage.toBubbleData(): ChatBubbleData = ChatBubbleData(
     },
     renderMarkdown = role == ChatRole.ASSISTANT,
 )
+
+/// 在创建空白图片
+private fun createCameraImageUri(context: Context): Uri? {
+    val values = ContentValues().apply {
+        put(MediaStore.Images.Media.DISPLAY_NAME, "lime_${System.currentTimeMillis()}.jpg")
+        put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+    }
+    return runCatching {
+        context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+    }.getOrNull()
+}

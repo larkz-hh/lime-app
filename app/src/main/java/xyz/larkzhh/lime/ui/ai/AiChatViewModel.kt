@@ -20,6 +20,7 @@ import xyz.larkzhh.lime.domain.model.AiModelInfo
 import xyz.larkzhh.lime.domain.model.ChatConversation
 import xyz.larkzhh.lime.domain.model.ChatMessage
 import xyz.larkzhh.lime.domain.model.ChatMessageStatus
+import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.domain.model.ChatRole
 import xyz.larkzhh.lime.domain.repository.ChatRepository
 import xyz.larkzhh.lime.navigation.Screen
@@ -44,6 +45,7 @@ data class AiChatUiState(
     val messages: List<ChatMessage> = emptyList(),
     val inputText: String = "",
     val pendingImages: List<PendingImage> = emptyList(),
+    val selectedNote: ChatNote? = null,
     val busy: Boolean = false,
     val streaming: Boolean = false,
     val isOffline: Boolean = false,
@@ -247,11 +249,12 @@ class AiChatViewModel @Inject constructor(
             return
         }
         val images = s.pendingImages.map { it.localUri }
+        val note = s.selectedNote
         val conversationId = s.localConversationId
         val wasNew = s.serverConversationId == null
         val model = s.selectedModel
 
-        _state.update { it.copy(inputText = "", pendingImages = emptyList()) }
+        _state.update { it.copy(inputText = "", pendingImages = emptyList(), selectedNote = null) }
 
         sendJob?.cancel()
         sendJob = viewModelScope.launch {
@@ -264,6 +267,7 @@ class AiChatViewModel @Inject constructor(
                     role = ChatRole.USER,
                     content = text,
                     localImageUris = images,
+                    note = note,
                     status = ChatMessageStatus.SENDING,
                 )
             )
@@ -273,11 +277,22 @@ class AiChatViewModel @Inject constructor(
                 messageClientId = messageClientId,
                 displayText = text,
                 imageLocalUris = images,
+                noteId = note?.id,
                 model = model,
                 onState = ::applySendState,
             )
             result.onSuccess { cid -> onSendSuccess(wasNew, cid, text) }
         }
+    }
+
+    /// 选择引用笔记
+    fun selectNote(note: ChatNote) {
+        _state.update { it.copy(selectedNote = note) }
+    }
+
+    /// 移除引用笔记
+    fun removeNote() {
+        _state.update { it.copy(selectedNote = null) }
     }
 
     /// 重发失败的用户消息
@@ -305,6 +320,70 @@ class AiChatViewModel @Inject constructor(
                 onState = ::applySendState,
             )
             result.onSuccess { cid -> onSendSuccess(wasNew, cid, message.content) }
+        }
+    }
+
+    /// 重新生成某条 AI 回复：删除旧助手回复，复用其前置用户消息重新生成
+    fun regenerate(assistant: ChatMessage) {
+        if (_state.value.busy || _state.value.streaming) return
+        if (_state.value.isOffline) {
+            _state.update { it.copy(error = "当前无网络，无法重新生成") }
+            return
+        }
+        val msgs = _state.value.messages
+        val index = msgs.indexOfFirst { it.localId == assistant.localId }
+        if (index <= 0) return
+        val userMsg = msgs[index - 1].takeIf { it.role == ChatRole.USER } ?: return
+        val conversationId = _state.value.localConversationId
+        val wasNew = _state.value.serverConversationId == null
+        val model = _state.value.selectedModel
+
+        sendJob?.cancel()
+        sendJob = viewModelScope.launch {
+            // 删除旧 AI 回复
+            if (assistant.serverId != null) {
+                chatRepository.deleteMessageRemote(conversationId, assistant.serverId)
+            }
+            chatRepository.deleteLocalMessage(assistant.localId)
+            // 复用前置用户消息
+            val result = chatSendEngine.send(
+                conversationId = conversationId,
+                userMessageLocalId = userMsg.localId,
+                messageClientId = userMsg.clientId ?: UUID.randomUUID().toString(),
+                displayText = userMsg.content,
+                imageLocalUris = userMsg.localImageUris,
+                model = model,
+                onState = ::applySendState,
+            )
+            result.onSuccess { cid -> onSendSuccess(wasNew, cid, userMsg.content) }
+        }
+    }
+
+    /// 删除一对消息
+    fun deleteMessagePair(message: ChatMessage) {
+        val conversationId = _state.value.localConversationId
+        val msgs = _state.value.messages
+        val index = msgs.indexOfFirst { it.localId == message.localId }
+        if (index < 0) return
+
+        val toDelete = mutableListOf<ChatMessage>()
+        if (message.role == ChatRole.USER) {
+            toDelete += message
+            val next = msgs.getOrNull(index + 1)
+            if (next != null && next.role == ChatRole.ASSISTANT) toDelete += next
+        } else {
+            val prev = msgs.getOrNull(index - 1)
+            if (prev != null && prev.role == ChatRole.USER) toDelete += prev
+            toDelete += message
+        }
+
+        viewModelScope.launch {
+            toDelete.forEach { m ->
+                if (m.serverId != null) {
+                    chatRepository.deleteMessageRemote(conversationId, m.serverId)
+                }
+                chatRepository.deleteLocalMessage(m.localId)
+            }
         }
     }
 

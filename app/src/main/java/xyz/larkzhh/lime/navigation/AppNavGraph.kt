@@ -300,6 +300,18 @@ fun AppNavGraph(playerManager: VideoPlayerManager) {
                     composable(
                         route = Screen.AiChat.ROUTE,
                         arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
+                        enterTransition = {
+                            slideInHorizontally(animationSpec = tween(280), initialOffsetX = { -it })
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { -it })
+                        },
+                        popEnterTransition = {
+                            slideInHorizontally(animationSpec = tween(280), initialOffsetX = { -it })
+                        },
+                        popExitTransition = {
+                            slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { -it })
+                        },
                     ) { AiChatScreen() }
                     composable(Screen.CommentPhotoPicker.route) {
                         CommentPhotoPickerScreen(navController)

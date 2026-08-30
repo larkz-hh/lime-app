@@ -12,6 +12,13 @@ enum class ChatMessageStatus {
     STOPPED,
 }
 
+/// 引用笔记
+data class ChatNote(
+    val id: Long,
+    val title: String?,
+    val cover: String?,
+)
+
 /// 聊天消息域模型
 data class ChatMessage(
     val localId: Long = 0L,// 未落库
@@ -22,6 +29,7 @@ data class ChatMessage(
     val content: String = "",
     val images: List<String> = emptyList(),
     val localImageUris: List<String> = emptyList(),
+    val note: ChatNote? = null,// 引用的笔记（仅用户消息）
     val status: ChatMessageStatus = ChatMessageStatus.DONE,
     val createTime: Long = System.currentTimeMillis(),
 )

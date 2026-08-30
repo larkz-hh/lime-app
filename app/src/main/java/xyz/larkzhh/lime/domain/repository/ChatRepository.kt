@@ -17,6 +17,7 @@ interface ChatRepository {
         messageClientId: String,
         message: String,
         imageUrls: List<String>?,
+        noteId: Long?,
         model: String?,
     ): Flow<ChatStreamEvent>
 

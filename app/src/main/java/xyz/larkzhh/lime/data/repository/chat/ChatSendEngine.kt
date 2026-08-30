@@ -36,6 +36,7 @@ class ChatSendEngine @Inject constructor(
         messageClientId: String,
         displayText: String,
         imageLocalUris: List<String>,
+        noteId: Long? = null,
         model: String?,
         onState: suspend (ChatSendState) -> Unit = {},
     ): Result<String> {
@@ -84,6 +85,7 @@ class ChatSendEngine @Inject constructor(
                 messageClientId = messageClientId,
                 message = serverText.take(MAX_MESSAGE_LENGTH),
                 imageUrls = uploadedUrls.ifEmpty { null },
+                noteId = noteId,
                 model = model,
             ).collect { event ->
                 when (event) {

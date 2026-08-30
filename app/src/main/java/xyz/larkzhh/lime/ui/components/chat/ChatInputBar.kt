@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,10 +35,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimeWhite
@@ -55,12 +59,14 @@ fun ChatInputBar(
     onTextChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     images: List<ChatInputImage> = emptyList(),
+    note: ChatNote? = null,
     sending: Boolean = false,
     canSend: Boolean = true,
     placeholder: String = "尽管问，带图也行",
     onAddClick: () -> Unit = {},
     onRemoveImage: (uri: String) -> Unit = {},
     onRetryImage: (uri: String) -> Unit = {},
+    onRemoveNote: () -> Unit = {},
     onSend: () -> Unit = {},
     onStop: () -> Unit = {},
 ) {
@@ -69,6 +75,14 @@ fun ChatInputBar(
             .fillMaxWidth()
             .navigationBarsPadding(),
     ) {
+        // 已选引用笔记
+        if (note != null) {
+            NotePreviewChip(
+                note = note,
+                onRemove = onRemoveNote,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            )
+        }
         // 已选图片缩略图
         if (images.isNotEmpty()) {
             Row(
@@ -236,6 +250,48 @@ private fun PendingImageThumb(
                 contentDescription = "移除图片",
                 tint = LimeWhite,
                 modifier = Modifier.size(12.dp),
+            )
+        }
+    }
+}
+
+/// 已选引用笔记预览条
+@Composable
+private fun NotePreviewChip(
+    note: ChatNote,
+    onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(LimeLightGray)
+            .padding(start = 6.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AsyncImage(
+            model = note.cover,
+            contentDescription = note.title,
+            modifier = Modifier
+                .size(28.dp)
+                .clip(RoundedCornerShape(6.dp)),
+            contentScale = ContentScale.Crop,
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = note.title?.ifBlank { "引用笔记" } ?: "引用笔记",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        IconButton(onClick = onRemove, modifier = Modifier.size(22.dp)) {
+            Icon(
+                Icons.Outlined.Close,
+                contentDescription = "移除笔记",
+                tint = LimeGray,
+                modifier = Modifier.size(14.dp),
             )
         }
     }
