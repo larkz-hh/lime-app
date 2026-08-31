@@ -11,4 +11,7 @@
     <string name="shortcut_search">搜索</string>
     <string name="shortcut_ai">问AI</string>
     <string name="shortcut_scan">扫一扫</string>
+    <!-- 桌面小组件 -->
+    <string name="widget_search_name">Lime 搜索</string>
+    <string name="widget_search_description">搜索框 + 今日热搜</string>
 </resources>

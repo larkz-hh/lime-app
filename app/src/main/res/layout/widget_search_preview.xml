@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="250dp"
+    android:layout_height="250dp">
+
+    <androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter
+        android:id="@+id/glance_preview_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:composableName="xyz.larkzhh.lime.ui.widget.SearchWidgetKt.SearchWidgetPreview" />
+</FrameLayout>

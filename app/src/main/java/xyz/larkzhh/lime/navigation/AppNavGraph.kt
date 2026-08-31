@@ -82,6 +82,7 @@ private val swipeBackRoutes =
 fun AppNavGraph(
     playerManager: VideoPlayerManager,
     shortcutAction: String? = null,
+    shortcutKeyword: String? = null,
     onShortcutHandled: () -> Unit = {},
 ) {
     val authViewModel: AuthViewModel = hiltViewModel()
@@ -106,6 +107,7 @@ fun AppNavGraph(
     LaunchedEffect(shortcutAction) {
         val route = when (shortcutAction) {
             ShortcutActions.SEARCH -> Screen.Search.BASE_ROUTE
+            ShortcutActions.SEARCH_KEYWORD -> Screen.Search.createRoute(shortcutKeyword.orEmpty())
             ShortcutActions.AI_CHAT -> Screen.AiChat.createRoute(Screen.AiChat.NEW_CONVERSATION)
             ShortcutActions.QR_SCAN -> Screen.QrScan.route
             else -> null
