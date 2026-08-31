@@ -224,6 +224,7 @@ private fun PendingImageThumb(
         AsyncImage(
             model = image.uri,
             contentDescription = null,
+            contentScale = ContentScale.Crop,
             modifier = Modifier.size(64.dp),
         )
         if (image.state == ChatInputImageState.UPLOADING) {

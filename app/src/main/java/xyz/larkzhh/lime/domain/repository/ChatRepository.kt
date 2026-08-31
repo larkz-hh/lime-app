@@ -19,6 +19,7 @@ interface ChatRepository {
         imageUrls: List<String>?,
         noteId: Long?,
         model: String?,
+        search: Boolean? = null,
     ): Flow<ChatStreamEvent>
 
     /// 拉取模型
@@ -27,7 +28,7 @@ interface ChatRepository {
     /// 打断正在生成的回复
     suspend fun cancelGeneration(messageClientId: String, partialContent: String?): Result<Unit>
 
-    /// 远端历史消息合并进本地缓存；返回服务端是否仍在生成（true=需继续轮询）
+    /// 远端历史消息合并进本地缓存
     suspend fun syncMessages(conversationId: String): Result<Boolean>
 
     /// 删除远端会话、消息

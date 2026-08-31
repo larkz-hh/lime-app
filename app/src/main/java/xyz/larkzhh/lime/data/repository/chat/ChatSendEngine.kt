@@ -37,6 +37,7 @@ class ChatSendEngine @Inject constructor(
         displayText: String,
         imageLocalUris: List<String>,
         noteId: Long? = null,
+        search: Boolean? = null,
         model: String?,
         onState: suspend (ChatSendState) -> Unit = {},
     ): Result<String> {
@@ -87,6 +88,7 @@ class ChatSendEngine @Inject constructor(
                 imageUrls = uploadedUrls.ifEmpty { null },
                 noteId = noteId,
                 model = model,
+                search = search,
             ).collect { event ->
                 when (event) {
                     is ChatStreamEvent.Delta -> {
