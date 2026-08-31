@@ -38,6 +38,7 @@ toasty = "1.5.2"
 telephoto = "0.14.0"
 collection = "1.5.0"
 markdown = "0.41.0"
+glance = "1.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -143,6 +144,12 @@ telephoto-zoomable-image-coil3 = { group = "me.saket.telephoto", name = "zoomabl
 # Markdown
 markdown-renderer-m3 = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-m3", version.ref = "markdown" }
 markdown-renderer-coil3 = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-coil3", version.ref = "markdown" }
+
+# Widget
+androidx-glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
+androidx-glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
+androidx-glance-appwidget-preview = { group = "androidx.glance", name = "glance-appwidget-preview", version.ref = "glance" }
+androidx-glance-preview = { group = "androidx.glance", name = "glance-preview", version.ref = "glance" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agpUser" }
