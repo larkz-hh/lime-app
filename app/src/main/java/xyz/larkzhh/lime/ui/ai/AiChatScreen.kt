@@ -377,6 +377,7 @@ fun AiChatScreen(
                                     expanded = state.showModelPicker,
                                     onDismissRequest = { viewModel.toggleModelPicker() },
                                     containerColor = MaterialTheme.colorScheme.surface,
+                                    shape = RoundedCornerShape(12.dp),
                                 ) {
                                     DropdownMenuItem(
                                         text = { Text("默认模型") },
@@ -631,6 +632,8 @@ fun AiChatScreen(
                     showAddSheet = false
                     showNotePicker = true
                 },
+                webSearch = state.webSearch,
+                onWebSearchChange = viewModel::setWebSearch,
             )
         }
 
@@ -759,6 +762,7 @@ private fun DrawerContent(
                             expanded = menuId == conversation.id,
                             onDismissRequest = { menuId = null },
                             containerColor = MaterialTheme.colorScheme.surface,
+                            shape = RoundedCornerShape(12.dp),
                         ) {
                             DropdownMenuItem(
                                 text = { Text("清空对话") },

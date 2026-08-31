@@ -2,13 +2,15 @@ package xyz.larkzhh.lime.ui.components.chat
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,13 +40,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import kotlin.math.roundToInt
 import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.util.TtsManager
@@ -71,12 +77,21 @@ fun ChatMessageBubble(
 ) {
     val isSelf = data.isSelf
     var showMenu by remember { mutableStateOf(false) }
+    var longPressOffset by remember { mutableStateOf(Offset.Zero) }
 
     Box(modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .combinedClickable(onClick = {}, onLongClick = { showMenu = true }),
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {},
+                        onLongPress = { offset ->
+                            longPressOffset = offset
+                            showMenu = true
+                        },
+                    )
+                },
             horizontalAlignment = if (isSelf) Alignment.End else Alignment.Start,
         ) {
             Row(
@@ -126,26 +141,38 @@ fun ChatMessageBubble(
         }
 
         // 长按菜单
-        DropdownMenu(
-            expanded = showMenu,
-            onDismissRequest = { showMenu = false },
-            containerColor = MaterialTheme.colorScheme.surface,
+        Box(
+            modifier = Modifier.offset {
+                IntOffset(longPressOffset.x.roundToInt(), longPressOffset.y.roundToInt())
+            }
         ) {
-            DropdownMenuItem(
-                text = { Text("复制") },
-                onClick = { showMenu = false; onCopy?.invoke() },
-                enabled = onCopy != null,
-            )
-            DropdownMenuItem(
-                text = { Text("选取文字") },
-                onClick = { showMenu = false; onSelectText?.invoke() },
-                enabled = onSelectText != null,
-            )
-            DropdownMenuItem(
-                text = { Text("删除", color = MaterialTheme.colorScheme.error) },
-                onClick = { showMenu = false; onDelete?.invoke() },
-                enabled = onDelete != null,
-            )
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false },
+                containerColor = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                val itemModifier = Modifier.width(150.dp).height(56.dp)
+                val itemStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)
+                DropdownMenuItem(
+                    text = { Text("复制", style = itemStyle) },
+                    onClick = { showMenu = false; onCopy?.invoke() },
+                    enabled = onCopy != null,
+                    modifier = itemModifier,
+                )
+                DropdownMenuItem(
+                    text = { Text("选取文字", style = itemStyle) },
+                    onClick = { showMenu = false; onSelectText?.invoke() },
+                    enabled = onSelectText != null,
+                    modifier = itemModifier,
+                )
+                DropdownMenuItem(
+                    text = { Text("删除", color = MaterialTheme.colorScheme.error, style = itemStyle) },
+                    onClick = { showMenu = false; onDelete?.invoke() },
+                    enabled = onDelete != null,
+                    modifier = itemModifier,
+                )
+            }
         }
     }
 }

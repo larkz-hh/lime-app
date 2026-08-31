@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.tencent.mmkv.MMKV
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -48,6 +49,7 @@ data class AiChatUiState(
     val pendingImages: List<PendingImage> = emptyList(),
     val selectedNote: ChatNote? = null,
     val requestInputFocus: Boolean = false,
+    val webSearch: Boolean = true,
     val busy: Boolean = false,
     val streaming: Boolean = false,
     val isOffline: Boolean = false,
@@ -74,12 +76,15 @@ class AiChatViewModel @Inject constructor(
 
     private var sendJob: Job? = null
     private var messagesJob: Job? = null
+    private val mmkv = MMKV.defaultMMKV()
 
     /// 历史会话列表
     val conversations: Flow<PagingData<ChatConversation>> =
         chatRepository.conversationsPager().cachedIn(viewModelScope)
 
     init {
+        // 读取联网搜索偏好
+        _state.update { it.copy(webSearch = mmkv.decodeBool(KEY_WEB_SEARCH, true)) }
         val enteredId =
             savedStateHandle.get<String>("conversationId") ?: Screen.AiChat.NEW_CONVERSATION
 
@@ -270,6 +275,7 @@ class AiChatViewModel @Inject constructor(
         val conversationId = s.localConversationId
         val wasNew = s.serverConversationId == null
         val model = s.selectedModel
+        val search = s.webSearch
 
         _state.update { it.copy(inputText = "", pendingImages = emptyList(), selectedNote = null) }
 
@@ -295,6 +301,7 @@ class AiChatViewModel @Inject constructor(
                 displayText = text,
                 imageLocalUris = images,
                 noteId = note?.id,
+                search = search,
                 model = model,
                 onState = ::applySendState,
             )
@@ -310,6 +317,12 @@ class AiChatViewModel @Inject constructor(
     /// 移除引用笔记
     fun removeNote() {
         _state.update { it.copy(selectedNote = null) }
+    }
+
+    /// 设置联网搜索
+    fun setWebSearch(enabled: Boolean) {
+        mmkv.encode(KEY_WEB_SEARCH, enabled)
+        _state.update { it.copy(webSearch = enabled) }
     }
 
     /// 输入框聚焦请求消费
@@ -338,6 +351,7 @@ class AiChatViewModel @Inject constructor(
                 messageClientId = message.clientId ?: UUID.randomUUID().toString(),
                 displayText = message.content,
                 imageLocalUris = message.localImageUris,
+                search = _state.value.webSearch,
                 model = model,
                 onState = ::applySendState,
             )
@@ -374,6 +388,7 @@ class AiChatViewModel @Inject constructor(
                 messageClientId = userMsg.clientId ?: UUID.randomUUID().toString(),
                 displayText = userMsg.content,
                 imageLocalUris = userMsg.localImageUris,
+                search = _state.value.webSearch,
                 model = model,
                 onState = ::applySendState,
             )
@@ -523,5 +538,6 @@ class AiChatViewModel @Inject constructor(
         const val MAX_MESSAGE_LENGTH = 2000
         const val MAX_RESUME_POLLS = 6
         const val RESUME_POLL_INTERVAL_MS = 1500L
+        const val KEY_WEB_SEARCH = "ai_web_search"
     }
 }

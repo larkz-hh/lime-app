@@ -12,23 +12,34 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 
 /**
@@ -41,21 +52,46 @@ fun ChatAddSheet(
     onCamera: () -> Unit,
     onAlbum: () -> Unit,
     onNote: () -> Unit,
+    webSearch: Boolean,
+    onWebSearchChange: (Boolean) -> Unit,
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 24.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+                .padding(horizontal = 20.dp, vertical = 20.dp),
         ) {
-            AddSquare(icon = Icons.Outlined.PhotoCamera, label = "拍照", onClick = onCamera)
-            AddSquare(icon = Icons.Outlined.PhotoLibrary, label = "相册", onClick = onAlbum)
-            AddSquare(icon = Icons.Outlined.Edit, label = "笔迹", onClick = onNote)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                AddSquare(
+                    icon = Icons.Outlined.PhotoCamera,
+                    label = "拍照",
+                    onClick = onCamera,
+                    modifier = Modifier.weight(1f),
+                )
+                AddSquare(
+                    icon = Icons.Outlined.PhotoLibrary,
+                    label = "相册",
+                    onClick = onAlbum,
+                    modifier = Modifier.weight(1f),
+                )
+                AddSquare(
+                    icon = Icons.Outlined.Edit,
+                    label = "笔记",
+                    onClick = onNote,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            WebSearchRow(webSearch = webSearch, onChange = onWebSearchChange)
         }
     }
 }
@@ -65,26 +101,27 @@ private fun AddSquare(
     icon: ImageVector,
     label: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .clip(RoundedCornerShape(14.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = 4.dp, vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
             modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(14.dp))
+                .size(64.dp)
+                .clip(RoundedCornerShape(16.dp))
                 .background(LimeLightGray),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 icon,
                 contentDescription = label,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(26.dp),
+                tint = Color(0xFF3A3A3A),
+                modifier = Modifier.size(30.dp),
             )
         }
         Spacer(Modifier.height(8.dp))
@@ -93,5 +130,72 @@ private fun AddSquare(
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 13.sp,
         )
+    }
+}
+
+@Composable
+private fun WebSearchRow(
+    webSearch: Boolean,
+    onChange: (Boolean) -> Unit,
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(LimeLightGray)
+            .clickable { menuExpanded = true }
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            Icons.Outlined.Public,
+            contentDescription = "联网搜索",
+            tint = Color(0xFF3A3A3A),
+            modifier = Modifier.size(20.dp),
+        )
+        Spacer(Modifier.width(10.dp))
+        Text(
+            text = "联网搜索",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 14.sp,
+        )
+        Spacer(Modifier.weight(1f))
+        Text(
+            text = if (webSearch) "自动" else "关闭",
+            color = LimeGray,
+            fontSize = 14.sp,
+        )
+        Icon(
+            Icons.Filled.ArrowDropDown,
+            contentDescription = null,
+            tint = LimeGray,
+            modifier = Modifier.size(20.dp),
+        )
+
+        Box(modifier = Modifier.align(Alignment.CenterVertically)) {
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                DropdownMenuItem(
+                    text = { Text("自动") },
+                    onClick = {
+                        onChange(true)
+                        menuExpanded = false
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text("关闭") },
+                    onClick = {
+                        onChange(false)
+                        menuExpanded = false
+                    },
+                )
+            }
+        }
     }
 }

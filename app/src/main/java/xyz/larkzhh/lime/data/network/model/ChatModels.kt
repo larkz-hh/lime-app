@@ -8,6 +8,7 @@ data class AiChatRequest(
     val imageUrls: List<String>? = null,
     val noteId: Long? = null,
     val model: String? = null,
+    val search: Boolean? = null,
 )
 
 /// 打断正在生成的回复
