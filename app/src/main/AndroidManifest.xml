@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -47,6 +48,10 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
         <activity
             android:name=".VideoActivity"
@@ -60,7 +65,7 @@
             android:theme="@style/Theme.UCrop.Fullscreen"
             tools:ignore="LockedOrientationActivity"
             />
-        <!-- 媒体按钮接收器：MediaSession 用于响应蓝牙/耳机等媒体按键 -->
+        <!-- 媒体按钮接收器 -->
         <receiver
             android:name="androidx.media3.session.MediaButtonReceiver"
             android:exported="false">
@@ -68,11 +73,11 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
-        <!-- PiP 小窗自定义按钮（后退15s/暂停/前进15s）的广播接收器 -->
+        <!-- PiP 小窗自定义按钮的广播接收器 -->
         <receiver
             android:name=".PipMediaActionReceiver"
             android:exported="false" />
-        <!-- 后台播放服务：前台服务 + 通知栏媒体卡片（Media3 MediaSessionService） -->
+        <!-- 后台播放服务 -->
         <service
             android:name=".ui.video.player.PlaybackService"
             android:exported="true"
@@ -81,6 +86,18 @@
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+        <!-- 桌面搜索栏组件 -->
+        <receiver
+            android:name=".ui.widget.SearchWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_search_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/lime_search_widget_info" />
+        </receiver>
     </application>
 
 </manifest>

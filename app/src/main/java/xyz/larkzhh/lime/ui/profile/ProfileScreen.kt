@@ -101,6 +101,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
     notesViewModel: ProfileNotesViewModel = hiltViewModel(),
     session: AuthorProfileSession? = null,// 非空为笔记作者用户页面
+    onOpenDrawer: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isSelf by viewModel.isSelf.collectAsState()
@@ -267,6 +268,7 @@ fun ProfileScreen(
         } else null,
         tabAtLeftmost = { pagerState.currentPage == 0 && pagerState.currentPageOffsetFraction >= 0f },
     ) {
+    val fromBottomNav = userId == null
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0),
@@ -420,7 +422,6 @@ fun ProfileScreen(
             }
 
             // 顶部栏
-            val fromBottomNav = userId == null
             ProfileTopBar(
                 user = user,
                 bgAlpha = topBarBgAlpha,
@@ -429,7 +430,13 @@ fun ProfileScreen(
                 miniAvatarOffsetDp = miniAvatarOffsetDp,
                 editButtonAlpha = editButtonAlpha,
                 leadingIcon = if (fromBottomNav) Icons.Default.Menu else Icons.AutoMirrored.Filled.ArrowBack,
-                onLeadingClick = { if (!fromBottomNav) navController.popBackStack() },
+                onLeadingClick = {
+                    if (fromBottomNav) {
+                        onOpenDrawer()
+                    } else {
+                        navController.popBackStack()
+                    }
+                },
                 showTrailingActions = isSelf,
                 onEditProfileClick = { navController.navigate(Screen.EditProfile.route) },
                 onQrScanClick = { navController.navigate(Screen.QrScan.route) },

@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.util
 
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -17,6 +18,15 @@ fun formatRelativeTime(isoTime: String): String {
     } catch (_: Exception) {
         return isoTime
     }
+    return formatRelativeTime(time)
+}
+
+fun formatRelativeTime(epochMillis: Long): String {
+    val time = Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()).toLocalDateTime()
+    return formatRelativeTime(time)
+}
+
+private fun formatRelativeTime(time: LocalDateTime): String {
     val now = LocalDateTime.now()
     val minutes = ChronoUnit.MINUTES.between(time, now)
     val hours = ChronoUnit.HOURS.between(time, now)

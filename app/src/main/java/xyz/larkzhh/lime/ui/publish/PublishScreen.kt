@@ -22,6 +22,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,9 +37,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import xyz.larkzhh.lime.ui.publish.ai.AiWriteAction
+import xyz.larkzhh.lime.ui.publish.ai.AiWriteSheet
+import xyz.larkzhh.lime.ui.publish.ai.AiWriteViewModel
 import xyz.larkzhh.lime.ui.publish.components.NotePublishScaffold
 import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
 
@@ -46,6 +53,8 @@ fun PublishScreen(
     viewModel: PublishViewModel,
 ) {
     val publishState by viewModel.publishState.collectAsState()
+    val aiViewModel: AiWriteViewModel = hiltViewModel()
+    var showAiSheet by remember { mutableStateOf(false) }
 
     val total = publishState.selectedUris.size
     val done = publishState.publishProgress
@@ -67,6 +76,12 @@ fun PublishScreen(
         onClearDraftSuccess = viewModel::clearDraftSuccess,
         onSaveDraft = viewModel::saveDraft,
         onPublish = viewModel::publish,
+        onAiAssist = { showAiSheet = true },
+        onAiAction = { action ->
+            aiViewModel.start(action, publishState.content, publishState.selectedUris)
+            showAiSheet = true
+        },
+        hasImages = publishState.selectedUris.isNotEmpty(),
     ) {
         // 图片横向列表
         val lazyListState = rememberLazyListState()
@@ -121,6 +136,18 @@ fun PublishScreen(
                 }
             }
         }
+    }
+
+    // AI 帮写弹窗
+    if (showAiSheet) {
+        AiWriteSheet(
+            content = publishState.content,
+            imageUris = publishState.selectedUris,
+            onApplyContent = viewModel::onContentChange,
+            onApplyTitle = viewModel::onTitleChange,
+            onDismiss = { showAiSheet = false },
+            viewModel = aiViewModel,
+        )
     }
 }
 

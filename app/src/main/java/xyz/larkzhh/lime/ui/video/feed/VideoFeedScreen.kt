@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -104,6 +105,8 @@ import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentViewModel
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
 import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.ui.detail.components.NoteBottomBar
+import xyz.larkzhh.lime.ui.detail.translate.TranslateResultSheet
+import xyz.larkzhh.lime.ui.detail.translate.TranslateViewModel
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
 import xyz.larkzhh.lime.ui.video.components.LikeBurst
 import xyz.larkzhh.lime.ui.video.components.ScrubBar
@@ -131,6 +134,7 @@ fun VideoFeedScreen(
     val viewModel: VideoFeedViewModel = hiltViewModel()
     val commentViewModel: CommentViewModel = hiltViewModel()
     val danmakuViewModel: DanmakuViewModel = hiltViewModel()
+    val translateViewModel: TranslateViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
 
     // 外部同步全屏状态
@@ -165,6 +169,7 @@ fun VideoFeedScreen(
                         viewModel = viewModel,
                         commentViewModel = commentViewModel,
                         danmakuViewModel = danmakuViewModel,
+                        translateViewModel = translateViewModel,
                         playerManager = playerManager,
                         onEnterMiniPlayer = onEnterMiniPlayer,
                         onExit = onExit,
@@ -206,6 +211,7 @@ private fun VideoFeedContent(
     viewModel: VideoFeedViewModel,
     commentViewModel: CommentViewModel,
     danmakuViewModel: DanmakuViewModel,
+    translateViewModel: TranslateViewModel,
     playerManager: VideoPlayerManager,
     onEnterMiniPlayer: ((videoWidth: Int, videoHeight: Int) -> Unit)?,
     onExit: () -> Unit,
@@ -214,6 +220,7 @@ private fun VideoFeedContent(
     val uiState by viewModel.uiState.collectAsState()
     val commentUiState by commentViewModel.uiState.collectAsState()
     val danmakuUiState by danmakuViewModel.uiState.collectAsState()
+    val translateUiState by translateViewModel.uiState.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val notificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -565,6 +572,14 @@ private fun VideoFeedContent(
                             "已复制".showToast(context)
                         },
                     ),
+                    GroupedSheetAction(
+                        label = "翻译",
+                        icon = Icons.Outlined.Translate,
+                        iconSize = 20.dp,
+                        onClick = {
+                            m.copyText?.let { translateViewModel.translate(it) }
+                        },
+                    ),
                 ))
                 if (m.canDelete) {
                     add(listOf(
@@ -588,6 +603,25 @@ private fun VideoFeedContent(
                 onSecondButtonClick = {
                     pendingDeleteAction?.invoke()
                     pendingDeleteAction = null
+                },
+            )
+        }
+
+        // 翻译面板
+        if (translateUiState.visible) {
+            TranslateResultSheet(
+                state = translateUiState,
+                onDismiss = translateViewModel::dismiss,
+                onRetry = translateViewModel::retry,
+                onBackgroundDownload = {
+                    translateViewModel.scheduleBackgroundDownload()
+                    translateViewModel.dismiss()
+                    "已加入后台下载，完成后即可离线翻译".showToast(context)
+                },
+                onSwitchDirection = translateViewModel::switchDirection,
+                onCopy = { text ->
+                    text.copyToClipboard(context)
+                    "已复制".showToast(context)
                 },
             )
         }

@@ -33,10 +33,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.video.videoFrameMillis
 import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.ui.publish.ai.AiWriteSheet
+import xyz.larkzhh.lime.ui.publish.ai.AiWriteViewModel
 import xyz.larkzhh.lime.ui.publish.components.NotePublishScaffold
 import xyz.larkzhh.lime.ui.publish.components.PickerVideoPreview
 import xyz.larkzhh.lime.ui.publish.viewmodel.CoverSource
@@ -50,6 +53,7 @@ fun VideoPublishScreen(
 ) {
     val pickerState by viewModel.pickerState.collectAsState()
     val publishState by viewModel.publishState.collectAsState()
+    val aiViewModel: AiWriteViewModel = hiltViewModel()
     val context = LocalContext.current
 
     val videoUri = pickerState.selectedVideo?.uri
@@ -57,6 +61,8 @@ fun VideoPublishScreen(
 
     // 视频预览
     var showPreview by remember { mutableStateOf(false) }
+    // AI 写作弹窗
+    var showAiSheet by remember { mutableStateOf(false) }
 
     // 视频预览尺寸，高度固定
     val previewHeight = 120.dp
@@ -80,6 +86,12 @@ fun VideoPublishScreen(
         onClearDraftSuccess = viewModel::clearDraftSuccess,
         onSaveDraft = viewModel::saveDraft,
         onPublish = viewModel::publish,
+        onAiAssist = { showAiSheet = true },
+        onAiAction = { action ->
+            aiViewModel.start(action, publishState.content, emptyList())
+            showAiSheet = true
+        },
+        hasImages = false,
     ) {
         // 顶部封面预览
         Box(
@@ -145,6 +157,18 @@ fun VideoPublishScreen(
                 )
             }
         }
+    }
+
+    // AI 帮写弹窗
+    if (showAiSheet) {
+        AiWriteSheet(
+            content = publishState.content,
+            imageUris = emptyList(),
+            onApplyContent = viewModel::onContentChange,
+            onApplyTitle = viewModel::onTitleChange,
+            onDismiss = { showAiSheet = false },
+            viewModel = aiViewModel,
+        )
     }
 
     // 视频全屏预览

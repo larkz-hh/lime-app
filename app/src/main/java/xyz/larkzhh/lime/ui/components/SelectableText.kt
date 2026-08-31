@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -65,7 +66,8 @@ private val HandleRadius = 6.dp// 选区拖杆小球半径
 
 data class SelectionAction(
     val label: String,
-    val icon: ImageVector,
+    val icon: ImageVector? = null,
+    val painter: Painter? = null,
     val onClick: (String) -> Unit,
 )
 
@@ -238,12 +240,21 @@ fun SelectableText(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center,
                                 ) {
-                                    Icon(
-                                        imageVector = action.icon,
-                                        contentDescription = action.label,
-                                        tint = toolbarContentColor,
-                                        modifier = Modifier.size(19.dp),
-                                    )
+                                    if (action.icon != null) {
+                                        Icon(
+                                            imageVector = action.icon,
+                                            contentDescription = action.label,
+                                            tint = toolbarContentColor,
+                                            modifier = Modifier.size(19.dp),
+                                        )
+                                    } else if (action.painter != null) {
+                                        Icon(
+                                            painter = action.painter,
+                                            contentDescription = action.label,
+                                            tint = toolbarContentColor,
+                                            modifier = Modifier.size(19.dp),
+                                        )
+                                    }
                                     Text(
                                         text = action.label,
                                         color = toolbarContentColor,

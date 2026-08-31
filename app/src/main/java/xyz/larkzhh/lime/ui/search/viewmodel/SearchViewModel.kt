@@ -1,8 +1,12 @@
 package xyz.larkzhh.lime.ui.search.viewmodel
 
+import android.content.Context
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.glance.appwidget.updateAll
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +22,9 @@ import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.SearchRepository
+import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.ui.widget.SearchWidget
+import xyz.larkzhh.lime.ui.widget.WidgetHotCache
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -77,6 +84,8 @@ class SearchViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
     private val historyStorage: SearchHistoryStorage,
     private val eventBus: NoteEventBus,
+    @ApplicationContext private val appContext: Context,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState(history = historyStorage.load()))
@@ -90,13 +99,23 @@ class SearchViewModel @Inject constructor(
         loadHotSearches()
         observeSuggestQuery()
         observeNoteEvents()
+        // 详情页进入
+        savedStateHandle.get<String>(Screen.Search.ARG_QUERY)
+            ?.takeIf { it.isNotBlank() }
+            ?.let { confirmSearch(it) }
     }
 
     /// 加载热搜榜
     private fun loadHotSearches() {
         viewModelScope.launch {
+            val cached = WidgetHotCache.read()
+            if (cached.isNotEmpty()) {
+                _uiState.update { it.copy(hotWords = cached) }
+            }
             searchRepository.getHotSearches().onSuccess { hotWords ->
                 _uiState.update { it.copy(hotWords = hotWords) }
+                WidgetHotCache.write(hotWords)
+                runCatching { SearchWidget().updateAll(appContext) }
             }
         }
     }

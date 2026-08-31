@@ -13,6 +13,7 @@ import xyz.larkzhh.lime.data.network.model.ApiResponse
 import xyz.larkzhh.lime.data.network.model.TokenData
 import javax.inject.Inject
 import javax.inject.Named
+import javax.inject.Singleton
 
 /**
  *  自定义网络请求认证拦截器
@@ -20,6 +21,7 @@ import javax.inject.Named
  *  - Access Token 过期时自动用 Refresh Token 换取新 Token
  *  - Refresh Token 也失效时清除本地凭证
  */
+@Singleton
 class AuthInterceptor @Inject constructor(
     private val tokenStorage: TokenStorage,
     @param:Named("base_url") private val baseUrl: String,

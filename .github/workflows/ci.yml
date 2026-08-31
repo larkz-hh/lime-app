@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      LIME_USE_ALIYUN: "false"
 
     steps:
       - name: Checkout

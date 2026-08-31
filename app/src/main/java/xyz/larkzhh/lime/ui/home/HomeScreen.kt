@@ -16,7 +16,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.openVideo
 import xyz.larkzhh.lime.ui.components.NoteCard
@@ -65,8 +66,10 @@ fun HomeScreen(navController: NavHostController) {
         HomeTopBar(
             tabs = tabs,
             selectedIndex = pagerState.currentPage,
-            onChatClick = { /* TODO: AI 聊天 */ },
-            onSearchClick = { navController.navigate(Screen.Search.route) },
+            onChatClick = {
+                navController.navigate(Screen.AiChat.createRoute(Screen.AiChat.LATEST_CONVERSATION))
+            },
+            onSearchClick = { navController.navigate(Screen.Search.BASE_ROUTE) },
             onTabSelected = { index ->
                 coroutineScope.launch { pagerState.animateScrollToPage(index) }
             },
@@ -102,9 +105,10 @@ private fun HomeTopBar(
         // AI 聊天入口
         IconButton(onClick = onChatClick) {
             Icon(
-                imageVector = Icons.Outlined.ChatBubbleOutline,
+                painter = painterResource(R.drawable.ic_chat),
                 contentDescription = "聊天",
                 tint = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.size(20.dp),
             )
         }
         // 关注/发现 tab
