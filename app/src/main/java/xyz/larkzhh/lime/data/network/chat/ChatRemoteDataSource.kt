@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.data.repository.chat
+package xyz.larkzhh.lime.data.network.chat
 
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import okhttp3.OkHttpClient
+import xyz.larkzhh.lime.data.mapper.toDomain
 import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.collectSse
 import xyz.larkzhh.lime.data.network.model.AiChatCancelRequest

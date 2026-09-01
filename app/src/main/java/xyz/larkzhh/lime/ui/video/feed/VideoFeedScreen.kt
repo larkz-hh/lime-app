@@ -221,6 +221,7 @@ private fun VideoFeedContent(
     val commentUiState by commentViewModel.uiState.collectAsState()
     val danmakuUiState by danmakuViewModel.uiState.collectAsState()
     val translateUiState by translateViewModel.uiState.collectAsState()
+    val isUnmetered by viewModel.isUnmetered.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val notificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -357,7 +358,7 @@ private fun VideoFeedContent(
             VerticalPager(
                 state = pagerState,
                 userScrollEnabled = !scrubbing,
-                beyondViewportPageCount = 1,
+                beyondViewportPageCount = if (isUnmetered) 1 else 0,
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black),

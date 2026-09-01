@@ -61,11 +61,14 @@ import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
 import xyz.larkzhh.lime.navigation.PendingChatStore
 import xyz.larkzhh.lime.ui.components.CommentInputSheet
+import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet
 import xyz.larkzhh.lime.ui.components.GroupedSheetAction
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
+import xyz.larkzhh.lime.ui.components.LoadMoreErrorItem
 import xyz.larkzhh.lime.ui.components.SelectableText
 import xyz.larkzhh.lime.ui.components.SelectionAction
+import xyz.larkzhh.lime.ui.components.OfflineBanner
 import xyz.larkzhh.lime.ui.components.VoiceRecordSheet
 import xyz.larkzhh.lime.ui.detail.components.AuthorBar
 import xyz.larkzhh.lime.ui.detail.comment.components.CommentCard
@@ -181,6 +184,9 @@ fun DetailScreen(
             .background(MaterialTheme.colorScheme.background),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
+            if (uiState.isOffline && uiState.note != null) {
+                OfflineBanner()
+            }
             when {
                 uiState.isLoading -> {
                     Box(
@@ -200,7 +206,7 @@ fun DetailScreen(
                             .fillMaxWidth(),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(text = uiState.error ?: "加载失败", color = LimeGray, fontSize = 14.sp)
+                        ErrorState(message = uiState.error, onRetry = viewModel::retry)
                     }
                 }
 
@@ -218,6 +224,7 @@ fun DetailScreen(
                         modifier = Modifier.weight(1f),
                         onImageClick = viewModel::showImagePreview,
                         onSortChange = commentViewModel::setSort,
+                        onRetryComments = commentViewModel::retryComments,
                         onLoadMoreComments = { commentViewModel.loadComments() },
                         onCommentLike = commentViewModel::toggleCommentLike,
                         onReply = { commentViewModel.openInputSheet(it) },
@@ -466,6 +473,7 @@ private fun NoteContent(
     commentUiState: CommentUiState,
     onImageClick: (Int) -> Unit,
     onSortChange: (CommentSort) -> Unit,
+    onRetryComments: () -> Unit,
     onLoadMoreComments: () -> Unit,
     onCommentLike: (Long) -> Unit,
     onReply: (ReplyTarget) -> Unit,
@@ -625,8 +633,22 @@ private fun NoteContent(
             )
         }
 
+        // 评论加载失败重试
+        if (commentUiState.error != null && commentUiState.comments.isEmpty() && !commentUiState.isLoading) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    ErrorState(message = commentUiState.error, onRetry = onRetryComments)
+                }
+            }
+        }
+
         // 无评论空态
-        if (!commentUiState.isLoading && commentUiState.comments.isEmpty()) {
+        if (!commentUiState.isLoading && commentUiState.error == null && commentUiState.comments.isEmpty()) {
             item {
                 Column(
                     modifier = Modifier
@@ -676,6 +698,13 @@ private fun NoteContent(
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = LimePrimary, strokeWidth = 2.dp)
                 }
+            }
+        }
+
+        // 加载更多评论失败重试
+        if (commentUiState.error != null && commentUiState.comments.isNotEmpty() && !commentUiState.isLoadingMore) {
+            item {
+                LoadMoreErrorItem(message = commentUiState.error, onRetry = onRetryComments)
             }
         }
 

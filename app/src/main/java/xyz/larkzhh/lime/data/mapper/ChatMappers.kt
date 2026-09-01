@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.data.repository.chat
+package xyz.larkzhh.lime.data.mapper
 
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer

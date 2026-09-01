@@ -1,10 +1,7 @@
-package xyz.larkzhh.lime.data.repository.chat
+package xyz.larkzhh.lime.data.local.chat
 
 import androidx.paging.PagingSource
 import kotlinx.coroutines.flow.Flow
-import xyz.larkzhh.lime.data.local.chat.ChatDao
-import xyz.larkzhh.lime.data.local.chat.ConversationEntity
-import xyz.larkzhh.lime.data.local.chat.MessageEntity
 import javax.inject.Inject
 import javax.inject.Singleton
 

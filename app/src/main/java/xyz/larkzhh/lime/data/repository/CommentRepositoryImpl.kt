@@ -14,6 +14,7 @@ import xyz.larkzhh.lime.data.network.model.PostReplyRequest
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.data.network.model.ReplyListResponse
 import xyz.larkzhh.lime.domain.repository.CommentRepository
+import xyz.larkzhh.lime.util.ImageCompressor
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -72,17 +73,9 @@ class CommentRepositoryImpl @Inject constructor(
 
     /// 上传评论图片
     override suspend fun uploadCommentImage(uri: Uri): Result<String> = runCatching {
-        val bytes = context.contentResolver.openInputStream(uri)?.readBytes()
-            ?: error("无法读取图片文件")
-        val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
-        val ext = when (mimeType) {
-            "image/png" -> "png"
-            "image/webp" -> "webp"
-            "image/gif" -> "gif"
-            else -> "jpg"
-        }
-        val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
-        val part = MultipartBody.Part.createFormData("file", "upload.$ext", requestBody)
+        val image = ImageCompressor.compress(context, uri)
+        val requestBody = image.bytes.toRequestBody(image.mimeType.toMediaTypeOrNull())
+        val part = MultipartBody.Part.createFormData("file", "upload.${image.ext}", requestBody)
         val response = apiService.uploadCommentImage(part)
         check(response.code == 200 && response.data != null) { response.message }
         response.data.url

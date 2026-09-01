@@ -22,34 +22,49 @@ class NetworkMonitor @Inject constructor(
     private val _isOnline = MutableStateFlow(true)
     val isOnline: StateFlow<Boolean> = _isOnline.asStateFlow()
 
+    private val _isUnmetered = MutableStateFlow(true)
+    val isUnmetered: StateFlow<Boolean> = _isUnmetered.asStateFlow()
+
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             _isOnline.value = true
+            refreshUnmetered()
         }
 
         override fun onLost(network: Network) {
             _isOnline.value = hasAnyConnection()
+            refreshUnmetered()
         }
 
         override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
             _isOnline.value = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            _isUnmetered.value = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
         }
     }
 
     init {
         _isOnline.value = hasAnyConnection()
+        refreshUnmetered()
         runCatching {
             connectivityManager.registerDefaultNetworkCallback(callback)// 注册回调
         }
     }
 
-    private fun hasAnyConnection(): Boolean {
-        val caps = runCatching {
-            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-        }.getOrNull() ?: return false
-        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    /// 获取当前网络能力
+    private fun currentCapabilities(): NetworkCapabilities? = runCatching {
+        connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+    }.getOrNull()
+
+    /// 判断是否有网络连接
+    private fun hasAnyConnection(): Boolean =
+        currentCapabilities()?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+
+    /// 判断当前网络是否计费
+    private fun refreshUnmetered() {
+        _isUnmetered.value =
+            currentCapabilities()?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) == true
     }
 }

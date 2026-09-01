@@ -4,7 +4,10 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
+import xyz.larkzhh.lime.data.local.chat.ChatLocalDataSource
 import xyz.larkzhh.lime.data.local.chat.ConversationEntity
+import xyz.larkzhh.lime.data.mapper.toEntity
+import xyz.larkzhh.lime.data.network.chat.ChatRemoteDataSource
 
 /**
  * 会话列表 RemoteMediator

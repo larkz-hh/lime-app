@@ -9,6 +9,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import xyz.larkzhh.lime.data.local.chat.ChatDao
 import xyz.larkzhh.lime.data.local.chat.ChatDatabase
+import xyz.larkzhh.lime.data.local.feed.FeedDao
+import xyz.larkzhh.lime.data.local.feed.FeedDatabase
 import javax.inject.Singleton
 
 /**
@@ -27,4 +29,14 @@ object DatabaseModule {
 
     @Provides
     fun provideChatDao(database: ChatDatabase): ChatDao = database.chatDao()
+
+    @Provides
+    @Singleton
+    fun provideFeedDatabase(@ApplicationContext context: Context): FeedDatabase =
+        Room.databaseBuilder(context, FeedDatabase::class.java, "lime_feed.db")
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
+
+    @Provides
+    fun provideFeedDao(database: FeedDatabase): FeedDao = database.feedDao()
 }

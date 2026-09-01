@@ -20,6 +20,7 @@ import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.util.NetworkMonitor
 import javax.inject.Inject
 
 /// 视频页模型
@@ -90,10 +91,13 @@ private fun FeedItem.toVideoItemOrNull(): VideoItem? {
 class VideoFeedViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
     private val eventBus: NoteEventBus,
+    networkMonitor: NetworkMonitor,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val mmkv by lazy { MMKV.defaultMMKV() }
+
+    val isUnmetered: StateFlow<Boolean> = networkMonitor.isUnmetered
 
     // 后台继续播放偏好
     private val _uiState = MutableStateFlow(

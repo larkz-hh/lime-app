@@ -1,0 +1,119 @@
+package xyz.larkzhh.lime.ui.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.WifiOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import xyz.larkzhh.lime.ui.theme.LimeGray
+import xyz.larkzhh.lime.ui.theme.LimeLightGray
+import xyz.larkzhh.lime.ui.theme.LimePrimary
+
+/// 弱网提示横幅
+@Composable
+fun OfflineBanner(
+    modifier: Modifier = Modifier,
+    message: String = "网络不可用，当前为缓存内容",
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(LimeLightGray)
+            .padding(horizontal = 16.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.WifiOff,
+            contentDescription = null,
+            tint = LimeGray,
+            modifier = Modifier.size(15.dp),
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(text = message, fontSize = 12.sp, color = LimeGray)
+    }
+}
+
+/// 空内容加载失败状态
+@Composable
+fun ErrorState(
+    message: String?,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(text = message ?: "加载失败", color = LimeGray, fontSize = 14.sp)
+        Spacer(modifier = Modifier.height(12.dp))
+        RetryButton(onRetry = onRetry)
+    }
+}
+
+/// 通用重试按钮
+@Composable
+fun RetryButton(
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onRetry)
+            .padding(horizontal = 14.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Refresh,
+            contentDescription = null,
+            tint = LimePrimary,
+            modifier = Modifier.size(16.dp),
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text = "点击重试", color = LimePrimary, fontSize = 13.sp)
+    }
+}
+
+/// 表底部重试
+@Composable
+fun LoadMoreErrorItem(
+    message: String?,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Text(text = message ?: "加载失败", color = LimeGray, fontSize = 12.sp)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = "点击重试",
+            color = LimePrimary,
+            fontSize = 12.sp,
+            modifier = Modifier.clickable(onClick = onRetry),
+        )
+    }
+}

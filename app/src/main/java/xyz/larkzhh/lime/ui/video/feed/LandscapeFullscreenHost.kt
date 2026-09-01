@@ -85,6 +85,7 @@ fun LandscapeFullscreenHost(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val danmakuUiState by danmakuViewModel.uiState.collectAsState()
+    val isUnmetered by viewModel.isUnmetered.collectAsState()
     val context = LocalContext.current
 
     // 锁横屏沉浸式
@@ -134,7 +135,7 @@ fun LandscapeFullscreenHost(
         VerticalPager(
             state = pagerState,
             userScrollEnabled = !scrubbing,
-            beyondViewportPageCount = 1,
+            beyondViewportPageCount = if (isUnmetered) 1 else 0,
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black),

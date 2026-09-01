@@ -12,12 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,9 +30,11 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,17 +46,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import coil3.SingletonImageLoader
+import coil3.request.ImageRequest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.openVideo
+import xyz.larkzhh.lime.ui.components.ErrorState
+import xyz.larkzhh.lime.ui.components.FeedSkeleton
 import xyz.larkzhh.lime.ui.components.NoteCard
+import xyz.larkzhh.lime.ui.components.OfflineBanner
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
+
+private const val PRELOAD_COUNT = 4
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
@@ -179,68 +189,83 @@ private fun DiscoverTab(navController: NavHostController) {
     val viewModel: FeedViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val gridState = rememberLazyStaggeredGridState()
+
+    // 弱网预加载
+    LaunchedEffect(gridState, uiState.items) {
+        val imageLoader = SingletonImageLoader.get(context)
+        snapshotFlow { gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
+            .distinctUntilChanged()
+            .collect { lastVisible ->
+                uiState.items.drop(lastVisible + 1).take(PRELOAD_COUNT)
+                    .mapNotNull { it.coverImage }
+                    .forEach { url ->
+                        imageLoader.enqueue(ImageRequest.Builder(context).data(url).build())
+                    }
+            }
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(LimeLightGray)) {
         when {
             uiState.isLoading -> {
-                // 首次加载
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .align(Alignment.Center),
-                    color = LimePrimary,
-                    trackColor = LimeWhite,
-                    strokeWidth = 2.dp,
-                )
+                FeedSkeleton()
             }
             uiState.error != null && uiState.items.isEmpty() -> {
-                Text(
-                    text = uiState.error ?: "加载失败",
+                ErrorState(
+                    message = uiState.error,
+                    onRetry = viewModel::retry,
                     modifier = Modifier.align(Alignment.Center),
-                    color = LimeGray,
                 )
             }
             else -> {
-                // 下拉刷新
-                val refreshState = rememberPullToRefreshState()
-                PullToRefreshBox(
-                    isRefreshing = uiState.isRefreshing,
-                    onRefresh = viewModel::refresh,
-                    state = refreshState,
-                    modifier = Modifier.fillMaxSize(),
-                    indicator = {
-                        PullToRefreshDefaults.Indicator(
-                            state = refreshState,
-                            isRefreshing = uiState.isRefreshing,
-                            containerColor = LimeWhite,
-                            color = LimePrimary,
-                            modifier = Modifier.align(Alignment.TopCenter),
-                        )
-                    },
-                ) {
-                    WaterfallFeed(
-                        isLoadingMore = uiState.isLoadingMore,
-                        onLoadMore = viewModel::loadMore,
-                    ) {
-                        items(uiState.items, key = { it.id }) { item ->
-                            NoteCard(
-                                item = item,
-                                liked = item.id in uiState.likedIds,
-                                onLikeToggle = { viewModel.toggleLike(item.id) },
-                                onClick = {
-                                    // 视频笔记进竖屏视频页，图文笔记进详情页
-                                    if (item.noteType == 2) {
-                                        context.openVideo(
-                                            item.id,
-                                            Screen.VideoFeed.SOURCE_RECOMMENDATION,
-                                        )
-                                    } else {
-                                        navController.navigate(
-                                            Screen.Detail.createRoute(item.id.toString())
-                                        )
-                                    }
-                                },
+                Column(modifier = Modifier.fillMaxSize()) {
+                    if (uiState.isOffline || uiState.error != null) {
+                        OfflineBanner()
+                    }
+                    // 下拉刷新
+                    val refreshState = rememberPullToRefreshState()
+                    PullToRefreshBox(
+                        isRefreshing = uiState.isRefreshing,
+                        onRefresh = viewModel::refresh,
+                        state = refreshState,
+                        modifier = Modifier.weight(1f),
+                        indicator = {
+                            PullToRefreshDefaults.Indicator(
+                                state = refreshState,
+                                isRefreshing = uiState.isRefreshing,
+                                containerColor = LimeWhite,
+                                color = LimePrimary,
+                                modifier = Modifier.align(Alignment.TopCenter),
                             )
+                        },
+                    ) {
+                        WaterfallFeed(
+                            state = gridState,
+                            isLoadingMore = uiState.isLoadingMore,
+                            loadMoreError = uiState.loadMoreError,
+                            onLoadMore = viewModel::loadMore,
+                            onRetryLoadMore = viewModel::loadMore,
+                        ) {
+                            items(uiState.items, key = { it.id }) { item ->
+                                NoteCard(
+                                    item = item,
+                                    liked = item.id in uiState.likedIds,
+                                    onLikeToggle = { viewModel.toggleLike(item.id) },
+                                    onClick = {
+                                        // 视频笔记进竖屏视频页，图文笔记进详情页
+                                        if (item.noteType == 2) {
+                                            context.openVideo(
+                                                item.id,
+                                                Screen.VideoFeed.SOURCE_RECOMMENDATION,
+                                            )
+                                        } else {
+                                            navController.navigate(
+                                                Screen.Detail.createRoute(item.id.toString())
+                                            )
+                                        }
+                                    },
+                                )
+                            }
                         }
                     }
                 }

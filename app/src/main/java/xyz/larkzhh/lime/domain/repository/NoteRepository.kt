@@ -39,6 +39,8 @@ interface NoteRepository {
     ): Result<Unit>
     /// 获取信息流，cursor 为空时从最新开始
     suspend fun getFeed(cursor: Long?, size: Int = 10): Result<FeedResponse>
+    /// 同步读取本地缓存的首页信息流
+    suspend fun getCachedFeedFirstPage(): FeedResponse?
     /// 获取视频信息流
     suspend fun getVideoFeed(
         cursor: Long?,

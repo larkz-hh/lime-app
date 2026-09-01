@@ -31,6 +31,7 @@ data class CommentUiState(
     val commentCountDelta: Int = 0,// 总评论数增量
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
+    val error: String? = null,
     val hasMore: Boolean = false,
     val nextCursor: String? = null,
     val sort: CommentSort = CommentSort.HOT,
@@ -102,9 +103,9 @@ class CommentViewModel @Inject constructor(
         if (!refresh && (!state.hasMore || state.isLoadingMore)) return
         viewModelScope.launch {
             if (refresh) {
-                _uiState.update { it.copy(isLoading = true) }
+                _uiState.update { it.copy(isLoading = true, error = null) }
             } else {
-                _uiState.update { it.copy(isLoadingMore = true) }
+                _uiState.update { it.copy(isLoadingMore = true, error = null) }
             }
             val cursor = if (refresh) null else state.nextCursor
             val sort = if (_uiState.value.sort == CommentSort.HOT) "hot" else "time"
@@ -122,9 +123,17 @@ class CommentViewModel @Inject constructor(
                     }
                 }
                 .onFailure {
-                    _uiState.update { it.copy(isLoading = false, isLoadingMore = false) }
+                    _uiState.update {
+                        it.copy(isLoading = false, isLoadingMore = false, error = "评论加载失败，请重试")
+                    }
                 }
         }
+    }
+
+    /// 评论加载失败重试
+    fun retryComments() {
+        if (_uiState.value.comments.isEmpty()) loadComments(refresh = true)
+        else loadComments(refresh = false)
     }
 
     /// 提交评论，图片和语音互斥

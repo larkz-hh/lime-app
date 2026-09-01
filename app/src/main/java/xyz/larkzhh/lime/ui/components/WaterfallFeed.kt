@@ -54,15 +54,17 @@ fun WaterfallFeed(
     verticalItemSpacing: Dp = 4.dp,
     horizontalItemSpacing: Dp = 4.dp,
     isLoadingMore: Boolean = false,
+    loadMoreError: String? = null,
     onLoadMore: () -> Unit = {},
+    onRetryLoadMore: () -> Unit = {},
     content: LazyStaggeredGridScope.() -> Unit,
 ) {
     // 距离末尾4条时触发加载更多
-    val shouldLoadMore by remember(state) {
+    val shouldLoadMore by remember(state, loadMoreError) {
         derivedStateOf {
             val lastVisible = state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val total = state.layoutInfo.totalItemsCount
-            total > 0 && lastVisible >= total - 4
+            total > 0 && lastVisible >= total - 4 && loadMoreError == null
         }
     }
     LaunchedEffect(shouldLoadMore) {
@@ -93,6 +95,11 @@ fun WaterfallFeed(
                         strokeWidth = 2.dp,
                     )
                 }
+            }
+        }
+        if (loadMoreError != null && !isLoadingMore) {
+            item(span = StaggeredGridItemSpan.FullLine) {
+                LoadMoreErrorItem(message = loadMoreError, onRetry = onRetryLoadMore)
             }
         }
     }
