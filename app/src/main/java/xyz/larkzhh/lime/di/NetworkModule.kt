@@ -31,6 +31,8 @@ object NetworkModule {
     /// HTTP 磁盘缓存容量
     private const val HTTP_CACHE_SIZE = 50L * 1024 * 1024
 
+    private const val CONNECT_TIMEOUT_SECONDS = 10L
+
     @Provides
     @Named("base_url")
     fun provideBaseUrl(): String = BASE_URL
@@ -49,7 +51,7 @@ object NetworkModule {
             })
             .cache(Cache(File(context.cacheDir, "http_cache"), HTTP_CACHE_SIZE))// HTTP 磁盘缓存
             .retryOnConnectionFailure(true)
-            .connectTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(300, TimeUnit.SECONDS)
             .callTimeout(0, TimeUnit.SECONDS)// 不限制整体调用时长
@@ -65,7 +67,7 @@ object NetworkModule {
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.HEADERS
             })
-            .connectTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(120, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .callTimeout(0, TimeUnit.SECONDS)

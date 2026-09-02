@@ -2,7 +2,15 @@ package xyz.larkzhh.lime.data.repository
 
 import android.content.Context
 import android.net.Uri
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
+import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -11,6 +19,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okio.BufferedSink
 import okio.source
 import xyz.larkzhh.lime.data.local.feed.FeedLocalDataSource
+import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.HistoryResponse
 import xyz.larkzhh.lime.data.network.model.ImageSize
@@ -18,7 +27,6 @@ import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.note.NoteRemoteDataSource
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.util.ImageCompressor
-import xyz.larkzhh.lime.util.LruCache
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,7 +37,7 @@ class NoteRepositoryImpl @Inject constructor(
     private val noteRemoteDataSource: NoteRemoteDataSource,
 ) : NoteRepository {
 
-    private val userNotesFirstPageCache = LruCache<Long, FeedResponse>(maxSize = 50)
+    private val gson = Gson()
 
     /// 上传笔记图片
     override suspend fun uploadImage(uri: Uri): Result<String> {
@@ -64,16 +72,58 @@ class NoteRepositoryImpl @Inject constructor(
             }// 流式写入
         }
 
-    /// 获取信息流
-    override suspend fun getFeed(cursor: Long?, size: Int): Result<FeedResponse> {
-        val result = noteRemoteDataSource.getFeed(cursor, size)
-        if (cursor == null) result.getOrNull()?.let { feedLocalDataSource.saveFirstPage(it) }
-        return result
-    }
+    /// 发现页信息流
+    override fun discoverFeedPager(): Flow<PagingData<FeedItem>> =
+        feedPager(FEED_KEY_DISCOVER) { cursor -> noteRemoteDataSource.getFeed(cursor, FEED_PAGE_SIZE) }
 
-    /// 同步读取本地缓存的首页信息流
-    override suspend fun getCachedFeedFirstPage(): FeedResponse? =
-        feedLocalDataSource.getFirstPage()
+    /// 获取指定用户已发布的笔记列表
+    override fun userNotesPager(userId: Long, noteType: Int?): Flow<PagingData<FeedItem>> =
+        feedPager(userFeedKey(userId, "notes", noteType)) { cursor ->
+            noteRemoteDataSource.getUserNotes(userId, cursor, FEED_PAGE_SIZE).filterNotes(noteType)
+        }
+
+    /// 获取指定用户的点赞笔记列表
+    override fun userLikesPager(userId: Long, noteType: Int?): Flow<PagingData<FeedItem>> =
+        feedPager(userFeedKey(userId, "likes", noteType)) { cursor ->
+            noteRemoteDataSource.getUserLikes(userId, cursor, FEED_PAGE_SIZE).filterNotes(noteType)
+        }
+
+    /// 获取指定用户的点赞笔记列表
+    override fun userFavoritesPager(userId: Long, noteType: Int?): Flow<PagingData<FeedItem>> =
+        feedPager(userFeedKey(userId, "favorites", noteType)) { cursor ->
+            noteRemoteDataSource.getUserFavorites(userId, cursor, FEED_PAGE_SIZE).filterNotes(noteType)
+        }
+
+    /// 生成用户列表缓存键
+    private fun userFeedKey(userId: Long, kind: String, noteType: Int?) =
+        "user:$userId:$kind" + (noteType?.let { ":$it" } ?: "")
+
+    /// 按笔记种类过滤一页结果
+    private fun Result<FeedResponse>.filterNotes(noteType: Int?): Result<FeedResponse> =
+        if (noteType == null) this
+        else map { it.copy(items = it.items.filter { item -> item.noteType == noteType }) }
+
+    /// 游标信息流构造
+    @OptIn(ExperimentalPagingApi::class)
+    private fun feedPager(
+        feedKey: String,
+        fetch: suspend (cursor: Long?) -> Result<FeedResponse>,
+    ): Flow<PagingData<FeedItem>> =
+        Pager(
+            config = PagingConfig(
+                pageSize = FEED_PAGE_SIZE,
+                initialLoadSize = FEED_PAGE_SIZE * 2,
+                enablePlaceholders = false,
+            ),
+            remoteMediator = FeedRemoteMediator(
+                feedKey = feedKey,
+                local = feedLocalDataSource,
+                fetch = fetch,
+            ),
+            pagingSourceFactory = { feedLocalDataSource.pagingSource(feedKey) },
+        ).flow.map { pagingData ->
+            pagingData.map { gson.fromJson(it.json, FeedItem::class.java) }
+        }
 
     /// 获取视频信息流
     override suspend fun getVideoFeed(
@@ -83,24 +133,6 @@ class NoteRepositoryImpl @Inject constructor(
         size: Int,
     ): Result<FeedResponse> =
         noteRemoteDataSource.getVideoFeed(cursor, seedNoteId, orientation, size)
-
-    /// 获取指定用户已发布的笔记列表
-    override suspend fun getUserNotes(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> {
-        val result = noteRemoteDataSource.getUserNotes(userId, cursor, size)
-        if (cursor == null) result.getOrNull()?.let { userNotesFirstPageCache[userId] = it }
-        return result
-    }
-
-    /// 同步读取指定用户缓存的笔记首页
-    override fun getCachedUserNotes(userId: Long): FeedResponse? = userNotesFirstPageCache[userId]
-
-    /// 获取指定用户的点赞笔记列表
-    override suspend fun getUserLikes(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> =
-        noteRemoteDataSource.getUserLikes(userId, cursor, size)
-
-    /// 获取指定用户的收藏笔记列表
-    override suspend fun getUserFavorites(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> =
-        noteRemoteDataSource.getUserFavorites(userId, cursor, size)
 
     /// 点赞笔记
     override suspend fun likeNote(id: Long): Result<Unit> = noteRemoteDataSource.likeNote(id)
@@ -156,4 +188,9 @@ class NoteRepositoryImpl @Inject constructor(
             title, content, videoUrl, durationMs, width, height,
             coverUrl, coverWidth, coverHeight, status,
         )
+
+    private companion object {
+        const val FEED_PAGE_SIZE = 10
+        const val FEED_KEY_DISCOVER = "discover"
+    }
 }

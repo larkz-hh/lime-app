@@ -16,8 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,8 +32,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,8 +46,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.data.network.model.FeedItem
+import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
@@ -62,9 +64,16 @@ fun NotePickerPage(
 ) {
     var selected by remember { mutableStateOf<FeedItem?>(null) }
     var tab by remember { mutableStateOf(NotePickerTab.FAVORITES) }
-    val states by viewModel.states.collectAsState()
 
-    LaunchedEffect(tab) { viewModel.load(tab) }
+    val favoritesItems = viewModel.favoritesPager.collectAsLazyPagingItems()
+    val likesItems = viewModel.likesPager.collectAsLazyPagingItems()
+    val publishedItems = viewModel.publishedPager.collectAsLazyPagingItems()
+    val pagingItems = when (tab) {
+        NotePickerTab.FAVORITES -> favoritesItems
+        NotePickerTab.LIKES -> likesItems
+        NotePickerTab.PUBLISHED -> publishedItems
+    }
+    val refreshState = pagingItems.loadState.refresh
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -126,7 +135,6 @@ fun NotePickerPage(
                 HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
 
                 // 网格
-                val state = states[tab] ?: NotePickerTabState()
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3),
                     modifier = Modifier.fillMaxSize(),
@@ -134,34 +142,97 @@ fun NotePickerPage(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    items(state.items, key = { it.id }) { item ->
-                        PickerNoteCard(
-                            item = item,
-                            isSelected = selected?.id == item.id,
-                            onClick = {
-                                selected = if (selected?.id == item.id) null else item
-                            },
-                        )
-                    }
-                    if (state.hasMore) {
-                        item(key = "load_more") {
-                            LaunchedEffect(Unit) { viewModel.loadMore(tab) }
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 10.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    strokeWidth = 2.dp,
-                                    color = LimePrimary,
+                    when (refreshState) {
+                        // 首屏加载中
+                        is LoadState.Loading if pagingItems.itemCount == 0 -> {
+                            item(key = "initial_loading", span = { GridItemSpan(maxLineSpan) }) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 40.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(22.dp),
+                                        strokeWidth = 2.dp,
+                                        color = LimePrimary,
+                                    )
+                                }
+                            }
+                        }
+                        // 首屏加载失败
+                        is LoadState.Error if pagingItems.itemCount == 0 -> {
+                            item(key = "initial_error", span = { GridItemSpan(maxLineSpan) }) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 40.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    ErrorState(
+                                        message = refreshState.error.message,
+                                        onRetry = { pagingItems.retry() },
+                                    )
+                                }
+                            }
+                        }
+
+                        else -> {
+                            items(
+                                count = pagingItems.itemCount,
+                                key = pagingItems.itemKey { it.id },
+                            ) { index ->
+                                val item = pagingItems[index] ?: return@items
+                                PickerNoteCard(
+                                    item = item,
+                                    isSelected = selected?.id == item.id,
+                                    onClick = {
+                                        selected = if (selected?.id == item.id) null else item
+                                    },
                                 )
+                            }
+
+                            // 触底加载更多
+                            when (val append = pagingItems.loadState.append) {
+                                is LoadState.Loading -> item(key = "load_more") {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(18.dp),
+                                            strokeWidth = 2.dp,
+                                            color = LimePrimary,
+                                        )
+                                    }
+                                }
+
+                                is LoadState.Error -> item(key = "load_more_error") {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Text(
+                                            text = append.error.message ?: "加载失败，点击重试",
+                                            color = LimeGray,
+                                            fontSize = 12.sp,
+                                            modifier = Modifier.clickable { pagingItems.retry() },
+                                        )
+                                    }
+                                }
+
+                                else -> Unit
                             }
                         }
                     }
                 }
-                if (state.items.isEmpty() && !state.isLoading) {
+
+                // 空态：仅当「确实加载完且没有数据」时才显示（失败走上面的 error 分支）
+                if (pagingItems.itemCount == 0 && pagingItems.loadState.refresh is LoadState.NotLoading) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()

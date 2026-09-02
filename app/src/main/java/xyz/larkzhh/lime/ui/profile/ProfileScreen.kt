@@ -12,10 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScope
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -28,7 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -57,6 +53,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import xyz.larkzhh.lime.navigation.AuthorProfileSession
@@ -65,15 +64,15 @@ import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.video.feed.PersonalVideoPayload
 import xyz.larkzhh.lime.ui.video.feed.VideoFeedSessionStore
 import xyz.larkzhh.lime.navigation.SwipeBackScaffold
-import xyz.larkzhh.lime.ui.components.NoteCard
-import xyz.larkzhh.lime.ui.components.WaterfallFeed
+import xyz.larkzhh.lime.data.network.model.FeedItem
+import xyz.larkzhh.lime.ui.components.ErrorState
+import xyz.larkzhh.lime.ui.components.PagingWaterfallFeed
 import xyz.larkzhh.lime.ui.profile.components.ProfileHeader
 import xyz.larkzhh.lime.ui.profile.components.ProfileTabRow
 import xyz.larkzhh.lime.ui.profile.components.ProfileTopBar
-import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesUiState
+import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileLikeState
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesViewModel
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileViewModel
-import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
@@ -109,9 +108,10 @@ fun ProfileScreen(
     val uploadError by viewModel.uploadError.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val notesUiState by notesViewModel.notesState.collectAsState()
-    val likesUiState by notesViewModel.likesState.collectAsState()
-    val favoritesUiState by notesViewModel.favoritesState.collectAsState()
+    val likeState by notesViewModel.likeState.collectAsState()
+    val notesPagingItems = notesViewModel.notesPager.collectAsLazyPagingItems()
+    val likesPagingItems = notesViewModel.likesPager.collectAsLazyPagingItems()
+    val favoritesPagingItems = notesViewModel.favoritesPager.collectAsLazyPagingItems()
 
     /// 本人三个tab，他人按隐私过滤
     val tabKinds = remember(user, isSelf) {
@@ -137,14 +137,7 @@ fun ProfileScreen(
         }
     }
 
-    // 切到点赞/收藏 Tab 时懒加载
-    LaunchedEffect(pagerState.currentPage, tabKinds) {
-        when (tabKinds.getOrNull(pagerState.currentPage)) {
-            ProfileTab.Likes -> notesViewModel.loadLikesLazy()
-            ProfileTab.Favorites -> notesViewModel.loadFavoritesLazy()
-            else -> Unit
-        }
-    }
+    // 切到点赞/收藏 Tab 时懒加载（Paging3 在首次 collect 时自动加载）
 
     /// 选择图片上传头像
     val avatarPickerLauncher = rememberLauncherForActivityResult(
@@ -275,15 +268,15 @@ fun ProfileScreen(
     ) { padding ->
         val currentTab = tabKinds.getOrNull(pagerState.currentPage) ?: ProfileTab.Notes
         val currentIsRefreshing = when (currentTab) {
-            ProfileTab.Notes -> notesUiState.isRefreshing
-            ProfileTab.Likes -> likesUiState.isRefreshing
-            ProfileTab.Favorites -> favoritesUiState.isRefreshing
+            ProfileTab.Notes -> notesPagingItems.loadState.refresh is LoadState.Loading
+            ProfileTab.Likes -> likesPagingItems.loadState.refresh is LoadState.Loading
+            ProfileTab.Favorites -> favoritesPagingItems.loadState.refresh is LoadState.Loading
         }
         // 根据tab页选择刷新方法
         val onRefresh: () -> Unit = when (currentTab) {
-            ProfileTab.Notes -> notesViewModel::refreshNotes
-            ProfileTab.Likes -> notesViewModel::refreshLikes
-            ProfileTab.Favorites -> notesViewModel::refreshFavorites
+            ProfileTab.Notes -> notesPagingItems::refresh
+            ProfileTab.Likes -> likesPagingItems::refresh
+            ProfileTab.Favorites -> favoritesPagingItems::refresh
         }
         val refreshState = rememberPullToRefreshState()
         PullToRefreshBox(
@@ -334,27 +327,27 @@ fun ProfileScreen(
                 ) { page ->
                     when (tabKinds.getOrNull(page)) {
                         ProfileTab.Notes -> TabPage(
-                            uiState = notesUiState,
+                            pagingItems = notesPagingItems,
+                            likeState = likeState,
                             contentPaddingTop = relativeContentPaddingTop,
                             navController = navController,
                             onLikeToggle = notesViewModel::toggleLike,
-                            onLoadMore = notesViewModel::loadMoreNotes,
                             state = notesScrollState,
                         )
                         ProfileTab.Likes -> TabPage(
-                            uiState = likesUiState,
+                            pagingItems = likesPagingItems,
+                            likeState = likeState,
                             contentPaddingTop = relativeContentPaddingTop,
                             navController = navController,
                             onLikeToggle = notesViewModel::toggleLike,
-                            onLoadMore = notesViewModel::loadMoreLikes,
                             state = likesScrollState,
                         )
                         ProfileTab.Favorites -> TabPage(
-                            uiState = favoritesUiState,
+                            pagingItems = favoritesPagingItems,
+                            likeState = likeState,
                             contentPaddingTop = relativeContentPaddingTop,
                             navController = navController,
                             onLikeToggle = notesViewModel::toggleLike,
-                            onLoadMore = notesViewModel::loadMoreFavorites,
                             state = favoritesScrollState,
                         )
                         null -> Unit
@@ -451,101 +444,78 @@ fun ProfileScreen(
 /// Tab 页面
 @Composable
 private fun TabPage(
-    uiState: ProfileNotesUiState,
+    pagingItems: LazyPagingItems<FeedItem>,
+    likeState: ProfileLikeState,
     contentPaddingTop: Dp,
     navController: NavHostController,
-    onLikeToggle: (Long) -> Unit,
-    onLoadMore: () -> Unit,
+    onLikeToggle: (FeedItem, Boolean, Int) -> Unit,
     state: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
 ) {
-    WaterfallFeed(
-        modifier = Modifier.fillMaxSize().background(LimeLightGray),
-        state = state,
-        isLoadingMore = uiState.isLoadingMore,
-        onLoadMore = onLoadMore,
-        contentPadding = PaddingValues(start = 5.dp, end = 5.dp, top = contentPaddingTop, bottom = 8.dp),
-    ) {
-        tabContent(
-            uiState = uiState,
-            navController = navController,
-            onLikeToggle = onLikeToggle,
-        )
-    }
-}
+    val context = LocalContext.current
+    val refreshState = pagingItems.loadState.refresh
+    val stateModifier = Modifier.fillMaxSize().background(LimeLightGray)
 
-/// 列表渲染逻辑
-private fun LazyStaggeredGridScope.tabContent(
-    uiState: ProfileNotesUiState,
-    navController: NavHostController,
-    onLikeToggle: (Long) -> Unit,
-) {
-    when {
-        uiState.isLoading -> {
-            item(span = StaggeredGridItemSpan.FullLine) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 32.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(28.dp),
-                        color = LimePrimary,
-                        trackColor = LimeWhite,
-                        strokeWidth = 2.dp,
-                    )
-                }
-            }
-        }
-        uiState.error != null && uiState.items.isEmpty() -> {
-            item(span = StaggeredGridItemSpan.FullLine) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 32.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = uiState.error,
-                        color = LimeGray,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-        }
-        else -> {
-            items(uiState.items, key = { it.id }) { item ->
-                val context = LocalContext.current
-                NoteCard(
-                    item = item,
-                    liked = item.id in uiState.likedIds,
-                    onLikeToggle = { onLikeToggle(item.id) },
-                    onClick = {
-                        // 视频笔记进竖屏视频页（个人列表来源），图文进详情
-                        if (item.noteType == 2) {
-                            // 预取的个人列表走进程内存储传递
-                            VideoFeedSessionStore.put(
-                                item.id,
-                                PersonalVideoPayload(
-                                    items = uiState.items,
-                                    startIndex = uiState.items.indexOfFirst { it.id == item.id }.coerceAtLeast(0),
-                                ),
-                            )
-                            if (navController.graph.findNode(Screen.VideoFeed.ROUTE) != null) {
-                                navController.navigate(
-                                    Screen.VideoFeed.createRoute(item.id, Screen.VideoFeed.SOURCE_PERSONAL),
-                                )
-                            } else {
-                                context.openVideo(item.id, Screen.VideoFeed.SOURCE_PERSONAL)
-                            }
-                        } else {
-                            navController.navigate(
-                                Screen.Detail.createRoute(item.id.toString())
-                            )
-                        }
-                    },
+    when (refreshState) {
+        // 无缓存首屏加载
+        is LoadState.Loading if pagingItems.itemCount == 0 -> {
+            Box(
+                modifier = stateModifier.padding(top = contentPaddingTop),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(28.dp),
+                    color = LimePrimary,
+                    trackColor = LimeWhite,
+                    strokeWidth = 2.dp,
                 )
             }
+        }
+        // 无缓存且加载失败
+        is LoadState.Error if pagingItems.itemCount == 0 -> {
+            Box(
+                modifier = stateModifier.padding(top = contentPaddingTop),
+                contentAlignment = Alignment.Center,
+            ) {
+                ErrorState(
+                    message = refreshState.error.message,
+                    onRetry = { pagingItems.retry() },
+                )
+            }
+        }
+        // 有内容
+        else -> {
+            PagingWaterfallFeed(
+                pagingItems = pagingItems,
+                likeStates = likeState.likeStates,
+                likeCounts = likeState.likeCounts,
+                onLikeToggle = onLikeToggle,
+                onItemClick = { item ->
+                    // 视频笔记进竖屏视频页，图文进详情
+                    if (item.noteType == 2) {
+                        val snapshot = pagingItems.itemSnapshotList.items
+                        VideoFeedSessionStore.put(
+                            item.id,
+                            PersonalVideoPayload(
+                                items = snapshot,
+                                startIndex = snapshot.indexOfFirst { it.id == item.id }.coerceAtLeast(0),
+                            ),
+                        )
+                        if (navController.graph.findNode(Screen.VideoFeed.ROUTE) != null) {
+                            navController.navigate(
+                                Screen.VideoFeed.createRoute(item.id, Screen.VideoFeed.SOURCE_PERSONAL),
+                            )
+                        } else {
+                            context.openVideo(item.id, Screen.VideoFeed.SOURCE_PERSONAL)
+                        }
+                    } else {
+                        navController.navigate(
+                            Screen.Detail.createRoute(item.id.toString())
+                        )
+                    }
+                },
+                state = state,
+                contentPadding = PaddingValues(start = 5.dp, end = 5.dp, top = contentPaddingTop, bottom = 8.dp),
+            )
         }
     }
 }

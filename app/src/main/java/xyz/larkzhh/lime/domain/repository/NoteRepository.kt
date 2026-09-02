@@ -1,6 +1,9 @@
 package xyz.larkzhh.lime.domain.repository
 
 import android.net.Uri
+import androidx.paging.PagingData
+import kotlinx.coroutines.flow.Flow
+import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.HistoryResponse
 import xyz.larkzhh.lime.data.network.model.ImageSize
@@ -37,10 +40,8 @@ interface NoteRepository {
         coverHeight: Int? = null,
         status: Int = 1,
     ): Result<Unit>
-    /// 获取信息流，cursor 为空时从最新开始
-    suspend fun getFeed(cursor: Long?, size: Int = 10): Result<FeedResponse>
-    /// 同步读取本地缓存的首页信息流
-    suspend fun getCachedFeedFirstPage(): FeedResponse?
+    /// 发现页信息流
+    fun discoverFeedPager(): Flow<PagingData<FeedItem>>
     /// 获取视频信息流
     suspend fun getVideoFeed(
         cursor: Long?,
@@ -49,13 +50,11 @@ interface NoteRepository {
         size: Int = 10,
     ): Result<FeedResponse>
     /// 获取指定用户已发布的笔记列表
-    suspend fun getUserNotes(userId: Long, cursor: Long?, size: Int = 10): Result<FeedResponse>
-    /// 同步读取指定用户已缓存的笔记首页
-    fun getCachedUserNotes(userId: Long): FeedResponse?
+    fun userNotesPager(userId: Long, noteType: Int? = null): Flow<PagingData<FeedItem>>
     /// 获取指定用户的点赞笔记列表
-    suspend fun getUserLikes(userId: Long, cursor: Long?, size: Int = 10): Result<FeedResponse>
+    fun userLikesPager(userId: Long, noteType: Int? = null): Flow<PagingData<FeedItem>>
     /// 获取指定用户的收藏笔记列表
-    suspend fun getUserFavorites(userId: Long, cursor: Long?, size: Int = 10): Result<FeedResponse>
+    fun userFavoritesPager(userId: Long, noteType: Int? = null): Flow<PagingData<FeedItem>>
     /// 获取笔记详情
     suspend fun getNoteDetail(id: Long, noView: Boolean = false): Result<NoteDetailData>
     /// 点赞笔记
