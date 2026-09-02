@@ -57,7 +57,6 @@ import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.openVideo
 import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.components.FeedSkeleton
-import xyz.larkzhh.lime.ui.components.OfflineBanner
 import xyz.larkzhh.lime.ui.components.PagingWaterfallFeed
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
@@ -224,10 +223,6 @@ private fun DiscoverTab(navController: NavHostController) {
 
             else -> {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    // 弱网横幅
-                    if (uiState.isOffline) {
-                        OfflineBanner()
-                    }
                     val pullState = rememberPullToRefreshState()
                     PullToRefreshBox(
                         isRefreshing = refreshState is LoadState.Loading,

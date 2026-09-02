@@ -68,7 +68,6 @@ import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.LoadMoreErrorItem
 import xyz.larkzhh.lime.ui.components.SelectableText
 import xyz.larkzhh.lime.ui.components.SelectionAction
-import xyz.larkzhh.lime.ui.components.OfflineBanner
 import xyz.larkzhh.lime.ui.components.VoiceRecordSheet
 import xyz.larkzhh.lime.ui.detail.components.AuthorBar
 import xyz.larkzhh.lime.ui.detail.comment.components.CommentCard
@@ -184,9 +183,6 @@ fun DetailScreen(
             .background(MaterialTheme.colorScheme.background),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            if (uiState.isOffline && uiState.note != null) {
-                OfflineBanner()
-            }
             when {
                 uiState.isLoading && uiState.note == null -> {
                     Box(

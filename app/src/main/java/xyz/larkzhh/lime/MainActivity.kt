@@ -10,12 +10,16 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import xyz.larkzhh.lime.navigation.AppNavGraph
@@ -24,6 +28,9 @@ import xyz.larkzhh.lime.ui.theme.LimeTheme
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.ui.widget.WidgetHotCache
 import xyz.larkzhh.lime.ui.widget.WidgetHotRefresher
+import xyz.larkzhh.lime.util.NetworkMonitor
+import xyz.larkzhh.lime.util.showToast
+import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
 @AndroidEntryPoint
@@ -31,6 +38,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var playerManager: VideoPlayerManager
+
+    @Inject
+    lateinit var networkMonitor: NetworkMonitor
 
     /// 快捷入口
     private val shortcutAction = mutableStateOf<String?>(null)
@@ -40,6 +50,27 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         resolveShortcut(intent)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                var offlineToastJob: Job? = null
+                networkMonitor.isOnline.collect { online ->
+                    if (online) {
+                        offlineToastJob?.cancel()
+                        offlineToastJob = null
+                    } else if (offlineToastJob == null) {
+                        "网络开小差了，请检查网络连接".showToast(applicationContext)
+                        offlineToastJob = launch {
+                            var waitMs = 30_000L
+                            while (true) {
+                                delay(waitMs.milliseconds)
+                                "网络开小差了，请检查网络连接".showToast(applicationContext)
+                                waitMs = (waitMs * 2).coerceAtMost(4 * 60_000L)
+                            }
+                        }
+                    }
+                }
+            }
+        }
         // 进入 App 刷新桌面小组件热搜
         lifecycleScope.launch {
             if (WidgetHotCache.shouldRefresh()) {

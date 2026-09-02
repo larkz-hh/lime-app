@@ -1,6 +1,5 @@
 package xyz.larkzhh.lime.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,33 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
-
-/// 弱网提示横幅
-@Composable
-fun OfflineBanner(
-    modifier: Modifier = Modifier,
-    message: String = "网络不可用，当前为缓存内容",
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(LimeLightGray)
-            .padding(horizontal = 16.dp, vertical = 7.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.WifiOff,
-            contentDescription = null,
-            tint = LimeGray,
-            modifier = Modifier.size(15.dp),
-        )
-        Spacer(modifier = Modifier.width(6.dp))
-        Text(text = message, fontSize = 12.sp, color = LimeGray)
-    }
-}
 
 /// 空内容加载失败状态
 @Composable
