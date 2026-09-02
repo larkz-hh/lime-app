@@ -19,6 +19,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okio.BufferedSink
 import okio.source
 import xyz.larkzhh.lime.data.local.feed.FeedLocalDataSource
+import xyz.larkzhh.lime.data.local.note.NoteCacheLocalDataSource
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.HistoryResponse
@@ -30,10 +31,14 @@ import xyz.larkzhh.lime.util.ImageCompressor
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * 笔记数据仓库实现
+ */
 @Singleton
 class NoteRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val feedLocalDataSource: FeedLocalDataSource,
+    private val noteCacheLocalDataSource: NoteCacheLocalDataSource,
     private val noteRemoteDataSource: NoteRemoteDataSource,
 ) : NoteRepository {
 
@@ -147,8 +152,15 @@ class NoteRepositoryImpl @Inject constructor(
     override suspend fun unfavoriteNote(id: Long): Result<Unit> = noteRemoteDataSource.unfavoriteNote(id)
 
     /// 获取笔记详情
-    override suspend fun getNoteDetail(id: Long, noView: Boolean): Result<NoteDetailData> =
-        noteRemoteDataSource.getNoteDetail(id, noView)
+    override suspend fun getNoteDetail(id: Long, noView: Boolean): Result<NoteDetailData> {
+        val result = noteRemoteDataSource.getNoteDetail(id, noView)
+        result.getOrNull()?.let { note -> noteCacheLocalDataSource.saveNoteDetail(id, note) }
+        return result
+    }
+
+    /// 读取本地缓存的笔记详情
+    override suspend fun getCachedNoteDetail(id: Long): NoteDetailData? =
+        noteCacheLocalDataSource.getNoteDetail(id)
 
     /// 获取浏览历史
     override suspend fun getHistory(cursor: Long?, size: Int): Result<HistoryResponse> =

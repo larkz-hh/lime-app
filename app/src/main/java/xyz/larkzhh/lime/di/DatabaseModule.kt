@@ -11,6 +11,8 @@ import xyz.larkzhh.lime.data.local.chat.ChatDao
 import xyz.larkzhh.lime.data.local.chat.ChatDatabase
 import xyz.larkzhh.lime.data.local.feed.FeedDao
 import xyz.larkzhh.lime.data.local.feed.FeedDatabase
+import xyz.larkzhh.lime.data.local.note.NoteCacheDao
+import xyz.larkzhh.lime.data.local.note.NoteCacheDatabase
 import javax.inject.Singleton
 
 /**
@@ -39,4 +41,14 @@ object DatabaseModule {
 
     @Provides
     fun provideFeedDao(database: FeedDatabase): FeedDao = database.feedDao()
+
+    @Provides
+    @Singleton
+    fun provideNoteCacheDatabase(@ApplicationContext context: Context): NoteCacheDatabase =
+        Room.databaseBuilder(context, NoteCacheDatabase::class.java, "lime_note_cache.db")
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
+
+    @Provides
+    fun provideNoteCacheDao(database: NoteCacheDatabase): NoteCacheDao = database.noteCacheDao()
 }

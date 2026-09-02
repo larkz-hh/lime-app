@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.network.model.CommentData
+import xyz.larkzhh.lime.data.network.model.CommentListResponse
 import xyz.larkzhh.lime.data.network.model.ReplyData
+import xyz.larkzhh.lime.data.network.model.ReplyListResponse
 import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.CommentRepository
@@ -109,24 +111,47 @@ class CommentViewModel @Inject constructor(
             }
             val cursor = if (refresh) null else state.nextCursor
             val sort = if (_uiState.value.sort == CommentSort.HOT) "hot" else "time"
-            commentRepository.getComments(noteId, sort, cursor, size = 10)
-                .onSuccess { result ->
-                    _uiState.update { s ->
-                        val newList = if (refresh) result.items else s.comments + result.items
-                        s.copy(
-                            comments = newList,
-                            hasMore = result.hasMore,
-                            nextCursor = result.nextCursor,
+            // 是否默认热度排序
+            val isDefaultSort = sort == "hot"
+
+            val result = commentRepository.getComments(noteId, sort, cursor, size = 10)
+            if (result.isSuccess) {
+                val response = result.getOrThrow()
+                val s = _uiState.value
+                val newList = if (refresh) response.items else s.comments + response.items
+                _uiState.update {
+                    it.copy(
+                        comments = newList,
+                        hasMore = response.hasMore,
+                        nextCursor = response.nextCursor,
+                        isLoading = false,
+                        isLoadingMore = false,
+                    )
+                }
+                if (isDefaultSort) {
+                    commentRepository.saveCommentsCache(
+                        noteId, CommentListResponse(newList, response.nextCursor, response.hasMore),
+                    )
+                }
+            } else {
+                val cached = if (isDefaultSort) commentRepository.getCachedComments(noteId) else null
+                if (cached != null && _uiState.value.comments.isEmpty()) {
+                    _uiState.update {
+                        it.copy(
+                            comments = cached.items,
+                            hasMore = cached.hasMore,
+                            nextCursor = cached.nextCursor,
                             isLoading = false,
                             isLoadingMore = false,
+                            error = null,
                         )
                     }
-                }
-                .onFailure {
+                } else {
                     _uiState.update {
                         it.copy(isLoading = false, isLoadingMore = false, error = "评论加载失败，请重试")
                     }
                 }
+            }
         }
     }
 
@@ -243,24 +268,44 @@ class CommentViewModel @Inject constructor(
             _uiState.update { s ->
                 s.copy(expandedReplies = s.expandedReplies + (commentId to (existing ?: ExpandedRepliesState()).copy(isLoading = true)))
             }
-            commentRepository.getReplies(commentId, existing?.nextCursor, size = 5)
-                .onSuccess { result ->
+            val result = commentRepository.getReplies(commentId, existing?.nextCursor, size = 5)
+            if (result.isSuccess) {
+                val response = result.getOrThrow()
+                _uiState.update { s ->
+                    val prev = s.expandedReplies[commentId] ?: ExpandedRepliesState()
+                    s.copy(expandedReplies = s.expandedReplies + (commentId to prev.copy(
+                        replies = prev.replies + response.items,
+                        hasMore = response.hasMore,
+                        nextCursor = response.nextCursor,
+                        isLoading = false,
+                    )))
+                }
+                _uiState.value.expandedReplies[commentId]?.let { loaded ->
+                    commentRepository.saveRepliesCache(
+                        commentId,
+                        ReplyListResponse(loaded.replies, loaded.nextCursor, loaded.hasMore),
+                    )
+                }
+            } else {
+                val cached = commentRepository.getCachedReplies(commentId)
+                val hasLoaded = !_uiState.value.expandedReplies[commentId]?.replies.isNullOrEmpty()
+                if (cached != null && !hasLoaded) {
                     _uiState.update { s ->
                         val prev = s.expandedReplies[commentId] ?: ExpandedRepliesState()
                         s.copy(expandedReplies = s.expandedReplies + (commentId to prev.copy(
-                            replies = prev.replies + result.items,
-                            hasMore = result.hasMore,
-                            nextCursor = result.nextCursor,
+                            replies = cached.items,
+                            hasMore = cached.hasMore,
+                            nextCursor = cached.nextCursor,
                             isLoading = false,
                         )))
                     }
-                }
-                .onFailure {
+                } else {
                     _uiState.update { s ->
                         val prev = s.expandedReplies[commentId] ?: ExpandedRepliesState()
                         s.copy(expandedReplies = s.expandedReplies + (commentId to prev.copy(isLoading = false)))
                     }
                 }
+            }
         }
     }
 

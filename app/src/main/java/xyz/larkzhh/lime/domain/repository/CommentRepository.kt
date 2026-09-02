@@ -15,6 +15,14 @@ interface CommentRepository {
     suspend fun likeComment(commentId: Long): Result<Unit>
     suspend fun unlikeComment(commentId: Long): Result<Unit>
     suspend fun deleteComment(commentId: Long): Result<Unit>
+    /// 读取本地缓存评论
+    suspend fun getCachedComments(noteId: Long): CommentListResponse?
+    /// 保存评论缓存
+    suspend fun saveCommentsCache(noteId: Long, response: CommentListResponse)
+    /// 读取本地缓存回复
+    suspend fun getCachedReplies(commentId: Long): ReplyListResponse?
+    /// 保存回复缓存
+    suspend fun saveRepliesCache(commentId: Long, response: ReplyListResponse)
     suspend fun uploadCommentImage(uri: Uri): Result<String>
     suspend fun uploadCommentVoice(file: File): Result<String>
 }

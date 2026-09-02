@@ -61,9 +61,13 @@ class DetailViewModel @Inject constructor(
         currentNoteId = noteId
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
+            // 读取本地缓存
+            noteRepository.getCachedNoteDetail(noteId)?.let { cached ->
+                _uiState.update { it.copy(note = cached, isLoading = false) }
+            }
             noteRepository.getNoteDetail(noteId)
                 .onSuccess { note ->
-                    _uiState.update { it.copy(note = note, isLoading = false) }
+                    _uiState.update { it.copy(note = note, isLoading = false, error = null) }
                 }
                 .onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }

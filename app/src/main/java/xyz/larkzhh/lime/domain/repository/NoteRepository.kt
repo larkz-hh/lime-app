@@ -57,6 +57,8 @@ interface NoteRepository {
     fun userFavoritesPager(userId: Long, noteType: Int? = null): Flow<PagingData<FeedItem>>
     /// 获取笔记详情
     suspend fun getNoteDetail(id: Long, noView: Boolean = false): Result<NoteDetailData>
+    /// 读取本地缓存的笔记详情
+    suspend fun getCachedNoteDetail(id: Long): NoteDetailData?
     /// 点赞笔记
     suspend fun likeNote(id: Long): Result<Unit>
     /// 取消点赞笔记

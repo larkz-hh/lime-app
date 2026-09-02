@@ -1,11 +1,18 @@
 package xyz.larkzhh.lime.data.repository
 
+import android.content.Context
+import android.net.Uri
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.model.UpdateProfileRequest
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.domain.repository.UserRepository
 import xyz.larkzhh.lime.util.LruCache
@@ -13,12 +20,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * 用户数据单一数据源。
- * 内存通过 StateFlow 与 MMKV 缓存，页面通过观察 userFlow 同步最新数据。
+ * 用户数据仓库实现
  */
 @Singleton
 class UserRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
+    @param:ApplicationContext private val context: Context,
 ) : UserRepository {
 
     private val mmkv by lazy { MMKV.defaultMMKV() }
@@ -60,10 +67,64 @@ class UserRepositoryImpl @Inject constructor(
     /// 同步读取指定用户已缓存的信息
     override fun getCachedUserById(userId: Long): UserData? = userByIdCache[userId]
 
+    /// 上传头像。本地缓存
+    override suspend fun uploadAvatar(uri: Uri): Result<UserData> {
+        val part = runCatching { uriToMultipart(uri, "file") }
+            .getOrElse { return Result.failure(it) }
+        return runCatching {
+            val response = apiService.uploadAvatar(part)
+            check(response.code == 200 && response.data != null) { response.message }
+            updateUser(response.data)
+            response.data
+        }
+    }
+
+    /// 上传背景图，本地缓存
+    override suspend fun uploadBackground(uri: Uri): Result<UserData> {
+        val part = runCatching { uriToMultipart(uri, "file") }
+            .getOrElse { return Result.failure(it) }
+        return runCatching {
+            val response = apiService.uploadBackground(part)
+            check(response.code == 200 && response.data != null) { response.message }
+            updateUser(response.data)
+            response.data
+        }
+    }
+
+    /// 更新个人资，本地缓存
+    override suspend fun updateProfile(
+        nickname: String?,
+        bio: String?,
+        gender: Int,
+        birthday: String?,
+        region: String?,
+    ): Result<UserData> = runCatching {
+        val request = UpdateProfileRequest(nickname, bio, gender, birthday, region)
+        val response = apiService.updateMe(request)
+        check(response.code == 200 && response.data != null) { response.message }
+        updateUser(response.data)
+        response.data
+    }
+
     /// 清空用户数据
     override fun clearUser() {
         _userFlow.value = null
         mmkv.removeValueForKey(KEY_USER)
+    }
+
+    /// 读取图片字节并组装 MultipartBody.Part
+    private fun uriToMultipart(uri: Uri, partName: String): MultipartBody.Part {
+        val bytes = context.contentResolver.openInputStream(uri)?.readBytes()
+            ?: throw IllegalArgumentException("无法读取图片")
+        val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
+        val ext = when (mimeType) {
+            "image/png" -> "png"
+            "image/webp" -> "webp"
+            "image/gif" -> "gif"
+            else -> "jpg"
+        }
+        val body = bytes.toRequestBody(mimeType.toMediaType())
+        return MultipartBody.Part.createFormData(partName, "upload.$ext", body)
     }
 
     private companion object {

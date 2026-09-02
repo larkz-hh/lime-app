@@ -188,7 +188,7 @@ fun DetailScreen(
                 OfflineBanner()
             }
             when {
-                uiState.isLoading -> {
+                uiState.isLoading && uiState.note == null -> {
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -199,7 +199,7 @@ fun DetailScreen(
                     }
                 }
 
-                uiState.error != null -> {
+                uiState.error != null && uiState.note == null -> {
                     Box(
                         modifier = Modifier
                             .weight(1f)

@@ -1,21 +1,15 @@
 package xyz.larkzhh.lime.ui.profile.viewmodel
 
-import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.domain.repository.UserRepository
 import javax.inject.Inject
@@ -34,8 +28,6 @@ sealed class ProfileUiState {
 class ProfileViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val userRepository: UserRepository,
-    private val apiService: ApiService,
-    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     /// 提取路由参数中的目标用户id
@@ -105,40 +97,16 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    /// 上传用户头像。
+    /// 上传用户头像
     fun uploadAvatar(uri: Uri) {
         viewModelScope.launch {
-            try {
-                val part = uriToMultipart(uri, "file")
-                val response = apiService.uploadAvatar(part)
-                if (response.code == 200 && response.data != null) {
-                    userRepository.updateUser(response.data)
-                } else {
-                    _uploadError.value = "头像上传失败（${response.code}）：${response.message}"
+            userRepository.uploadAvatar(uri)
+                .onFailure { e ->
+                    if (e is CancellationException) return@onFailure
+                    _uploadError.value = "头像上传失败：${e.message ?: "网络错误"}"
                 }
-            } catch (e: Exception) {
-                _uploadError.value = "头像上传失败：${e.message ?: "网络错误"}"
-            }
         }
     }
 
     fun clearUploadError() { _uploadError.value = null }
-
-    ///  将本地图片的 Uri 转换为 Retrofit 支持的 MultipartBody.Part 对象
-    /// 读取图片字节流，识别 MIME 类型并生成对应的文件名。
-    private fun uriToMultipart(uri: Uri, partName: String): MultipartBody.Part {
-        val bytes = context.contentResolver.openInputStream(uri)?.readBytes()
-            ?: throw IllegalArgumentException("无法读取图片")
-        // 从 ContentResolver 取 MIME 类型
-        val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
-        // 文件后缀名批评
-        val ext = when (mimeType) {
-            "image/png" -> "png"
-            "image/webp" -> "webp"
-            "image/gif" -> "gif"
-            else -> "jpg"
-        }
-        val body = bytes.toRequestBody(mimeType.toMediaType())// 将字节流和 MIME 类型打包为 RequestBody
-        return MultipartBody.Part.createFormData(partName, "upload.$ext", body)
-    }
 }

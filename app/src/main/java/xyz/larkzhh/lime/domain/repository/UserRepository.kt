@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.domain.repository
 
+import android.net.Uri
 import kotlinx.coroutines.flow.StateFlow
 import xyz.larkzhh.lime.data.network.model.UserData
 
@@ -21,6 +22,21 @@ interface UserRepository {
 
     /// 同步读取指定用户已缓存的资料
     fun getCachedUserById(userId: Long): UserData?
+
+    /// 上传头像，本地缓存
+    suspend fun uploadAvatar(uri: Uri): Result<UserData>
+
+    /// 上传背景图，本地缓存
+    suspend fun uploadBackground(uri: Uri): Result<UserData>
+
+    /// 更新个人资料，本地缓存
+    suspend fun updateProfile(
+        nickname: String?,
+        bio: String?,
+        gender: Int,
+        birthday: String?,
+        region: String?,
+    ): Result<UserData>
 
     /// 注销时清除本地缓存
     fun clearUser()
