@@ -31,6 +31,8 @@ import xyz.larkzhh.lime.data.network.model.LoginRequest
 import xyz.larkzhh.lime.data.network.model.NoteData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.NoteSearchResponse
+import xyz.larkzhh.lime.data.network.model.NotificationListResponse
+import xyz.larkzhh.lime.data.network.model.UnreadCountData
 import xyz.larkzhh.lime.data.network.model.UserSearchResponse
 import xyz.larkzhh.lime.data.network.model.PostCommentRequest
 import xyz.larkzhh.lime.data.network.model.PostDanmakuRequest
@@ -362,4 +364,32 @@ interface ApiService {
     suspend fun clearConversationMessages(
         @Path("conversationId") conversationId: String,
     ): ApiResponse<Unit>
+
+    /// 站内通知列表
+    @GET("api/notifications")
+    suspend fun getNotifications(
+        @Query("cursor") cursor: Long?,
+        @Query("size") size: Int,
+        @Query("type") type: String?,
+    ): ApiResponse<NotificationListResponse>
+
+    /// 未读通知数
+    @GET("api/notifications/unread-count")
+    suspend fun getUnreadCount(): ApiResponse<UnreadCountData>
+
+    /// 标记单条通知已读
+    @PUT("api/notifications/{id}/read")
+    suspend fun markNotificationRead(@Path("id") id: Long): ApiResponse<Unit>
+
+    /// 全部标记已读
+    @PUT("api/notifications/read-all")
+    suspend fun markAllNotificationsRead(@Query("type") type: String?): ApiResponse<Unit>
+
+    /// 删除单条通知
+    @DELETE("api/notifications/{id}")
+    suspend fun deleteNotification(@Path("id") id: Long): ApiResponse<Unit>
+
+    /// 清空全部通知
+    @DELETE("api/notifications/all")
+    suspend fun clearAllNotifications(): ApiResponse<Unit>
 }

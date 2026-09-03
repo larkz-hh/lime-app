@@ -20,6 +20,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +46,8 @@ import xyz.larkzhh.lime.ui.detail.DetailScreen
 import xyz.larkzhh.lime.ui.follow.FollowListScreen
 import xyz.larkzhh.lime.ui.home.HomeScreen
 import xyz.larkzhh.lime.ui.message.MessageScreen
+import xyz.larkzhh.lime.ui.message.MessageViewModel
+import xyz.larkzhh.lime.ui.message.NotificationListScreen
 import xyz.larkzhh.lime.ui.profile.edit.EditProfileScreen
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
 import xyz.larkzhh.lime.ui.profile.components.ProfileDrawerContent
@@ -87,6 +90,8 @@ fun AppNavGraph(
     onShortcutHandled: () -> Unit = {},
 ) {
     val authViewModel: AuthViewModel = hiltViewModel()
+    val messageViewModel: MessageViewModel = hiltViewModel()
+    val totalUnread by messageViewModel.totalUnread.collectAsState()
     val startDestination = Screen.Home.route
     var pendingRedirect by remember { mutableStateOf<String?>(null) }
     var showPublishSheet by remember { mutableStateOf(false) }
@@ -132,6 +137,14 @@ fun AppNavGraph(
         }
     }
 
+    // 登录后进入主界面同步未读红点并保持 SSE
+    LaunchedEffect(currentRoute) {
+        when (currentRoute) {
+            in authRoutes -> messageViewModel.onLoggedOut()// 登录注册时通知
+            in bottomNavRoutes if authViewModel.isLoggedIn() -> messageViewModel.sync()
+        }
+    }
+
     Box {
         // 抽屉栏
         ModalNavigationDrawer(
@@ -155,6 +168,7 @@ fun AppNavGraph(
                                 }
                             },
                             onPublishClick = { showPublishSheet = true },
+                            messageUnread = if (authViewModel.isLoggedIn()) totalUnread else 0,
                         )
                     }
                 }
@@ -238,7 +252,8 @@ fun AppNavGraph(
                     composable(Screen.Message.route) { entry ->
                         ScrimBox(entry.id) {
                             MessageScreen(
-                                navController
+                                navController,
+                                viewModel = messageViewModel,
                             )
                         }
                     }
@@ -354,6 +369,36 @@ fun AppNavGraph(
                         },
                     ) {
                         FollowListScreen(navController)
+                    }
+                    composable(
+                        route = Screen.NotificationList.ROUTE,
+                        arguments = listOf(
+                            navArgument(Screen.NotificationList.ARG_TYPE) {
+                                type = NavType.StringType
+                                defaultValue = "likes"
+                            },
+                        ),
+                        enterTransition = {
+                            if (SwipeBackNavState.suppressForwardEnter) {
+                                EnterTransition.None
+                            } else {
+                                slideInHorizontally(initialOffsetX = { it })
+                            }
+                        },
+                        popEnterTransition = {
+                            if (SwipeBackNavState.suppressPopAnim) EnterTransition.None
+                            else slideInHorizontally(
+                                animationSpec = tween(220),
+                                initialOffsetX = { -it / 4 })
+                        },
+                        popExitTransition = {
+                            if (SwipeBackNavState.suppressPopAnim) ExitTransition.None
+                            else slideOutHorizontally(
+                                animationSpec = tween(220),
+                                targetOffsetX = { it })
+                        },
+                    ) {
+                        NotificationListScreen(navController)
                     }
                     composable(
                         route = Screen.AiChat.ROUTE,

@@ -5,7 +5,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -61,8 +60,8 @@ import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.data.network.model.UserSearchItem
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.FollowRelation
-import xyz.larkzhh.lime.domain.model.label
 import xyz.larkzhh.lime.domain.model.toFollowActionState
+import xyz.larkzhh.lime.ui.components.FollowButton
 import xyz.larkzhh.lime.ui.components.NoteCard
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
@@ -469,22 +468,12 @@ private fun UserResultCard(
                     modifier = Modifier.padding(top = 1.dp),
                 )
             }
-            // 关注按钮，本人不显示
+            // 关注按钮
             if (followState != null) {
-                val followed = followState != FollowActionState.Follow
-                Surface(
-                    onClick = if (followed) onUnfollowClick else onFollowClick,
-                    shape = RoundedCornerShape(50),
-                    color = if (followed) LimeLightGray else MaterialTheme.colorScheme.surface,
-                    border = if (followed) null else BorderStroke(1.dp, LimePrimary),
-                ) {
-                    Text(
-                        text = followState.label,
-                        fontSize = 13.sp,
-                        color = if (followed) LimeGray else LimePrimary,
-                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 6.dp),
-                    )
-                }
+                FollowButton(
+                    state = followState,
+                    onClick = if (followState != FollowActionState.Follow) onUnfollowClick else onFollowClick,
+                )
             }
         }
         // 本人标记

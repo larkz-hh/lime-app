@@ -46,6 +46,11 @@ sealed class Screen(val route: String) {
         fun createRoute(userId: Long, tab: String) = "follow_list/$userId?tab=$tab"
     }
     object CommentPhotoPicker : Screen("comment_photo_picker")
+    object NotificationList : Screen("notification_list/{type}") {
+        const val ROUTE = "notification_list/{type}"
+        const val ARG_TYPE = "type"
+        fun createRoute(type: String) = "notification_list/$type"
+    }
     object AiChat : Screen("ai_chat/{conversationId}") {
         const val ROUTE = "ai_chat/{conversationId}"
         const val NEW_CONVERSATION = "new"

@@ -3,6 +3,8 @@ package xyz.larkzhh.lime.navigation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -27,7 +29,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import xyz.larkzhh.lime.R
 
@@ -51,6 +55,7 @@ fun BottomNavBar(
     isLoggedIn: Boolean,
     onRequireLogin: (String) -> Unit,
     onPublishClick: () -> Unit,
+    messageUnread: Int = 0,
 ) {
     val items = listOf(
         BottomNavItem.Home,
@@ -130,15 +135,50 @@ fun BottomNavBar(
                         selected = selected,
                         onClick = onClick,
                         icon = {
-                            Icon(
-                                imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
-                                contentDescription = item.label,
-                            )
+                            Box {
+                                Icon(
+                                    imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
+                                    contentDescription = item.label,
+                                )
+                                // 消息红点
+                                if (item is BottomNavItem.Message && messageUnread > 0) {
+                                    MessageTabBadge(
+                                        count = messageUnread,
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .offset(x = 10.dp, y = (-4).dp),
+                                    )
+                                }
+                            }
                         },
                         label = { Text(item.label) },
                     )
                 }
             }
         }
+    }
+}
+
+/// 消息红点
+@Composable
+private fun MessageTabBadge(
+    count: Int,
+    modifier: Modifier = Modifier,
+) {
+    val text = if (count > 99) "99+" else count.toString()
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(9.dp))
+            .background(Color(0xFFFE2C55))
+            .padding(horizontal = 4.dp, vertical = 1.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            fontSize = 9.sp,
+            lineHeight = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+        )
     }
 }

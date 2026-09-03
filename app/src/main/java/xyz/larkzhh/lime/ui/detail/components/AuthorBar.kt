@@ -16,14 +16,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,11 +32,9 @@ import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.domain.model.FollowActionState
-import xyz.larkzhh.lime.domain.model.label
+import xyz.larkzhh.lime.ui.components.FollowButton
 import xyz.larkzhh.lime.ui.theme.LimeDark
-import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 顶部栏
 @Composable
@@ -104,19 +100,10 @@ fun AuthorBar(
 
         // 关注按钮
         if (followState != null) {
-            Surface(
-                shape = RoundedCornerShape(50),
-                color = Color.Transparent,
+            FollowButton(
+                state = followState,
                 onClick = onFollowClick,
-            ) {
-                Text(
-                    text = followState.label,
-                    color = if (followState == FollowActionState.Follow) LimePrimary else LimeGray,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                )
-            }
+            )
         }
 
         // 分享按钮

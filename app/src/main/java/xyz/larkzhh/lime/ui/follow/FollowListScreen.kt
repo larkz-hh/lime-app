@@ -51,9 +51,9 @@ import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.data.network.model.FollowListItem
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.FollowRelation
-import xyz.larkzhh.lime.domain.model.label
 import xyz.larkzhh.lime.domain.model.toFollowActionState
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
+import xyz.larkzhh.lime.ui.components.FollowButton
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
@@ -321,44 +321,12 @@ private fun FollowUserCard(
         Spacer(Modifier.width(12.dp))
 
         // 关注按钮
-        FollowStateButton(
+        FollowButton(
             state = state,
             onClick = if (state == FollowActionState.Follow) onFollowClick else onUnfollowClick,
         )
     }
 }
-
-/// 关注状态按钮
-@Composable
-private fun FollowStateButton(
-    state: FollowActionState,
-    onClick: () -> Unit,
-) {
-    val followed = state != FollowActionState.Follow
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .then(
-                if (followed) Modifier.background(LimeLightGray)
-                else Modifier.background(LimePrimary)
-            )
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() },
-                onClick = onClick,
-            )
-            .padding(horizontal = 18.dp, vertical = 6.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = state.label,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-            color = if (followed) LimeGray else LimeWhite,
-        )
-    }
-}
-
 
 @Preview(showBackground = true)
 @Composable

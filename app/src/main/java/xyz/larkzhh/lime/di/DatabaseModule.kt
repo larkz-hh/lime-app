@@ -13,6 +13,8 @@ import xyz.larkzhh.lime.data.local.feed.FeedDao
 import xyz.larkzhh.lime.data.local.feed.FeedDatabase
 import xyz.larkzhh.lime.data.local.note.NoteCacheDao
 import xyz.larkzhh.lime.data.local.note.NoteCacheDatabase
+import xyz.larkzhh.lime.data.local.notification.NotificationDao
+import xyz.larkzhh.lime.data.local.notification.NotificationDatabase
 import javax.inject.Singleton
 
 /**
@@ -51,4 +53,15 @@ object DatabaseModule {
 
     @Provides
     fun provideNoteCacheDao(database: NoteCacheDatabase): NoteCacheDao = database.noteCacheDao()
+
+    @Provides
+    @Singleton
+    fun provideNotificationDatabase(@ApplicationContext context: Context): NotificationDatabase =
+        Room.databaseBuilder(context, NotificationDatabase::class.java, "lime_notification.db")
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
+
+    @Provides
+    fun provideNotificationDao(database: NotificationDatabase): NotificationDao =
+        database.notificationDao()
 }
