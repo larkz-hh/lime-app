@@ -64,6 +64,8 @@ data class FeedAuthor(
     val id: Long,
     val nickname: String,
     val avatar: String?,
+    val isFollowing: Boolean? = null,
+    val isFollowedBack: Boolean? = null,
 )
 
 /// 视频笔记的视频信息响应

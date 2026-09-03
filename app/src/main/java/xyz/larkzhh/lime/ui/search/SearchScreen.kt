@@ -25,6 +25,7 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val relations by viewModel.relations.collectAsState()
 
     // 同步历史记录，
     LaunchedEffect(uiState.mode) {
@@ -86,6 +87,9 @@ fun SearchScreen(
                 onUserClick = { userId ->
                     navController.navigateToUserProfile(userId, suppressEnterAnimation = true)
                 },
+                followRelations = relations,
+                onFollowUser = viewModel::followUser,
+                onUnfollowUser = viewModel::unfollowUser,
             )
         }
     }

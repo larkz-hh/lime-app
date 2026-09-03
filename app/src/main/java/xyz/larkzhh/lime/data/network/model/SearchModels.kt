@@ -21,6 +21,8 @@ data class UserSearchItem(
     val handle: String,
     val avatar: String?,
     val isMe: Boolean,
+    val isFollowing: Boolean? = null,
+    val isFollowedBack: Boolean? = null,
 )
 
 /// 热搜词条

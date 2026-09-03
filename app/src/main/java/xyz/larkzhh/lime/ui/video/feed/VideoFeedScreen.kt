@@ -85,6 +85,8 @@ import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.DanmakuData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.ReplyData
+import xyz.larkzhh.lime.domain.model.FollowActionState
+import xyz.larkzhh.lime.domain.model.toFollowActionState
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
@@ -99,6 +101,7 @@ import xyz.larkzhh.lime.ui.video.components.VideoSideActionBar
 import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet
 import xyz.larkzhh.lime.ui.components.GroupedSheetAction
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
+import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.components.VoiceRecordSheet
 import xyz.larkzhh.lime.ui.detail.AuthorSessionHost
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentViewModel
@@ -222,6 +225,7 @@ private fun VideoFeedContent(
     val danmakuUiState by danmakuViewModel.uiState.collectAsState()
     val translateUiState by translateViewModel.uiState.collectAsState()
     val isUnmetered by viewModel.isUnmetered.collectAsState()
+    val relations by viewModel.relations.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val notificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -230,6 +234,7 @@ private fun VideoFeedContent(
         null
     }
     var justRequested by remember { mutableStateOf(false) }
+    var showUnfollowConfirm by remember { mutableStateOf(false) }
 
     LaunchedEffect(notificationPermission?.status) {
         if (justRequested) {
@@ -290,6 +295,12 @@ private fun VideoFeedContent(
     val currentItem = uiState.items.getOrNull(currentPage)
     val authorId = currentItem?.author?.id
     val selfUserId = commentViewModel.currentUserId
+    val followState = authorId?.let { relations[it]?.toFollowActionState() } ?: FollowActionState.Follow
+    LaunchedEffect(authorId) {
+        currentItem?.author?.let { author ->
+            if (author.id != selfUserId) viewModel.seedFollowRelation(author)
+        }
+    }
 
     // 换页重置评论
     LaunchedEffect(currentItem?.id) {
@@ -421,7 +432,11 @@ private fun VideoFeedContent(
                             onBack = { if (!navController.popBackStack()) onExit() },
                             onShare = {},
                             onAuthorClick = { navController.navigateToUserProfile(item.author.id, selfUserId) },
-                            onFollow = {},
+                            onFollow = {
+                                if (followState == FollowActionState.Follow) viewModel.followAuthor()
+                                else showUnfollowConfirm = true
+                            },
+                            followState = followState,
                             onToggleLike = viewModel::toggleLike,
                             onToggleFavorite = viewModel::toggleFavorite,
                             onCommentClick = { showCommentDrawer = true },
@@ -702,6 +717,17 @@ private fun VideoFeedContent(
                 onExit = viewModel::exitFullscreen,
             )
         }
+
+        // 取消关注确认弹窗
+        if (showUnfollowConfirm) {
+            UnfollowConfirmDialog(
+                onCancel = { showUnfollowConfirm = false },
+                onConfirm = {
+                    viewModel.unfollowAuthor()
+                    showUnfollowConfirm = false
+                },
+            )
+        }
     }
 }
 
@@ -732,6 +758,7 @@ private fun VideoChrome(
     onShare: () -> Unit,
     onAuthorClick: () -> Unit,
     onFollow: () -> Unit,
+    followState: FollowActionState? = null,
     onToggleLike: () -> Unit,
     onToggleFavorite: () -> Unit,
     onCommentClick: () -> Unit,
@@ -901,7 +928,7 @@ private fun VideoChrome(
                                     onClick = onAuthorClick,
                                 ),
                         )
-                        FollowButton(followed = false, onClick = onFollow)
+                        FollowButton(state = followState ?: FollowActionState.Follow, onClick = onFollow)
                         Spacer(Modifier.weight(1f))
                         // 发弹幕
                         Icon(

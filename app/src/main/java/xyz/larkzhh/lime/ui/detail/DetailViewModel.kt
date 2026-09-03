@@ -10,6 +10,8 @@ import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
+import xyz.larkzhh.lime.domain.model.FollowRelation
+import xyz.larkzhh.lime.domain.repository.FollowRepository
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.util.NetworkMonitor
 import javax.inject.Inject
@@ -31,11 +33,15 @@ data class DetailUiState(
 class DetailViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
     private val eventBus: NoteEventBus,
+    private val followRepository: FollowRepository,
     networkMonitor: NetworkMonitor,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DetailUiState())
     val uiState = _uiState.asStateFlow()
+
+    /// 共享关注关系
+    val relations = followRepository.relations
 
     private var currentNoteId: Long? = null
 
@@ -68,6 +74,7 @@ class DetailViewModel @Inject constructor(
             noteRepository.getNoteDetail(noteId)
                 .onSuccess { note ->
                     _uiState.update { it.copy(note = note, isLoading = false, error = null) }
+                    seedFollowRelation(note)
                 }
                 .onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
@@ -99,6 +106,27 @@ class DetailViewModel @Inject constructor(
                 onFailure = { _uiState.update { it.copy(note = note) } },
             )
         }
+    }
+
+    /// 关注字段写入共享关系
+    private fun seedFollowRelation(note: NoteDetailData) {
+        val author = note.author
+        followRepository.updateRelation(
+            author.id,
+            FollowRelation(author.isFollowing ?: false, author.isFollowedBack ?: false),
+        )
+    }
+
+    /// 关注作者
+    fun followAuthor() {
+        val authorId = _uiState.value.note?.author?.id ?: return
+        viewModelScope.launch { followRepository.follow(authorId) }
+    }
+
+    /// 取消关注作者
+    fun unfollowAuthor() {
+        val authorId = _uiState.value.note?.author?.id ?: return
+        viewModelScope.launch { followRepository.unfollow(authorId) }
     }
 
     fun toggleFavorite() {

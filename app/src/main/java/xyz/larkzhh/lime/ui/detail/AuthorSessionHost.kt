@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import xyz.larkzhh.lime.domain.NoteEventBus
+import xyz.larkzhh.lime.domain.repository.FollowRepository
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
 import xyz.larkzhh.lime.navigation.AuthorProfileSession
@@ -25,6 +26,7 @@ class AuthorSessionHost @Inject constructor(
     private val userRepository: UserRepository,
     private val noteRepository: NoteRepository,
     private val noteEventBus: NoteEventBus,
+    private val followRepository: FollowRepository,
 ) : ViewModel() {
     private val childStore = ViewModelStore()// ViewModel存储容器
     private var authorId: Long? = null
@@ -39,6 +41,7 @@ class AuthorSessionHost @Inject constructor(
                 ProfileViewModel(
                     savedStateHandle = SavedStateHandle(mapOf("userId" to authorId)),
                     userRepository = userRepository,
+                    followRepository = followRepository,
                 )
             }
             initializer {

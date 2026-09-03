@@ -20,6 +20,8 @@ import xyz.larkzhh.lime.data.network.model.HotSearchItem
 import xyz.larkzhh.lime.data.network.model.UserSearchItem
 import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
+import xyz.larkzhh.lime.domain.model.FollowRelation
+import xyz.larkzhh.lime.domain.repository.FollowRepository
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.SearchRepository
 import xyz.larkzhh.lime.navigation.Screen
@@ -84,12 +86,16 @@ class SearchViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
     private val historyStorage: SearchHistoryStorage,
     private val eventBus: NoteEventBus,
+    private val followRepository: FollowRepository,
     @ApplicationContext private val appContext: Context,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState(history = historyStorage.load()))
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
+
+    /// 共享关注关系
+    val relations: StateFlow<Map<Long, FollowRelation>> = followRepository.relations
     private val suggestQuery = MutableStateFlow("")// 联想去抖动的输入流
     private var resultCursor: String? = null// 笔记结果分页游标
     private var userCursor: String? = null// 用户结果分页游标
@@ -331,6 +337,7 @@ class SearchViewModel @Inject constructor(
                             userHasMore = response.hasMore,
                         )
                     }
+                    seedRelations(response.items)
                 },
                 onFailure = { e ->
                     loadedUserQuery = null
@@ -356,10 +363,35 @@ class SearchViewModel @Inject constructor(
                             userHasMore = response.hasMore,
                         )
                     }
+                    seedRelations(response.items)
                 },
                 onFailure = { e ->
                     _uiState.update { it.copy(isUserLoadingMore = false, userError = e.message) }
                 },
+            )
+        }
+    }
+
+    /// 关注用户
+    fun followUser(userId: Long) {
+        viewModelScope.launch { followRepository.follow(userId) }
+    }
+
+    /// 取消关注
+    fun unfollowUser(userId: Long) {
+        viewModelScope.launch { followRepository.unfollow(userId) }
+    }
+
+    /// 写入共享关注关系
+    private fun seedRelations(items: List<UserSearchItem>) {
+        items.forEach { item ->
+            if (item.isMe) return@forEach
+            followRepository.updateRelation(
+                item.id,
+                FollowRelation(
+                    following = item.isFollowing ?: false,
+                    followedBack = item.isFollowedBack ?: false,
+                ),
             )
         }
     }

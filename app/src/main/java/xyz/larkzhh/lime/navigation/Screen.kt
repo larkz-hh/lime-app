@@ -39,6 +39,12 @@ sealed class Screen(val route: String) {
     object VideoPublish : Screen("video_publish")
     object CoverPicker : Screen("cover_picker")
     object BrowseHistory : Screen("browse_history")
+    object FollowList : Screen("follow_list/{userId}?tab={tab}") {
+        const val ROUTE = "follow_list/{userId}?tab={tab}"
+        const val TAB_FOLLOWING = "following"
+        const val TAB_FOLLOWERS = "followers"
+        fun createRoute(userId: Long, tab: String) = "follow_list/$userId?tab=$tab"
+    }
     object CommentPhotoPicker : Screen("comment_photo_picker")
     object AiChat : Screen("ai_chat/{conversationId}") {
         const val ROUTE = "ai_chat/{conversationId}"

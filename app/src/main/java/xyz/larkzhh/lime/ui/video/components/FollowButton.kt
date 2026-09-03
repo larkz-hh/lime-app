@@ -18,17 +18,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import xyz.larkzhh.lime.domain.model.FollowActionState
+import xyz.larkzhh.lime.domain.model.label
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 /// 关注按钮
 @Composable
 fun FollowButton(
-    followed: Boolean,
+    state: FollowActionState,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     outlineColor: Color = LimeWhite,
 ) {
+    val followed = state != FollowActionState.Follow
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(50))
@@ -47,7 +50,7 @@ fun FollowButton(
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = if (followed) "已关注" else "关注",
+            text = state.label,
             color = if (followed) outlineColor else LimeWhite,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,

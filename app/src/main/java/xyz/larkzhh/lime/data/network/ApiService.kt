@@ -24,6 +24,7 @@ import xyz.larkzhh.lime.data.network.model.DanmakuData
 import xyz.larkzhh.lime.data.network.model.DanmakuListResponse
 import xyz.larkzhh.lime.data.network.model.DeleteHistoryRequest
 import xyz.larkzhh.lime.data.network.model.FeedResponse
+import xyz.larkzhh.lime.data.network.model.FollowListResponse
 import xyz.larkzhh.lime.data.network.model.HistoryResponse
 import xyz.larkzhh.lime.data.network.model.HotSearchItem
 import xyz.larkzhh.lime.data.network.model.LoginRequest
@@ -76,6 +77,30 @@ interface ApiService {
     /// 获取指定用户公开资料
     @GET("api/user/{userId}")
     suspend fun getUserById(@Path("userId") userId: Long): ApiResponse<UserData>
+
+    /// 关注用户
+    @POST("api/user/{userId}/follow")
+    suspend fun followUser(@Path("userId") userId: Long): ApiResponse<Unit>
+
+    /// 取消关注
+    @DELETE("api/user/{userId}/follow")
+    suspend fun unfollowUser(@Path("userId") userId: Long): ApiResponse<Unit>
+
+    /// 关注列表
+    @GET("api/user/{userId}/following")
+    suspend fun getFollowing(
+        @Path("userId") userId: Long,
+        @Query("cursor") cursor: Long?,
+        @Query("size") size: Int,
+    ): ApiResponse<FollowListResponse>
+
+    /// 粉丝列表
+    @GET("api/user/{userId}/followers")
+    suspend fun getFollowers(
+        @Path("userId") userId: Long,
+        @Query("cursor") cursor: Long?,
+        @Query("size") size: Int,
+    ): ApiResponse<FollowListResponse>
 
     /// 修改个人资料
     @PUT("api/user/me")

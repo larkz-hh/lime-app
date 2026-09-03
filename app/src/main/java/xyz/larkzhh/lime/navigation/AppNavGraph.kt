@@ -42,6 +42,7 @@ import xyz.larkzhh.lime.ui.auth.RegisterScreen
 import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
 import xyz.larkzhh.lime.ui.detail.comment.CommentPhotoPickerScreen
 import xyz.larkzhh.lime.ui.detail.DetailScreen
+import xyz.larkzhh.lime.ui.follow.FollowListScreen
 import xyz.larkzhh.lime.ui.home.HomeScreen
 import xyz.larkzhh.lime.ui.message.MessageScreen
 import xyz.larkzhh.lime.ui.profile.edit.EditProfileScreen
@@ -323,6 +324,37 @@ fun AppNavGraph(
                         QrScanScreen(navController)
                     }
                     composable(Screen.BrowseHistory.route) { BrowseHistoryScreen(navController) }
+                    composable(
+                        route = Screen.FollowList.ROUTE,
+                        arguments = listOf(
+                            navArgument("userId") { type = NavType.LongType },
+                            navArgument("tab") {
+                                type = NavType.StringType
+                                defaultValue = Screen.FollowList.TAB_FOLLOWING
+                            },
+                        ),
+                        enterTransition = {
+                            if (SwipeBackNavState.suppressForwardEnter) {
+                                EnterTransition.None
+                            } else {
+                                slideInHorizontally(initialOffsetX = { it })
+                            }
+                        },
+                        popEnterTransition = {
+                            if (SwipeBackNavState.suppressPopAnim) EnterTransition.None
+                            else slideInHorizontally(
+                                animationSpec = tween(220),
+                                initialOffsetX = { -it / 4 })
+                        },
+                        popExitTransition = {
+                            if (SwipeBackNavState.suppressPopAnim) ExitTransition.None
+                            else slideOutHorizontally(
+                                animationSpec = tween(220),
+                                targetOffsetX = { it })
+                        },
+                    ) {
+                        FollowListScreen(navController)
+                    }
                     composable(
                         route = Screen.AiChat.ROUTE,
                         arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),

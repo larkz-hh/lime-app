@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.network.model.UserData
+import xyz.larkzhh.lime.domain.model.FollowRelation
+import xyz.larkzhh.lime.domain.repository.FollowRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
 import javax.inject.Inject
 
@@ -28,6 +30,7 @@ sealed class ProfileUiState {
 class ProfileViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val userRepository: UserRepository,
+    private val followRepository: FollowRepository,
 ) : ViewModel() {
 
     /// 提取路由参数中的目标用户id
@@ -50,6 +53,12 @@ class ProfileViewModel @Inject constructor(
 
     private val _uploadError = MutableStateFlow<String?>(null)// 头像上传错误
     val uploadError: StateFlow<String?> = _uploadError.asStateFlow()
+
+    private val _followError = MutableStateFlow<String?>(null)// 关注操作错误
+    val followError: StateFlow<String?> = _followError.asStateFlow()
+
+    /// 共享关注关系
+    val relations = followRepository.relations
 
     init {
         if (requestedUserId == null) {
@@ -88,6 +97,7 @@ class ProfileViewModel @Inject constructor(
             }
             userRepository.getUserById(userId).onSuccess { user ->
                 _uiState.value = ProfileUiState.Success(user)
+                seedRelation(user)
             }.onFailure { e ->
                 if (e is CancellationException) return@onFailure
                 if (_uiState.value !is ProfileUiState.Success) {
@@ -109,4 +119,63 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun clearUploadError() { _uploadError.value = null }
+
+    fun clearFollowError() { _followError.value = null }
+
+    /// 关注当前查看的用户
+    fun follow() {
+        val user = (_uiState.value as? ProfileUiState.Success)?.user ?: return
+        val selfId = userRepository.userFlow.value?.id
+        if (selfId == null || user.id == selfId) return
+        viewModelScope.launch {
+            followRepository.follow(user.id)
+                .onSuccess {
+                    updateFollowState(user.id, following = true)
+                    loadUserById(user.id)
+                }
+                .onFailure { e ->
+                    if (e is CancellationException) return@onFailure
+                    _followError.value = "关注失败：${e.message ?: "网络错误"}"
+                }
+        }
+    }
+
+    /// 取消关注当前查看的用户
+    fun unfollow() {
+        val user = (_uiState.value as? ProfileUiState.Success)?.user ?: return
+        val selfId = userRepository.userFlow.value?.id
+        if (selfId == null || user.id == selfId) return
+        viewModelScope.launch {
+            followRepository.unfollow(user.id)
+                .onSuccess {
+                    updateFollowState(user.id, following = false)
+                    loadUserById(user.id)
+                }
+                .onFailure { e ->
+                    if (e is CancellationException) return@onFailure
+                    _followError.value = "取消关注失败：${e.message ?: "网络错误"}"
+                }
+        }
+    }
+
+    /// 乐观更新粉丝数与关注状态
+    private fun updateFollowState(userId: Long, following: Boolean) {
+        val current = (_uiState.value as? ProfileUiState.Success)?.user ?: return
+        if (current.id != userId) return
+        val followerCount = current.followerCount?.let { if (following) it + 1 else it - 1 }
+        _uiState.value = ProfileUiState.Success(
+            current.copy(isFollowing = following, followerCount = followerCount)
+        )
+    }
+
+    /// 写入共享关系
+    private fun seedRelation(user: UserData) {
+        val selfId = userRepository.userFlow.value?.id
+        if (selfId != null && user.id != selfId) {
+            followRepository.updateRelation(
+                user.id,
+                FollowRelation(user.isFollowing ?: false, user.isFollowedBack ?: false),
+            )
+        }
+    }
 }

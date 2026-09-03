@@ -65,8 +65,12 @@ import xyz.larkzhh.lime.ui.video.feed.PersonalVideoPayload
 import xyz.larkzhh.lime.ui.video.feed.VideoFeedSessionStore
 import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.data.network.model.FeedItem
+import xyz.larkzhh.lime.domain.model.FollowActionState
+import xyz.larkzhh.lime.domain.model.toFollowActionState
 import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.components.PagingWaterfallFeed
+import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
+import xyz.larkzhh.lime.ui.profile.components.LikeFavStatsDialog
 import xyz.larkzhh.lime.ui.profile.components.ProfileHeader
 import xyz.larkzhh.lime.ui.profile.components.ProfileTabRow
 import xyz.larkzhh.lime.ui.profile.components.ProfileTopBar
@@ -105,8 +109,14 @@ fun ProfileScreen(
     val uiState by viewModel.uiState.collectAsState()
     val isSelf by viewModel.isSelf.collectAsState()
     val user = (uiState as? ProfileUiState.Success)?.user
+    val relations by viewModel.relations.collectAsState()
+    val followError by viewModel.followError.collectAsState()
+    val followState = user?.let { relations[it.id]?.toFollowActionState() } ?: FollowActionState.Follow
+    val targetUserId = user?.id
     val uploadError by viewModel.uploadError.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showUnfollowConfirm by remember { mutableStateOf(false) }
+    var showLikeFavStats by remember { mutableStateOf(false) }
 
     val likeState by notesViewModel.likeState.collectAsState()
     val notesPagingItems = notesViewModel.notesPager.collectAsLazyPagingItems()
@@ -137,8 +147,6 @@ fun ProfileScreen(
         }
     }
 
-    // 切到点赞/收藏 Tab 时懒加载（Paging3 在首次 collect 时自动加载）
-
     /// 选择图片上传头像
     val avatarPickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
@@ -149,6 +157,13 @@ fun ProfileScreen(
         uploadError?.let { error ->
             snackbarHostState.showSnackbar(error)
             viewModel.clearUploadError()
+        }
+    }
+
+    LaunchedEffect(followError) {
+        followError?.let { error ->
+            snackbarHostState.showSnackbar(error)
+            viewModel.clearFollowError()
         }
     }
 
@@ -380,8 +395,30 @@ fun ProfileScreen(
                 gradientEndColor = gradientEndColor,
                 onEditAvatar = { avatarPickerLauncher.launch("image/*") },
                 onBrowseHistory = { navController.navigate(Screen.BrowseHistory.route) },
-                onFollowClick = { /* TODO: */ },
+                onFollowClick = {
+                    if (followState == FollowActionState.Follow) {
+                        viewModel.follow()
+                    } else {
+                        showUnfollowConfirm = true
+                    }
+                },
                 onMessageClick = { /* TODO: */ },
+                onFollowingClick = {
+                    targetUserId?.let {
+                        navController.navigate(
+                            Screen.FollowList.createRoute(it, Screen.FollowList.TAB_FOLLOWING),
+                        )
+                    }
+                },
+                onFollowersClick = {
+                    targetUserId?.let {
+                        navController.navigate(
+                            Screen.FollowList.createRoute(it, Screen.FollowList.TAB_FOLLOWERS),
+                        )
+                    }
+                },
+                onLikeFavClick = { showLikeFavStats = true },
+                followState = followState,
             )
 
             // Tab 栏
@@ -436,6 +473,29 @@ fun ProfileScreen(
                 onSizeChanged = { size -> topBarHeightPx = size.height },
             )
         }
+        }
+    }
+
+    if (showUnfollowConfirm) {
+        UnfollowConfirmDialog(
+            onCancel = { showUnfollowConfirm = false },
+            onConfirm = {
+                viewModel.unfollow()
+                showUnfollowConfirm = false
+            },
+        )
+    }
+
+    // 获赞与收藏统计弹窗
+    if (showLikeFavStats) {
+        val u = user
+        if (u != null) {
+            LikeFavStatsDialog(
+                noteCount = u.noteCount ?: 0,
+                likeCount = u.totalLikeCount ?: 0,
+                favCount = u.totalFavCount ?: 0,
+                onDismiss = { showLikeFavStats = false },
+            )
         }
     }
     }

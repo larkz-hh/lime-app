@@ -18,6 +18,8 @@ import xyz.larkzhh.lime.data.network.model.VideoOrientation
 import xyz.larkzhh.lime.data.network.model.orientationEnum
 import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
+import xyz.larkzhh.lime.domain.model.FollowRelation
+import xyz.larkzhh.lime.domain.repository.FollowRepository
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.util.NetworkMonitor
@@ -91,6 +93,7 @@ private fun FeedItem.toVideoItemOrNull(): VideoItem? {
 class VideoFeedViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
     private val eventBus: NoteEventBus,
+    private val followRepository: FollowRepository,
     networkMonitor: NetworkMonitor,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -98,6 +101,9 @@ class VideoFeedViewModel @Inject constructor(
     private val mmkv by lazy { MMKV.defaultMMKV() }
 
     val isUnmetered: StateFlow<Boolean> = networkMonitor.isUnmetered
+
+    /// 共享关注关系
+    val relations = followRepository.relations
 
     // 后台继续播放偏好
     private val _uiState = MutableStateFlow(
@@ -227,6 +233,26 @@ class VideoFeedViewModel @Inject constructor(
                 },
             )
         }
+    }
+
+    /// 写入共享关注关系
+    fun seedFollowRelation(author: FeedAuthor) {
+        followRepository.updateRelation(
+            author.id,
+            FollowRelation(author.isFollowing ?: false, author.isFollowedBack ?: false),
+        )
+    }
+
+    /// 关注作者
+    fun followAuthor() {
+        val authorId = _uiState.value.items.getOrNull(_uiState.value.currentIndex)?.author?.id ?: return
+        viewModelScope.launch { followRepository.follow(authorId) }
+    }
+
+    /// 取消关注作者
+    fun unfollowAuthor() {
+        val authorId = _uiState.value.items.getOrNull(_uiState.value.currentIndex)?.author?.id ?: return
+        viewModelScope.launch { followRepository.unfollow(authorId) }
     }
 
     /// 切页

@@ -56,6 +56,8 @@ import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.domain.model.ChatNote
+import xyz.larkzhh.lime.domain.model.FollowActionState
+import xyz.larkzhh.lime.domain.model.toFollowActionState
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
@@ -68,6 +70,7 @@ import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.LoadMoreErrorItem
 import xyz.larkzhh.lime.ui.components.SelectableText
 import xyz.larkzhh.lime.ui.components.SelectionAction
+import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.components.VoiceRecordSheet
 import xyz.larkzhh.lime.ui.detail.components.AuthorBar
 import xyz.larkzhh.lime.ui.detail.comment.components.CommentCard
@@ -118,12 +121,14 @@ fun DetailScreen(
     val commentUiState by commentViewModel.uiState.collectAsState()
     val translateUiState by translateViewModel.uiState.collectAsState()
     val fullTextUiState by translateViewModel.fullText.collectAsState()
+    val relations by viewModel.relations.collectAsState()
 
     // 评论图片预览本地状态
     var commentPreviewImages by remember { mutableStateOf<List<String>>(emptyList()) }
     var commentPreviewIndex by remember { mutableStateOf<Int?>(null) }
     var longPressTarget by remember { mutableStateOf<LongPressTarget?>(null) }
     var pendingDeleteAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var showUnfollowConfirm by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     LaunchedEffect(noteId) {
@@ -145,10 +150,13 @@ fun DetailScreen(
 
     val authorId = uiState.note?.author?.id
     val selfUserId = commentViewModel.currentUserId
+    // 作者关注状态
+    val authorFollowState = authorId?.let { id ->
+        if (id == selfUserId) null else relations[id]?.toFollowActionState() ?: FollowActionState.Follow
+    }
     val sessionHost: AuthorSessionHost = hiltViewModel()
     val authorSession = authorId?.let { id -> remember(id) { sessionHost.ensure(id) } }// 绑定作者主页会话
-    // 作者主页正是详情页的上一页，关闭左滑前进预览
-    val prevEntry = navController.previousBackStackEntry
+    val prevEntry = navController.previousBackStackEntry// 作者主页为详情页的上一页，关闭左滑前进预览
     val authorAlreadyInStack = authorId != null && when (prevEntry?.destination?.route) {
         Screen.Profile.route -> selfUserId != null && authorId == selfUserId
         Screen.UserProfile.ROUTE -> prevEntry.arguments?.getLong("userId") == authorId
@@ -212,6 +220,14 @@ fun DetailScreen(
                         onBack = { navController.popBackStack() },
                         onAuthorClick = {
                             navController.navigateToUserProfile(uiState.note!!.author.id, selfUserId)
+                        },
+                        followState = authorFollowState,
+                        onFollowClick = {
+                            if (authorFollowState == FollowActionState.Follow) {
+                                viewModel.followAuthor()
+                            } else {
+                                showUnfollowConfirm = true
+                            }
                         },
                     )
                     NoteContent(
@@ -456,6 +472,17 @@ fun DetailScreen(
                 onSecondButtonClick = {
                     pendingDeleteAction?.invoke()
                     pendingDeleteAction = null
+                },
+            )
+        }
+
+        // 取消关注确认对话框
+        if (showUnfollowConfirm) {
+            UnfollowConfirmDialog(
+                onCancel = { showUnfollowConfirm = false },
+                onConfirm = {
+                    viewModel.unfollowAuthor()
+                    showUnfollowConfirm = false
                 },
             )
         }

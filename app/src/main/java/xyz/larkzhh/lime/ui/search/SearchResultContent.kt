@@ -59,7 +59,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.data.network.model.UserSearchItem
+import xyz.larkzhh.lime.domain.model.FollowActionState
+import xyz.larkzhh.lime.domain.model.FollowRelation
+import xyz.larkzhh.lime.domain.model.label
+import xyz.larkzhh.lime.domain.model.toFollowActionState
 import xyz.larkzhh.lime.ui.components.NoteCard
+import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.search.viewmodel.NoteSort
 import xyz.larkzhh.lime.ui.search.viewmodel.SearchTimeRange
@@ -83,11 +88,15 @@ fun SearchResultContent(
     onUserTabEnter: () -> Unit,
     onLoadMoreUsers: () -> Unit,
     onUserClick: (Long) -> Unit,
+    followRelations: Map<Long, FollowRelation> = emptyMap(),
+    onFollowUser: (Long) -> Unit = {},
+    onUnfollowUser: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val tabs = listOf("全部", "用户")
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var filterExpanded by rememberSaveable { mutableStateOf(false) }
+    var pendingUnfollowUser by remember { mutableStateOf<UserSearchItem?>(null) }
 
     // 切换到用户tab或在此更换关键词
     LaunchedEffect(selectedTab, uiState.query) {
@@ -166,6 +175,9 @@ fun SearchResultContent(
                     uiState = uiState,
                     onLoadMore = onLoadMoreUsers,
                     onUserClick = onUserClick,
+                    followRelations = followRelations,
+                    onFollowUser = onFollowUser,
+                    onUnfollowClick = { pendingUnfollowUser = it },
                 )
             }
 
@@ -181,6 +193,17 @@ fun SearchResultContent(
                 onCollapse = { filterExpanded = false },
             )
         }
+    }
+
+    // 取消关注确认弹窗
+    pendingUnfollowUser?.let { user ->
+        UnfollowConfirmDialog(
+            onCancel = { pendingUnfollowUser = null },
+            onConfirm = {
+                onUnfollowUser(user.id)
+                pendingUnfollowUser = null
+            },
+        )
     }
 }
 
@@ -291,6 +314,9 @@ private fun UserResultList(
     uiState: SearchUiState,
     onLoadMore: () -> Unit,
     onUserClick: (Long) -> Unit,
+    followRelations: Map<Long, FollowRelation> = emptyMap(),
+    onFollowUser: (Long) -> Unit = {},
+    onUnfollowClick: (UserSearchItem) -> Unit = {},
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         when {
@@ -336,7 +362,15 @@ private fun UserResultList(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     items(uiState.userItems, key = { it.id }) { user ->
-                        UserResultCard(user = user, onClick = { onUserClick(user.id) })
+                        UserResultCard(
+                            user = user,
+                            onClick = { onUserClick(user.id) },
+                            followState = if (user.isMe) null
+                                          else followRelations[user.id]?.toFollowActionState()
+                                              ?: FollowActionState.Follow,
+                            onFollowClick = { onFollowUser(user.id) },
+                            onUnfollowClick = { onUnfollowClick(user) },
+                        )
                         HorizontalDivider(
                             thickness = 0.5.dp,
                             color = LimeLightGray,
@@ -371,6 +405,9 @@ private fun UserResultList(
 private fun UserResultCard(
     user: UserSearchItem,
     onClick: () -> Unit,
+    followState: FollowActionState? = null,
+    onFollowClick: () -> Unit = {},
+    onUnfollowClick: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -433,17 +470,18 @@ private fun UserResultCard(
                 )
             }
             // 关注按钮，本人不显示
-            if (!user.isMe) {
+            if (followState != null) {
+                val followed = followState != FollowActionState.Follow
                 Surface(
-                    onClick = { /* TODO */ },
+                    onClick = if (followed) onUnfollowClick else onFollowClick,
                     shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(1.dp, LimePrimary),
+                    color = if (followed) LimeLightGray else MaterialTheme.colorScheme.surface,
+                    border = if (followed) null else BorderStroke(1.dp, LimePrimary),
                 ) {
                     Text(
-                        text = "关注",
+                        text = followState.label,
                         fontSize = 13.sp,
-                        color = LimePrimary,
+                        color = if (followed) LimeGray else LimePrimary,
                         modifier = Modifier.padding(horizontal = 18.dp, vertical = 6.dp),
                     )
                 }

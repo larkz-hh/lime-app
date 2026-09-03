@@ -33,7 +33,10 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
+import xyz.larkzhh.lime.domain.model.FollowActionState
+import xyz.larkzhh.lime.domain.model.label
 import xyz.larkzhh.lime.ui.theme.LimeDark
+import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 
@@ -43,6 +46,8 @@ fun AuthorBar(
     note: NoteDetailData,
     onBack: () -> Unit,
     onAuthorClick: () -> Unit,
+    followState: FollowActionState? = null,
+    onFollowClick: () -> Unit = {},
 ) {
     Row(
         modifier = Modifier
@@ -98,18 +103,20 @@ fun AuthorBar(
         Spacer(modifier = Modifier.width(8.dp))
 
         // 关注按钮
-        Surface(
-            shape = RoundedCornerShape(50),
-            color = Color.Transparent,
-            onClick = {},
-        ) {
-            Text(
-                text = "关注",
-                color = LimePrimary,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-            )
+        if (followState != null) {
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = Color.Transparent,
+                onClick = onFollowClick,
+            ) {
+                Text(
+                    text = followState.label,
+                    color = if (followState == FollowActionState.Follow) LimePrimary else LimeGray,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                )
+            }
         }
 
         // 分享按钮

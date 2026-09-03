@@ -40,6 +40,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.data.network.model.UserData
+import xyz.larkzhh.lime.domain.model.FollowActionState
+import xyz.larkzhh.lime.domain.model.label
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
@@ -58,6 +60,10 @@ fun ProfileHeader(
     onBrowseHistory: () -> Unit = {},
     onFollowClick: () -> Unit = {},
     onMessageClick: () -> Unit = {},
+    onFollowingClick: () -> Unit = {},
+    onFollowersClick: () -> Unit = {},
+    onLikeFavClick: () -> Unit = {},
+    followState: FollowActionState = FollowActionState.Follow,
 ) {
     val user = (uiState as? ProfileUiState.Success)?.user
     val backgroundUrl = user?.backgroundImage
@@ -123,11 +129,23 @@ fun ProfileHeader(
 
             // 关注/粉丝/获赞与收藏
             Row(horizontalArrangement = Arrangement.Start) {
-                StatItem(count = "0", label = "关注")
+                StatItem(
+                    count = (user?.followingCount ?: 0).toString(),
+                    label = "关注",
+                    onClick = onFollowingClick,
+                )
                 Spacer(Modifier.width(28.dp))
-                StatItem(count = "0", label = "粉丝")
+                StatItem(
+                    count = (user?.followerCount ?: 0).toString(),
+                    label = "粉丝",
+                    onClick = onFollowersClick,
+                )
                 Spacer(Modifier.width(28.dp))
-                StatItem(count = "0", label = "获赞与收藏")
+                StatItem(
+                    count = ((user?.totalLikeCount ?: 0) + (user?.totalFavCount ?: 0)).toString(),
+                    label = "获赞与收藏",
+                    onClick = onLikeFavClick,
+                )
             }
 
             Spacer(Modifier.height(14.dp))
@@ -189,8 +207,8 @@ fun ProfileHeader(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     ActionButton(
-                        text = "关注",
-                        filled = true,
+                        text = followState.label,
+                        filled = followState == FollowActionState.Follow,
                         modifier = Modifier.weight(1f),
                         onClick = onFollowClick,
                     )
@@ -278,8 +296,11 @@ private fun UserInfoSection(user: UserData?) {
 
 /// 数字标签
 @Composable
-private fun StatItem(count: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun StatItem(count: String, label: String, onClick: (() -> Unit)? = null) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
+    ) {
         Text(
             text = count,
             style = MaterialTheme.typography.titleMedium,
