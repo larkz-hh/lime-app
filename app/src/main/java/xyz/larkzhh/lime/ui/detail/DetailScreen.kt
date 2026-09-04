@@ -26,7 +26,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Reply
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
@@ -70,6 +69,7 @@ import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet
 import xyz.larkzhh.lime.ui.components.GroupedSheetAction
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.LoadMoreErrorItem
+import xyz.larkzhh.lime.ui.components.NoteManageSheet
 import xyz.larkzhh.lime.ui.components.SelectableText
 import xyz.larkzhh.lime.ui.components.SelectionAction
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
@@ -483,36 +483,19 @@ fun DetailScreen(
         }
 
         // 笔记管理菜单
-        GroupedBottomActionSheet(
+        NoteManageSheet(
             visible = showNoteManage,
             onDismiss = { showNoteManage = false },
-            groups = listOf(
-                listOf(
-                    GroupedSheetAction(
-                        label = "编辑",
-                        icon = Icons.Outlined.Edit,
-                        onClick = {
-                            showNoteManage = false
-                            uiState.note?.let { note ->
-                                PendingNoteEdit.noteId = note.id
-                                PendingNoteEdit.isVideo = false
-                                navController.navigate(Screen.NotePublish.route)
-                            }
-                        },
-                    ),
-                ),
-                listOf(
-                    GroupedSheetAction(
-                        label = "删除",
-                        icon = Icons.Outlined.Delete,
-                        textColor = Color(0xFFFF3B30),
-                        onClick = {
-                            showNoteManage = false
-                            showDeleteNoteConfirm = true
-                        },
-                    ),
-                ),
-            ),
+            onEdit = {
+                uiState.note?.let { note ->
+                    PendingNoteEdit.noteId = note.id
+                    PendingNoteEdit.isVideo = false
+                    navController.navigate(Screen.NotePublish.route)
+                }
+            },
+            onDelete = {
+                showDeleteNoteConfirm = true
+            },
         )
 
         // 删除笔记确认

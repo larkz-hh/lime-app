@@ -42,6 +42,7 @@ import xyz.larkzhh.lime.ui.auth.LoginScreen
 import xyz.larkzhh.lime.ui.auth.RegisterScreen
 import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
 import xyz.larkzhh.lime.ui.detail.comment.CommentPhotoPickerScreen
+import xyz.larkzhh.lime.ui.draft.DraftBoxOverlay
 import xyz.larkzhh.lime.ui.detail.DetailScreen
 import xyz.larkzhh.lime.ui.follow.FollowListScreen
 import xyz.larkzhh.lime.ui.home.HomeScreen
@@ -102,6 +103,7 @@ fun AppNavGraph(
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     var showTranslatePack by remember { mutableStateOf(false) }
+    var showDraftBox by remember { mutableStateOf(false) }
 
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -134,6 +136,7 @@ fun AppNavGraph(
         if (currentRoute != Screen.Profile.route) {
             scope.launch { drawerState.close() }
             showTranslatePack = false
+            showDraftBox = false
         }
     }
 
@@ -151,7 +154,10 @@ fun AppNavGraph(
             drawerState = drawerState,
             gesturesEnabled = currentRoute == Screen.Profile.route,
             drawerContent = {
-                ProfileDrawerContent(onTranslateClick = { showTranslatePack = true })
+                ProfileDrawerContent(
+                    onTranslateClick = { showTranslatePack = true },
+                    onDraftsClick = { showDraftBox = true },
+                )
             },
         ) {
             Scaffold(
@@ -484,7 +490,7 @@ fun AppNavGraph(
             }
         }
 
-        // 从抽屉进入的页面层
+        // 翻译离线包管理层
         AnimatedVisibility(
             visible = showTranslatePack,
             enter = slideInHorizontally(initialOffsetX = { it }),
@@ -492,11 +498,22 @@ fun AppNavGraph(
         ) {
             TranslatePackScreen(onBack = { showTranslatePack = false })
         }
+        // 草稿箱覆盖层
+        AnimatedVisibility(
+            visible = showDraftBox,
+            enter = slideInHorizontally(initialOffsetX = { it }),
+            exit = slideOutHorizontally(targetOffsetX = { it }),
+        ) {
+            DraftBoxOverlay(
+                mainNavController = navController,
+                onClose = { showDraftBox = false },
+            )
+        }
     }
 
     // 覆盖层、抽屉优先返回
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher// 获取分发器
-    val backEnabled = showTranslatePack || drawerState.isOpen
+    val backEnabled = (showTranslatePack || drawerState.isOpen) && !showDraftBox
     DisposableEffect(backDispatcher, backEnabled) {
         if (backEnabled) {
             val callback = object : OnBackPressedCallback(true) {

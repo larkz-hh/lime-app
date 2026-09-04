@@ -82,6 +82,7 @@ fun NotePublishScaffold(
     onAiAction: (AiWriteAction) -> Unit,
     hasImages: Boolean,
     isEdit: Boolean = false,// 编辑模式
+    onDraftSaved: (() -> Unit)? = null,
     topContent: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
@@ -116,13 +117,21 @@ fun NotePublishScaffold(
         }
     }
 
-    // 存草稿成功后 Toast 并返回首页
+    // 存草稿成功后 Toast 并返回
     LaunchedEffect(isDraftSuccess) {
         if (isDraftSuccess) {
             onClearDraftSuccess()
             "存草稿成功".showToast(context)
-            navController.navigate(Screen.Home.route) {
-                popUpTo(Screen.Home.route) { inclusive = false }
+            if (onDraftSaved != null) {
+                onDraftSaved()
+            } else {
+                try {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                    }
+                } catch (e: IllegalArgumentException) {
+                    context.findActivity()?.finish()
+                }
             }
         }
     }
@@ -297,28 +306,26 @@ fun NotePublishScaffold(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             // 存草稿
-            if (!isEdit) {
-                Button(
-                    onClick = { showDraftDialog = true },
-                    enabled = !isPublishing,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = LimeWhite,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        disabledContainerColor = Color.White.copy(alpha = 0.6f),
-                        disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                    ),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
-                ) {
-                    Text("存草稿", fontWeight = FontWeight.SemiBold)
-                }
+            Button(
+                onClick = { showDraftDialog = true },
+                enabled = !isPublishing,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = LimeWhite,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    disabledContainerColor = Color.White.copy(alpha = 0.6f),
+                    disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+            ) {
+                Text("存草稿", fontWeight = FontWeight.SemiBold)
             }
             // 发布、保存修改
             Button(
                 onClick = onPublish,
                 enabled = !isPublishing,
-                modifier = Modifier.weight(if (isEdit) 1f else 2f),
+                modifier = Modifier.weight(2f),
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = LimePrimary),
             ) {

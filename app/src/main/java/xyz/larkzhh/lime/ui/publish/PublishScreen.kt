@@ -55,6 +55,7 @@ import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
 fun PublishScreen(
     navController: NavHostController,
     viewModel: PublishViewModel,
+    onDraftSaved: (() -> Unit)? = null,
 ) {
     val publishState by viewModel.publishState.collectAsState()
     val aiViewModel: AiWriteViewModel = hiltViewModel()
@@ -129,6 +130,7 @@ fun PublishScreen(
         },
         hasImages = aiImages.isNotEmpty(),
         isEdit = isEdit,
+        onDraftSaved = onDraftSaved,
     ) {
         // 图片横向列表
         val lazyListState = rememberLazyListState()

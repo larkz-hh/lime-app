@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import xyz.larkzhh.lime.data.network.model.ImageSize
+import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.util.readImageDimensions
 import javax.inject.Inject
@@ -174,31 +175,48 @@ class PublishViewModel @Inject constructor(
     fun onTitleChange(value: String) = _publishState.update { it.copy(title = value) }
     fun onContentChange(value: String) = _publishState.update { it.copy(content = value) }
 
-    /// 进入编辑模式，拉取笔记内容预填
+    /// 进入编辑模式
     fun startEdit(noteId: Long) {
         if (_publishState.value.editingNoteId == noteId) return
         _publishState.update {
             it.copy(editingNoteId = noteId, isLoadingEdit = true, error = null)
         }
         viewModelScope.launch {
+            var shown = false
+            // 本地已缓存
+            noteRepository.getCachedNoteDetail(noteId)?.let { cached ->
+                shown = true
+                applyEditDetail(noteId, cached)
+            }
             noteRepository.getNoteDetail(noteId, noView = true)
                 .onSuccess { note ->
-                    _publishState.update {
-                        it.copy(
-                            title = note.title.orEmpty(),
-                            content = note.content.orEmpty(),
-                            images = note.images.map { img ->
-                                PublishImage(img.url.toUri(), remote = true)
-                            },
-                            isLoadingEdit = false,
-                        )
-                    }
+                    shown = true
+                    applyEditDetail(noteId, note)
                 }
                 .onFailure { e ->
-                    _publishState.update {
-                        it.copy(isLoadingEdit = false, error = e.message ?: "加载笔记失败")
+                    _publishState.update { s ->
+                        if (!shown) {
+                            s.copy(isLoadingEdit = false, error = e.message ?: "加载笔记失败")
+                        } else {
+                            s.copy(isLoadingEdit = false, error = null)
+                        }
                     }
                 }
+        }
+    }
+
+    private fun applyEditDetail(noteId: Long, note: NoteDetailData) {
+        if (_publishState.value.editingNoteId != noteId) return
+        _publishState.update {
+            it.copy(
+                title = note.title.orEmpty(),
+                content = note.content.orEmpty(),
+                images = note.images.map { img ->
+                    PublishImage(img.url.toUri(), remote = true)
+                },
+                isLoadingEdit = false,
+                error = null,
+            )
         }
     }
 
@@ -254,7 +272,8 @@ class PublishViewModel @Inject constructor(
                     )
                 }
                 result.getOrThrow()
-                val isDraft = status == 0 && editingId == null
+                // 服务端：已发布笔记存草稿=新建草稿副本（不覆盖线上版）；草稿存草稿=就地更新；都算“存草稿成功”
+                val isDraft = status == 0
                 _publishState.update {
                     it.copy(
                         isPublishing = false,

@@ -67,9 +67,14 @@ class NoteRemoteDataSource @Inject constructor(
         response.data
     }
 
-    /// 获取指定用户已发布的笔记列表
-    suspend fun getUserNotes(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
-        val response = apiService.getUserNotes(userId = userId, cursor = cursor, size = size)
+    /// 获取指定用户的笔记列表
+    suspend fun getUserNotes(
+        userId: Long,
+        cursor: Long?,
+        size: Int,
+        status: String = "published",
+    ): Result<FeedResponse> = runCatching {
+        val response = apiService.getUserNotes(userId = userId, status = status, cursor = cursor, size = size)
         check(response.code == 200 && response.data != null) { response.message }
         response.data
     }

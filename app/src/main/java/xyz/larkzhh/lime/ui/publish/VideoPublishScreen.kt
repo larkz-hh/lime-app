@@ -58,6 +58,7 @@ import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
 fun VideoPublishScreen(
     navController: NavHostController,
     viewModel: VideoPublishViewModel,
+    onDraftSaved: (() -> Unit)? = null,
 ) {
     val pickerState by viewModel.pickerState.collectAsState()
     val publishState by viewModel.publishState.collectAsState()
@@ -124,6 +125,7 @@ fun VideoPublishScreen(
         },
         hasImages = false,
         isEdit = isEdit,
+        onDraftSaved = onDraftSaved,
     ) {
         // 顶部封面预览
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {

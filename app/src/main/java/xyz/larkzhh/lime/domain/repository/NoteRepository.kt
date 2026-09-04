@@ -78,6 +78,13 @@ interface NoteRepository {
     ): Result<FeedResponse>
     /// 获取指定用户已发布的笔记列表
     fun userNotesPager(userId: Long, noteType: Int? = null): Flow<PagingData<FeedItem>>
+    /// 拉取页用户笔记
+    suspend fun fetchUserNotes(
+        userId: Long,
+        cursor: Long?,
+        size: Int = 10,
+        status: String = "published",
+    ): Result<FeedResponse>
     /// 获取指定用户的点赞笔记列表
     fun userLikesPager(userId: Long, noteType: Int? = null): Flow<PagingData<FeedItem>>
     /// 获取指定用户的收藏笔记列表

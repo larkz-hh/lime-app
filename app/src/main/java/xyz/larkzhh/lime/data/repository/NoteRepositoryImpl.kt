@@ -93,6 +93,15 @@ class NoteRepositoryImpl @Inject constructor(
             noteRemoteDataSource.getUserNotes(userId, cursor, FEED_PAGE_SIZE).filterNotes(noteType)
         }
 
+    /// 拉取页用户笔记
+    override suspend fun fetchUserNotes(
+        userId: Long,
+        cursor: Long?,
+        size: Int,
+        status: String,
+    ): Result<FeedResponse> =
+        noteRemoteDataSource.getUserNotes(userId, cursor, size, status)
+
     /// 获取指定用户的点赞笔记列表
     override fun userLikesPager(userId: Long, noteType: Int?): Flow<PagingData<FeedItem>> =
         feedPager(userFeedKey(userId, "likes", noteType)) { cursor ->

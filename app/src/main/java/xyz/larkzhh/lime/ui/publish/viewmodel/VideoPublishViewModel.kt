@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import xyz.larkzhh.lime.data.network.model.ImageSize
+import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.util.cropCoverToCache
 import xyz.larkzhh.lime.util.downloadToFile
@@ -248,40 +249,63 @@ class VideoPublishViewModel @Inject constructor(
         }
     }
 
-    /// 编辑模式，拉取原视频笔记并预填
+    /// 编辑模式
     fun startEditVideo(noteId: Long) {
         if (_publishState.value.editingNoteId == noteId) return
         _publishState.update { it.copy(editingNoteId = noteId, isLoadingEdit = true, error = null) }
         viewModelScope.launch {
+            var shown = false
+            // 本地已缓存
+            noteRepository.getCachedNoteDetail(noteId)?.let { cached ->
+                shown = true
+                applyVideoEditDetail(noteId, cached)
+            }
             noteRepository.getNoteDetail(noteId, noView = true)
                 .onSuccess { detail ->
-                    val v = detail.video
-                    if (v == null) {
-                        _publishState.update {
-                            it.copy(isLoadingEdit = false, error = "该笔记不是视频笔记")
-                        }
-                        return@onSuccess
-                    }
-                    originalVideo = OriginalVideo(v.playUrl, v.durationMs, v.width, v.height)
-                    baseLocalUri = null
-                    _publishState.update {
-                        it.copy(
-                            title = detail.title.orEmpty(),
-                            content = detail.content.orEmpty(),
-                            videoWidth = v.width,
-                            videoHeight = v.height,
-                            cover = v.coverUrl?.let { url -> CoverSource.Remote(url) } ?: CoverSource.None,
-                            isLoadingEdit = false,
-                            error = null,
-                        )
-                    }
-                    downloadOriginalForEdit(noteId)
+                    shown = true
+                    applyVideoEditDetail(noteId, detail)
                 }
                 .onFailure { e ->
-                    _publishState.update {
-                        it.copy(isLoadingEdit = false, error = e.message ?: "加载笔记失败")
+                    _publishState.update { state ->
+                        if (!shown) {
+                            state.copy(isLoadingEdit = false, error = e.message ?: "加载笔记失败")
+                        } else {
+                            state.copy(isLoadingEdit = false, error = null)
+                        }
                     }
                 }
+        }
+    }
+
+    /// 填充编辑数据
+    private fun applyVideoEditDetail(noteId: Long, detail: NoteDetailData) {
+        val v = detail.video
+        if (v == null) {
+            _publishState.update {
+                if (it.editingNoteId == noteId) {
+                    it.copy(isLoadingEdit = false, error = "该笔记不是视频笔记")
+                } else it
+            }
+            return
+        }
+        if (originalVideo == null) {
+            originalVideo = OriginalVideo(v.playUrl, v.durationMs, v.width, v.height)
+            baseLocalUri = null
+        }
+        _publishState.update { state ->
+            if (state.editingNoteId != noteId) state
+            else state.copy(
+                title = detail.title.orEmpty(),
+                content = detail.content.orEmpty(),
+                videoWidth = v.width,
+                videoHeight = v.height,
+                cover = v.coverUrl?.let { url -> CoverSource.Remote(url) } ?: CoverSource.None,
+                isLoadingEdit = false,
+                error = null,
+            )
+        }
+        if (baseLocalUri == null && !_publishState.value.isBaseVideoReady) {
+            downloadOriginalForEdit(noteId)
         }
     }
 
@@ -512,8 +536,8 @@ class VideoPublishViewModel @Inject constructor(
                     )
                 }
                 result.getOrThrow()
-
-                val isDraft = status == 0 && editingId == null
+                // 服务端：已发布笔记存草稿=新建草稿副本（不覆盖线上版）；草稿存草稿=就地更新；都算“存草稿成功”
+                val isDraft = status == 0
                 _publishState.update {
                     it.copy(
                         isPublishing = false,

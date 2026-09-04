@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -103,6 +102,7 @@ import xyz.larkzhh.lime.ui.video.components.VideoSideActionBar
 import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet
 import xyz.larkzhh.lime.ui.components.GroupedSheetAction
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
+import xyz.larkzhh.lime.ui.components.NoteManageSheet
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.components.VoiceRecordSheet
 import xyz.larkzhh.lime.ui.detail.AuthorSessionHost
@@ -725,36 +725,19 @@ private fun VideoFeedContent(
         }
 
         // 视频管理菜单
-        GroupedBottomActionSheet(
+        NoteManageSheet(
             visible = showNoteManage,
             onDismiss = { showNoteManage = false },
-            groups = listOf(
-                listOf(
-                    GroupedSheetAction(
-                        label = "编辑",
-                        icon = Icons.Outlined.Edit,
-                        onClick = {
-                            showNoteManage = false
-                            val note = currentItem ?: return@GroupedSheetAction
-                            if (note.author.id != selfUserId) return@GroupedSheetAction
-                            PendingNoteEdit.noteId = note.id
-                            PendingNoteEdit.isVideo = true
-                            navController.navigate(Screen.VideoPublish.route)
-                        },
-                    ),
-                ),
-                listOf(
-                    GroupedSheetAction(
-                        label = "删除",
-                        icon = Icons.Outlined.Delete,
-                        textColor = Color(0xFFFF3B30),
-                        onClick = {
-                            showNoteManage = false
-                            showDeleteNoteConfirm = true
-                        },
-                    ),
-                ),
-            ),
+            onEdit = {
+                val note = currentItem ?: return@NoteManageSheet
+                if (note.author.id != selfUserId) return@NoteManageSheet
+                PendingNoteEdit.noteId = note.id
+                PendingNoteEdit.isVideo = true
+                navController.navigate(Screen.VideoPublish.route)
+            },
+            onDelete = {
+                showDeleteNoteConfirm = true
+            },
         )
 
         // 删除视频笔记确认
