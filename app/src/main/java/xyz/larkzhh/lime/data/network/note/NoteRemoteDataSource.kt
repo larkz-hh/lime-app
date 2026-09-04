@@ -43,6 +43,13 @@ class NoteRemoteDataSource @Inject constructor(
         response.data
     }
 
+    /// 获取关注动态
+    suspend fun getFollowingFeed(cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
+        val response = apiService.getFollowingFeed(cursor = cursor, size = size)
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
     /// 获取视频信息流
     suspend fun getVideoFeed(
         cursor: Long?,

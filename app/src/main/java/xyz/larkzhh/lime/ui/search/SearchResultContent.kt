@@ -97,7 +97,6 @@ fun SearchResultContent(
     var filterExpanded by rememberSaveable { mutableStateOf(false) }
     var pendingUnfollowUser by remember { mutableStateOf<UserSearchItem?>(null) }
 
-    // 切换到用户tab或在此更换关键词
     LaunchedEffect(selectedTab, uiState.query) {
         if (selectedTab == 1) onUserTabEnter()
     }

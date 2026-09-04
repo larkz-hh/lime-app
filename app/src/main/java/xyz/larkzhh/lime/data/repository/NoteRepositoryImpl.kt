@@ -81,6 +81,12 @@ class NoteRepositoryImpl @Inject constructor(
     override fun discoverFeedPager(): Flow<PagingData<FeedItem>> =
         feedPager(FEED_KEY_DISCOVER) { cursor -> noteRemoteDataSource.getFeed(cursor, FEED_PAGE_SIZE) }
 
+    /// 关注动态信息流
+    override fun followingFeedPager(): Flow<PagingData<FeedItem>> =
+        feedPager(FEED_KEY_FOLLOWING) { cursor ->
+            noteRemoteDataSource.getFollowingFeed(cursor, FEED_PAGE_SIZE)
+        }
+
     /// 获取指定用户已发布的笔记列表
     override fun userNotesPager(userId: Long, noteType: Int?): Flow<PagingData<FeedItem>> =
         feedPager(userFeedKey(userId, "notes", noteType)) { cursor ->
@@ -204,5 +210,6 @@ class NoteRepositoryImpl @Inject constructor(
     private companion object {
         const val FEED_PAGE_SIZE = 10
         const val FEED_KEY_DISCOVER = "discover"
+        const val FEED_KEY_FOLLOWING = "following"
     }
 }

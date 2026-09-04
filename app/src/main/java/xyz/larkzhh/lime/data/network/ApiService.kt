@@ -176,6 +176,13 @@ interface ApiService {
         @Query("size") size: Int,
     ): ApiResponse<FeedResponse>
 
+    /// 获取关注动态
+    @GET("api/notes/following-feed")
+    suspend fun getFollowingFeed(
+        @Query("cursor") cursor: Long?,
+        @Query("size") size: Int,
+    ): ApiResponse<FeedResponse>
+
     /// 获取视频信息流
     @GET("api/notes/video-feed")
     suspend fun getVideoFeed(

@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -41,18 +42,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil3.SingletonImageLoader
 import coil3.request.ImageRequest
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.openVideo
 import xyz.larkzhh.lime.ui.components.ErrorState
@@ -65,10 +70,19 @@ import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 private const val PRELOAD_COUNT = 4
 
+
+private const val TAB_FOLLOW = 0// 关注
+private const val TAB_DISCOVER = 1// 发现
+/// 进入首页默认选中
+private const val DEFAULT_TAB_INDEX = TAB_DISCOVER
+
 @Composable
 fun HomeScreen(navController: NavHostController) {
     val tabs = listOf("关注", "发现")
-    val pagerState = rememberPagerState { tabs.size }
+    val pagerState = rememberPagerState(
+        initialPage = DEFAULT_TAB_INDEX,
+        pageCount = { tabs.size },
+    )
     val coroutineScope = rememberCoroutineScope()
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -88,8 +102,8 @@ fun HomeScreen(navController: NavHostController) {
             modifier = Modifier.fillMaxSize(),
         ) { page ->
             when (page) {
-                0 -> FollowTab()
-                1 -> DiscoverTab(navController)
+                TAB_FOLLOW -> FollowTab(navController)
+                TAB_DISCOVER -> DiscoverTab(navController)
             }
         }
     }
@@ -171,25 +185,37 @@ private fun HomeTopBar(
 
 /// 关注页
 @Composable
-private fun FollowTab() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(LimeLightGray),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = "关注", color = LimeGray)
-    }
+private fun FollowTab(navController: NavHostController) {
+    val viewModel: FeedViewModel = hiltViewModel()
+    HomeFeedPage(
+        navController = navController,
+        feed = viewModel.followingFeed,
+        emptyHint = "关注的人还没有发布笔记",
+    )
 }
 
 /// 发现页
 @Composable
 private fun DiscoverTab(navController: NavHostController) {
     val viewModel: FeedViewModel = hiltViewModel()
+    HomeFeedPage(
+        navController = navController,
+        feed = viewModel.discoverFeed,
+    )
+}
+
+/// 首页瀑布流信息流
+@Composable
+private fun HomeFeedPage(
+    navController: NavHostController,
+    feed: Flow<PagingData<FeedItem>>,
+    emptyHint: String? = null,
+) {
+    val viewModel: FeedViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val gridState = rememberLazyStaggeredGridState()
-    val pagingItems = viewModel.feed.collectAsLazyPagingItems()
+    val pagingItems = feed.collectAsLazyPagingItems()
     val refreshState = pagingItems.loadState.refresh
 
     // 弱网预加载
@@ -219,6 +245,26 @@ private fun DiscoverTab(navController: NavHostController) {
                     onRetry = { pagingItems.retry() },
                     modifier = Modifier.align(Alignment.Center),
                 )
+            }
+            // 拉取完成但为空
+            is LoadState.NotLoading if emptyHint != null && pagingItems.itemCount == 0 -> {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = emptyHint,
+                        color = LimeGray,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        textAlign = TextAlign.Center,
+                    )
+                    TextButton(onClick = { pagingItems.refresh() }) {
+                        Text(text = "刷新看看", color = LimePrimary)
+                    }
+                }
             }
 
             else -> {

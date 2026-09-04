@@ -35,8 +35,12 @@ class FeedViewModel @Inject constructor(
     val uiState: StateFlow<FeedUiState> = _uiState.asStateFlow()
 
     /// 发现页信息流
-    val feed: Flow<PagingData<FeedItem>> =
+    val discoverFeed: Flow<PagingData<FeedItem>> =
         noteRepository.discoverFeedPager().cachedIn(viewModelScope)
+
+    /// 关注页信息流
+    val followingFeed: Flow<PagingData<FeedItem>> =
+        noteRepository.followingFeedPager().cachedIn(viewModelScope)
 
     init {
         observeNoteEvents()

@@ -42,6 +42,8 @@ interface NoteRepository {
     ): Result<Unit>
     /// 发现页信息流
     fun discoverFeedPager(): Flow<PagingData<FeedItem>>
+    /// 关注动态信息流
+    fun followingFeedPager(): Flow<PagingData<FeedItem>>
     /// 获取视频信息流
     suspend fun getVideoFeed(
         cursor: Long?,
