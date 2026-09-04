@@ -26,4 +26,15 @@ class FeedLocalDataSource @Inject constructor(
     /// 追加一页
     suspend fun appendPage(feedKey: String, items: List<FeedItemEntity>, cursor: Long?) =
         feedDao.appendPage(feedKey, items, cursor)
+
+    /// 从信息流缓存中删除某条笔记
+    suspend fun deleteByNoteId(noteId: Long) = feedDao.deleteByNoteId(noteId)
+
+    /// 更新笔记在信息流缓存中的快照
+    suspend fun updateNoteItem(noteId: Long, json: String) =
+        feedDao.updateJsonByNoteId(noteId, json)
+
+    /// 取某条笔记在信息流缓存里的全部快照
+    suspend fun getNoteItems(noteId: Long): List<FeedItemEntity> =
+        feedDao.getByNoteId(noteId)
 }

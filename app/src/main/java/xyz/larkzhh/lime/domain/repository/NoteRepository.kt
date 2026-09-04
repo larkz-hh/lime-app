@@ -40,6 +40,31 @@ interface NoteRepository {
         coverHeight: Int? = null,
         status: Int = 1,
     ): Result<Unit>
+    /// 编辑图文笔记
+    suspend fun updateNote(
+        id: Long,
+        title: String?,
+        content: String?,
+        imageUrls: List<String>,
+        coverSize: ImageSize?,
+        status: Int = 1,
+    ): Result<Unit>
+    /// 编辑视频笔记
+    suspend fun updateVideoNote(
+        id: Long,
+        title: String?,
+        content: String?,
+        videoUrl: String,
+        durationMs: Long,
+        width: Int,
+        height: Int,
+        coverUrl: String?,
+        coverWidth: Int? = null,
+        coverHeight: Int? = null,
+        status: Int = 1,
+    ): Result<Unit>
+    /// 删除笔记
+    suspend fun deleteNote(id: Long): Result<Unit>
     /// 发现页信息流
     fun discoverFeedPager(): Flow<PagingData<FeedItem>>
     /// 关注动态信息流

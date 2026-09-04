@@ -34,7 +34,11 @@ sealed class Screen(val route: String) {
     }
     object EditProfile : Screen("edit_profile")
     object QrScan : Screen("qr_scan")
-    object PhotoPicker : Screen("photo_picker")
+    object PhotoPicker : Screen("photo_picker") {
+        const val ROUTE = "photo_picker?replace={replace}"
+        const val ARG_REPLACE = "replace"
+        fun createRoute(replace: Boolean = false) = "photo_picker?replace=$replace"
+    }
     object NotePublish : Screen("note_publish")
     object VideoPublish : Screen("video_publish")
     object CoverPicker : Screen("cover_picker")

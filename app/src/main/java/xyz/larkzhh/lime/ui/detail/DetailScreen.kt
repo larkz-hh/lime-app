@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Reply
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
@@ -58,6 +59,7 @@ import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.toFollowActionState
+import xyz.larkzhh.lime.navigation.PendingNoteEdit
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
@@ -129,6 +131,8 @@ fun DetailScreen(
     var longPressTarget by remember { mutableStateOf<LongPressTarget?>(null) }
     var pendingDeleteAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     var showUnfollowConfirm by remember { mutableStateOf(false) }
+    var showNoteManage by remember { mutableStateOf(false) }
+    var showDeleteNoteConfirm by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     LaunchedEffect(noteId) {
@@ -297,6 +301,8 @@ fun DetailScreen(
                         onToggleLike = viewModel::toggleLike,
                         onToggleFavorite = viewModel::toggleFavorite,
                         onCommentClick = { commentViewModel.openInputSheet(null) },
+                        isAuthor = selfUserId != null && uiState.note!!.author.id == selfUserId,
+                        onManageClick = { showNoteManage = true },
                     )
                 }
             }
@@ -472,6 +478,59 @@ fun DetailScreen(
                 onSecondButtonClick = {
                     pendingDeleteAction?.invoke()
                     pendingDeleteAction = null
+                },
+            )
+        }
+
+        // 笔记管理菜单
+        GroupedBottomActionSheet(
+            visible = showNoteManage,
+            onDismiss = { showNoteManage = false },
+            groups = listOf(
+                listOf(
+                    GroupedSheetAction(
+                        label = "编辑",
+                        icon = Icons.Outlined.Edit,
+                        onClick = {
+                            showNoteManage = false
+                            uiState.note?.let { note ->
+                                PendingNoteEdit.noteId = note.id
+                                PendingNoteEdit.isVideo = false
+                                navController.navigate(Screen.NotePublish.route)
+                            }
+                        },
+                    ),
+                ),
+                listOf(
+                    GroupedSheetAction(
+                        label = "删除",
+                        icon = Icons.Outlined.Delete,
+                        textColor = Color(0xFFFF3B30),
+                        onClick = {
+                            showNoteManage = false
+                            showDeleteNoteConfirm = true
+                        },
+                    ),
+                ),
+            ),
+        )
+
+        // 删除笔记确认
+        if (showDeleteNoteConfirm) {
+            LimeAlertDialog(
+                title = "确认永久删除作品？\n删除后不可恢复",
+                onDismissRequest = { showDeleteNoteConfirm = false },
+                onFirstButtonClick = { showDeleteNoteConfirm = false },
+                onSecondButtonClick = {
+                    showDeleteNoteConfirm = false
+                    viewModel.deleteCurrentNote { ok ->
+                        if (ok) {
+                            "笔记已删除".showToast(context)
+                            navController.popBackStack()
+                        } else {
+                            "删除失败，请重试".showToast(context)
+                        }
+                    }
                 },
             )
         }

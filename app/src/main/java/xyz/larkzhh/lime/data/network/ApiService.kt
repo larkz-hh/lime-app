@@ -146,6 +146,18 @@ interface ApiService {
     @POST("api/notes")
     suspend fun publishVideoNote(@Body request: PublishVideoNoteRequest): ApiResponse<NoteData>
 
+    /// 编辑图文笔记
+    @PUT("api/notes/{id}")
+    suspend fun updateNote(@Path("id") id: Long, @Body request: PublishNoteRequest): ApiResponse<NoteData>
+
+    /// 编辑视频笔记
+    @PUT("api/notes/{id}")
+    suspend fun updateVideoNote(@Path("id") id: Long, @Body request: PublishVideoNoteRequest): ApiResponse<NoteData>
+
+    /// 删除笔记
+    @DELETE("api/notes/{id}")
+    suspend fun deleteNote(@Path("id") id: Long): ApiResponse<Unit>
+
     /// 点赞笔记
     @POST("api/notes/{id}/like")
     suspend fun likeNote(@Path("id") id: Long): ApiResponse<Unit>

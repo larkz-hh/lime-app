@@ -25,6 +25,18 @@ interface FeedDao {
     @Query("DELETE FROM feed_items WHERE feedKey = :feedKey")
     suspend fun clear(feedKey: String)
 
+    /// 删除某条笔记
+    @Query("DELETE FROM feed_items WHERE noteId = :noteId")
+    suspend fun deleteByNoteId(noteId: Long)
+
+    /// 更新笔记在信息流缓存中的快照
+    @Query("UPDATE feed_items SET json = :json WHERE noteId = :noteId")
+    suspend fun updateJsonByNoteId(noteId: Long, json: String)
+
+    /// 取某条笔记在信息流缓存里的全部快照
+    @Query("SELECT * FROM feed_items WHERE noteId = :noteId")
+    suspend fun getByNoteId(noteId: Long): List<FeedItemEntity>
+
     /// 获取当前分页游标
     @Query("SELECT * FROM feed_cursors WHERE feedKey = :feedKey")
     suspend fun getCursor(feedKey: String): FeedCursorEntity?

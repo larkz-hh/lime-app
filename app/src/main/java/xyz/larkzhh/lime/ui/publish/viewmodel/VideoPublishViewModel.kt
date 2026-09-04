@@ -13,6 +13,7 @@ import coil3.request.allowHardware
 import coil3.video.videoFrameMillis
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +24,7 @@ import kotlinx.coroutines.withContext
 import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.util.cropCoverToCache
+import xyz.larkzhh.lime.util.downloadToFile
 import xyz.larkzhh.lime.util.extractFrameToCache
 import xyz.larkzhh.lime.util.readImageDimensions
 import xyz.larkzhh.lime.util.readVideoDimensions
@@ -69,6 +71,7 @@ sealed interface CoverSource {
         val transform: CropTransform = CropTransform(),
         val croppedUri: Uri? = null,
     ) : CoverSource
+    data class Remote(val url: String) : CoverSource
 }
 
 data class VideoPickerUiState(
@@ -89,11 +92,24 @@ data class VideoPublishUiState(
     val editingTransform: CropTransform = CropTransform(),
     val title: String = "",
     val content: String = "",
+    // 编辑模式
+    val editingNoteId: Long? = null,
+    val isLoadingEdit: Boolean = false,
+    val isDownloadingBase: Boolean = false,
+    val isBaseVideoReady: Boolean = false,
     val isPublishing: Boolean = false,
     val uploadPhase: String? = null,
     val error: String? = null,
     val isSuccess: Boolean = false,
     val isDraftSuccess: Boolean = false,
+)
+
+/// 原笔记视频信息
+private data class OriginalVideo(
+    val url: String,
+    val durationMs: Long,
+    val width: Int,
+    val height: Int,
 )
 
 /**
@@ -112,6 +128,9 @@ class VideoPublishViewModel @Inject constructor(
     private val _publishState = MutableStateFlow(VideoPublishUiState())
     val publishState: StateFlow<VideoPublishUiState> = _publishState.asStateFlow()
     private val videoPageSize = 200
+
+    private var originalVideo: OriginalVideo? = null
+    private var baseLocalUri: Uri? = null
 
     /// 加载设备视频列表
     fun loadDeviceVideos() {
@@ -229,6 +248,77 @@ class VideoPublishViewModel @Inject constructor(
         }
     }
 
+    /// 编辑模式，拉取原视频笔记并预填
+    fun startEditVideo(noteId: Long) {
+        if (_publishState.value.editingNoteId == noteId) return
+        _publishState.update { it.copy(editingNoteId = noteId, isLoadingEdit = true, error = null) }
+        viewModelScope.launch {
+            noteRepository.getNoteDetail(noteId, noView = true)
+                .onSuccess { detail ->
+                    val v = detail.video
+                    if (v == null) {
+                        _publishState.update {
+                            it.copy(isLoadingEdit = false, error = "该笔记不是视频笔记")
+                        }
+                        return@onSuccess
+                    }
+                    originalVideo = OriginalVideo(v.playUrl, v.durationMs, v.width, v.height)
+                    baseLocalUri = null
+                    _publishState.update {
+                        it.copy(
+                            title = detail.title.orEmpty(),
+                            content = detail.content.orEmpty(),
+                            videoWidth = v.width,
+                            videoHeight = v.height,
+                            cover = v.coverUrl?.let { url -> CoverSource.Remote(url) } ?: CoverSource.None,
+                            isLoadingEdit = false,
+                            error = null,
+                        )
+                    }
+                    downloadOriginalForEdit(noteId)
+                }
+                .onFailure { e ->
+                    _publishState.update {
+                        it.copy(isLoadingEdit = false, error = e.message ?: "加载笔记失败")
+                    }
+                }
+        }
+    }
+
+    /// 下载原视频到缓存目录
+    private fun downloadOriginalForEdit(noteId: Long) {
+        val original = originalVideo ?: return
+        val target = File(context.cacheDir, "edit_video_$noteId.mp4")
+        if (target.exists() && target.length() > 0L) {
+            activateBaseVideo(target, original)
+            return
+        }
+        _publishState.update { it.copy(isDownloadingBase = true) }
+        viewModelScope.launch {
+            val ok = downloadToFile(original.url, target)
+            if (ok) {
+                activateBaseVideo(target, original)
+            } else {
+                target.delete()
+                _publishState.update { it.copy(isDownloadingBase = false, isBaseVideoReady = false) }
+            }
+        }
+    }
+
+    private fun activateBaseVideo(file: File, original: OriginalVideo) {
+        val uri = Uri.fromFile(file)
+        baseLocalUri = uri
+        val base = LocalVideo(
+            id = 0L,
+            uri = uri,
+            durationMs = original.durationMs,
+            sizeBytes = file.length(),
+            mimeType = "video/mp4",
+        )
+        _pickerState.update { it.copy(selectedVideo = base) }
+        _publishState.update { it.copy(isDownloadingBase = false, isBaseVideoReady = true) }
+    }
+
     /// 进入封面页，还原上次状态
     fun beginCoverEdit() {
         _publishState.update {
@@ -244,6 +334,13 @@ class VideoPublishViewModel @Inject constructor(
                     editingFrameMs = c.timeMs,
                     editingIsAlbum = false,
                     editingTransform = c.transform,
+                )
+                // 编辑沿用原封面
+                is CoverSource.Remote -> it.copy(
+                    editingAlbumUri = null,
+                    editingFrameMs = DEFAULT_COVER_FRAME_MS,
+                    editingIsAlbum = false,
+                    editingTransform = CropTransform(),
                 )
                 CoverSource.None -> it.copy(
                     editingAlbumUri = null,
@@ -341,34 +438,82 @@ class VideoPublishViewModel @Inject constructor(
 
     /// 提交视频笔记
     private fun submitVideo(status: Int) {
+        val state = _publishState.value
+        val editingId = state.editingNoteId
         val video = _pickerState.value.selectedVideo
-        if (video == null) {
+        // 原视频存在时沿用
+        val keepOriginal = editingId != null && originalVideo != null &&
+            (video == null || video.uri == baseLocalUri)
+        if (video == null && !keepOriginal) {
             _publishState.update { it.copy(error = "请先选择视频") }
             return
         }
-        val state = _publishState.value
         viewModelScope.launch {
-            _publishState.update { it.copy(isPublishing = true, error = null, uploadPhase = "上传视频") }
+            _publishState.update { it.copy(isPublishing = true, error = null) }
             try {
-                val videoUrl = noteRepository.uploadVideo(video.uri).getOrThrow()
+                val videoUrl: String
+                val durationMs: Long
+                val width: Int
+                val height: Int
+                if (keepOriginal) {
+                    val o = originalVideo!!
+                    videoUrl = o.url
+                    durationMs = o.durationMs
+                    width = o.width
+                    height = o.height
+                } else {
+                    _publishState.update { it.copy(uploadPhase = "上传视频") }
+                    videoUrl = noteRepository.uploadVideo(video!!.uri).getOrThrow()
+                    durationMs = video.durationMs
+                    width = state.videoWidth
+                    height = state.videoHeight
+                }
 
+                // 封面沿用原封面不重传
                 _publishState.update { it.copy(uploadPhase = "上传封面") }
-                val (coverUrl, coverSize) = resolveCover(state.cover, video.uri)
+                val cover = state.cover
+                val coverUrl: String?
+                val coverSize: ImageSize?
+                if (cover is CoverSource.Remote) {
+                    coverUrl = cover.url
+                    coverSize = null
+                } else {
+                    val (u, s) = resolveCover(cover, video?.uri ?: baseLocalUri)
+                    coverUrl = u
+                    coverSize = s
+                }
 
-                noteRepository.publishVideoNote(
-                    title = state.title.ifBlank { null },
-                    content = state.content.ifBlank { null },
-                    videoUrl = videoUrl,
-                    durationMs = video.durationMs,
-                    width = state.videoWidth,
-                    height = state.videoHeight,
-                    coverUrl = coverUrl,
-                    coverWidth = coverSize?.width,
-                    coverHeight = coverSize?.height,
-                    status = status,
-                ).getOrThrow()
+                val result = if (editingId != null) {
+                    noteRepository.updateVideoNote(
+                        id = editingId,
+                        title = state.title.ifBlank { null },
+                        content = state.content.ifBlank { null },
+                        videoUrl = videoUrl,
+                        durationMs = durationMs,
+                        width = width,
+                        height = height,
+                        coverUrl = coverUrl,
+                        coverWidth = coverSize?.width,
+                        coverHeight = coverSize?.height,
+                        status = status,
+                    )
+                } else {
+                    noteRepository.publishVideoNote(
+                        title = state.title.ifBlank { null },
+                        content = state.content.ifBlank { null },
+                        videoUrl = videoUrl,
+                        durationMs = durationMs,
+                        width = width,
+                        height = height,
+                        coverUrl = coverUrl,
+                        coverWidth = coverSize?.width,
+                        coverHeight = coverSize?.height,
+                        status = status,
+                    )
+                }
+                result.getOrThrow()
 
-                val isDraft = status == 0
+                val isDraft = status == 0 && editingId == null
                 _publishState.update {
                     it.copy(
                         isPublishing = false,
@@ -378,7 +523,11 @@ class VideoPublishViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
-                val errorMsg = if (status == 0) "存草稿失败，请重试" else "发布失败，请重试"
+                val errorMsg = when {
+                    status == 0 -> "存草稿失败，请重试"
+                    _publishState.value.editingNoteId != null -> "保存失败，请重试"
+                    else -> "发布失败，请重试"
+                }
                 _publishState.update {
                     it.copy(isPublishing = false, uploadPhase = null, error = e.message ?: errorMsg)
                 }
@@ -387,11 +536,16 @@ class VideoPublishViewModel @Inject constructor(
     }
 
     /// 解析封面上传，读取封面图宽高
-    private suspend fun resolveCover(cover: CoverSource, videoUri: Uri): Pair<String?, ImageSize?> {
+    private suspend fun resolveCover(cover: CoverSource, videoUri: Uri?): Pair<String?, ImageSize?> {
         val coverUri: Uri? = when (cover) {
             is CoverSource.Album -> cover.croppedUri ?: cover.uri
-            is CoverSource.Frame -> cover.croppedUri ?: extractFrameToCache(context, videoUri, cover.timeMs)
-            CoverSource.None -> extractFrameToCache(context, videoUri, DEFAULT_COVER_FRAME_MS)
+            is CoverSource.Frame -> cover.croppedUri ?: videoUri?.let {
+                extractFrameToCache(context, it, cover.timeMs)
+            }
+            is CoverSource.Remote -> null
+            CoverSource.None -> videoUri?.let {
+                extractFrameToCache(context, it, DEFAULT_COVER_FRAME_MS)
+            }
         }
         val url = coverUri?.let { noteRepository.uploadImage(it).getOrThrow() }
         val size = coverUri?.let {

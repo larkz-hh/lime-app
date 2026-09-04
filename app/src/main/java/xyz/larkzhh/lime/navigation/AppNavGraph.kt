@@ -430,22 +430,32 @@ fun AppNavGraph(
                             )
                         }
                     }
-
                     // 发布流程嵌套图，共享viewmodel
                     navigation(
                         startDestination = Screen.PhotoPicker.route,
                         route = Screen.Publish.route,
                     ) {
-                        composable(Screen.PhotoPicker.route) { entry ->
+                        composable(
+                            route = Screen.PhotoPicker.ROUTE,
+                            arguments = listOf(
+                                navArgument(Screen.PhotoPicker.ARG_REPLACE) {
+                                    type = NavType.BoolType
+                                    defaultValue = false
+                                },
+                            ),
+                        ) { entry ->
                             val parentEntry = remember(entry) {
                                 navController.getBackStackEntry(Screen.Publish.route)
                             }
                             val viewModel: PublishViewModel = hiltViewModel(parentEntry)
                             val videoViewModel: VideoPublishViewModel = hiltViewModel(parentEntry)
+                            val replaceMode =
+                                entry.arguments?.getBoolean(Screen.PhotoPicker.ARG_REPLACE) ?: false
                             PhotoPickerScreen(
                                 navController = navController,
                                 viewModel = viewModel,
                                 videoViewModel = videoViewModel,
+                                replaceMode = replaceMode,
                             )
                         }// 生命周期与整个发布流程绑定
                         composable(Screen.NotePublish.route) { entry ->
@@ -513,6 +523,9 @@ fun AppNavGraph(
                 onAlbum = {
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
                         showPublishSheet = false
+                        // 新建发布前清掉可能残留的编辑标志
+                        PendingNoteEdit.noteId = null
+                        PendingNoteEdit.isVideo = false
                         navController.navigate(Screen.Publish.route)
                     }
                 },

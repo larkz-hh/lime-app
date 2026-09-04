@@ -195,4 +195,70 @@ class NoteRemoteDataSource @Inject constructor(
         val response = apiService.publishVideoNote(request)
         check(response.code == 200) { response.message }
     }
+
+    /// 编辑图文笔记
+    suspend fun updateNote(
+        id: Long,
+        title: String?,
+        content: String?,
+        imageUrls: List<String>,
+        coverSize: ImageSize?,
+        status: Int,
+    ): Result<Unit> = runCatching {
+        val images = imageUrls.mapIndexed { index, url ->
+            val isCover = index == 0
+            NoteImageRequest(
+                url = url,
+                sortOrder = index,
+                width = if (isCover) coverSize?.width else null,
+                height = if (isCover) coverSize?.height else null,
+            )
+        }
+        val request = PublishNoteRequest(
+            title = title?.ifBlank { null },
+            content = content?.ifBlank { null },
+            images = images,
+            status = status,
+        )
+        val response = apiService.updateNote(id, request)
+        check(response.code == 200) { response.message }
+    }
+
+    /// 编辑视频笔记
+    suspend fun updateVideoNote(
+        id: Long,
+        title: String?,
+        content: String?,
+        videoUrl: String,
+        durationMs: Long,
+        width: Int,
+        height: Int,
+        coverUrl: String?,
+        coverWidth: Int?,
+        coverHeight: Int?,
+        status: Int,
+    ): Result<Unit> = runCatching {
+        val request = PublishVideoNoteRequest(
+            title = title?.ifBlank { null },
+            content = content?.ifBlank { null },
+            video = VideoRequest(
+                url = videoUrl,
+                durationMs = durationMs,
+                width = width,
+                height = height,
+                coverUrl = coverUrl,
+                coverWidth = coverWidth,
+                coverHeight = coverHeight,
+            ),
+            status = status,
+        )
+        val response = apiService.updateVideoNote(id, request)
+        check(response.code == 200) { response.message }
+    }
+
+    /// 删除笔记
+    suspend fun deleteNote(id: Long): Result<Unit> = runCatching {
+        val response = apiService.deleteNote(id)
+        check(response.code == 200) { response.message }
+    }
 }

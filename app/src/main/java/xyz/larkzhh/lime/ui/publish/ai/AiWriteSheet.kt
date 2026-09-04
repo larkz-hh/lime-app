@@ -60,7 +60,7 @@ import xyz.larkzhh.lime.util.showToast
  * 润色、续写、精简正文至少 10 个字，不足时提示。
  *
  * @param content 当前正文
- * @param imageUris 当前已选的本地图片
+ * @param images AI 可用图（
  * @param onApplyContent 回填正文回调
  * @param onApplyTitle 回填标题回调
  * @param onDismiss 关闭弹窗回调
@@ -69,7 +69,7 @@ import xyz.larkzhh.lime.util.showToast
 @Composable
 fun AiWriteSheet(
     content: String,
-    imageUris: List<Uri>,
+    images: List<AiWriteImage>,
     onApplyContent: (String) -> Unit,
     onApplyTitle: (String) -> Unit,
     onDismiss: () -> Unit,
@@ -88,7 +88,7 @@ fun AiWriteSheet(
     // 首次打开面板默认开始
     LaunchedEffect(Unit) {
         if (!state.isGenerating && !state.finished && state.text.isEmpty() && state.error == null) {
-            viewModel.start(AiWriteAction.defaultFor(imageUris.isNotEmpty()), content, imageUris)
+            viewModel.start(AiWriteAction.defaultFor(images.isNotEmpty()), content, images)
         }
     }
 
@@ -149,7 +149,7 @@ fun AiWriteSheet(
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                AiWriteAction.visibleFor(imageUris.isNotEmpty()).forEach { action ->
+                AiWriteAction.visibleFor(images.isNotEmpty()).forEach { action ->
                     val selected = state.action == action
                     Box(
                         modifier = Modifier
@@ -158,7 +158,7 @@ fun AiWriteSheet(
                                 if (selected) LimePrimary
                                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
                             )
-                            .clickable { viewModel.start(action, content, imageUris) }
+                            .clickable { viewModel.start(action, content, images) }
                             .padding(horizontal = 14.dp, vertical = 6.dp),
                     ) {
                         Text(
@@ -296,8 +296,8 @@ fun AiWriteSheet(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         IconButton(
-                            onClick = { viewModel.start(state.action, content, imageUris) },
-                            enabled = content.isNotBlank() || imageUris.isNotEmpty(),
+                            onClick = { viewModel.start(state.action, content, images) },
+                            enabled = content.isNotBlank() || images.isNotEmpty(),
                             modifier = Modifier.size(32.dp),
                         ) {
                             Icon(

@@ -16,10 +16,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +43,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
-import xyz.larkzhh.lime.ui.publish.ai.AiWriteAction
+import xyz.larkzhh.lime.navigation.PendingNoteEdit
+import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.ui.publish.ai.AiWriteImage
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteSheet
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteViewModel
 import xyz.larkzhh.lime.ui.publish.components.NotePublishScaffold
@@ -56,13 +60,55 @@ fun PublishScreen(
     val aiViewModel: AiWriteViewModel = hiltViewModel()
     var showAiSheet by remember { mutableStateOf(false) }
 
-    val total = publishState.selectedUris.size
-    val done = publishState.publishProgress
-    val progressText = if (done < total) "正在上传图片 $done/$total..." else null
+    val isEdit = publishState.editingNoteId != null
+    // 编辑入口
+    LaunchedEffect(Unit) {
+        val id = PendingNoteEdit.noteId ?: return@LaunchedEffect
+        if (!PendingNoteEdit.isVideo) {
+            PendingNoteEdit.noteId = null
+            PendingNoteEdit.isVideo = false
+            viewModel.startEdit(id)
+        }
+    }
+    // 本地新选的图片
+    val localUris = publishState.images.filter { !it.remote }.map { it.uri }
+    val total = publishState.images.size
+    val localTotal = localUris.size
+    val progressText = if (publishState.isPublishing && publishState.publishProgress < localTotal) {
+        "正在上传图片 ${publishState.publishProgress}/$localTotal..."
+    } else null
+    // AI 可用图
+    val aiImages: List<AiWriteImage> = publishState.images.map {
+        if (it.remote) AiWriteImage(remoteUrl = it.uri.toString())
+        else AiWriteImage(uri = it.uri)
+    }
+
+    // 编辑模式
+    LaunchedEffect(Unit) {
+        val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle ?: return@LaunchedEffect
+        savedStateHandle.getStateFlow<List<Uri>?>("comment_images", null).collect { uris ->
+            if (!uris.isNullOrEmpty()) {
+                viewModel.appendLocalImages(uris)
+                savedStateHandle.remove<List<Uri>>("comment_images")
+            }
+        }
+    }
+
+    if (publishState.isLoadingEdit) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
     NotePublishScaffold(
         navController = navController,
-        topBarTitle = "发布笔记",
+        topBarTitle = if (isEdit) "编辑笔记" else "发布笔记",
         title = publishState.title,
         content = publishState.content,
         onTitleChange = viewModel::onTitleChange,
@@ -78,10 +124,11 @@ fun PublishScreen(
         onPublish = viewModel::publish,
         onAiAssist = { showAiSheet = true },
         onAiAction = { action ->
-            aiViewModel.start(action, publishState.content, publishState.selectedUris)
+            aiViewModel.start(action, publishState.content, aiImages)
             showAiSheet = true
         },
-        hasImages = publishState.selectedUris.isNotEmpty(),
+        hasImages = aiImages.isNotEmpty(),
+        isEdit = isEdit,
     ) {
         // 图片横向列表
         val lazyListState = rememberLazyListState()
@@ -94,16 +141,16 @@ fun PublishScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             itemsIndexed(
-                publishState.selectedUris,
-                key = { _, uri -> uri.toString() },
-            ) { index, uri ->
-                ReorderableItem(reorderState, key = uri.toString()) { isDragging ->
+                publishState.images,
+                key = { _, image -> image.uri.toString() },
+            ) { index, image ->
+                ReorderableItem(reorderState, key = image.uri.toString()) { isDragging ->
                     val haptic = LocalHapticFeedback.current// 获取系统的触觉反馈服务实例
                     PublishImageItem(
-                        uri = uri,
+                        uri = image.uri,
                         index = index,
                         isDragging = isDragging,
-                        onRemove = { viewModel.removeImage(uri) },
+                        onRemove = { viewModel.removeImage(image.uri) },
                         modifier = Modifier.longPressDraggableHandle(
                             onDragStarted = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -113,7 +160,7 @@ fun PublishScreen(
                 }
             }
             // 追加按钮（未满9张时显示）
-            if (publishState.selectedUris.size < 9) {
+            if (total < 9) {
                 item {
                     Box(
                         modifier = Modifier
@@ -121,8 +168,12 @@ fun PublishScreen(
                             .clip(RoundedCornerShape(8.dp))
                             .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f))
                             .clickable {
-                                viewModel.addMore()// 同步当前已选
-                                navController.popBackStack()// 返回
+                                if (isEdit) {
+                                    navController.navigate(Screen.CommentPhotoPicker.route)
+                                } else {
+                                    viewModel.addMore()// 同步当前已选
+                                    navController.popBackStack()// 返回
+                                }
                             },
                         contentAlignment = Alignment.Center,
                     ) {
@@ -142,7 +193,7 @@ fun PublishScreen(
     if (showAiSheet) {
         AiWriteSheet(
             content = publishState.content,
-            imageUris = publishState.selectedUris,
+            images = aiImages,
             onApplyContent = viewModel::onContentChange,
             onApplyTitle = viewModel::onTitleChange,
             onDismiss = { showAiSheet = false },

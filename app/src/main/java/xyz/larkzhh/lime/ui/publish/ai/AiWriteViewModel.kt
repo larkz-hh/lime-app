@@ -15,6 +15,12 @@ import xyz.larkzhh.lime.domain.repository.AiRepository
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import javax.inject.Inject
 
+/// AI 可用图
+data class AiWriteImage(
+    val uri: Uri? = null,
+    val remoteUrl: String? = null,
+)
+
 /// AI 帮写动作
 enum class AiWriteAction(val code: String, val label: String) {
     CAPTION("caption", "看图写文案"),
@@ -68,9 +74,9 @@ class AiWriteViewModel @Inject constructor(
     private val maxImages = 4
 
     /// 开始动作
-    fun start(action: AiWriteAction, content: String, imageUris: List<Uri>) {
+    fun start(action: AiWriteAction, content: String, images: List<AiWriteImage>) {
         val trimmed = content.trim()
-        val hasImages = imageUris.isNotEmpty()
+        val hasImages = images.isNotEmpty()
 
         // 前置检验
         when (action) {
@@ -103,7 +109,7 @@ class AiWriteViewModel @Inject constructor(
             val needImages = action == AiWriteAction.CAPTION ||
                 (action == AiWriteAction.TITLE && hasImages)
             val imageUrls = if (needImages) {
-                uploadImages(imageUris.take(maxImages)).getOrElse {
+                resolveImageUrls(images).getOrElse {
                     _state.update {
                         it.copy(isGenerating = false, isUploading = false, error = "图片上传失败，请重试")
                     }
@@ -172,13 +178,24 @@ class AiWriteViewModel @Inject constructor(
         }
     }
 
-    /// 逐张上传图片
-    private suspend fun uploadImages(uris: List<Uri>): Result<List<String>> = runCatching {
-        uris.mapIndexed { index, uri ->
-            _state.update {
-                it.copy(isUploading = true, uploadProgressText = "正在上传图片 ${index + 1}/${uris.size}…")
+    /// 拼接 AI 需要的图片 URL
+    private suspend fun resolveImageUrls(images: List<AiWriteImage>): Result<List<String>> = runCatching {
+        val chosen = images.filter { it.uri != null || it.remoteUrl != null }.take(maxImages)
+        val localCount = chosen.count { it.uri != null }
+        var uploaded = 0
+        chosen.map { image ->
+            if (image.uri != null) {
+                uploaded++
+                _state.update {
+                    it.copy(
+                        isUploading = true,
+                        uploadProgressText = "正在上传图片 $uploaded/$localCount…",
+                    )
+                }
+                noteRepository.uploadImage(image.uri).getOrThrow()
+            } else {
+                image.remoteUrl ?: error("图片缺少地址")
             }
-            noteRepository.uploadImage(uri).getOrThrow()
         }
     }
 

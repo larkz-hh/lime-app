@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.ui.publish.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -53,6 +54,7 @@ import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteAction
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
+import xyz.larkzhh.lime.util.findActivity
 import xyz.larkzhh.lime.util.showToast
 
 /**
@@ -79,18 +81,37 @@ fun NotePublishScaffold(
     onAiAssist: () -> Unit,
     onAiAction: (AiWriteAction) -> Unit,
     hasImages: Boolean,
+    isEdit: Boolean = false,// 编辑模式
     topContent: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
     var showDraftDialog by remember { mutableStateOf(false) }
     val aiEnabled = (content.isNotBlank() || hasImages) && !isPublishing// 有图或有正文、未发布中
 
-    // 发布成功后返回首页
+    // 编辑模式返回直接回到发起页
+    val goBack: () -> Unit = {
+        if (isEdit) {
+            val popped = navController.popBackStack(Screen.Publish.route, inclusive = true)
+            if (!popped) navController.popBackStack()
+        } else {
+            navController.popBackStack()
+        }
+    }
+    BackHandler(enabled = isEdit, onBack = goBack)
+
+    // 发布或编辑成功后直接回首页
     LaunchedEffect(isSuccess) {
         if (isSuccess) {
             onClearSuccess()
-            navController.navigate(Screen.Home.route) {
-                popUpTo(Screen.Home.route) { inclusive = false }
+            if (isEdit) {
+                "已保存修改".showToast(context)
+            }
+            try {
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.Home.route) { inclusive = false }
+                }
+            } catch (e: IllegalArgumentException) {
+                (context.findActivity())?.finish()
             }
         }
     }
@@ -132,7 +153,7 @@ fun NotePublishScaffold(
                 .padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(onClick = goBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
             }
             Text(
@@ -141,7 +162,7 @@ fun NotePublishScaffold(
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
             )
-            // AI 帮写入口：有图或正文非空、且非发布中时可用
+            // AI 帮写入口，有图或正文非空、且非发布中时可用
             IconButton(
                 onClick = onAiAssist,
                 enabled = aiEnabled,
@@ -276,26 +297,28 @@ fun NotePublishScaffold(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             // 存草稿
-            Button(
-                onClick = { showDraftDialog = true },
-                enabled = !isPublishing,
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = LimeWhite,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    disabledContainerColor = Color.White.copy(alpha = 0.6f),
-                    disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                ),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
-            ) {
-                Text("存草稿", fontWeight = FontWeight.SemiBold)
+            if (!isEdit) {
+                Button(
+                    onClick = { showDraftDialog = true },
+                    enabled = !isPublishing,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = LimeWhite,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        disabledContainerColor = Color.White.copy(alpha = 0.6f),
+                        disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+                ) {
+                    Text("存草稿", fontWeight = FontWeight.SemiBold)
+                }
             }
-            // 发布笔记
+            // 发布、保存修改
             Button(
                 onClick = onPublish,
                 enabled = !isPublishing,
-                modifier = Modifier.weight(2f),
+                modifier = Modifier.weight(if (isEdit) 1f else 2f),
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = LimePrimary),
             ) {

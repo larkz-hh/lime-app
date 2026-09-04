@@ -21,8 +21,14 @@ import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.util.readImageDimensions
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 data class LocalImage(val id: Long, val uri: Uri)
+
+data class PublishImage(
+    val uri: Uri,
+    val remote: Boolean = false,
+)
 
 /// 相册选择页 UI 状态
 data class PhotoPickerUiState(
@@ -33,11 +39,13 @@ data class PhotoPickerUiState(
     val hasMore: Boolean = true,
 )
 
-/// 笔记发布页 UI 状态
+/// 笔记发布、编辑页 UI 状态
 data class PublishUiState(
-    val selectedUris: List<Uri> = emptyList(),
+    val images: List<PublishImage> = emptyList(),
     val title: String = "",
     val content: String = "",
+    val editingNoteId: Long? = null,
+    val isLoadingEdit: Boolean = false,
     val isPublishing: Boolean = false,
     val publishProgress: Int = 0,  // 已上传图片数
     val error: String? = null,
@@ -47,7 +55,7 @@ data class PublishUiState(
 
 /**
  * 发布页与编辑页共享的 ViewModel。
- * 负责负责管理相册选择状态、图片列表查询以及笔记发布、存草稿逻辑。
+ * 负责管理相册选择状态、图片列表查询以及笔记发布、编辑、存草稿逻辑。
  */
 @HiltViewModel
 class PublishViewModel @Inject constructor(
@@ -136,27 +144,68 @@ class PublishViewModel @Inject constructor(
     /// 确认选择，将相册选中的图片同步到发布页的状态
     fun confirmSelection() {
         val uris = _pickerState.value.selectedUris
-        _publishState.update { it.copy(selectedUris = uris) }
+        _publishState.update { state ->
+            state.copy(images = uris.map { uri -> PublishImage(uri) })
+        }
     }
 
     /// 从发布页返回选择器追加图片时，先把当前已选图片同步回选择器
     fun addMore() {
-        _pickerState.update { it.copy(selectedUris = _publishState.value.selectedUris) }
+        val localUris = _publishState.value.images.filter { !it.remote }.map { it.uri }
+        _pickerState.update { it.copy(selectedUris = localUris) }
+    }
+
+    /// 追加新选图片
+    fun appendLocalImages(uris: List<Uri>) {
+        if (uris.isEmpty()) return
+        _publishState.update { state ->
+            val remain = 9 - state.images.size
+            if (remain <= 0) state
+            else state.copy(images = state.images + uris.take(remain).map { PublishImage(it) })
+        }
     }
 
     /// 移除发布页中某张图片
     fun removeImage(uri: Uri) {
-        _publishState.update { it.copy(selectedUris = it.selectedUris - uri) }
+        _publishState.update { it.copy(images = it.images.filterNot { p -> p.uri == uri }) }
     }
 
     /// 改变笔记标题或内容
     fun onTitleChange(value: String) = _publishState.update { it.copy(title = value) }
     fun onContentChange(value: String) = _publishState.update { it.copy(content = value) }
 
+    /// 进入编辑模式，拉取笔记内容预填
+    fun startEdit(noteId: Long) {
+        if (_publishState.value.editingNoteId == noteId) return
+        _publishState.update {
+            it.copy(editingNoteId = noteId, isLoadingEdit = true, error = null)
+        }
+        viewModelScope.launch {
+            noteRepository.getNoteDetail(noteId, noView = true)
+                .onSuccess { note ->
+                    _publishState.update {
+                        it.copy(
+                            title = note.title.orEmpty(),
+                            content = note.content.orEmpty(),
+                            images = note.images.map { img ->
+                                PublishImage(img.url.toUri(), remote = true)
+                            },
+                            isLoadingEdit = false,
+                        )
+                    }
+                }
+                .onFailure { e ->
+                    _publishState.update {
+                        it.copy(isLoadingEdit = false, error = e.message ?: "加载笔记失败")
+                    }
+                }
+        }
+    }
+
     /// 提交笔记，status为 1=发布，0=草稿
     private fun submitNote(status: Int) {
         val state = _publishState.value
-        if (state.selectedUris.isEmpty()) {
+        if (state.images.isEmpty()) {
             _publishState.update { it.copy(error = "请至少添加一张图片") }
             return
         }
@@ -167,25 +216,45 @@ class PublishViewModel @Inject constructor(
         viewModelScope.launch {
             _publishState.update { it.copy(isPublishing = true, error = null, publishProgress = 0) }
             try {
-                val uploadedUrls = mutableListOf<String>()// 已上传图片
+                val uploadedUrls = mutableListOf<String>()
                 var coverSize: ImageSize? = null
-                state.selectedUris.forEachIndexed { index, uri ->
-                    val url = noteRepository.uploadImage(uri).getOrThrow()// 逐张上传图片，获取服务端返回的url
-                    uploadedUrls.add(url)
-                    if (index == 0) {
-                        val dim = readImageDimensions(context, uri)
-                        coverSize = if (dim.width > 0 && dim.height > 0) ImageSize(dim.width, dim.height) else null
+                var localCount = 0
+                state.images.forEachIndexed { index, image ->
+                    val url = if (image.remote) {
+                        image.uri.toString()
+                    } else {
+                        localCount++
+                        val url = noteRepository.uploadImage(image.uri).getOrThrow()// 逐张上传本地图片
+                        if (index == 0) {
+                            val dim = readImageDimensions(context, image.uri)
+                            coverSize = if (dim.width > 0 && dim.height > 0) ImageSize(dim.width, dim.height) else null
+                        }
+                        url
                     }
-                    _publishState.update { it.copy(publishProgress = index + 1) }
+                    uploadedUrls.add(url)
+                    _publishState.update { it.copy(publishProgress = localCount) }
                 }
-                noteRepository.publishNote(
-                    title = state.title.ifBlank { null },
-                    content = state.content.ifBlank { null },
-                    imageUrls = uploadedUrls,
-                    coverSize = coverSize,
-                    status = status,
-                ).getOrThrow()
-                val isDraft = status == 0
+                val editingId = state.editingNoteId
+                val result = if (editingId != null) {
+                    noteRepository.updateNote(
+                        id = editingId,
+                        title = state.title.ifBlank { null },
+                        content = state.content.ifBlank { null },
+                        imageUrls = uploadedUrls,
+                        coverSize = coverSize,
+                        status = status,
+                    )
+                } else {
+                    noteRepository.publishNote(
+                        title = state.title.ifBlank { null },
+                        content = state.content.ifBlank { null },
+                        imageUrls = uploadedUrls,
+                        coverSize = coverSize,
+                        status = status,
+                    )
+                }
+                result.getOrThrow()
+                val isDraft = status == 0 && editingId == null
                 _publishState.update {
                     it.copy(
                         isPublishing = false,
@@ -194,7 +263,11 @@ class PublishViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
-                val errorMsg = if (status == 0) "存草稿失败，请重试" else "发布失败，请重试"
+                val errorMsg = when {
+                    status == 0 -> "存草稿失败，请重试"
+                    _publishState.value.editingNoteId != null -> "保存失败，请重试"
+                    else -> "发布失败，请重试"
+                }
                 _publishState.update {
                     it.copy(isPublishing = false, error = e.message ?: errorMsg)
                 }
@@ -202,7 +275,7 @@ class PublishViewModel @Inject constructor(
         }
     }
 
-    /// 发布笔记
+    /// 发布或保存修改
     fun publish() = submitNote(1)
 
     /// 存草稿
@@ -210,9 +283,9 @@ class PublishViewModel @Inject constructor(
 
     /// 重排图片顺序
     fun reorderImages(fromIndex: Int, toIndex: Int) {
-        val list = _publishState.value.selectedUris.toMutableList()
+        val list = _publishState.value.images.toMutableList()
         list.add(toIndex, list.removeAt(fromIndex))
-        _publishState.update { it.copy(selectedUris = list) }
+        _publishState.update { it.copy(images = list) }
     }
 
     fun clearSuccess() = _publishState.update { it.copy(isSuccess = false) }

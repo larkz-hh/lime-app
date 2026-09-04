@@ -84,12 +84,18 @@ fun PhotoPickerScreen(
     navController: NavHostController,
     viewModel: PublishViewModel,
     videoViewModel: VideoPublishViewModel,
+    replaceMode: Boolean = false,// 更换视频模式
 ) {
     val pickerState by viewModel.pickerState.collectAsState()
     val videoPickerState by videoViewModel.pickerState.collectAsState()
     val context = LocalContext.current
 
-    var tab by remember { mutableStateOf(PickerTab.PHOTO) }
+    // 已有选中视频
+    var tab by remember {
+        mutableStateOf(
+            if (videoPickerState.selectedVideo != null) PickerTab.VIDEO else PickerTab.PHOTO
+        )
+    }
 
     // 预览浮层
     var previewImageIndex by remember { mutableStateOf<Int?>(null) }
@@ -112,7 +118,8 @@ fun PhotoPickerScreen(
 
     LaunchedEffect(granted) {
         if (granted) {
-            if (pickerState.images.isEmpty()) {
+            // 更换视频模式只选视频
+            if (!replaceMode && pickerState.images.isEmpty()) {
                 viewModel.loadDeviceImages()
             }
         } else {
@@ -121,8 +128,9 @@ fun PhotoPickerScreen(
     }
 
     // 切到视频tab时懒加载视频
-    LaunchedEffect(tab, granted) {
-        if (granted && tab == PickerTab.VIDEO && videoPickerState.videos.isEmpty()) {
+    LaunchedEffect(tab, granted, replaceMode) {
+        val needVideo = replaceMode || tab == PickerTab.VIDEO
+        if (granted && needVideo && videoPickerState.videos.isEmpty()) {
             videoViewModel.loadDeviceVideos()
         }
     }
@@ -145,7 +153,7 @@ fun PhotoPickerScreen(
                 Icon(Icons.Filled.Close, contentDescription = "关闭", tint = Color.White)
             }
             Text(
-                text = "选择",
+                text = if (replaceMode) "更换视频" else "选择",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White,
@@ -165,17 +173,20 @@ fun PhotoPickerScreen(
         }
 
         // 照片、视频 tab
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.Black)
-                .padding(start = 16.dp, top = 4.dp, bottom = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
-        ) {
-            PickerTabItem("照片", tab == PickerTab.PHOTO) { tab = PickerTab.PHOTO }
-            PickerTabItem("视频", tab == PickerTab.VIDEO) { tab = PickerTab.VIDEO }
+        if (!replaceMode) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black)
+                    .padding(start = 16.dp, top = 4.dp, bottom = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                PickerTabItem("照片", tab == PickerTab.PHOTO) { tab = PickerTab.PHOTO }
+                PickerTabItem("视频", tab == PickerTab.VIDEO) { tab = PickerTab.VIDEO }
+            }
         }
 
+        val showVideo = replaceMode || tab == PickerTab.VIDEO
         when {
             !granted -> {
                 Box(
@@ -196,7 +207,7 @@ fun PhotoPickerScreen(
                 }
             }
 
-            tab == PickerTab.PHOTO -> {
+            !showVideo -> {
                 if (pickerState.isLoading) {
                     LoadingBox()
                 } else {
@@ -274,7 +285,14 @@ fun PhotoPickerScreen(
                                 },
                                 onToggle = {
                                     if (video.selectable) {
-                                        videoViewModel.toggleVideoSelection(video)
+                                        if (replaceMode) {
+                                            // 点已选视频不变
+                                            if (videoPickerState.selectedVideo?.uri != video.uri) {
+                                                videoViewModel.selectVideo(video)
+                                            }
+                                        } else {
+                                            videoViewModel.toggleVideoSelection(video)
+                                        }
                                     } else {
                                         "视频需为 mp4，且不超过 200MB、10 分钟".showToast(context)
                                     }
@@ -299,21 +317,32 @@ fun PhotoPickerScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.End,
         ) {
-            if (tab == PickerTab.PHOTO) {
-                val count = pickerState.selectedUris.size
-                NextButton(
-                    text = if (count > 0) "下一步($count)" else "下一步",
-                    enabled = count > 0,
-                ) {
-                    viewModel.confirmSelection()
-                    navController.navigate(Screen.NotePublish.route)
+            when {
+                replaceMode -> {
+                    NextButton(
+                        text = "完成",
+                        enabled = videoPickerState.selectedVideo != null,
+                    ) {
+                        navController.popBackStack()
+                    }
                 }
-            } else {
-                NextButton(
-                    text = "下一步",
-                    enabled = videoPickerState.selectedVideo != null,
-                ) {
-                    navController.navigate(Screen.VideoPublish.route)
+                tab == PickerTab.PHOTO -> {
+                    val count = pickerState.selectedUris.size
+                    NextButton(
+                        text = if (count > 0) "下一步($count)" else "下一步",
+                        enabled = count > 0,
+                    ) {
+                        viewModel.confirmSelection()
+                        navController.navigate(Screen.NotePublish.route)
+                    }
+                }
+                else -> {
+                    NextButton(
+                        text = "下一步",
+                        enabled = videoPickerState.selectedVideo != null,
+                    ) {
+                        navController.navigate(Screen.VideoPublish.route)
+                    }
                 }
             }
         }
@@ -353,7 +382,16 @@ fun PhotoPickerScreen(
                 videos = videoPickerState.videos,
                 initialIndex = vidIdx,
                 selectedId = videoPickerState.selectedVideo?.id,
-                onToggle = { videoViewModel.toggleVideoSelection(it) },
+                onToggle = { video ->
+                    if (replaceMode) {
+                        // 点已选视频不变
+                        if (videoPickerState.selectedVideo?.uri != video.uri) {
+                            videoViewModel.selectVideo(video)
+                        }
+                    } else {
+                        videoViewModel.toggleVideoSelection(video)
+                    }
+                },
                 onDismiss = { previewVideoIndex = null },
             )
         }

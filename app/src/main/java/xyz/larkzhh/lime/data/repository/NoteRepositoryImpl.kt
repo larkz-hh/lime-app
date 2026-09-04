@@ -189,6 +189,81 @@ class NoteRepositoryImpl @Inject constructor(
     ): Result<Unit> =
         noteRemoteDataSource.publishNote(title, content, imageUrls, coverSize, status)
 
+    /// 编辑图文笔记
+    override suspend fun updateNote(
+        id: Long,
+        title: String?,
+        content: String?,
+        imageUrls: List<String>,
+        coverSize: ImageSize?,
+        status: Int,
+    ): Result<Unit> {
+        val result = noteRemoteDataSource.updateNote(id, title, content, imageUrls, coverSize, status)
+        if (result.isSuccess) refreshNoteCachesAfterEdit(id)// 同步本地缓存快照
+        return result
+    }
+
+    /// 编辑视频笔记
+    override suspend fun updateVideoNote(
+        id: Long,
+        title: String?,
+        content: String?,
+        videoUrl: String,
+        durationMs: Long,
+        width: Int,
+        height: Int,
+        coverUrl: String?,
+        coverWidth: Int?,
+        coverHeight: Int?,
+        status: Int,
+    ): Result<Unit> {
+        val result = noteRemoteDataSource.updateVideoNote(
+            id, title, content, videoUrl, durationMs, width, height,
+            coverUrl, coverWidth, coverHeight, status,
+        )
+        if (result.isSuccess) refreshNoteCachesAfterEdit(id)// 同步本地缓存快照
+        return result
+    }
+
+    /// 编辑保存成功后刷新本地缓存
+    private suspend fun refreshNoteCachesAfterEdit(id: Long) {
+        val detail = getNoteDetail(id, noView = true).getOrNull() ?: return
+        runCatching {
+            val cached = feedLocalDataSource.getNoteItems(id)
+            if (cached.isEmpty()) return@runCatching
+            val old = runCatching {
+                gson.fromJson(cached.first().json, FeedItem::class.java)
+            }.getOrNull()
+            val cover = detail.images.firstOrNull()
+            val feed = FeedItem(
+                id = detail.id,
+                title = detail.title,
+                coverImage = if (detail.noteType == 2) detail.video?.coverUrl else cover?.url,
+                coverWidth = cover?.width?.takeIf { it > 0 } ?: old?.coverWidth,
+                coverHeight = cover?.height?.takeIf { it > 0 } ?: old?.coverHeight,
+                likeCount = detail.likeCount,
+                liked = detail.liked,
+                author = detail.author,
+                viewCount = old?.viewCount,
+                noteType = detail.noteType,
+                video = detail.video,
+            )
+            feedLocalDataSource.updateNoteItem(id, gson.toJson(feed))
+        }
+    }
+
+    /// 删除笔记
+    override suspend fun deleteNote(id: Long): Result<Unit> {
+        val result = noteRemoteDataSource.deleteNote(id)
+        result.onSuccess {
+            runCatching {
+                noteCacheLocalDataSource.deleteNoteCache(id)
+                feedLocalDataSource.deleteByNoteId(id)
+            }
+        }
+        return result
+    }
+
     /// 发布视频笔记
     override suspend fun publishVideoNote(
         title: String?,

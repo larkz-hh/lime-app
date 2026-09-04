@@ -10,16 +10,24 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import xyz.larkzhh.lime.ui.detail.DetailScreen
 import xyz.larkzhh.lime.ui.detail.comment.CommentPhotoPickerScreen
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
+import xyz.larkzhh.lime.ui.publish.CoverPickerScreen
+import xyz.larkzhh.lime.ui.publish.PhotoPickerScreen
+import xyz.larkzhh.lime.ui.publish.PublishScreen
+import xyz.larkzhh.lime.ui.publish.VideoPublishScreen
+import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
+import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
 import xyz.larkzhh.lime.ui.profile.edit.EditProfileScreen
 import xyz.larkzhh.lime.ui.profile.history.BrowseHistoryScreen
 import xyz.larkzhh.lime.ui.qrscan.QrScanScreen
@@ -150,5 +158,55 @@ fun VideoNavGraph(
         composable(Screen.EditProfile.route) { EditProfileScreen(navController) }
         composable(Screen.QrScan.route) { QrScanScreen(navController) }
         composable(Screen.CommentPhotoPicker.route) { CommentPhotoPickerScreen(navController) }
+        // 发布、编辑流程嵌套图
+        navigation(
+            startDestination = Screen.PhotoPicker.route,
+            route = Screen.Publish.route,
+        ) {
+            composable(
+                route = Screen.PhotoPicker.ROUTE,
+                arguments = listOf(
+                    navArgument(Screen.PhotoPicker.ARG_REPLACE) {
+                        type = NavType.BoolType
+                        defaultValue = false
+                    },
+                ),
+            ) { entry ->
+                val parentEntry = remember(entry) {
+                    navController.getBackStackEntry(Screen.Publish.route)
+                }
+                val viewModel: PublishViewModel = hiltViewModel(parentEntry)
+                val videoViewModel: VideoPublishViewModel = hiltViewModel(parentEntry)
+                val replaceMode =
+                    entry.arguments?.getBoolean(Screen.PhotoPicker.ARG_REPLACE) ?: false
+                PhotoPickerScreen(
+                    navController = navController,
+                    viewModel = viewModel,
+                    videoViewModel = videoViewModel,
+                    replaceMode = replaceMode,
+                )
+            }
+            composable(Screen.NotePublish.route) { entry ->
+                val parentEntry = remember(entry) {
+                    navController.getBackStackEntry(Screen.Publish.route)
+                }
+                val viewModel: PublishViewModel = hiltViewModel(parentEntry)
+                PublishScreen(navController = navController, viewModel = viewModel)
+            }
+            composable(Screen.VideoPublish.route) { entry ->
+                val parentEntry = remember(entry) {
+                    navController.getBackStackEntry(Screen.Publish.route)
+                }
+                val videoViewModel: VideoPublishViewModel = hiltViewModel(parentEntry)
+                VideoPublishScreen(navController = navController, viewModel = videoViewModel)
+            }
+            composable(Screen.CoverPicker.route) { entry ->
+                val parentEntry = remember(entry) {
+                    navController.getBackStackEntry(Screen.Publish.route)
+                }
+                val videoViewModel: VideoPublishViewModel = hiltViewModel(parentEntry)
+                CoverPickerScreen(navController = navController, viewModel = videoViewModel)
+            }
+        }
     }
 }

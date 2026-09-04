@@ -35,6 +35,14 @@ class NoteCacheLocalDataSource @Inject constructor(
         }
     }
 
+    /// 删除笔记详情、评论及回复缓存
+    suspend fun deleteNoteCache(noteId: Long) {
+        runCatching {
+            val commentIds = getComments(noteId)?.items?.map { it.id }.orEmpty()
+            noteCacheDao.deleteNoteCache(noteId, commentIds)
+        }
+    }
+
     // 获取本地评论
     suspend fun getComments(noteId: Long): CommentListResponse? =
         noteCacheDao.getComments(noteId)?.let { entity ->

@@ -568,6 +568,37 @@ class VideoFeedViewModel @Inject constructor(
     fun setDanmakuOpacity(opacity: Float) =
         _uiState.update { it.copy(danmakuOpacity = opacity.coerceIn(0.2f, 1f)) }
 
+    /// 删除当前视频
+    fun deleteCurrent(onResult: (Boolean) -> Unit) {
+        val idx = _uiState.value.currentIndex
+        val item = _uiState.value.items.getOrNull(idx) ?: run {
+            onResult(false)
+            return
+        }
+        viewModelScope.launch {
+            noteRepository.deleteNote(item.id)
+                .onSuccess {
+                    _uiState.update { state ->
+                        val items = state.items.filterNot { it.id == item.id }
+                        val landscapeItems = state.landscapeItems.filterNot { it.id == item.id }
+                        val target = if (items.isEmpty()) 0 else minOf(idx, items.lastIndex)
+                        state.copy(
+                            items = items,
+                            landscapeItems = landscapeItems,
+                            currentIndex = target,
+                            pendingScrollTarget = target,
+                            hasMore = if (items.isEmpty()) false else state.hasMore,
+                        )
+                    }
+                    onResult(true)
+                    if (_uiState.value.items.isEmpty() && source is FeedSource.Recommendation) {
+                        loadRecommendationFirst()// 队列空后重新拉最新
+                    }
+                }
+                .onFailure { onResult(false) }
+        }
+    }
+
     companion object {
         private const val KEY_BACKGROUND_AUDIO = "video.background_audio"
     }

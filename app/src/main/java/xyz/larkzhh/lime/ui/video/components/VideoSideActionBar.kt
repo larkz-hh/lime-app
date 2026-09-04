@@ -5,6 +5,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +33,7 @@ fun VideoSideActionBar(
     onToggleLike: () -> Unit,
     onToggleFavorite: () -> Unit,
     onCommentClick: () -> Unit,
+    onManage: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     iconSize: Dp = 34.dp,
     animationSize: Dp = 44.dp,
@@ -78,6 +81,21 @@ fun VideoSideActionBar(
                 iconSize = iconSize,
                 inactiveColor = Color.White,
             )
+        }
+        // 管理入口
+        if (onManage != null) {
+            SideActionItem(
+                onClick = onManage,
+                count = 0,
+                label = "更多",
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.MoreHoriz,
+                    contentDescription = "更多",
+                    tint = Color.White,
+                    modifier = Modifier.size(iconSize),
+                )
+            }
         }
     }
 }

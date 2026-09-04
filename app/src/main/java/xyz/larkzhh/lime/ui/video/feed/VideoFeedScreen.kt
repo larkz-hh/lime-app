@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -87,6 +88,7 @@ import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.toFollowActionState
+import xyz.larkzhh.lime.navigation.PendingNoteEdit
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
@@ -235,6 +237,9 @@ private fun VideoFeedContent(
     }
     var justRequested by remember { mutableStateOf(false) }
     var showUnfollowConfirm by remember { mutableStateOf(false) }
+    // 管理菜单
+    var showNoteManage by remember { mutableStateOf(false) }
+    var showDeleteNoteConfirm by remember { mutableStateOf(false) }
 
     LaunchedEffect(notificationPermission?.status) {
         if (justRequested) {
@@ -454,6 +459,7 @@ private fun VideoFeedContent(
                             useSideActions = viewModel.isTabEntry,
                             onFullscreen = { viewModel.enterFullscreen() },
                             onEnterMiniPlayer = onEnterMiniPlayer?.let { cb -> { cb(item.video.width, item.video.height) } },
+                            onManageNote = { showNoteManage = true },
                         )
                         // 双击点赞爱心
                         if (likeBurstNoteId == item.id) {
@@ -718,6 +724,54 @@ private fun VideoFeedContent(
             )
         }
 
+        // 视频管理菜单
+        GroupedBottomActionSheet(
+            visible = showNoteManage,
+            onDismiss = { showNoteManage = false },
+            groups = listOf(
+                listOf(
+                    GroupedSheetAction(
+                        label = "编辑",
+                        icon = Icons.Outlined.Edit,
+                        onClick = {
+                            showNoteManage = false
+                            val note = currentItem ?: return@GroupedSheetAction
+                            if (note.author.id != selfUserId) return@GroupedSheetAction
+                            PendingNoteEdit.noteId = note.id
+                            PendingNoteEdit.isVideo = true
+                            navController.navigate(Screen.VideoPublish.route)
+                        },
+                    ),
+                ),
+                listOf(
+                    GroupedSheetAction(
+                        label = "删除",
+                        icon = Icons.Outlined.Delete,
+                        textColor = Color(0xFFFF3B30),
+                        onClick = {
+                            showNoteManage = false
+                            showDeleteNoteConfirm = true
+                        },
+                    ),
+                ),
+            ),
+        )
+
+        // 删除视频笔记确认
+        if (showDeleteNoteConfirm) {
+            LimeAlertDialog(
+                title = "确认删除这条视频笔记吗？删除后不可恢复",
+                onDismissRequest = { showDeleteNoteConfirm = false },
+                onFirstButtonClick = { showDeleteNoteConfirm = false },
+                onSecondButtonClick = {
+                    showDeleteNoteConfirm = false
+                    viewModel.deleteCurrent { ok ->
+                        (if (ok) "视频笔记已删除" else "删除失败，请重试").showToast(context)
+                    }
+                },
+            )
+        }
+
         // 取消关注确认弹窗
         if (showUnfollowConfirm) {
             UnfollowConfirmDialog(
@@ -776,6 +830,7 @@ private fun VideoChrome(
     useSideActions: Boolean = false,
     onFullscreen: () -> Unit = {},// 进入横屏全屏
     onEnterMiniPlayer: (() -> Unit)? = null,
+    onManageNote: (() -> Unit)? = null,
 ) {
     // 播放进度轮询
     var positionMs by remember { mutableLongStateOf(0L) }
@@ -791,6 +846,8 @@ private fun VideoChrome(
         }
     }
     val fraction = if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
+    val isAuthorMine = onManageNote != null &&
+        currentUserId != null && item.author.id == currentUserId
 
     Box(modifier = Modifier.fillMaxSize()) {
         // 顶部栏与弹幕区
@@ -989,6 +1046,8 @@ private fun VideoChrome(
                     onToggleLike = onToggleLike,
                     onToggleFavorite = onToggleFavorite,
                     onCommentClick = onCommentClick,
+                    isAuthor = isAuthorMine,
+                    onManageClick = onManageNote,
                     containerColor = Color.Black,
                     contentColor = Color.White,
                     inputBackground = Color.White.copy(alpha = 0.18f),
@@ -1068,7 +1127,7 @@ private fun VideoChrome(
             }
         }
 
-        // 右侧竖排操作栏（底部栏视频 tab 直进，清屏/拖动进度时隐藏）
+        // 右侧竖排操作栏
         if (useSideActions) {
             VideoSideActionBar(
                 liked = item.liked,
@@ -1079,6 +1138,7 @@ private fun VideoChrome(
                 onToggleLike = onToggleLike,
                 onToggleFavorite = onToggleFavorite,
                 onCommentClick = onCommentClick,
+                onManage = if (isAuthorMine) onManageNote else null,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .padding(end = 8.dp)

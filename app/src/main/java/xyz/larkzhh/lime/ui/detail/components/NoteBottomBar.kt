@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
@@ -40,6 +41,8 @@ fun NoteBottomBar(
     onToggleLike: () -> Unit,
     onToggleFavorite: () -> Unit,
     onCommentClick: () -> Unit,
+    isAuthor: Boolean = false,
+    onManageClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.background,
     contentColor: Color = LimeDark,
@@ -49,6 +52,8 @@ fun NoteBottomBar(
 ) {
     val rowVertical = if (compact) 6.dp else 10.dp
     val inputVertical = if (compact) 6.dp else 10.dp
+    val inputClick: () -> Unit =
+        if (isAuthor) (onManageClick ?: onCommentClick) else onCommentClick
     Surface(
         modifier = modifier,
         shadowElevation = if (elevated) 8.dp else 0.dp,
@@ -62,21 +67,42 @@ fun NoteBottomBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            // 评论输入框
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(50))
-                    .background(inputBackground)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() },
-                        onClick = onCommentClick,
+            // 评论输入框或编辑设置
+            if (isAuthor) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = inputClick,
+                        )
+                        .padding(horizontal = 4.dp, vertical = rowVertical),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    Text(
+                        text = "编辑设置 >",
+                        color = contentColor,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
                     )
-                    .padding(horizontal = 14.dp, vertical = inputVertical),
-                contentAlignment = Alignment.CenterStart,
-            ) {
-                Text(text = "说点什么…", color = LimeGray, fontSize = 13.sp)
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(50))
+                        .background(inputBackground)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = inputClick,
+                        )
+                        .padding(horizontal = 14.dp, vertical = inputVertical),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    Text(text = "说点什么…", color = LimeGray, fontSize = 13.sp)
+                }
             }
 
             // 点赞

@@ -87,6 +87,16 @@ class DetailViewModel @Inject constructor(
         currentNoteId?.let { loadNote(it) }
     }
 
+    /// 删除当前笔记
+    fun deleteCurrentNote(onResult: (Boolean) -> Unit) {
+        val id = _uiState.value.note?.id ?: return
+        viewModelScope.launch {
+            noteRepository.deleteNote(id)
+                .onSuccess { onResult(true) }
+                .onFailure { onResult(false) }
+        }
+    }
+
     fun toggleLike() {
         val note = _uiState.value.note ?: return
         viewModelScope.launch {
