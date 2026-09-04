@@ -2,6 +2,7 @@ package xyz.larkzhh.lime.ui.draft
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
+import xyz.larkzhh.lime.util.JsonListCache
 import javax.inject.Inject
 
 data class DraftBoxUiState(
@@ -52,18 +54,31 @@ class DraftBoxViewModel @Inject constructor(
         }
     }
 
+    private fun cacheKey(userId: Long) = "draft_box_v1_$userId"
+
     /// 加载
     private fun load() {
         val userId = selfUserId ?: return
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(isLoading = true, error = null, items = emptyList(), hasMore = true)
-            }
             cursor = null
+            val cached = JsonListCache.read<FeedItem>(
+                cacheKey(userId),
+                object : TypeToken<List<FeedItem>>() {}.type,
+            )
+            _uiState.update { state ->
+                if (cached.isNullOrEmpty()) {
+                    state.copy(isLoading = true, error = null, items = emptyList(), hasMore = true)
+                } else {
+                    state.copy(isLoading = false, error = null, items = cached, hasMore = false)
+                }
+            }
+            // 网络后台刷新
             noteRepository.fetchUserNotes(userId, cursor = null, size = pageSize, status = "draft")
                 .fold(
                     onSuccess = { response ->
                         cursor = response.nextCursor
+                        // 缓存
+                        JsonListCache.save(cacheKey(userId), response.items)
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -72,8 +87,11 @@ class DraftBoxViewModel @Inject constructor(
                             )
                         }
                     },
-                    onFailure = { e ->
-                        _uiState.update { it.copy(isLoading = false, error = e.message) }
+                    onFailure = {
+                        _uiState.update { state ->
+                            if (state.items.isEmpty()) state.copy(isLoading = false, error = it.message)
+                            else state
+                        }
                     },
                 )
         }
