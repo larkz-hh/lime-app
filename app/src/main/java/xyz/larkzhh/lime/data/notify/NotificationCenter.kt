@@ -31,7 +31,7 @@ import javax.inject.Singleton
  * - IM 新消息
  * - 桌面角标
  */
-@UnstableApi
+@OptIn(UnstableApi::class)
 @Singleton
 class NotificationCenter @Inject constructor(
     @ApplicationContext private val context: Context,

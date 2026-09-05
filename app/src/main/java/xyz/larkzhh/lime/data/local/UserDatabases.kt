@@ -64,6 +64,14 @@ class UserDatabases @Inject constructor(
         open("lime_notification", uid) { name -> buildDb(NotificationDatabase::class.java, name) }
             .notificationDao()
 
+    /// 关闭并释放所有已打开的数据库实例
+    fun closeAll() {
+        synchronized(lock) {
+            instances.values.forEach { it.close() }
+            instances.clear()
+        }
+    }
+
     private fun <T : RoomDatabase> buildDb(clazz: Class<T>, fileName: String): T =
         Room.databaseBuilder(context, clazz, fileName)
             .fallbackToDestructiveMigration(dropAllTables = true)
