@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavType
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -57,6 +58,7 @@ import xyz.larkzhh.lime.ui.message.MessageViewModel
 import xyz.larkzhh.lime.ui.message.NotificationListScreen
 import xyz.larkzhh.lime.ui.profile.edit.EditProfileScreen
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
+import xyz.larkzhh.lime.ui.profile.account.AccountPrivacyScreen
 import xyz.larkzhh.lime.ui.profile.components.ProfileDrawerContent
 import xyz.larkzhh.lime.ui.profile.history.BrowseHistoryScreen
 import xyz.larkzhh.lime.ui.publish.PhotoPickerScreen
@@ -111,6 +113,7 @@ fun AppNavGraph(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     var showTranslatePack by remember { mutableStateOf(false) }
     var showDraftBox by remember { mutableStateOf(false) }
+    var showAccountPrivacy by remember { mutableStateOf(false) }
 
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -144,6 +147,7 @@ fun AppNavGraph(
             scope.launch { drawerState.close() }
             showTranslatePack = false
             showDraftBox = false
+            showAccountPrivacy = false
         }
     }
 
@@ -167,6 +171,7 @@ fun AppNavGraph(
                 ProfileDrawerContent(
                     onTranslateClick = { showTranslatePack = true },
                     onDraftsClick = { showDraftBox = true },
+                    onAccountPrivacyClick = { showAccountPrivacy = true },
                 )
             },
         ) {
@@ -610,11 +615,30 @@ fun AppNavGraph(
                 onClose = { showDraftBox = false },
             )
         }
+        AnimatedVisibility(
+            visible = showAccountPrivacy,
+            enter = slideInHorizontally(initialOffsetX = { it }),
+            exit = slideOutHorizontally(targetOffsetX = { it }),
+        ) {
+            AccountPrivacyScreen(
+                onClose = { showAccountPrivacy = false },
+                onPasswordChanged = {
+                    showAccountPrivacy = false
+                    scope.launch { drawerState.close() }
+                    imViewModel.logout()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+            )
+        }
     }
 
     // 覆盖层、抽屉优先返回
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher// 获取分发器
-    val backEnabled = (showTranslatePack || drawerState.isOpen) && !showDraftBox
+    val backEnabled = (showTranslatePack || drawerState.isOpen) &&
+            !showDraftBox && !showAccountPrivacy
     DisposableEffect(backDispatcher, backEnabled) {
         if (backEnabled) {
             val callback = object : OnBackPressedCallback(true) {

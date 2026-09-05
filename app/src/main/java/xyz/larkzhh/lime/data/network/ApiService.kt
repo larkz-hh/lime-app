@@ -17,6 +17,7 @@ import xyz.larkzhh.lime.data.network.model.AiModelDto
 import xyz.larkzhh.lime.data.network.model.AiTranslateRequest
 import xyz.larkzhh.lime.data.network.model.AiTranslateResponse
 import xyz.larkzhh.lime.data.network.model.ChatMessageDto
+import xyz.larkzhh.lime.data.network.model.ChangePasswordRequest
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.CommentListResponse
 import xyz.larkzhh.lime.data.network.model.ConversationListData
@@ -118,6 +119,10 @@ interface ApiService {
     /// 修改个人资料
     @PUT("api/user/me")
     suspend fun updateMe(@Body request: UpdateProfileRequest): ApiResponse<UserData>
+
+    /// 修改密码
+    @PUT("api/user/me/password")
+    suspend fun changePassword(@Body request: ChangePasswordRequest): ApiResponse<Unit>
 
     /// 上传、更换头像
     @Multipart

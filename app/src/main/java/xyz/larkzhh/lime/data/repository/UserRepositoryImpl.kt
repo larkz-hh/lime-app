@@ -145,6 +145,15 @@ class UserRepositoryImpl @Inject constructor(
         response.data
     }
 
+    /// 设置点赞、收藏列表隐私
+    override suspend fun updatePrivacy(likePrivate: Boolean, favPrivate: Boolean): Result<UserData> = runCatching {
+        val request = UpdateProfileRequest(likePrivate = likePrivate, favPrivate = favPrivate)
+        val response = apiService.updateMe(request)
+        check(response.code == 200 && response.data != null) { response.message }
+        updateUser(response.data)
+        response.data
+    }
+
     /// 清空用户数据
     override fun clearUser() {
         _userFlow.value = null

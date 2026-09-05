@@ -50,6 +50,9 @@ interface UserRepository {
         region: String?,
     ): Result<UserData>
 
+    /// 设置点赞、收藏列表隐私
+    suspend fun updatePrivacy(likePrivate: Boolean, favPrivate: Boolean): Result<UserData>
+
     /// 注销时清除本地缓存
     fun clearUser()
 }

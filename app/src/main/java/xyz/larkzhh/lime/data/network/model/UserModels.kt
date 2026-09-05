@@ -31,6 +31,8 @@ data class UpdateProfileRequest(
     val gender: Int? = null,
     val birthday: String? = null,
     val region: String? = null,
+    val likePrivate: Boolean? = null,
+    val favPrivate: Boolean? = null,
 )
 
 data class FollowListItem(
