@@ -27,11 +27,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -61,6 +58,7 @@ import xyz.larkzhh.lime.domain.model.toFollowActionState
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
 import xyz.larkzhh.lime.ui.components.FollowButton
+import xyz.larkzhh.lime.ui.components.SwipeActionItem
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
@@ -156,32 +154,16 @@ fun NotificationListScreen(
                 }
                 LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
                     items(items, key = { it.id }) { item ->
-                        val dismissState = rememberSwipeToDismissBoxState()
-                        SwipeToDismissBox(
-                            state = dismissState,
-                            enableDismissFromStartToEnd = false,
-                            enableDismissFromEndToStart = true,
-                            backgroundContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(Color(0xFFFE2C55))
-                                        .padding(end = 24.dp),
-                                    contentAlignment = Alignment.CenterEnd,
-                                ) {
-                                    Text(
-                                        text = "删除",
-                                        color = Color.White,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium,
-                                    )
-                                }
+                        SwipeActionItem(
+                            actionContent = {
+                                Text(
+                                    text = "删除",
+                                    color = Color.White,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium,
+                                )
                             },
-                            onDismiss = { direction ->
-                                if (direction == SwipeToDismissBoxValue.EndToStart) {
-                                    viewModel.delete(item)
-                                }
-                            },
+                            onActionClick = { viewModel.delete(item) },
                         ) {
                             NotificationCard(
                                 item = item,
