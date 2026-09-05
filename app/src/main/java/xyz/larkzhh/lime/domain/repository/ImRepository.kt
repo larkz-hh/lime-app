@@ -2,7 +2,9 @@ package xyz.larkzhh.lime.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import xyz.larkzhh.lime.domain.model.ImConversation
+import xyz.larkzhh.lime.domain.model.ImGroup
 import xyz.larkzhh.lime.domain.model.ImMessage
+import xyz.larkzhh.lime.domain.model.ImUserProfile
 
 /**
  * IM 仓库接口
@@ -59,4 +61,40 @@ interface ImRepository {
 
     /// 发送图片消息
     suspend fun sendImage(conversationId: String, imagePath: String): Result<ImMessage>
+
+    /// 创建 Work 群
+    suspend fun createGroup(
+        name: String,
+        introduction: String?,
+        initialMemberIds: List<String>,
+    ): Result<String>
+
+    /// 拉取我已加入的群列表
+    suspend fun getJoinedGroups(): List<ImGroup>
+
+    /// 拉取指定群资料
+    suspend fun getGroupsInfo(groupIds: List<String>): List<ImGroup>
+
+    /// 修改群资料
+    suspend fun updateGroupInfo(
+        groupId: String,
+        name: String? = null,
+        introduction: String? = null,
+        faceUrl: String? = null,
+    ): Result<Unit>
+
+    /// 邀请成员入群
+    suspend fun inviteToGroup(groupId: String, userIds: List<String>): Result<Unit>
+
+    /// 退出群聊
+    suspend fun quitGroup(groupId: String): Result<Unit>
+
+    /// 解散群聊
+    suspend fun dismissGroup(groupId: String): Result<Unit>
+
+    /// 当前用户在群里的角色，400=群主 300=管理员 200=普通成员
+    suspend fun getSelfRole(groupId: String): Result<Int>
+
+    /// 批量拉取 IM 用户资料
+    suspend fun getUserInfos(userIds: List<String>): Map<String, ImUserProfile>
 }

@@ -46,6 +46,9 @@ import xyz.larkzhh.lime.ui.draft.DraftBoxOverlay
 import xyz.larkzhh.lime.ui.detail.DetailScreen
 import xyz.larkzhh.lime.ui.follow.FollowListScreen
 import xyz.larkzhh.lime.ui.friend.AddFriendScreen
+import xyz.larkzhh.lime.ui.group.CreateGroupScreen
+import xyz.larkzhh.lime.ui.group.GroupListScreen
+import xyz.larkzhh.lime.ui.group.GroupManageScreen
 import xyz.larkzhh.lime.ui.home.HomeScreen
 import xyz.larkzhh.lime.ui.im.ChatScreen
 import xyz.larkzhh.lime.ui.im.viewmodel.ImViewModel
@@ -367,6 +370,59 @@ fun AppNavGraph(
                         },
                     ) {
                         AddFriendScreen(navController)
+                    }
+                    composable(
+                        route = Screen.CreateGroup.route,
+                        enterTransition = {
+                            slideInHorizontally(animationSpec = tween(280), initialOffsetX = { it })
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { it })
+                        },
+                        popEnterTransition = {
+                            slideInHorizontally(animationSpec = tween(280), initialOffsetX = { -it })
+                        },
+                        popExitTransition = {
+                            slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { it })
+                        },
+                    ) {
+                        CreateGroupScreen(navController)
+                    }
+                    composable(
+                        route = Screen.GroupList.route,
+                        enterTransition = {
+                            slideInHorizontally(animationSpec = tween(280), initialOffsetX = { it })
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { it })
+                        },
+                        popEnterTransition = {
+                            slideInHorizontally(animationSpec = tween(280), initialOffsetX = { -it })
+                        },
+                        popExitTransition = {
+                            slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { it })
+                        },
+                    ) {
+                        GroupListScreen(navController)
+                    }
+                    composable(
+                        route = Screen.GroupManage.ROUTE,
+                        arguments = listOf(navArgument("groupId") { type = NavType.StringType }),
+                        enterTransition = {
+                            slideInHorizontally(animationSpec = tween(280), initialOffsetX = { it })
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { it })
+                        },
+                        popEnterTransition = {
+                            slideInHorizontally(animationSpec = tween(280), initialOffsetX = { -it })
+                        },
+                        popExitTransition = {
+                            slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { it })
+                        },
+                    ) { backStackEntry ->
+                        val groupId = backStackEntry.arguments?.getString("groupId") ?: return@composable
+                        GroupManageScreen(groupId = groupId, navController = navController)
                     }
                     composable(Screen.BrowseHistory.route) { BrowseHistoryScreen(navController) }
                     composable(

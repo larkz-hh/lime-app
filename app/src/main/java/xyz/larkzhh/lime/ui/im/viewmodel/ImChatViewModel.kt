@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.domain.model.ImMessage
+import xyz.larkzhh.lime.domain.model.ImUserProfile
 import xyz.larkzhh.lime.domain.repository.ImRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
 import java.io.File
@@ -22,6 +23,9 @@ data class ImChatUiState(
     val peerUserId: Long? = null,
     val peerAvatar: String? = null,
     val peerNickname: String? = null,
+    val isGroup: Boolean = false,
+    val groupId: String? = null,
+    val memberProfiles: Map<String, ImUserProfile> = emptyMap(),// 群成员 IM 资料
     val isSending: Boolean = false,
     val errorMessage: String? = null,
 )
@@ -50,16 +54,25 @@ class ImChatViewModel @Inject constructor(
                 _state.update { it.copy(selfUserId = user?.id, selfAvatar = user?.avatar) }
             }
         }
-        // 接收新消息，仅保留当前会话对方发来的消息
+        // 接收新消息，仅保留当前会话的消息
         viewModelScope.launch {
             imRepository.newMessages.collect { msg ->
-                val peer = conversationId.removePrefix("c2c_")
-                if (conversationId.isNotEmpty() && msg.senderId == peer) {
-                    _state.update { it.copy(messages = listOf(msg) + it.messages) }
-                    // 标记已读
-                    imRepository.markRead(conversationId)
-                    // 图片消息下载到本地
-                    ensureImageLocal(msg)
+                if (conversationId.isEmpty()) return@collect
+                val st = _state.value
+                val matches = if (st.isGroup) {
+                    st.groupId != null && msg.groupId == st.groupId
+                } else {
+                    msg.senderId == conversationId.removePrefix("c2c_")
+                }
+                if (!matches) return@collect
+                _state.update { it.copy(messages = listOf(msg) + it.messages) }
+                // 标记已读
+                imRepository.markRead(conversationId)
+                // 图片消息下载到本地
+                ensureImageLocal(msg)
+                // 群消息补充发送者资料
+                if (st.isGroup) {
+                    viewModelScope.launch { resolveMemberProfiles(listOf(msg)) }
                 }
             }
         }
@@ -129,6 +142,9 @@ class ImChatViewModel @Inject constructor(
     fun load(conversationId: String) {
         if (this.conversationId == conversationId) return
         this.conversationId = conversationId
+        val isGroup = conversationId.startsWith("group_")
+        val groupId = if (isGroup) conversationId.removePrefix("group_") else null
+        _state.update { it.copy(isGroup = isGroup, groupId = groupId, memberProfiles = emptyMap()) }
         viewModelScope.launch {
             imRepository.ensureImLogin().fold(
                 onSuccess = {
@@ -138,13 +154,21 @@ class ImChatViewModel @Inject constructor(
                     history.forEach { ensureImageLocal(it) }
                     // 清除会话列表未读数
                     imRepository.markRead(conversationId)
+                    // 群消息补充发送者资料
+                    if (isGroup) {
+                        resolveMemberProfiles(history)
+                    }
                 },
                 onFailure = { e ->
                     _state.update { it.copy(errorMessage = e.message ?: "IM 登录失败") }
                 },
             )
         }
-        loadPeerProfile(conversationId)
+        if (groupId != null) {
+            loadGroupProfile(groupId)
+        } else {
+            loadPeerProfile(conversationId)
+        }
     }
 
     /// 图片消息本地化
@@ -188,6 +212,31 @@ class ImChatViewModel @Inject constructor(
             userRepository.getUserById(peerId).onSuccess { peer ->
                 _state.update { it.copy(peerAvatar = peer.avatar, peerNickname = peer.nickname) }
             }
+        }
+    }
+
+    /// 加载群资料
+    private fun loadGroupProfile(groupId: String) {
+        viewModelScope.launch {
+            imRepository.getGroupsInfo(listOf(groupId)).firstOrNull()?.let { g ->
+                _state.update { it.copy(peerNickname = g.name, peerAvatar = g.faceUrl) }
+            }
+        }
+    }
+
+    /// 批量补充群消息发送者的昵称、头像
+    private suspend fun resolveMemberProfiles(messages: List<ImMessage>) {
+        val selfId = _state.value.selfUserId?.let { "lime_$it" }
+        val known = _state.value.memberProfiles.keys
+        val ids = messages.asSequence()
+            .map { it.senderId }
+            .filter { it.isNotBlank() && it != selfId && it !in known }
+            .distinct()
+            .toList()
+        if (ids.isEmpty()) return
+        val profiles = runCatching { imRepository.getUserInfos(ids) }.getOrDefault(emptyMap())
+        if (profiles.isNotEmpty()) {
+            _state.update { it.copy(memberProfiles = it.memberProfiles + profiles) }
         }
     }
 

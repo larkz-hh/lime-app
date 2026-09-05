@@ -99,6 +99,24 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
+    /// 互关好友列表
+    override suspend fun getMutualFriends(): Result<List<UserData>> = runCatching {
+        val response = apiService.getMutualFriends()
+        check(response.code == 200 && response.data != null) { response.message }
+        response.data
+    }
+
+    /// 上传群头像
+    override suspend fun uploadGroupAvatar(uri: Uri): Result<String> {
+        val part = runCatching { uriToMultipart(uri, "file") }
+            .getOrElse { return Result.failure(it) }
+        return runCatching {
+            val response = apiService.uploadGroupAvatar(part)
+            check(response.code == 200 && response.data != null) { response.message }
+            response.data
+        }
+    }
+
     /// 上传背景图，本地缓存
     override suspend fun uploadBackground(uri: Uri): Result<UserData> {
         val part = runCatching { uriToMultipart(uri, "file") }

@@ -406,6 +406,7 @@ fun ProfileScreen(
                 gradientEndColor = gradientEndColor,
                 onEditAvatar = { avatarPickerLauncher.launch("image/*") },
                 onBrowseHistory = { navController.navigate(Screen.BrowseHistory.route) },
+                onGroupChat = { navController.navigate(Screen.GroupList.route) },
                 onFollowClick = {
                     if (followState == FollowActionState.Follow) {
                         viewModel.follow()

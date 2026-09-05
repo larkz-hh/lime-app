@@ -10,6 +10,10 @@ val LimeGray = Color(0xFFA6A6A6)
 val LimeLightGray = Color(0xFFF5F5F5)
 val LimeDark = Color(0xFF1A1A1A)
 
+val LimePageBg = Color(0xFFF7F7F7)
+val LimeTextMain = Color(0xFF111111)
+val LimeRed = Color(0xFFFE2C55)
+
 // Dark theme
 val LimePrimaryDark = Color(0xFF6DB890)
 val LimeSurface = Color(0xFF2C2C2C)

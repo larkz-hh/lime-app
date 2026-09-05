@@ -6,8 +6,14 @@ import com.tencent.imsdk.v2.V2TIMCallback
 import com.tencent.imsdk.v2.V2TIMConversation
 import com.tencent.imsdk.v2.V2TIMConversationListener
 import com.tencent.imsdk.v2.V2TIMConversationResult
+import com.tencent.imsdk.v2.V2TIMCreateGroupMemberInfo
 import com.tencent.imsdk.v2.V2TIMDownloadCallback
 import com.tencent.imsdk.v2.V2TIMElem
+import com.tencent.imsdk.v2.V2TIMGroupInfo
+import com.tencent.imsdk.v2.V2TIMGroupInfoResult
+import com.tencent.imsdk.v2.V2TIMGroupMemberFullInfo
+import com.tencent.imsdk.v2.V2TIMGroupMemberInfoResult
+import com.tencent.imsdk.v2.V2TIMGroupMemberOperationResult
 import com.tencent.imsdk.v2.V2TIMImageElem
 import com.tencent.imsdk.v2.V2TIMManager
 import com.tencent.imsdk.v2.V2TIMMessage
@@ -242,6 +248,7 @@ class ImManager @Inject constructor(
     }
 
     /// 将单聊会话标记为已读
+    @Suppress("DEPRECATION")
     suspend fun markC2CMessageAsRead(userId: String): Unit = suspendCancellableCoroutine { cont ->
         V2TIMManager.getMessageManager().markC2CMessageAsRead(userId, object : V2TIMCallback {
             override fun onSuccess() {
@@ -312,6 +319,244 @@ class ImManager @Inject constructor(
                     }
                 },
             )
+        }
+
+    /// 创建 Work 群
+    suspend fun createGroup(
+        name: String,
+        introduction: String?,
+        initialMemberUserIds: List<String>,
+    ): String = suspendCancellableCoroutine { cont ->
+        val info = V2TIMGroupInfo()
+        info.groupType = V2TIMManager.GROUP_TYPE_WORK
+        info.groupName = name
+        introduction?.let { info.introduction = it }
+        val members = initialMemberUserIds.map { id ->
+            V2TIMCreateGroupMemberInfo().apply { setUserID(id) }
+        }
+        V2TIMManager.getGroupManager().createGroup(info, members, object : V2TIMValueCallback<String> {
+            override fun onSuccess(groupId: String?) {
+                if (cont.isActive) cont.resume(groupId ?: "")
+            }
+
+            override fun onError(code: Int, desc: String?) {
+                if (cont.isActive) cont.resumeWithException(ImException(code, desc ?: "创建群失败"))
+            }
+        })
+    }
+
+    /// 拉取我已加入的群列表
+    suspend fun getJoinedGroupList(): List<V2TIMGroupInfo> = suspendCancellableCoroutine { cont ->
+        V2TIMManager.getGroupManager().getJoinedGroupList(object : V2TIMValueCallback<List<V2TIMGroupInfo>> {
+            override fun onSuccess(t: List<V2TIMGroupInfo>?) {
+                if (cont.isActive) cont.resume(t ?: emptyList())
+            }
+
+            override fun onError(code: Int, desc: String?) {
+                if (cont.isActive) cont.resume(emptyList())
+            }
+        })
+    }
+
+    /// 拉取群资料
+    suspend fun getGroupsInfo(groupIds: List<String>): List<V2TIMGroupInfo> =
+        suspendCancellableCoroutine { cont ->
+            V2TIMManager.getGroupManager().getGroupsInfo(
+                groupIds,
+                object : V2TIMValueCallback<List<V2TIMGroupInfoResult>> {
+                    override fun onSuccess(t: List<V2TIMGroupInfoResult>?) {
+                        if (cont.isActive) {
+                            cont.resume(t?.mapNotNull { it.groupInfo } ?: emptyList())
+                        }
+                    }
+
+                    override fun onError(code: Int, desc: String?) {
+                        if (cont.isActive) cont.resume(emptyList())
+                    }
+                },
+            )
+        }
+
+    /// 修改群资料
+    suspend fun setGroupInfo(
+        groupId: String,
+        name: String? = null,
+        introduction: String? = null,
+        faceUrl: String? = null,
+    ): Unit = suspendCancellableCoroutine { cont ->
+        val info = V2TIMGroupInfo()
+        info.groupID = groupId
+        name?.let { info.groupName = it }
+        introduction?.let { info.introduction = it }
+        faceUrl?.let { info.faceUrl = it }
+        V2TIMManager.getGroupManager().setGroupInfo(info, object : V2TIMCallback {
+            override fun onSuccess() {
+                if (cont.isActive) cont.resume(Unit)
+            }
+
+            override fun onError(code: Int, desc: String?) {
+                if (cont.isActive) cont.resumeWithException(ImException(code, desc ?: "保存群资料失败"))
+            }
+        })
+    }
+
+    /// 邀请成员入群
+    suspend fun inviteUserToGroup(groupId: String, userIds: List<String>): Unit =
+        suspendCancellableCoroutine { cont ->
+            V2TIMManager.getGroupManager().inviteUserToGroup(
+                groupId,
+                userIds,
+                object : V2TIMValueCallback<List<V2TIMGroupMemberOperationResult>> {
+                    override fun onSuccess(t: List<V2TIMGroupMemberOperationResult>?) {
+                        if (cont.isActive) cont.resume(Unit)
+                    }
+
+                    override fun onError(code: Int, desc: String?) {
+                        if (cont.isActive) cont.resumeWithException(ImException(code, desc ?: "邀请入群失败"))
+                    }
+                },
+            )
+        }
+
+    /// 退出群聊
+    suspend fun quitGroup(groupId: String): Unit = suspendCancellableCoroutine { cont ->
+        V2TIMManager.getInstance().quitGroup(groupId, object : V2TIMCallback {
+            override fun onSuccess() {
+                if (cont.isActive) cont.resume(Unit)
+            }
+
+            override fun onError(code: Int, desc: String?) {
+                if (cont.isActive) cont.resumeWithException(ImException(code, desc ?: "退出群聊失败"))
+            }
+        })
+    }
+
+    /// 解散群聊（
+    suspend fun dismissGroup(groupId: String): Unit = suspendCancellableCoroutine { cont ->
+        V2TIMManager.getInstance().dismissGroup(groupId, object : V2TIMCallback {
+            override fun onSuccess() {
+                if (cont.isActive) cont.resume(Unit)
+            }
+
+            override fun onError(code: Int, desc: String?) {
+                if (cont.isActive) cont.resumeWithException(ImException(code, desc ?: "解散群聊失败"))
+            }
+        })
+    }
+
+    /// 群成员列表
+    suspend fun getGroupMemberList(groupId: String): List<V2TIMGroupMemberFullInfo> =
+        suspendCancellableCoroutine { cont ->
+            V2TIMManager.getGroupManager().getGroupMemberList(
+                groupId,
+                V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_FILTER_ALL,
+                0L,
+                object : V2TIMValueCallback<V2TIMGroupMemberInfoResult> {
+                    override fun onSuccess(t: V2TIMGroupMemberInfoResult?) {
+                        if (cont.isActive) cont.resume(t?.memberInfoList ?: emptyList())
+                    }
+
+                    override fun onError(code: Int, desc: String?) {
+                        if (cont.isActive) cont.resume(emptyList())
+                    }
+                },
+            )
+        }
+
+    /// 当前用户在群里的角色，400=群主 300=管理员 200=普通成员
+    suspend fun getSelfRoleInGroup(groupId: String): Int {
+        val selfId = getLoginUser()
+        val members = getGroupMemberList(groupId)
+        return members.firstOrNull { it.userID == selfId }?.role
+            ?: V2TIMGroupMemberFullInfo.V2TIM_GROUP_MEMBER_ROLE_MEMBER
+    }
+
+    /// 发送群文本消息
+    suspend fun sendGroupTextMessage(groupId: String, text: String): V2TIMMessage = sendMessageToGroup(
+        V2TIMManager.getMessageManager().createTextMessage(text),
+        groupId,
+    )
+
+    /// 发送群图片消息
+    suspend fun sendGroupImageMessage(groupId: String, imagePath: String): V2TIMMessage = sendMessageToGroup(
+        V2TIMManager.getMessageManager().createImageMessage(imagePath),
+        groupId,
+    )
+
+    private suspend fun sendMessageToGroup(message: V2TIMMessage, groupId: String): V2TIMMessage =
+        suspendCancellableCoroutine { cont ->
+            V2TIMManager.getMessageManager().sendMessage(
+                message,
+                null,
+                groupId,
+                V2TIMMessage.V2TIM_PRIORITY_DEFAULT,
+                false,
+                null,
+                object : V2TIMSendCallback<V2TIMMessage> {
+                    override fun onSuccess(t: V2TIMMessage?) {
+                        t?.msgID?.let { id -> messageCache[id] = t }
+                        if (cont.isActive) cont.resume(t ?: message)
+                    }
+
+                    override fun onError(code: Int, desc: String?) {
+                        if (cont.isActive) cont.resumeWithException(ImException(code, desc ?: "发送失败"))
+                    }
+
+                    override fun onProgress(progress: Int) = Unit
+                },
+            )
+        }
+
+    /// 拉取群历史消息
+    suspend fun getGroupHistoryMessageList(groupId: String, count: Int): List<V2TIMMessage> =
+        suspendCancellableCoroutine { cont ->
+            V2TIMManager.getMessageManager().getGroupHistoryMessageList(
+                groupId,
+                count,
+                null,
+                object : V2TIMValueCallback<List<V2TIMMessage>> {
+                    override fun onSuccess(t: List<V2TIMMessage>?) {
+                        t?.forEach { it.msgID?.let { id -> messageCache[id] = it } }
+                        if (cont.isActive) cont.resume(t ?: emptyList())
+                    }
+
+                    override fun onError(code: Int, desc: String?) {
+                        if (cont.isActive) cont.resume(emptyList())
+                    }
+                },
+            )
+        }
+
+    /// 将群会话标记为已读
+    @Suppress("DEPRECATION")
+    suspend fun markGroupMessageAsRead(groupId: String): Unit = suspendCancellableCoroutine { cont ->
+        V2TIMManager.getMessageManager().markGroupMessageAsRead(groupId, object : V2TIMCallback {
+            override fun onSuccess() {
+                if (cont.isActive) cont.resume(Unit)
+            }
+
+            override fun onError(code: Int, desc: String?) {
+                if (cont.isActive) cont.resumeWithException(ImException(code, desc ?: "标记已读失败"))
+            }
+        })
+    }
+
+    /// 拉取指定用户的 IM 资料
+    suspend fun getUsersInfo(userIds: List<String>): List<V2TIMUserFullInfo> =
+        suspendCancellableCoroutine { cont ->
+            if (userIds.isEmpty()) {
+                if (cont.isActive) cont.resume(emptyList())
+                return@suspendCancellableCoroutine
+            }
+            V2TIMManager.getInstance().getUsersInfo(userIds, object : V2TIMValueCallback<List<V2TIMUserFullInfo>> {
+                override fun onSuccess(t: List<V2TIMUserFullInfo>?) {
+                    if (cont.isActive) cont.resume(t ?: emptyList())
+                }
+
+                override fun onError(code: Int, desc: String?) {
+                    if (cont.isActive) cont.resume(emptyList())
+                }
+            })
         }
 }
 

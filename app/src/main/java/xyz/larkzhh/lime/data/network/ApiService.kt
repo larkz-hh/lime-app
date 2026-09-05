@@ -124,6 +124,15 @@ interface ApiService {
     @POST("api/user/me/avatar")
     suspend fun uploadAvatar(@Part file: MultipartBody.Part): ApiResponse<UserData>
 
+    /// 互关好友列表
+    @GET("api/user/mutual-friends")
+    suspend fun getMutualFriends(): ApiResponse<List<UserData>>
+
+    /// 上传群头像
+    @Multipart
+    @POST("api/group/avatar")
+    suspend fun uploadGroupAvatar(@Part file: MultipartBody.Part): ApiResponse<String>
+
     /// 上传、更换背景图
     @Multipart
     @POST("api/user/me/background")

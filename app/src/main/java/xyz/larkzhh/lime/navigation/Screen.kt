@@ -66,4 +66,10 @@ sealed class Screen(val route: String) {
         const val ROUTE = "im_chat/{conversationId}"
         fun createRoute(conversationId: String) = "im_chat/${Uri.encode(conversationId)}"
     }
+    object CreateGroup : Screen("create_group")
+    object GroupList : Screen("group_list")
+    object GroupManage : Screen("group_manage/{groupId}") {
+        const val ROUTE = "group_manage/{groupId}"
+        fun createRoute(groupId: String) = "group_manage/${Uri.encode(groupId)}"
+    }
 }

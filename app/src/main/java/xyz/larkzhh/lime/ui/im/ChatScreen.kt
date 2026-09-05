@@ -32,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -77,6 +78,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.domain.model.ImMessage
+import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.chat.ChatInputBar
@@ -110,8 +112,8 @@ private fun buildChatRows(messages: List<ImMessage>): List<ChatRow> {
     var lastTime: Long? = null
     for (msg in messages.asReversed()) {
         val ts = msg.timestamp
-        val needHeader = lastTime == null || (ts - lastTime!!) > TIME_GROUP_GAP_SECONDS ||
-            !isSameChatDay(ts, lastTime!!)
+        val needHeader = lastTime == null || (ts - lastTime) > TIME_GROUP_GAP_SECONDS ||
+            !isSameChatDay(ts, lastTime)
         if (needHeader) {
             rows += TimeRow(text = formatChatTime(ts), key = "time_${msg.id}")
         }
@@ -230,19 +232,33 @@ fun ChatScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text(state.peerNickname ?: "私信") },
+                title = { Text(state.peerNickname ?: if (state.isGroup) "群聊" else "私信") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showClearConfirm = true }) {
-                        Icon(
-                            Icons.Outlined.Delete,
-                            contentDescription = "清空聊天记录",
-                            tint = LimeGray,
-                        )
+                    if (state.isGroup) {
+                        IconButton(
+                            onClick = {
+                                state.groupId?.let { navController.navigate(Screen.GroupManage.createRoute(it)) }
+                            },
+                        ) {
+                            Icon(
+                                Icons.Filled.Group,
+                                contentDescription = "群管理",
+                                tint = LimeGray,
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = { showClearConfirm = true }) {
+                            Icon(
+                                Icons.Outlined.Delete,
+                                contentDescription = "清空聊天记录",
+                                tint = LimeGray,
+                            )
+                        }
                     }
                 },
             )
@@ -325,11 +341,23 @@ fun ChatScreen(
 
                     is MsgRow -> {
                         val msg = row.message
+                        val memberProfile = if (state.isGroup && !msg.isSelf) {
+                            state.memberProfiles[msg.senderId]
+                        } else null
                         MessageBubble(
                             message = msg,
-                            avatar = if (msg.isSelf) state.selfAvatar else state.peerAvatar,
+                            avatar = if (msg.isSelf) state.selfAvatar
+                            else if (state.isGroup) memberProfile?.faceUrl
+                            else state.peerAvatar,
+                            senderName = if (state.isGroup && !msg.isSelf) {
+                                memberProfile?.nickname ?: msg.senderId.removePrefix("lime_")
+                            } else null,
                             onAvatarClick = {
-                                val target = if (msg.isSelf) state.selfUserId else state.peerUserId
+                                val target = when {
+                                    msg.isSelf -> state.selfUserId
+                                    state.isGroup -> msg.senderId.removePrefix("lime_").toLongOrNull()
+                                    else -> state.peerUserId
+                                }
                                 target?.let { navController.navigateToUserProfile(it, state.selfUserId) }
                             },
                             onCopy = { msg.text.orEmpty().copyToClipboard(context) },
@@ -389,6 +417,7 @@ private fun AvatarView(
 private fun MessageBubble(
     message: ImMessage,
     avatar: String?,
+    senderName: String? = null,
     onAvatarClick: () -> Unit,
     onCopy: () -> Unit,
     onRevoke: () -> Unit,
@@ -436,13 +465,27 @@ private fun MessageBubble(
             horizontalArrangement = if (message.isSelf) Arrangement.End else Arrangement.Start,
         ) {
             if (!message.isSelf) {
-                AvatarView(avatar, onAvatarClick, Modifier.padding(end = 6.dp))
+                Column(
+                    modifier = Modifier.padding(end = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    if (!senderName.isNullOrBlank()) {
+                        Text(
+                            text = senderName,
+                            color = LimeGray,
+                            fontSize = 10.sp,
+                            maxLines = 1,
+                            modifier = Modifier.padding(bottom = 2.dp),
+                        )
+                    }
+                    AvatarView(avatar, onAvatarClick)
+                }
             }
             when {
                 message.isImage -> {
                     val localFile = message.imagePath?.let { File(it) }
                     val remoteOk = !message.imageUrl.isNullOrBlank() &&
-                        (message.imageUrl!!.startsWith("http://") || message.imageUrl!!.startsWith("https://"))
+                        (message.imageUrl.startsWith("http://") || message.imageUrl.startsWith("https://"))
                     val ratio = if (localFile != null && localFile.exists()) imageAspectRatio(localFile) else 1f
                     val imageModifier = Modifier
                         .fillMaxWidth(0.5f)

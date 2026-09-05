@@ -58,6 +58,7 @@ fun ProfileHeader(
     modifier: Modifier = Modifier,
     gradientEndColor: Color = Color.Black.copy(alpha = 0.9f),
     onBrowseHistory: () -> Unit = {},
+    onGroupChat: () -> Unit = {},
     onFollowClick: () -> Unit = {},
     onMessageClick: () -> Unit = {},
     onFollowingClick: () -> Unit = {},
@@ -197,7 +198,7 @@ fun ProfileHeader(
                         label = "群聊",
                         subtitle = "查看详情",
                         modifier = Modifier.weight(1f),
-                        onClick = { /* TODO */ },
+                        onClick = onGroupChat,
                     )
                 }
             } else {

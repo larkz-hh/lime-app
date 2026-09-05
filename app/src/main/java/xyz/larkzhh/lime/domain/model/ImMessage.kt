@@ -15,10 +15,15 @@ data class ImMessage(
     val imagePath: String? = null,
     val imageUrl: String? = null,
     val isRevoked: Boolean = false,
+    val groupId: String? = null,
 ) {
     val isImage: Boolean get() = text == null
 }
 
+data class ImUserProfile(
+    val nickname: String?,
+    val faceUrl: String?,
+)
 
 fun V2TIMMessage.toImMessage(selfUserId: String?): ImMessage? {
     // 被撤回的消息
@@ -29,6 +34,7 @@ fun V2TIMMessage.toImMessage(selfUserId: String?): ImMessage? {
             isSelf = sender == selfUserId,
             timestamp = timestamp,
             isRevoked = true,
+            groupId = groupID,
         )
     }
     return when (elemType) {
@@ -38,6 +44,7 @@ fun V2TIMMessage.toImMessage(selfUserId: String?): ImMessage? {
             isSelf = sender == selfUserId,
             timestamp = timestamp,
             text = textElem?.text ?: "",
+            groupId = groupID,
         )
 
         V2TIMMessage.V2TIM_ELEM_TYPE_IMAGE -> {
@@ -52,6 +59,7 @@ fun V2TIMMessage.toImMessage(selfUserId: String?): ImMessage? {
                 timestamp = timestamp,
                 imagePath = imageElem?.path?.takeIf { it.isNotBlank() },
                 imageUrl = originUrl,
+                groupId = groupID,
             )
         }
 

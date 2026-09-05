@@ -8,8 +8,11 @@ import xyz.larkzhh.lime.data.im.ImManager
 import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.model.ConversationOpenRequest
 import xyz.larkzhh.lime.domain.model.ImConversation
+import xyz.larkzhh.lime.domain.model.ImGroup
 import xyz.larkzhh.lime.domain.model.ImMessage
+import xyz.larkzhh.lime.domain.model.ImUserProfile
 import xyz.larkzhh.lime.domain.model.toImConversation
+import xyz.larkzhh.lime.domain.model.toImGroup
 import xyz.larkzhh.lime.domain.model.toImMessage
 import xyz.larkzhh.lime.domain.repository.ImRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
@@ -74,8 +77,25 @@ class ImRepositoryImpl @Inject constructor(
     override val revokedMessages: Flow<String> = imManager.revokedMessages
 
     /// 拉取私信会话列表
-    override suspend fun getConversations(): List<ImConversation> =
-        imManager.getConversationList().map { it.toImConversation() }
+    override suspend fun getConversations(): List<ImConversation> {
+        val list = imManager.getConversationList().map { it.toImConversation() }
+        // 群会话补全群名、群头像
+        val groupIds = list.mapNotNull { c ->
+            if (c.conversationId.startsWith("group_")) c.conversationId.removePrefix("group_") else null
+        }
+        if (groupIds.isEmpty()) return list
+        val groupMap = runCatching {
+            imManager.getGroupsInfo(groupIds).associateBy { it.groupID }
+        }.getOrDefault(emptyMap())
+        return list.map { c ->
+            if (!c.conversationId.startsWith("group_")) return@map c
+            val g = groupMap[c.conversationId.removePrefix("group_")] ?: return@map c
+            c.copy(
+                showName = c.showName.ifBlank { g.groupName ?: "" },
+                faceUrl = c.faceUrl ?: g.faceUrl,
+            )
+        }
+    }
 
     /// 撤回一条消息
     override suspend fun revokeMessage(msgId: String): Result<Unit> = runCatching {
@@ -89,7 +109,11 @@ class ImRepositoryImpl @Inject constructor(
 
     /// 清空与某用户的单聊历史消息
     override suspend fun clearHistory(conversationId: String): Result<Unit> = runCatching {
-        imManager.clearC2CHistoryMessage(conversationId.removePrefix("c2c_"))
+        if (conversationId.startsWith("group_")) {
+            imManager.deleteConversation(conversationId)
+        } else {
+            imManager.clearC2CHistoryMessage(conversationId.removePrefix("c2c_"))
+        }
     }
 
     /// 删除会话
@@ -97,11 +121,15 @@ class ImRepositoryImpl @Inject constructor(
         imManager.deleteConversation(conversationId)
     }
 
-    /// 拉取单聊历史消息
+    /// 拉取历史消息（
     override suspend fun getHistoryMessages(conversationId: String): List<ImMessage> {
-        val userId = conversationId.removePrefix("c2c_")
-        return imManager.getC2CHistoryMessageList(userId, 50)
-            .mapNotNull { it.toImMessage(imManager.getLoginUser()) }
+        val self = imManager.getLoginUser()
+        val messages = if (conversationId.startsWith("group_")) {
+            imManager.getGroupHistoryMessageList(conversationId.removePrefix("group_"), 50)
+        } else {
+            imManager.getC2CHistoryMessageList(conversationId.removePrefix("c2c_"), 50)
+        }
+        return messages.mapNotNull { it.toImMessage(self) }
     }
 
     /// 下载图片消息到本地缓存
@@ -111,18 +139,86 @@ class ImRepositoryImpl @Inject constructor(
 
     /// 标记会话已读
     override suspend fun markRead(conversationId: String): Result<Unit> = runCatching {
-        imManager.markC2CMessageAsRead(conversationId.removePrefix("c2c_"))
+        if (conversationId.startsWith("group_")) {
+            imManager.markGroupMessageAsRead(conversationId.removePrefix("group_"))
+        } else {
+            imManager.markC2CMessageAsRead(conversationId.removePrefix("c2c_"))
+        }
     }
 
     /// 发送文本消息
     override suspend fun sendText(conversationId: String, text: String): Result<ImMessage> = runCatching {
-        val sent = imManager.sendTextMessage(conversationId, text)
+        val sent = if (conversationId.startsWith("group_")) {
+            imManager.sendGroupTextMessage(conversationId.removePrefix("group_"), text)
+        } else {
+            imManager.sendTextMessage(conversationId, text)
+        }
         sent.toImMessage(imManager.getLoginUser()) ?: error("发送失败")
     }
 
     /// 发送图片消息
     override suspend fun sendImage(conversationId: String, imagePath: String): Result<ImMessage> = runCatching {
-        val sent = imManager.sendImageMessage(conversationId, imagePath)
+        val sent = if (conversationId.startsWith("group_")) {
+            imManager.sendGroupImageMessage(conversationId.removePrefix("group_"), imagePath)
+        } else {
+            imManager.sendImageMessage(conversationId, imagePath)
+        }
         sent.toImMessage(imManager.getLoginUser()) ?: error("发送失败")
+    }
+
+    /// 创建 Work 群
+    override suspend fun createGroup(
+        name: String,
+        introduction: String?,
+        initialMemberIds: List<String>,
+    ): Result<String> = runCatching {
+        imManager.createGroup(name, introduction, initialMemberIds)
+    }
+
+    /// 拉取我已加入的群列表
+    override suspend fun getJoinedGroups(): List<ImGroup> =
+        imManager.getJoinedGroupList().map { it.toImGroup() }
+
+    /// 拉取指定群资料
+    override suspend fun getGroupsInfo(groupIds: List<String>): List<ImGroup> =
+        imManager.getGroupsInfo(groupIds).map { it.toImGroup() }
+
+    /// 修改群资料
+    override suspend fun updateGroupInfo(
+        groupId: String,
+        name: String?,
+        introduction: String?,
+        faceUrl: String?,
+    ): Result<Unit> = runCatching {
+        imManager.setGroupInfo(groupId, name, introduction, faceUrl)
+    }
+
+    /// 邀请成员入群
+    override suspend fun inviteToGroup(groupId: String, userIds: List<String>): Result<Unit> = runCatching {
+        imManager.inviteUserToGroup(groupId, userIds)
+    }
+
+    /// 退出群聊
+    override suspend fun quitGroup(groupId: String): Result<Unit> = runCatching {
+        imManager.quitGroup(groupId)
+    }
+
+    /// 解散群聊
+    override suspend fun dismissGroup(groupId: String): Result<Unit> = runCatching {
+        imManager.dismissGroup(groupId)
+    }
+
+    /// 当前用户在群里的角色
+    override suspend fun getSelfRole(groupId: String): Result<Int> = runCatching {
+        imManager.getSelfRoleInGroup(groupId)
+    }
+
+    /// 批量拉取 IM 用户资料
+    override suspend fun getUserInfos(userIds: List<String>): Map<String, ImUserProfile> {
+        if (userIds.isEmpty()) return emptyMap()
+        return imManager.getUsersInfo(userIds.distinct())
+            .associate { info ->
+                info.userID to ImUserProfile(nickname = info.nickName, faceUrl = info.faceUrl)
+            }
     }
 }

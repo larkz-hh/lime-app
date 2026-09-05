@@ -32,6 +32,12 @@ interface UserRepository {
     /// 上传头像，本地缓存
     suspend fun uploadAvatar(uri: Uri): Result<UserData>
 
+    /// 互关好友列表
+    suspend fun getMutualFriends(): Result<List<UserData>>
+
+    /// 上传群头像
+    suspend fun uploadGroupAvatar(uri: Uri): Result<String>
+
     /// 上传背景图，本地缓存
     suspend fun uploadBackground(uri: Uri): Result<UserData>
 

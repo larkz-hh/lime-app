@@ -113,16 +113,21 @@ fun MessageScreen(
             navController.navigate(Screen.ImChat.createRoute(conversationId)) { launchSingleTop = true }
         },
         onConversationDelete = { conv -> deleteTarget = conv },
-        onCreateGroup = { /* TODO*/ },
+        onCreateGroup = { navController.navigate(Screen.CreateGroup.route) },
         onAddFriend = { navController.navigate(Screen.AddFriend.route) },
         onScan = { navController.navigate(Screen.QrScan.route) },
     )
 
     // 删除会话确认弹窗
     deleteTarget?.let { target ->
+        val isGroup = target.conversationId.startsWith("group_")
         LimeAlertDialog(
             title = "删除会话",
-            text = "是否删除会话，删除会清空聊天记录。",
+            text = if (isGroup) {
+                "是否移除群聊，移除后会清空聊天记录。"
+            } else {
+                "是否删除会话，删除会清空聊天记录。"
+            },
             firstButtonText = "取消",
             secondButtonText = "删除",
             secondButtonColor = Color(0xFFFE2C55),
@@ -183,17 +188,18 @@ private fun MessagePageContent(
                 DropdownMenu(
                     expanded = showAddMenu,
                     onDismissRequest = { showAddMenu = false },
+                    containerColor = Color.White,
                 ) {
                     DropdownMenuItem(
-                        text = { Text("创建群聊") },
+                        text = { Text("创建群聊", color = Color(0xFF111111)) },
                         onClick = { showAddMenu = false; onCreateGroup() },
                     )
                     DropdownMenuItem(
-                        text = { Text("添加好友") },
+                        text = { Text("添加好友", color = Color(0xFF111111)) },
                         onClick = { showAddMenu = false; onAddFriend() },
                     )
                     DropdownMenuItem(
-                        text = { Text("扫一扫") },
+                        text = { Text("扫一扫", color = Color(0xFF111111)) },
                         onClick = { showAddMenu = false; onScan() },
                     )
                 }
