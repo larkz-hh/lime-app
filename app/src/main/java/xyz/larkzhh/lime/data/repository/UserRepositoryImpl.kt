@@ -6,13 +6,18 @@ import android.util.Log
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import xyz.larkzhh.lime.data.im.ImManager
+import xyz.larkzhh.lime.data.local.TokenStorage
 import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.model.UpdateProfileRequest
 import xyz.larkzhh.lime.data.network.model.UserData
@@ -22,13 +27,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * 用户数据仓库实现
+ * 用户数据仓库实现（用户资料缓存按账号分片：`cached_user_data_{userId}`）
  */
 @Singleton
 class UserRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
     @param:ApplicationContext private val context: Context,
     private val imManager: ImManager,
+    private val tokenStorage: TokenStorage,
 ) : UserRepository {
 
     private val mmkv by lazy { MMKV.defaultMMKV() }
@@ -39,16 +45,31 @@ class UserRepositoryImpl @Inject constructor(
     private val _userFlow = MutableStateFlow<UserData?>(loadFromCache())
     override val userFlow: StateFlow<UserData?> = _userFlow.asStateFlow()
 
-    /// 加载缓存
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    /// 号切换时换内存用户
+    init {
+        scope.launch {
+            tokenStorage.currentUserIdFlow.collect { _userFlow.value = loadFromCache() }
+        }
+    }
+
+    /// 当前账号的缓存 key
+    private fun userKey(): String {
+        val uid = tokenStorage.currentUserId
+        return if (uid != null) "${KEY_USER_PREFIX}_$uid" else KEY_USER_PREFIX
+    }
+
+    /// 加载当前账号缓存
     private fun loadFromCache(): UserData? {
-        val json = mmkv.decodeString(KEY_USER) ?: return null
+        val json = mmkv.decodeString(userKey()) ?: return null
         return runCatching { gson.fromJson(json, UserData::class.java) }.getOrNull()
     }
 
     /// 更新用户数据
     override fun updateUser(user: UserData) {
         _userFlow.value = user
-        mmkv.encode(KEY_USER, gson.toJson(user))
+        mmkv.encode(userKey(), gson.toJson(user))
     }
 
     /// 网络刷新
@@ -154,10 +175,15 @@ class UserRepositoryImpl @Inject constructor(
         response.data
     }
 
-    /// 清空用户数据
+    /// 修改密码，清空当前账号的缓存用户资料
     override fun clearUser() {
         _userFlow.value = null
-        mmkv.removeValueForKey(KEY_USER)
+        mmkv.removeValueForKey(userKey())
+    }
+
+    /// 清空当前登录态。退出登录用
+    override fun clearActiveSession() {
+        _userFlow.value = null
     }
 
     /// 资料变更后同步昵称、头像到 IM
@@ -186,7 +212,7 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     private companion object {
-        const val KEY_USER = "cached_user_data"
+        const val KEY_USER_PREFIX = "cached_user_data"
         const val TAG = "UserRepositoryImpl"
     }
 }

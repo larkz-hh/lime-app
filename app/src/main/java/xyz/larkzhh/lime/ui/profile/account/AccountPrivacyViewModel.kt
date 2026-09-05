@@ -97,6 +97,16 @@ class AccountPrivacyViewModel @Inject constructor(
     /// 清除隐私设置错误提示
     fun clearPrivacyError() = _uiState.update { it.copy(privacyError = null) }
 
+    /// 退出登录
+    fun logout(onDone: () -> Unit) {
+        viewModelScope.launch {
+            runCatching { authRepository.logout() }
+            userRepository.clearActiveSession()
+            _uiState.value = AccountPrivacyUiState()
+            onDone()
+        }
+    }
+
     /// 更新隐私
     private fun updatePrivacy(likePrivate: Boolean, favPrivate: Boolean) {
         val state = _uiState.value

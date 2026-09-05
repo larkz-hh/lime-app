@@ -631,6 +631,17 @@ fun AppNavGraph(
                         launchSingleTop = true
                     }
                 },
+                onLogout = {
+                    showAccountPrivacy = false
+                    scope.launch { drawerState.close() }
+                    authViewModel.logout()
+                    imViewModel.logout()
+                    messageViewModel.onLoggedOut()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
             )
         }
     }

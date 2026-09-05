@@ -61,9 +61,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.LimeSwitch
 import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.components.SheetRowDivider
@@ -78,6 +80,7 @@ import xyz.larkzhh.lime.util.showToast
 fun AccountPrivacyScreen(
     onClose: () -> Unit,
     onPasswordChanged: () -> Unit,
+    onLogout: () -> Unit,
     viewModel: AccountPrivacyViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -97,6 +100,7 @@ fun AccountPrivacyScreen(
             viewModel = viewModel,
             onBack = onClose,
             onChangePassword = { showForm = true },
+            onLogout = onLogout,
         )
         // 修改密码页
         AnimatedVisibility(
@@ -122,8 +126,10 @@ private fun AccountPrivacyRootPage(
     viewModel: AccountPrivacyViewModel,
     onBack: () -> Unit,
     onChangePassword: () -> Unit,
+    onLogout: () -> Unit,
 ) {
     val context = LocalContext.current
+    var showLogoutConfirm by remember { mutableStateOf(false) }
 
     // 隐私设置失败提示
     LaunchedEffect(state.privacyError) {
@@ -257,13 +263,55 @@ private fun AccountPrivacyRootPage(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "• 修改密码需验证身份（原密码或邮箱验证码），成功后需重新登录" ,
+                text = "• 修改密码需验证身份（原密码或邮箱验证码），成功后需重新登录",
                 fontSize = 12.sp,
                 color = LimeGray,
                 lineHeight = 18.sp,
                 modifier = Modifier.padding(horizontal = 4.dp),
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 退出登录
+            SheetGroup(cardColor = Color.White) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                        ) { showLogoutConfirm = true }
+                        .padding(horizontal = 16.dp, vertical = 15.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "退出登录",
+                        fontSize = 16.sp,
+                        color = Color(0xFFFF3B30),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
         }
+    }
+
+    // 退出登录二次确认
+    if (showLogoutConfirm) {
+        LimeAlertDialog(
+            title = "确认退出登录吗？",
+            firstButtonText = "取消",
+            secondButtonText = "退出登录",
+            secondButtonColor = Color(0xFFFF3B30),
+            onFirstButtonClick = { showLogoutConfirm = false },
+            onSecondButtonClick = {
+                showLogoutConfirm = false
+                viewModel.logout(onLogout)
+            },
+            onDismissRequest = { showLogoutConfirm = false },
+        )
     }
 }
 

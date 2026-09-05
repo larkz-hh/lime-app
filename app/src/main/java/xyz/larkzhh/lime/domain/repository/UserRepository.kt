@@ -55,4 +55,7 @@ interface UserRepository {
 
     /// 注销时清除本地缓存
     fun clearUser()
+
+    /// 退出登录，清空当前登录态
+    fun clearActiveSession()
 }
