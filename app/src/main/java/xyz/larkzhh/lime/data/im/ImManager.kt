@@ -6,6 +6,9 @@ import com.tencent.imsdk.v2.V2TIMCallback
 import com.tencent.imsdk.v2.V2TIMConversation
 import com.tencent.imsdk.v2.V2TIMConversationListener
 import com.tencent.imsdk.v2.V2TIMConversationResult
+import com.tencent.imsdk.v2.V2TIMDownloadCallback
+import com.tencent.imsdk.v2.V2TIMElem
+import com.tencent.imsdk.v2.V2TIMImageElem
 import com.tencent.imsdk.v2.V2TIMManager
 import com.tencent.imsdk.v2.V2TIMMessage
 import com.tencent.imsdk.v2.V2TIMSDKConfig
@@ -17,6 +20,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -233,6 +237,44 @@ class ImManager @Inject constructor(
 
             override fun onError(code: Int, desc: String?) {
                 if (cont.isActive) cont.resumeWithException(ImException(code, desc ?: "清空失败"))
+            }
+        })
+    }
+
+    /// 将单聊会话标记为已读
+    suspend fun markC2CMessageAsRead(userId: String): Unit = suspendCancellableCoroutine { cont ->
+        V2TIMManager.getMessageManager().markC2CMessageAsRead(userId, object : V2TIMCallback {
+            override fun onSuccess() {
+                if (cont.isActive) cont.resume(Unit)
+            }
+
+            override fun onError(code: Int, desc: String?) {
+                if (cont.isActive) cont.resumeWithException(ImException(code, desc ?: "标记已读失败"))
+            }
+        })
+    }
+
+    /// 把图片消息下载到应用缓存目录
+    suspend fun downloadImageToCache(msgId: String): String? = suspendCancellableCoroutine { cont ->
+        val msg = messageCache[msgId]
+        val image = msg?.imageElem?.imageList
+            ?.firstOrNull { it.type == V2TIMImageElem.V2TIM_IMAGE_TYPE_ORIGIN }
+            ?: msg?.imageElem?.imageList?.firstOrNull()
+        if (image == null) {
+            if (cont.isActive) cont.resume(null)
+            return@suspendCancellableCoroutine
+        }
+        val saveFile = File(context.cacheDir, "im_msg_$msgId.jpg")
+        image.downloadImage(saveFile.absolutePath, object : V2TIMDownloadCallback {
+            override fun onProgress(info: V2TIMElem.V2ProgressInfo?) = Unit
+
+            override fun onSuccess() {
+                if (cont.isActive) cont.resume(saveFile.absolutePath)
+            }
+
+            override fun onError(code: Int, desc: String?) {
+                saveFile.delete()
+                if (cont.isActive) cont.resume(null)
             }
         })
     }

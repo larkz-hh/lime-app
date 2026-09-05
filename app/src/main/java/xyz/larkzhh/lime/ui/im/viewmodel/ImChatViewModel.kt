@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.domain.model.ImMessage
 import xyz.larkzhh.lime.domain.repository.ImRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
+import java.io.File
 import javax.inject.Inject
 
 
@@ -39,6 +40,9 @@ class ImChatViewModel @Inject constructor(
 
     private var conversationId: String = ""
 
+    /// 正在下载本地图片的消息 id
+    private val downloadingImages = mutableSetOf<String>()
+
     init {
         // 当前登录用户资料
         viewModelScope.launch {
@@ -52,6 +56,10 @@ class ImChatViewModel @Inject constructor(
                 val peer = conversationId.removePrefix("c2c_")
                 if (conversationId.isNotEmpty() && msg.senderId == peer) {
                     _state.update { it.copy(messages = listOf(msg) + it.messages) }
+                    // 标记已读
+                    imRepository.markRead(conversationId)
+                    // 图片消息下载到本地
+                    ensureImageLocal(msg)
                 }
             }
         }
@@ -126,6 +134,10 @@ class ImChatViewModel @Inject constructor(
                 onSuccess = {
                     val history = imRepository.getHistoryMessages(conversationId)
                     _state.update { it.copy(messages = history) }
+                    // 历史图片下载到本地
+                    history.forEach { ensureImageLocal(it) }
+                    // 清除会话列表未读数
+                    imRepository.markRead(conversationId)
                 },
                 onFailure = { e ->
                     _state.update { it.copy(errorMessage = e.message ?: "IM 登录失败") }
@@ -133,6 +145,28 @@ class ImChatViewModel @Inject constructor(
             )
         }
         loadPeerProfile(conversationId)
+    }
+
+    /// 图片消息本地化
+    private fun ensureImageLocal(msg: ImMessage) {
+        if (!msg.isImage) return
+        if (msg.isRevoked) return
+        // 已有本地文件跳过
+        val local = msg.imagePath?.let { File(it) }
+        if (local != null && local.exists()) return
+        if (downloadingImages.contains(msg.id)) return
+        downloadingImages.add(msg.id)
+        viewModelScope.launch {
+            val path = imRepository.downloadImage(msg.id)
+            downloadingImages.remove(msg.id)
+            if (path != null) {
+                _state.update { st ->
+                    st.copy(messages = st.messages.map {
+                        if (it.id == msg.id) it.copy(imagePath = path, imageUrl = null) else it
+                    })
+                }
+            }
+        }
     }
 
     /// 从会话 id 解析对方业务用户 id

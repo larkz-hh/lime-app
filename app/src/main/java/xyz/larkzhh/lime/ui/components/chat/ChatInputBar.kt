@@ -171,13 +171,13 @@ fun ChatInputBar(
                             if (showEmojiToggle) {
                                 IconButton(
                                     onClick = onEmojiClick,
-                                    modifier = Modifier.size(28.dp),
+                                    modifier = Modifier.size(36.dp),
                                 ) {
                                     Icon(
                                         imageVector = if (emojiActive) Icons.Outlined.Keyboard else Icons.Outlined.EmojiEmotions,
                                         contentDescription = if (emojiActive) "键盘" else "表情",
                                         tint = if (emojiActive) MaterialTheme.colorScheme.primary else LimeGray,
-                                        modifier = Modifier.size(18.dp),
+                                        modifier = Modifier.size(24.dp),
                                     )
                                 }
                             }

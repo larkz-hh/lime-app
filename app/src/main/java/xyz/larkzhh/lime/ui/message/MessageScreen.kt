@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -96,6 +97,11 @@ fun MessageScreen(
     val unreadByCategory by viewModel.unreadByCategory.collectAsState()
     val imState by imConversationViewModel.state.collectAsState()
     var deleteTarget by remember { mutableStateOf<ImConversation?>(null) }
+
+    // 页面重新可见
+    LaunchedEffect(Unit) {
+        imConversationViewModel.refresh()
+    }
 
     MessagePageContent(
         unreadByCategory = unreadByCategory,

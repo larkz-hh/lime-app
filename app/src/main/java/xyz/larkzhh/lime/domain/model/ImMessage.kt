@@ -41,7 +41,7 @@ fun V2TIMMessage.toImMessage(selfUserId: String?): ImMessage? {
         )
 
         V2TIMMessage.V2TIM_ELEM_TYPE_IMAGE -> {
-            // 优先本地路径
+            // 发送方本地优先，接收方历史消息 url
             val originUrl = imageElem?.imageList
                 ?.firstOrNull { it.type == V2TIMImageElem.V2TIM_IMAGE_TYPE_ORIGIN }
                 ?.url
@@ -50,7 +50,7 @@ fun V2TIMMessage.toImMessage(selfUserId: String?): ImMessage? {
                 senderId = sender ?: "",
                 isSelf = sender == selfUserId,
                 timestamp = timestamp,
-                imagePath = imageElem?.path,
+                imagePath = imageElem?.path?.takeIf { it.isNotBlank() },
                 imageUrl = originUrl,
             )
         }

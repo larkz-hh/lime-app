@@ -62,3 +62,25 @@ fun formatConversationTime(timestampSec: Long): String {
             instant.format(DateTimeFormatter.ofPattern("yyyy年M月d日"))
     }
 }
+
+/// 聊天页时间分组行
+fun formatChatTime(timestampSec: Long): String {
+    val zone = ZoneId.systemDefault()
+    val instant = Instant.ofEpochSecond(timestampSec).atZone(zone)
+    val now = ZonedDateTime.now()
+    val time = instant.format(DateTimeFormatter.ofPattern("HH:mm"))
+    return if (instant.toLocalDate() == now.toLocalDate()) {
+        time
+    } else if (instant.year == now.year) {
+        instant.format(DateTimeFormatter.ofPattern("M月d日 HH:mm"))
+    } else {
+        instant.format(DateTimeFormatter.ofPattern("yyyy年M月d日 HH:mm"))
+    }
+}
+
+/// 两条消息是否属于同一天
+fun isSameChatDay(aSec: Long, bSec: Long): Boolean {
+    val a = Instant.ofEpochSecond(aSec).atZone(ZoneId.systemDefault()).toLocalDate()
+    val b = Instant.ofEpochSecond(bSec).atZone(ZoneId.systemDefault()).toLocalDate()
+    return a == b
+}

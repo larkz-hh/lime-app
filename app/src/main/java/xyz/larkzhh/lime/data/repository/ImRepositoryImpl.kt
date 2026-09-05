@@ -104,6 +104,16 @@ class ImRepositoryImpl @Inject constructor(
             .mapNotNull { it.toImMessage(imManager.getLoginUser()) }
     }
 
+    /// 下载图片消息到本地缓存
+    override suspend fun downloadImage(msgId: String): String? = runCatching {
+        imManager.downloadImageToCache(msgId)
+    }.getOrNull()
+
+    /// 标记会话已读
+    override suspend fun markRead(conversationId: String): Result<Unit> = runCatching {
+        imManager.markC2CMessageAsRead(conversationId.removePrefix("c2c_"))
+    }
+
     /// 发送文本消息
     override suspend fun sendText(conversationId: String, text: String): Result<ImMessage> = runCatching {
         val sent = imManager.sendTextMessage(conversationId, text)

@@ -48,6 +48,12 @@ interface ImRepository {
     /// 拉取单聊历史消息
     suspend fun getHistoryMessages(conversationId: String): List<ImMessage>
 
+    /// 下载图片消息到本地缓存
+    suspend fun downloadImage(msgId: String): String?
+
+    /// 将会话标记为已读
+    suspend fun markRead(conversationId: String): Result<Unit>
+
     /// 发送文本消息
     suspend fun sendText(conversationId: String, text: String): Result<ImMessage>
 
