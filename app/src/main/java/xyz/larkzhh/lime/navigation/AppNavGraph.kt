@@ -42,6 +42,8 @@ import xyz.larkzhh.lime.ui.ai.AiChatScreen
 import xyz.larkzhh.lime.ui.auth.LoginScreen
 import xyz.larkzhh.lime.ui.auth.RegisterScreen
 import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
+import xyz.larkzhh.lime.util.ForceLogoutBus
+import xyz.larkzhh.lime.ui.components.ForceLogoutDialog
 import xyz.larkzhh.lime.ui.detail.comment.CommentPhotoPickerScreen
 import xyz.larkzhh.lime.ui.draft.DraftBoxOverlay
 import xyz.larkzhh.lime.ui.detail.DetailScreen
@@ -114,12 +116,18 @@ fun AppNavGraph(
     var showTranslatePack by remember { mutableStateOf(false) }
     var showDraftBox by remember { mutableStateOf(false) }
     var showAccountPrivacy by remember { mutableStateOf(false) }
+    var forceLogout by remember { mutableStateOf(false) }
 
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar =
         currentRoute in bottomNavRoutes && !isFullScreenActive && !videoTabFullscreen && !videoTabOverlay
+
+    // 强制下线弹窗
+    LaunchedEffect(Unit) {
+        ForceLogoutBus.events.collect { forceLogout = true }
+    }
 
     // 长按图标快捷入口
     LaunchedEffect(shortcutAction) {
@@ -694,5 +702,25 @@ fun AppNavGraph(
                 },
             )
         }
+    }
+
+    // 强制下线弹窗
+    if (forceLogout) {
+        ForceLogoutDialog(
+            onConfirm = {
+                forceLogout = false
+                showTranslatePack = false
+                showDraftBox = false
+                showAccountPrivacy = false
+                scope.launch { drawerState.close() }
+                authViewModel.logout()
+                imViewModel.logout()
+                messageViewModel.onLoggedOut()
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                    launchSingleTop = true
+                }
+            },
+        )
     }
 }

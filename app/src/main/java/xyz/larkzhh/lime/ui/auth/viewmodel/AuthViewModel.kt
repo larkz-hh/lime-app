@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.domain.repository.AuthRepository
+import xyz.larkzhh.lime.domain.repository.UserRepository
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -50,6 +51,7 @@ data class RegisterUiState(
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow(LoginUiState())
@@ -220,6 +222,7 @@ class AuthViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             authRepository.logout()
+            userRepository.clearActiveSession()
             _loginState.value = LoginUiState()
             _registerState.value = RegisterUiState()
         }

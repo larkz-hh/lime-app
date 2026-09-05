@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.flowOn
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import xyz.larkzhh.lime.data.network.model.UnreadCountData
+import xyz.larkzhh.lime.util.ForceLogoutBus
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val RECONNECT_DELAY_MS = 5_000L
@@ -22,6 +23,7 @@ fun notificationUnreadFlow(
     url: String,
 ): Flow<UnreadCountData> = flow {
     val gson = Gson()
+    var eventName: String? = null
     while (true) {
         val request = Request.Builder()
             .url(url)
@@ -39,9 +41,17 @@ fun notificationUnreadFlow(
                 }
                 while (true) {
                     val line = source.readUtf8Line() ?: break
+                    if (line.startsWith("event:")) {
+                        eventName = line.removePrefix("event:").trim()
+                        continue
+                    }
                     if (line.startsWith("data:")) {
                         val payload = line.removePrefix("data:").trim()
                         if (payload.isEmpty()) continue
+                        if (eventName == "kick") {
+                            ForceLogoutBus.emit()
+                            return@flow
+                        }
                         val data = runCatching {
                             gson.fromJson(payload, UnreadCountData::class.java)
                         }.getOrNull() ?: continue
