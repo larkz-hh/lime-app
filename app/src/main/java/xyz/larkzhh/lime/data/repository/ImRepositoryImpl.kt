@@ -1,8 +1,14 @@
 package xyz.larkzhh.lime.data.repository
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.merge
 import xyz.larkzhh.lime.data.im.ImException
 import xyz.larkzhh.lime.data.im.ImManager
 import xyz.larkzhh.lime.data.network.ApiService
@@ -29,6 +35,22 @@ class ImRepositoryImpl @Inject constructor(
     private val userRepository: UserRepository,
 ) : ImRepository {
 
+    /// 手动刷新未读数
+    private val refreshTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    /// IM 会话未读数合计
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val conversationUnreadFlow: Flow<Int> = merge(
+        refreshTrigger,
+        imManager.conversationChanges.map { Unit },
+    ).flatMapLatest {
+        flow {
+            runCatching { imManager.getConversationList() }
+                .getOrNull()
+                ?.let { list -> emit(list.sumOf { it.unreadCount }) }
+        }
+    }.distinctUntilChanged()
+
     /// 确保 IM 已登录
     override suspend fun ensureImLogin(): Result<Unit> = runCatching {
         val response = apiService.getImUserSig()// 拉取 UserSig 并登录
@@ -43,6 +65,8 @@ class ImRepositoryImpl @Inject constructor(
         userRepository.userFlow.value?.let { user ->
             runCatching { imManager.updateSelfProfile(user.nickname, user.avatar) }
         }
+        // 登录完成后刷新一次未读数
+        refreshTrigger.tryEmit(Unit)
     }
 
     /// 打开私信会话

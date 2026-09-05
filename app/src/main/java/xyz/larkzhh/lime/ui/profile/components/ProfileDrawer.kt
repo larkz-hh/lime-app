@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,6 +41,7 @@ fun ProfileDrawerContent(
     onTranslateClick: () -> Unit,
     onDraftsClick: () -> Unit,
     onAccountPrivacyClick: () -> Unit,
+    onGeneralClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     ModalDrawerSheet(
@@ -73,6 +75,13 @@ fun ProfileDrawerContent(
                     icon = Icons.Outlined.Shield,
                     label = "账号与隐私",
                     onClick = onAccountPrivacyClick,
+                )
+            }
+            SheetGroup(cardColor = Color.White) {
+                DrawerRow(
+                    icon = Icons.Outlined.Settings,
+                    label = "通用",
+                    onClick = onGeneralClick,
                 )
             }
         }

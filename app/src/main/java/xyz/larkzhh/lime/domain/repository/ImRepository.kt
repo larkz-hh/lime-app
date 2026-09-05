@@ -29,6 +29,9 @@ interface ImRepository {
     /// 话列表变化流
     val conversationChanges: Flow<List<ImConversation>>
 
+    /// IM 会话未读数合计
+    val conversationUnreadFlow: Flow<Int>
+
     /// 对方撤回消息的 msgID 流
     val revokedMessages: Flow<String>
 

@@ -110,6 +110,9 @@ dependencies {
     // Lottie Compose
     implementation(libs.lottie.compose)
 
+    // exyte 动画底部导航
+    implementation("com.exyte:animated-navigation-bar:1.0.0")
+
     // Media3 ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.common.ktx)
@@ -153,6 +156,9 @@ dependencies {
 
     // 腾讯云 IM
     implementation(libs.tencent.imsdk.plus)
+
+    // 桌面角标（厂商聚合）
+    implementation(libs.shortcut.badger)
 
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

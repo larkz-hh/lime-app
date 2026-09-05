@@ -21,6 +21,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.data.notify.NotificationCenter
 import javax.inject.Inject
 import xyz.larkzhh.lime.navigation.AppNavGraph
 import xyz.larkzhh.lime.navigation.ShortcutActions
@@ -42,14 +43,21 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var networkMonitor: NetworkMonitor
 
+    @Inject
+    lateinit var notificationCenter: NotificationCenter
+
     /// 快捷入口
     private val shortcutAction = mutableStateOf<String?>(null)
     /// 快捷入口携带关键词
     private val shortcutKeyword = mutableStateOf<String?>(null)
+    /// IM 快捷入口
+    private val shortcutConversationId = mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         resolveShortcut(intent)
+        // 启动系统通知中心
+        notificationCenter.ensureStarted()
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 var offlineToastJob: Job? = null
@@ -85,9 +93,11 @@ class MainActivity : ComponentActivity() {
                     playerManager = playerManager,
                     shortcutAction = shortcutAction.value,
                     shortcutKeyword = shortcutKeyword.value,
+                    shortcutConversationId = shortcutConversationId.value,
                     onShortcutHandled = {
                         shortcutAction.value = null
                         shortcutKeyword.value = null
+                        shortcutConversationId.value = null
                     },
                 )
             }
@@ -106,16 +116,25 @@ class MainActivity : ComponentActivity() {
             action == ShortcutActions.SEARCH_KEYWORD -> {
                 shortcutAction.value = action
                 shortcutKeyword.value = intent.getStringExtra(ShortcutActions.EXTRA_KEYWORD)
+                shortcutConversationId.value = null
+            }
+
+            action == ShortcutActions.OPEN_IM_CHAT -> {
+                shortcutAction.value = action
+                shortcutConversationId.value = intent.getStringExtra(ShortcutActions.EXTRA_CONVERSATION_ID)
+                shortcutKeyword.value = null
             }
 
             ShortcutActions.isShortcut(action) -> {
                 shortcutAction.value = action
                 shortcutKeyword.value = null
+                shortcutConversationId.value = null
             }
 
             else -> {
                 shortcutAction.value = null
                 shortcutKeyword.value = null
+                shortcutConversationId.value = null
             }
         }
     }

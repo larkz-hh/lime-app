@@ -71,6 +71,7 @@ import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
 import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
 import xyz.larkzhh.lime.ui.qrscan.QrScanScreen
 import xyz.larkzhh.lime.ui.search.SearchScreen
+import xyz.larkzhh.lime.ui.settings.GeneralSettingsScreen
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.ui.translate.TranslatePackScreen
 import xyz.larkzhh.lime.ui.video.feed.VideoFeedScreen
@@ -98,12 +99,14 @@ fun AppNavGraph(
     playerManager: VideoPlayerManager,
     shortcutAction: String? = null,
     shortcutKeyword: String? = null,
+    shortcutConversationId: String? = null,
     onShortcutHandled: () -> Unit = {},
 ) {
     val authViewModel: AuthViewModel = hiltViewModel()
     val messageViewModel: MessageViewModel = hiltViewModel()
     val imViewModel: ImViewModel = hiltViewModel()
     val totalUnread by messageViewModel.totalUnread.collectAsState()
+    val combinedUnread by messageViewModel.combinedUnread.collectAsState()
     val startDestination = Screen.Home.route
     var pendingRedirect by remember { mutableStateOf<String?>(null) }
     var showPublishSheet by remember { mutableStateOf(false) }
@@ -116,6 +119,7 @@ fun AppNavGraph(
     var showTranslatePack by remember { mutableStateOf(false) }
     var showDraftBox by remember { mutableStateOf(false) }
     var showAccountPrivacy by remember { mutableStateOf(false) }
+    var showGeneralSettings by remember { mutableStateOf(false) }
     var forceLogout by remember { mutableStateOf(false) }
 
     val navController = rememberNavController()
@@ -129,17 +133,32 @@ fun AppNavGraph(
         ForceLogoutBus.events.collect { forceLogout = true }
     }
 
-    // 长按图标快捷入口
+    // 长按图标快捷入口 / 通知点击跳转
     LaunchedEffect(shortcutAction) {
         val route = when (shortcutAction) {
             ShortcutActions.SEARCH -> Screen.Search.BASE_ROUTE
             ShortcutActions.SEARCH_KEYWORD -> Screen.Search.createRoute(shortcutKeyword.orEmpty())
             ShortcutActions.AI_CHAT -> Screen.AiChat.createRoute(Screen.AiChat.NEW_CONVERSATION)
             ShortcutActions.QR_SCAN -> Screen.QrScan.route
+            // 系统通知点击：进消息页（信箱）
+            ShortcutActions.OPEN_MESSAGE -> Screen.Message.route
             else -> null
         }
-        if (route != null) {
-            navController.navigate(route) { launchSingleTop = true }
+        val imConversationId = if (shortcutAction == ShortcutActions.OPEN_IM_CHAT) shortcutConversationId else null
+        if (imConversationId != null) {
+            navController.navigate(Screen.ImChat.createRoute(imConversationId)) { launchSingleTop = true }
+            onShortcutHandled()
+        } else if (route != null) {
+            if (route == Screen.Message.route) {
+                // 底部 tab 语义：弹到首页再进入消息页，保留各 tab 状态
+                navController.navigate(Screen.Message.route) {
+                    popUpTo(Screen.Home.route) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            } else {
+                navController.navigate(route) { launchSingleTop = true }
+            }
             onShortcutHandled()
         }
     }
@@ -156,6 +175,7 @@ fun AppNavGraph(
             showTranslatePack = false
             showDraftBox = false
             showAccountPrivacy = false
+            showGeneralSettings = false
         }
     }
 
@@ -180,6 +200,7 @@ fun AppNavGraph(
                     onTranslateClick = { showTranslatePack = true },
                     onDraftsClick = { showDraftBox = true },
                     onAccountPrivacyClick = { showAccountPrivacy = true },
+                    onGeneralClick = { showGeneralSettings = true },
                 )
             },
         ) {
@@ -197,7 +218,8 @@ fun AppNavGraph(
                                 }
                             },
                             onPublishClick = { showPublishSheet = true },
-                            messageUnread = if (authViewModel.isLoggedIn()) totalUnread else 0,
+                            // 消息 tab 红点 = 站内通知 + IM 未读合计
+                            messageUnread = if (authViewModel.isLoggedIn()) combinedUnread else 0,
                         )
                     }
                 }
@@ -652,12 +674,20 @@ fun AppNavGraph(
                 },
             )
         }
+        // 通用设置覆盖层
+        AnimatedVisibility(
+            visible = showGeneralSettings,
+            enter = slideInHorizontally(initialOffsetX = { it }),
+            exit = slideOutHorizontally(targetOffsetX = { it }),
+        ) {
+            GeneralSettingsScreen(onClose = { showGeneralSettings = false })
+        }
     }
 
     // 覆盖层、抽屉优先返回
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher// 获取分发器
     val backEnabled = (showTranslatePack || drawerState.isOpen) &&
-            !showDraftBox && !showAccountPrivacy
+            !showDraftBox && !showAccountPrivacy && !showGeneralSettings
     DisposableEffect(backDispatcher, backEnabled) {
         if (backEnabled) {
             val callback = object : OnBackPressedCallback(true) {
