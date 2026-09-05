@@ -2,7 +2,7 @@ package xyz.larkzhh.lime.data.network.model
 
 data class UserData(
     val id: Long,
-    val email: String,
+    val email: String? = null,// 后端脱敏
     val nickname: String,
     val handle: String,
     val bio: String?,

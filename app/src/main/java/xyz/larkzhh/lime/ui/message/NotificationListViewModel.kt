@@ -121,14 +121,20 @@ class NotificationListViewModel @Inject constructor(
         viewModelScope.launch { followRepository.unfollow(userId) }
     }
 
-    /// 为写入初始关注关系
+    /// 初始关注关系
     private fun seedFollowRelations(items: List<NotificationData>) {
         items
             .filter { it.type == NotificationType.Follow.code && it.senderId != null }
             .forEach { item ->
                 val id = item.senderId ?: return@forEach
                 if (relations.value[id] == null) {
-                    followRepository.updateRelation(id, FollowRelation(following = false, followedBack = true))
+                    followRepository.updateRelation(
+                        id,
+                        FollowRelation(
+                            following = item.isFollowing ?: false,
+                            followedBack = item.isFollowedBack ?: false,
+                        ),
+                    )
                 }
             }
     }

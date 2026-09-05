@@ -15,6 +15,8 @@ data class NotificationData(
     val senderId: Long? = null,
     val senderNickname: String? = null,
     val senderAvatar: String? = null,
+    val isFollowing: Boolean? = null,
+    val isFollowedBack: Boolean? = null,
 )
 
 /// 通知列表分页数据
