@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -43,15 +45,20 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
+import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.qrscan.components.CameraPreview
 import xyz.larkzhh.lime.ui.qrscan.components.ScanOverlay
+import xyz.larkzhh.lime.util.parseLimeNoteQr
+import xyz.larkzhh.lime.util.parseLimeUserQr
 import xyz.larkzhh.lime.util.showToast
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun QrScanScreen(navController: NavHostController) {
     val context = LocalContext.current
+    val qrViewModel: QrScanViewModel = hiltViewModel()
+    val scope = rememberCoroutineScope()
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
     val scanner = remember { BarcodeScanning.getClient() }
     var isAlbumScanning by remember { mutableStateOf(false) }
@@ -71,17 +78,26 @@ fun QrScanScreen(navController: NavHostController) {
     }
 
     fun handleResult(raw: String) {
+        parseLimeUserQr(raw)?.let { identifier ->
+            scope.launch {
+                val userId = qrViewModel.resolveUserId(identifier)
+                if (userId != null) {
+                    navController.popBackStack()
+                    navController.navigate(Screen.UserProfile.createRoute(userId))
+                } else {
+                    "未找到该用户".showToast(context)
+                }
+            }
+            return
+        }
         navController.popBackStack()
+        parseLimeNoteQr(raw)?.let { noteId ->
+            if (noteId.isNotBlank()) navController.navigate(Screen.Detail.createRoute(noteId))
+            return
+        }
         val uri = runCatching { raw.toUri() }.getOrNull()
-        when {
-            uri?.scheme == "lime" && uri.host == "note" -> {
-                val noteId = uri.pathSegments.firstOrNull().orEmpty()
-                if (noteId.isNotBlank()) navController.navigate(Screen.Detail.createRoute(noteId))
-            }
-            uri?.scheme == "lime" && uri.host == "user" -> {
-                Toast.makeText(context, "施工中", Toast.LENGTH_SHORT).show()
-            }
-            uri?.scheme == "http" || uri?.scheme == "https" -> {
+        when (uri?.scheme) {
+            "http", "https" -> {
                 runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
             }
             else -> raw.showToast(context, Toast.LENGTH_LONG)

@@ -40,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -95,7 +96,13 @@ import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.formatRelativeTime
+import xyz.larkzhh.lime.util.generateGradientQrBitmap
+import xyz.larkzhh.lime.util.limeNoteQrContent
+import xyz.larkzhh.lime.util.saveBitmapToGallery
 import xyz.larkzhh.lime.util.showToast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // 长按目标
 private sealed interface LongPressTarget {
@@ -133,7 +140,9 @@ fun DetailScreen(
     var showUnfollowConfirm by remember { mutableStateOf(false) }
     var showNoteManage by remember { mutableStateOf(false) }
     var showDeleteNoteConfirm by remember { mutableStateOf(false) }
+    var showQrSaveConfirm by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(noteId) {
         val id = noteId.toLongOrNull() ?: return@LaunchedEffect
@@ -233,6 +242,7 @@ fun DetailScreen(
                                 showUnfollowConfirm = true
                             }
                         },
+                        onShareClick = { showQrSaveConfirm = true },
                     )
                     NoteContent(
                         note = uiState.note!!,
@@ -512,6 +522,35 @@ fun DetailScreen(
                             navController.popBackStack()
                         } else {
                             "删除失败，请重试".showToast(context)
+                        }
+                    }
+                },
+            )
+        }
+
+        // 生成笔记二维码
+        if (showQrSaveConfirm) {
+            LimeAlertDialog(
+                title = "保存笔记二维码",
+                text = "将生成这篇笔记的二维码保存到相册，好友扫一扫即可打开笔记。",
+                firstButtonText = "取消",
+                secondButtonText = "保存",
+                onDismissRequest = { showQrSaveConfirm = false },
+                onFirstButtonClick = { showQrSaveConfirm = false },
+                onSecondButtonClick = {
+                    showQrSaveConfirm = false
+                    uiState.note?.let { note ->
+                        scope.launch {
+                            val qr = withContext(Dispatchers.IO) {
+                                generateGradientQrBitmap(limeNoteQrContent(note.id))
+                            }
+                            if (qr != null) {
+                                val ok = saveBitmapToGallery(context, qr, "lime_note_${note.id}.jpg")
+                                if (ok) "二维码已保存到相册".showToast(context)
+                                else "保存失败，请重试".showToast(context)
+                            } else {
+                                "二维码生成失败".showToast(context)
+                            }
                         }
                     }
                 },

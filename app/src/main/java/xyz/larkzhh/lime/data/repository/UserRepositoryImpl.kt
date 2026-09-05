@@ -67,6 +67,22 @@ class UserRepositoryImpl @Inject constructor(
         response.data
     }
 
+    /// 获取指定用户公开资料
+    override suspend fun getUserByHandle(handle: String): Result<UserData> = runCatching {
+        val response = apiService.getUserByHandle(handle)
+        check(response.code == 200 && response.data != null) { response.message }
+        userByIdCache[response.data.id] = response.data
+        response.data
+    }
+
+    /// 获取指定用户公开资料
+    override suspend fun getUserByUid(uid: String): Result<UserData> = runCatching {
+        val response = apiService.getUserByUid(uid)
+        check(response.code == 200 && response.data != null) { response.message }
+        userByIdCache[response.data.id] = response.data
+        response.data
+    }
+
     /// 同步读取指定用户已缓存的信息
     override fun getCachedUserById(userId: Long): UserData? = userByIdCache[userId]
 

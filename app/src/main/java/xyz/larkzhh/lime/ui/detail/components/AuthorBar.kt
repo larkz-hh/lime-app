@@ -44,6 +44,7 @@ fun AuthorBar(
     onAuthorClick: () -> Unit,
     followState: FollowActionState? = null,
     onFollowClick: () -> Unit = {},
+    onShareClick: () -> Unit = {},
 ) {
     Row(
         modifier = Modifier
@@ -107,7 +108,7 @@ fun AuthorBar(
         }
 
         // 分享按钮
-        IconButton(onClick = {}) {
+        IconButton(onClick = onShareClick) {
             Icon(
                 painter = painterResource(R.drawable.ic_share),
                 contentDescription = "分享",

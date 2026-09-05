@@ -114,7 +114,7 @@ fun MessageScreen(
         },
         onConversationDelete = { conv -> deleteTarget = conv },
         onCreateGroup = { /* TODO*/ },
-        onAddFriend = { /* TODO */ },
+        onAddFriend = { navController.navigate(Screen.AddFriend.route) },
         onScan = { navController.navigate(Screen.QrScan.route) },
     )
 

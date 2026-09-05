@@ -5,6 +5,7 @@ data class UserData(
     val email: String? = null,// 后端脱敏
     val nickname: String,
     val handle: String,
+    val uid: String? = null,
     val bio: String?,
     val avatar: String?,
     val backgroundImage: String?,

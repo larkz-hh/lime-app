@@ -45,6 +45,7 @@ import xyz.larkzhh.lime.ui.detail.comment.CommentPhotoPickerScreen
 import xyz.larkzhh.lime.ui.draft.DraftBoxOverlay
 import xyz.larkzhh.lime.ui.detail.DetailScreen
 import xyz.larkzhh.lime.ui.follow.FollowListScreen
+import xyz.larkzhh.lime.ui.friend.AddFriendScreen
 import xyz.larkzhh.lime.ui.home.HomeScreen
 import xyz.larkzhh.lime.ui.im.ChatScreen
 import xyz.larkzhh.lime.ui.im.viewmodel.ImViewModel
@@ -349,6 +350,23 @@ fun AppNavGraph(
                             onDispose { isFullScreenActive = false }
                         }
                         QrScanScreen(navController)
+                    }
+                    composable(
+                        route = Screen.AddFriend.route,
+                        enterTransition = {
+                            slideInHorizontally(animationSpec = tween(280), initialOffsetX = { it })
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { it })
+                        },
+                        popEnterTransition = {
+                            slideInHorizontally(animationSpec = tween(280), initialOffsetX = { -it })
+                        },
+                        popExitTransition = {
+                            slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { it })
+                        },
+                    ) {
+                        AddFriendScreen(navController)
                     }
                     composable(Screen.BrowseHistory.route) { BrowseHistoryScreen(navController) }
                     composable(

@@ -25,40 +25,55 @@ suspend fun saveImageToGallery(context: Context, url: String): Boolean =
             val result = imageLoader.execute(request)
             val bitmap = ((result as? SuccessResult)?.image as? BitmapImage)?.bitmap
                 ?: return@withContext false
-
-            val filename = "lime_${System.currentTimeMillis()}.jpg"
-            val contentValues = ContentValues().apply {
-                put(MediaStore.Images.Media.DISPLAY_NAME, filename)// 设置图片在相册里显示的文件名
-                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")// 声明文件的 MIME 类型
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Lime")
-                    put(MediaStore.Images.Media.IS_PENDING, 1)
-                } else {
-                    @Suppress("DEPRECATION")
-                    put(
-                        MediaStore.Images.Media.DATA,
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                            .absolutePath + "/Lime/" + filename,
-                    )
-                }
-            }
-
-            val uri = context.contentResolver.insert(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues,
-            ) ?: return@withContext false
-
-            context.contentResolver.openOutputStream(uri)?.use { stream ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 95, stream)
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)// 公开发布
-                context.contentResolver.update(uri, contentValues, null, null)// 更新
-            }
-
-            true
+            writeBitmapToGallery(context, bitmap, "lime_${System.currentTimeMillis()}.jpg")
         } catch (_: Exception) {
             false
         }
     }
+
+/// 保存位图到相册
+suspend fun saveBitmapToGallery(
+    context: Context,
+    bitmap: Bitmap,
+    filename: String = "lime_${System.currentTimeMillis()}.jpg",
+): Boolean = withContext(Dispatchers.IO) {
+    writeBitmapToGallery(context, bitmap, filename)
+}
+
+private fun writeBitmapToGallery(context: Context, bitmap: Bitmap, filename: String): Boolean {
+    return try {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, filename)// 设置图片在相册里显示的文件名
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")// 声明文件的 MIME 类型
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Lime")
+                put(MediaStore.Images.Media.IS_PENDING, 1)
+            } else {
+                @Suppress("DEPRECATION")
+                put(
+                    MediaStore.Images.Media.DATA,
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                        .absolutePath + "/Lime/" + filename,
+                )
+            }
+        }
+
+        val uri = context.contentResolver.insert(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            contentValues,
+        ) ?: return false
+
+        context.contentResolver.openOutputStream(uri)?.use { stream ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 95, stream)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)// 公开发布
+            context.contentResolver.update(uri, contentValues, null, null)// 更新
+        }
+
+        true
+    } catch (_: Exception) {
+        false
+    }
+}

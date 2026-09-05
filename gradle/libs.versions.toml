@@ -40,6 +40,7 @@ collection = "1.5.0"
 markdown = "0.41.0"
 glance = "1.1.1"
 imsdk = "9.0.7652"
+zxing = "3.5.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -101,6 +102,9 @@ kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "ko
 # ML Kit
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version.ref = "mlkitTranslate" }
 mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkitBarcode" }
+
+# QRCode generate
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 
 # CameraX
 androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "cameraX" }

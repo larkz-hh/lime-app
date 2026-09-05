@@ -83,6 +83,14 @@ interface ApiService {
     @GET("api/user/{userId}")
     suspend fun getUserById(@Path("userId") userId: Long): ApiResponse<UserData>
 
+    /// handle id 获取指定用户公开资料
+    @GET("api/user/byHandle/{handle}")
+    suspend fun getUserByHandle(@Path("handle") handle: String): ApiResponse<UserData>
+
+    /// uid 获取指定用户公开资料
+    @GET("api/user/byUid/{uid}")
+    suspend fun getUserByUid(@Path("uid") uid: String): ApiResponse<UserData>
+
     /// 关注用户
     @POST("api/user/{userId}/follow")
     suspend fun followUser(@Path("userId") userId: Long): ApiResponse<Unit>
