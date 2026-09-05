@@ -46,6 +46,8 @@ import xyz.larkzhh.lime.ui.draft.DraftBoxOverlay
 import xyz.larkzhh.lime.ui.detail.DetailScreen
 import xyz.larkzhh.lime.ui.follow.FollowListScreen
 import xyz.larkzhh.lime.ui.home.HomeScreen
+import xyz.larkzhh.lime.ui.im.ChatScreen
+import xyz.larkzhh.lime.ui.im.viewmodel.ImViewModel
 import xyz.larkzhh.lime.ui.message.MessageScreen
 import xyz.larkzhh.lime.ui.message.MessageViewModel
 import xyz.larkzhh.lime.ui.message.NotificationListScreen
@@ -92,6 +94,7 @@ fun AppNavGraph(
 ) {
     val authViewModel: AuthViewModel = hiltViewModel()
     val messageViewModel: MessageViewModel = hiltViewModel()
+    val imViewModel: ImViewModel = hiltViewModel()
     val totalUnread by messageViewModel.totalUnread.collectAsState()
     val startDestination = Screen.Home.route
     var pendingRedirect by remember { mutableStateOf<String?>(null) }
@@ -140,11 +143,14 @@ fun AppNavGraph(
         }
     }
 
-    // 登录后进入主界面同步未读红点并保持 SSE
+    // // 登录后进入主界面同步未读红点并保持 SSE并预登录 IM
     LaunchedEffect(currentRoute) {
         when (currentRoute) {
             in authRoutes -> messageViewModel.onLoggedOut()// 登录注册时通知
-            in bottomNavRoutes if authViewModel.isLoggedIn() -> messageViewModel.sync()
+            in bottomNavRoutes if authViewModel.isLoggedIn() -> {
+                messageViewModel.sync()
+                imViewModel.ensureImLogin()
+            }
         }
     }
 
@@ -422,6 +428,27 @@ fun AppNavGraph(
                             slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { -it })
                         },
                     ) { AiChatScreen() }
+                    composable(
+                        route = Screen.ImChat.ROUTE,
+                        arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
+                        enterTransition = {
+                            slideInHorizontally(animationSpec = tween(280), initialOffsetX = { it })
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { it })
+                        },
+                        // 返回聊天页/离开时不做动画（避免从用户主页返回时聊天页自己又播放入场）
+                        popEnterTransition = { EnterTransition.None },
+                        popExitTransition = { ExitTransition.None },
+                    ) { backStackEntry ->
+                        val conversationId =
+                            backStackEntry.arguments?.getString("conversationId") ?: return@composable
+                        ChatScreen(
+                            conversationId = conversationId,
+                            onBack = { navController.popBackStack() },
+                            navController = navController,
+                        )
+                    }
                     composable(Screen.CommentPhotoPicker.route) {
                         CommentPhotoPickerScreen(navController)
                     }

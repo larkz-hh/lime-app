@@ -61,4 +61,8 @@ sealed class Screen(val route: String) {
         const val LATEST_CONVERSATION = "latest"
         fun createRoute(conversationId: String) = "ai_chat/$conversationId"
     }
+    object ImChat : Screen("im_chat/{conversationId}") {
+        const val ROUTE = "im_chat/{conversationId}"
+        fun createRoute(conversationId: String) = "im_chat/${Uri.encode(conversationId)}"
+    }
 }

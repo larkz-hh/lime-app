@@ -24,6 +24,8 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.EmojiEmotions
+import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -72,6 +74,9 @@ fun ChatInputBar(
     onRemoveNote: () -> Unit = {},
     onSend: () -> Unit = {},
     onStop: () -> Unit = {},
+    showEmojiToggle: Boolean = false,
+    emojiActive: Boolean = false,
+    onEmojiClick: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -152,15 +157,30 @@ fun ChatInputBar(
                     ),
                     maxLines = 6,
                     decorationBox = { innerTextField ->
-                        Box {
-                            if (text.isEmpty()) {
-                                Text(
-                                    text = placeholder,
-                                    color = LimeGray,
-                                    fontSize = 16.sp,
-                                )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                if (text.isEmpty()) {
+                                    Text(
+                                        text = placeholder,
+                                        color = LimeGray,
+                                        fontSize = 16.sp,
+                                    )
+                                }
+                                innerTextField()
                             }
-                            innerTextField()
+                            if (showEmojiToggle) {
+                                IconButton(
+                                    onClick = onEmojiClick,
+                                    modifier = Modifier.size(28.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = if (emojiActive) Icons.Outlined.Keyboard else Icons.Outlined.EmojiEmotions,
+                                        contentDescription = if (emojiActive) "键盘" else "表情",
+                                        tint = if (emojiActive) MaterialTheme.colorScheme.primary else LimeGray,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
+                            }
                         }
                     },
                 )

@@ -148,6 +148,9 @@ dependencies {
     implementation(libs.androidx.glance.appwidget.preview)
     implementation(libs.androidx.glance.preview)
 
+    // 腾讯云 IM
+    implementation(libs.tencent.imsdk.plus)
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

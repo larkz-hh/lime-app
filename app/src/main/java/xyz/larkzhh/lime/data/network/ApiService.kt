@@ -49,6 +49,9 @@ import xyz.larkzhh.lime.data.network.model.TokenData
 import xyz.larkzhh.lime.data.network.model.UpdateProfileRequest
 import xyz.larkzhh.lime.data.network.model.UploadNoteImageResponse
 import xyz.larkzhh.lime.data.network.model.UserData
+import xyz.larkzhh.lime.data.network.model.ImUserSigData
+import xyz.larkzhh.lime.data.network.model.ConversationOpenRequest
+import xyz.larkzhh.lime.data.network.model.ConversationOpenData
 
 interface ApiService {
 
@@ -411,4 +414,12 @@ interface ApiService {
     /// 清空全部通知
     @DELETE("api/notifications/all")
     suspend fun clearAllNotifications(): ApiResponse<Unit>
+
+    /// 获取 IM UserSig
+    @GET("api/im/userSig")
+    suspend fun getImUserSig(): ApiResponse<ImUserSigData>
+
+    /// 打开私信会话
+    @POST("api/im/conversation/open")
+    suspend fun openConversation(@Body request: ConversationOpenRequest): ApiResponse<ConversationOpenData>
 }

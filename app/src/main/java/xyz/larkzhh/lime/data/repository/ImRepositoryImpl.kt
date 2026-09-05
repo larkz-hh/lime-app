@@ -1,0 +1,118 @@
+package xyz.larkzhh.lime.data.repository
+
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import xyz.larkzhh.lime.data.im.ImException
+import xyz.larkzhh.lime.data.im.ImManager
+import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.model.ConversationOpenRequest
+import xyz.larkzhh.lime.domain.model.ImConversation
+import xyz.larkzhh.lime.domain.model.ImMessage
+import xyz.larkzhh.lime.domain.model.toImConversation
+import xyz.larkzhh.lime.domain.model.toImMessage
+import xyz.larkzhh.lime.domain.repository.ImRepository
+import xyz.larkzhh.lime.domain.repository.UserRepository
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/**
+ * IM 仓库实现
+ */
+@Singleton
+class ImRepositoryImpl @Inject constructor(
+    private val apiService: ApiService,
+    private val imManager: ImManager,
+    private val userRepository: UserRepository,
+) : ImRepository {
+
+    /// 确保 IM 已登录
+    override suspend fun ensureImLogin(): Result<Unit> = runCatching {
+        val response = apiService.getImUserSig()// 拉取 UserSig 并登录
+        check(response.code == 200 && response.data != null) { response.message }
+        val data = response.data
+        imManager.init(data.sdkAppId)
+        // 已登录同一用户跳过
+        if (imManager.getLoginUser() != data.userId) {
+            imManager.login(data.userId, data.userSig)
+        }
+        // 同步昵称、头像到 IM 用户资料
+        userRepository.userFlow.value?.let { user ->
+            runCatching { imManager.updateSelfProfile(user.nickname, user.avatar) }
+        }
+    }
+
+    /// 打开私信会话
+    override suspend fun openConversation(targetUserId: Long): Result<String> {
+        val response = apiService.openConversation(ConversationOpenRequest(targetUserId))
+        return if (response.code == 200 && response.data != null) {
+            Result.success(response.data.conversationId)
+        } else {
+            // 403 未互关
+            val message = if (response.code == 403) "需互相关注后才能私信哦" else response.message
+            Result.failure(ImException(response.code, message))
+        }
+    }
+
+    /// IM 登出
+    override suspend fun logout() {
+        runCatching { imManager.logout() }
+    }
+
+    /// 当前已登录的 IM 用户 ID
+    override fun getLoginUser(): String? = imManager.getLoginUser()
+
+    /// 收到的新消息流
+    override val newMessages: Flow<ImMessage> = imManager.newMessages
+        .mapNotNull { it.toImMessage(imManager.getLoginUser()) }
+
+    /// 会话列表变化流
+    override val conversationChanges: Flow<List<ImConversation>> = imManager.conversationChanges
+        .map { list -> list.map { it.toImConversation() } }
+
+    /// 对方撤回消息 msgID 流
+    override val revokedMessages: Flow<String> = imManager.revokedMessages
+
+    /// 拉取私信会话列表
+    override suspend fun getConversations(): List<ImConversation> =
+        imManager.getConversationList().map { it.toImConversation() }
+
+    /// 撤回一条消息
+    override suspend fun revokeMessage(msgId: String): Result<Unit> = runCatching {
+        imManager.revokeMessage(msgId)
+    }
+
+    /// 删除一条消息
+    override suspend fun deleteMessage(msgId: String): Result<Unit> = runCatching {
+        imManager.deleteMessage(msgId)
+    }
+
+    /// 清空与某用户的单聊历史消息
+    override suspend fun clearHistory(conversationId: String): Result<Unit> = runCatching {
+        imManager.clearC2CHistoryMessage(conversationId.removePrefix("c2c_"))
+    }
+
+    /// 删除会话
+    override suspend fun deleteConversation(conversationId: String): Result<Unit> = runCatching {
+        imManager.deleteConversation(conversationId)
+    }
+
+    /// 拉取单聊历史消息
+    override suspend fun getHistoryMessages(conversationId: String): List<ImMessage> {
+        val userId = conversationId.removePrefix("c2c_")
+        return imManager.getC2CHistoryMessageList(userId, 50)
+            .mapNotNull { it.toImMessage(imManager.getLoginUser()) }
+    }
+
+    /// 发送文本消息
+    override suspend fun sendText(conversationId: String, text: String): Result<ImMessage> = runCatching {
+        val sent = imManager.sendTextMessage(conversationId, text)
+        sent.toImMessage(imManager.getLoginUser()) ?: error("发送失败")
+    }
+
+    /// 发送图片消息
+    override suspend fun sendImage(conversationId: String, imagePath: String): Result<ImMessage> = runCatching {
+        val sent = imManager.sendImageMessage(conversationId, imagePath)
+        sent.toImMessage(imManager.getLoginUser()) ?: error("发送失败")
+    }
+}

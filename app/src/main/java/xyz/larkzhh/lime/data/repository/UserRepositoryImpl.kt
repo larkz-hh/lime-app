@@ -2,6 +2,7 @@ package xyz.larkzhh.lime.data.repository
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import xyz.larkzhh.lime.data.im.ImManager
 import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.model.UpdateProfileRequest
 import xyz.larkzhh.lime.data.network.model.UserData
@@ -26,6 +28,7 @@ import javax.inject.Singleton
 class UserRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
     @param:ApplicationContext private val context: Context,
+    private val imManager: ImManager,
 ) : UserRepository {
 
     private val mmkv by lazy { MMKV.defaultMMKV() }
@@ -75,6 +78,7 @@ class UserRepositoryImpl @Inject constructor(
             val response = apiService.uploadAvatar(part)
             check(response.code == 200 && response.data != null) { response.message }
             updateUser(response.data)
+            syncImProfile(response.data)
             response.data
         }
     }
@@ -103,6 +107,7 @@ class UserRepositoryImpl @Inject constructor(
         val response = apiService.updateMe(request)
         check(response.code == 200 && response.data != null) { response.message }
         updateUser(response.data)
+        syncImProfile(response.data)
         response.data
     }
 
@@ -110,6 +115,16 @@ class UserRepositoryImpl @Inject constructor(
     override fun clearUser() {
         _userFlow.value = null
         mmkv.removeValueForKey(KEY_USER)
+    }
+
+    /// 资料变更后同步昵称、头像到 IM
+    private suspend fun syncImProfile(user: UserData) {
+        if (imManager.getLoginUser() == null) return
+        runCatching {
+            imManager.updateSelfProfile(user.nickname, user.avatar)
+        }.onFailure { e ->
+            Log.w(TAG, "syncImProfile failed", e)
+        }
     }
 
     /// 读取图片字节并组装 MultipartBody.Part
@@ -129,5 +144,6 @@ class UserRepositoryImpl @Inject constructor(
 
     private companion object {
         const val KEY_USER = "cached_user_data"
+        const val TAG = "UserRepositoryImpl"
     }
 }

@@ -4,6 +4,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
@@ -39,5 +40,25 @@ private fun formatRelativeTime(time: LocalDateTime): String {
         days in 2..6 -> "${days}天前"
         time.year == now.year -> "${time.monthValue}月${time.dayOfMonth}日"
         else -> "${time.year}年${time.monthValue}月${time.dayOfMonth}日"
+    }
+}
+
+/**
+ * 会话列表最后消息时间
+ */
+fun formatConversationTime(timestampSec: Long): String {
+    if (timestampSec <= 0) return ""
+    val zone = ZoneId.systemDefault()
+    val instant = Instant.ofEpochSecond(timestampSec).atZone(zone)
+    val now = ZonedDateTime.now()
+    return when {
+        instant.toLocalDate() == now.toLocalDate() ->
+            instant.format(DateTimeFormatter.ofPattern("HH:mm"))
+
+        instant.year == now.year ->
+            instant.format(DateTimeFormatter.ofPattern("M月d日"))
+
+        else ->
+            instant.format(DateTimeFormatter.ofPattern("yyyy年M月d日"))
     }
 }

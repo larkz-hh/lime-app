@@ -77,6 +77,7 @@ import xyz.larkzhh.lime.ui.profile.components.ProfileTopBar
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileLikeState
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesViewModel
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileViewModel
+import xyz.larkzhh.lime.ui.im.viewmodel.ImViewModel
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
@@ -89,6 +90,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import xyz.larkzhh.lime.openVideo
 import xyz.larkzhh.lime.util.extractGradientColor
+import xyz.larkzhh.lime.util.showToast
 
 /// 主页 Tab 类型
 private enum class ProfileTab(val label: String) {
@@ -103,11 +105,13 @@ fun ProfileScreen(
     userId: Long? = null,// null为底部导航我的
     viewModel: ProfileViewModel = hiltViewModel(),
     notesViewModel: ProfileNotesViewModel = hiltViewModel(),
+    imViewModel: ImViewModel = hiltViewModel(),
     session: AuthorProfileSession? = null,// 非空为笔记作者用户页面
     onOpenDrawer: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isSelf by viewModel.isSelf.collectAsState()
+    val imState by imViewModel.state.collectAsState()
     val user = (uiState as? ProfileUiState.Success)?.user
     val relations by viewModel.relations.collectAsState()
     val followError by viewModel.followError.collectAsState()
@@ -115,6 +119,7 @@ fun ProfileScreen(
     val targetUserId = user?.id
     val uploadError by viewModel.uploadError.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     var showUnfollowConfirm by remember { mutableStateOf(false) }
     var showLikeFavStats by remember { mutableStateOf(false) }
 
@@ -164,6 +169,13 @@ fun ProfileScreen(
         followError?.let { error ->
             snackbarHostState.showSnackbar(error)
             viewModel.clearFollowError()
+        }
+    }
+
+    LaunchedEffect(imState.errorMessage) {
+        imState.errorMessage?.let { error ->
+            error.showToast(context)
+            imViewModel.clearError()
         }
     }
 
@@ -229,7 +241,6 @@ fun ProfileScreen(
     }
 
     // 背景图主色提取
-    val context = LocalContext.current
     val backgroundUrl = (uiState as? ProfileUiState.Success)?.user?.backgroundImage
     // 主色存进会话
     var dominantColor by remember {
@@ -402,7 +413,19 @@ fun ProfileScreen(
                         showUnfollowConfirm = true
                     }
                 },
-                onMessageClick = { /* TODO: */ },
+                onMessageClick = {
+                    targetUserId?.let { target ->
+                        if (followState != FollowActionState.Mutual) {
+                            "需互相关注后才能私信".showToast(context)
+                        } else {
+                            imViewModel.openConversation(target) { conversationId ->
+                                navController.navigate(Screen.ImChat.createRoute(conversationId)) {
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+                    }
+                },
                 onFollowingClick = {
                     targetUserId?.let {
                         navController.navigate(
