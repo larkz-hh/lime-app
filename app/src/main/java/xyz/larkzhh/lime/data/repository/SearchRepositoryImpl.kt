@@ -19,6 +19,7 @@ class SearchRepositoryImpl @Inject constructor(
         keyword: String,
         sort: String,
         within: String,
+        type: String,
         cursor: String?,
         size: Int,
     ): Result<NoteSearchResponse> = runCatching {
@@ -26,6 +27,7 @@ class SearchRepositoryImpl @Inject constructor(
             keyword = keyword,
             sort = sort,
             within = within,
+            type = type,
             cursor = cursor,
             size = size,
         )

@@ -421,6 +421,10 @@
     <string name="search_time_day">Past 24h</string>
     <string name="search_time_week">Past week</string>
     <string name="search_time_half_year">Past 6 months</string>
+    <string name="search_filter_type">Type</string>
+    <string name="search_type_all">All</string>
+    <string name="search_type_image">Image</string>
+    <string name="search_type_video">Video</string>
     <string name="search_lime_id">Lime ID</string>
 
     <!-- Translation settings -->

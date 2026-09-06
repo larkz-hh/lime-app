@@ -338,6 +338,7 @@ interface ApiService {
         @Query("keyword") keyword: String,
         @Query("sort") sort: String,
         @Query("within") within: String,
+        @Query("type") type: String,
         @Query("cursor") cursor: String?,
         @Query("size") size: Int,
     ): ApiResponse<NoteSearchResponse>

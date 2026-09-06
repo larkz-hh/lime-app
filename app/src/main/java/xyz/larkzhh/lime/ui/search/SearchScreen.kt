@@ -81,6 +81,7 @@ fun SearchScreen(
                 },
                 onSortChange = viewModel::onSortChange,
                 onTimeRangeChange = viewModel::onTimeRangeChange,
+                onNoteTypeChange = viewModel::onNoteTypeChange,
                 onResetFilter = viewModel::resetFilter,
                 onUserTabEnter = viewModel::onUserTabEnter,
                 onLoadMoreUsers = viewModel::loadMoreUsers,

@@ -68,6 +68,7 @@ import xyz.larkzhh.lime.ui.components.NoteCard
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.search.viewmodel.NoteSort
+import xyz.larkzhh.lime.ui.search.viewmodel.SearchNoteType
 import xyz.larkzhh.lime.ui.search.viewmodel.SearchTimeRange
 import xyz.larkzhh.lime.ui.search.viewmodel.SearchUiState
 import xyz.larkzhh.lime.ui.theme.LimeGray
@@ -83,6 +84,7 @@ fun SearchResultContent(
     onNoteClick: (Long) -> Unit,
     onSortChange: (NoteSort) -> Unit,
     onTimeRangeChange: (SearchTimeRange) -> Unit,
+    onNoteTypeChange: (SearchNoteType) -> Unit,
     onResetFilter: () -> Unit,
     onUserTabEnter: () -> Unit,
     onLoadMoreUsers: () -> Unit,
@@ -187,6 +189,7 @@ fun SearchResultContent(
                 uiState = uiState,
                 onSortChange = onSortChange,
                 onTimeRangeChange = onTimeRangeChange,
+                onNoteTypeChange = onNoteTypeChange,
                 onReset = {
                     onResetFilter()
                     filterExpanded = false
@@ -215,6 +218,7 @@ private fun BoxScope.FilterOverlay(
     uiState: SearchUiState,
     onSortChange: (NoteSort) -> Unit,
     onTimeRangeChange: (SearchTimeRange) -> Unit,
+    onNoteTypeChange: (SearchNoteType) -> Unit,
     onReset: () -> Unit,
     onCollapse: () -> Unit,
 ) {
@@ -244,8 +248,10 @@ private fun BoxScope.FilterOverlay(
         SearchFilterPanel(
             sort = uiState.sort,
             timeRange = uiState.timeRange,
+            noteType = uiState.noteType,
             onSortChange = onSortChange,
             onTimeRangeChange = onTimeRangeChange,
+            onNoteTypeChange = onNoteTypeChange,
             onReset = onReset,
             onCollapse = onCollapse,
         )
@@ -503,8 +509,10 @@ private fun UserResultCard(
 private fun SearchFilterPanel(
     sort: NoteSort,
     timeRange: SearchTimeRange,
+    noteType: SearchNoteType,
     onSortChange: (NoteSort) -> Unit,
     onTimeRangeChange: (SearchTimeRange) -> Unit,
+    onNoteTypeChange: (SearchNoteType) -> Unit,
     onReset: () -> Unit,
     onCollapse: () -> Unit,
 ) {
@@ -545,6 +553,25 @@ private fun SearchFilterPanel(
                             text = stringResource(option.labelRes),
                             selected = timeRange == option,
                             onClick = { onTimeRangeChange(option) },
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = stringResource(R.string.search_filter_type),
+                    fontSize = 14.sp,
+                    color = LimeGray,
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    SearchNoteType.entries.forEach { option ->
+                        FilterChip(
+                            text = stringResource(option.labelRes),
+                            selected = noteType == option,
+                            onClick = { onNoteTypeChange(option) },
                         )
                     }
                 }

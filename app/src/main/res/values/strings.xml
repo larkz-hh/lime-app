@@ -421,6 +421,10 @@
     <string name="search_time_day">一天内</string>
     <string name="search_time_week">一周内</string>
     <string name="search_time_half_year">半年内</string>
+    <string name="search_filter_type">笔记类型</string>
+    <string name="search_type_all">全部</string>
+    <string name="search_type_image">图文</string>
+    <string name="search_type_video">视频</string>
     <string name="search_lime_id">Lime ID</string>
 
     <!-- 翻译设置 -->

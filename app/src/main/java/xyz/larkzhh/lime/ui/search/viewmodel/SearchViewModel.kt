@@ -52,6 +52,13 @@ enum class SearchTimeRange(@StringRes val labelRes: Int, val apiValue: String) {
     HalfYear(R.string.search_time_half_year, "halfYear"),
 }
 
+/// 笔记类型筛选
+enum class SearchNoteType(@StringRes val labelRes: Int, val apiValue: String) {
+    All(R.string.search_type_all, "all"),
+    Image(R.string.search_type_image, "image"),
+    Video(R.string.search_type_video, "video"),
+}
+
 data class SearchUiState(
     val mode: SearchMode = SearchMode.Idle,
     val query: String = "",
@@ -74,6 +81,7 @@ data class SearchUiState(
     // 筛选
     val sort: NoteSort = NoteSort.Composite,
     val timeRange: SearchTimeRange = SearchTimeRange.All,
+    val noteType: SearchNoteType = SearchNoteType.All,
 )
 
 /**
@@ -233,9 +241,22 @@ class SearchViewModel @Inject constructor(
         if (_uiState.value.mode == SearchMode.Result) loadFirstPage()
     }
 
+    /// 切换笔记类型，重置分页并重新搜索
+    fun onNoteTypeChange(noteType: SearchNoteType) {
+        if (_uiState.value.noteType == noteType) return
+        _uiState.update { it.copy(noteType = noteType) }
+        if (_uiState.value.mode == SearchMode.Result) loadFirstPage()
+    }
+
     /// 重置筛选条件并重新搜索
     fun resetFilter() {
-        _uiState.update { it.copy(sort = NoteSort.Composite, timeRange = SearchTimeRange.All) }
+        _uiState.update {
+            it.copy(
+                sort = NoteSort.Composite,
+                timeRange = SearchTimeRange.All,
+                noteType = SearchNoteType.All,
+            )
+        }
         if (_uiState.value.mode == SearchMode.Result) loadFirstPage()
     }
 
@@ -263,6 +284,7 @@ class SearchViewModel @Inject constructor(
                 keyword = state.query,
                 sort = state.sort.apiValue,
                 within = state.timeRange.apiValue,
+                type = state.noteType.apiValue,
                 cursor = null,
             ).fold(
                 onSuccess = { response ->
@@ -293,6 +315,7 @@ class SearchViewModel @Inject constructor(
                 keyword = state.query,
                 sort = state.sort.apiValue,
                 within = state.timeRange.apiValue,
+                type = state.noteType.apiValue,
                 cursor = resultCursor,
             ).fold(
                 onSuccess = { response ->
