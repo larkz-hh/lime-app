@@ -92,7 +92,6 @@ import xyz.larkzhh.lime.ui.detail.translate.TranslateResultSheet
 import xyz.larkzhh.lime.ui.detail.translate.TranslateViewModel
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.formatRelativeTime
 import xyz.larkzhh.lime.util.generateGradientQrBitmap

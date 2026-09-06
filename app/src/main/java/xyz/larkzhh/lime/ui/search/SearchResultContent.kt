@@ -442,7 +442,7 @@ private fun UserResultCard(
                     Text(
                         text = user.nickname.take(1),
                         fontSize = 20.sp,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = LimeGray,
                     )
                 }
             }

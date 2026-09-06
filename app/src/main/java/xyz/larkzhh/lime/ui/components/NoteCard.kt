@@ -40,8 +40,6 @@ import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 
 /// 封面最大高度
 internal val MaxCoverHeight = 280.dp
@@ -170,7 +168,7 @@ fun NoteCard(
                             Text(
                                 text = item.author.nickname.take(1),// 提取作者昵称的第一个字
                                 fontSize = 8.sp,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = LimeGray,
                             )
                         }
                     }

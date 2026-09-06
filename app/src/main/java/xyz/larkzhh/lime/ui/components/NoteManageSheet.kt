@@ -40,8 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
 
-private val InkColor = Color(0xFF1C1C1E)
-
 /**
  * 笔记编辑设置栏
  */
@@ -76,7 +74,7 @@ fun NoteManageSheet(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
-                    color = InkColor,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(top = 2.dp),
@@ -85,7 +83,7 @@ fun NoteManageSheet(
                     Icon(
                         Icons.Outlined.Close,
                         contentDescription = stringResource(R.string.note_manage_close),
-                        tint = InkColor,
+                        tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
@@ -123,9 +121,10 @@ fun NoteManageSheet(
 private fun ManageActionItem(
     icon: ImageVector,
     label: String,
-    color: Color = InkColor,
+    color: Color = MaterialTheme.colorScheme.onSurface,
     onClick: () -> Unit,
 ) {
+    val circleColor = MaterialTheme.colorScheme.surfaceVariant
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -140,7 +139,7 @@ private fun ManageActionItem(
             modifier = Modifier
                 .size(54.dp)
                 .clip(CircleShape)
-                .background(Color(0xFFF2F2F2)),
+                .background(circleColor),
             contentAlignment = Alignment.Center,
         ) {
             Icon(

@@ -58,9 +58,7 @@ import xyz.larkzhh.lime.navigation.navigateToUserProfile
 import xyz.larkzhh.lime.ui.components.FollowButton
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimeTheme
-import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 @Composable
@@ -289,7 +287,7 @@ private fun FollowUserCard(
                     Text(
                         text = item.nickname.take(1),
                         fontSize = 20.sp,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = LimeGray,
                     )
                 }
             }

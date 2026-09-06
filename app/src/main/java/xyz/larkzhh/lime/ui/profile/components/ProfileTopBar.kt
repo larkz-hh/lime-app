@@ -108,7 +108,7 @@ fun ProfileTopBar(
                         Text(
                             text = user?.nickname?.take(1) ?: "",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = LimeGray,
                         )
                     }
                 }

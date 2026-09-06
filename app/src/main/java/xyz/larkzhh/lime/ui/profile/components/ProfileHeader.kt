@@ -271,7 +271,7 @@ private fun AvatarSection(user: UserData?, editable: Boolean, onClick: () -> Uni
             Text(
                 text = user?.nickname?.take(1) ?: "?",
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary,
+                color = LimeGray,
             )
         }
     }
