@@ -72,8 +72,6 @@ import xyz.larkzhh.lime.ui.search.viewmodel.SearchNoteType
 import xyz.larkzhh.lime.ui.search.viewmodel.SearchTimeRange
 import xyz.larkzhh.lime.ui.search.viewmodel.SearchUiState
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 @Composable
@@ -638,7 +636,11 @@ private fun FilterChip(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(6.dp),
-        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        color = if (selected) {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
     ) {
         Text(
             text = text,

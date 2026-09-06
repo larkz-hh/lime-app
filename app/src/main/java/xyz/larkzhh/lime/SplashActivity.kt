@@ -8,7 +8,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animate
@@ -66,15 +66,17 @@ private fun SplashContent() {
     var lottieFading by remember { mutableStateOf(false) }// 续播后开始淡出
     var showLogo by remember { mutableStateOf(false) }// 淡出结束后炸出 logo 出现
     var lottieP by remember { mutableFloatStateOf(0f) }// 当前播放进度
+    val acceleratingEasing: Easing = remember { Easing { t -> t * t }   }// 播放速度
     LaunchedEffect(composition) {
         if (!animEnabled) return@LaunchedEffect
         val comp = composition ?: return@LaunchedEffect
         val fullMs = comp.duration.coerceAtLeast(16f)
         // 完播
+        val playMs = (fullMs * 0.5f).toInt().coerceAtLeast(16)
         animate(
             initialValue = 0f,
             targetValue = 1f,
-            animationSpec = tween(durationMillis = fullMs.toInt(), easing = CubicBezierEasing(0.4f, 0f, 1f, 1f)),
+            animationSpec = tween(durationMillis = playMs, easing = acceleratingEasing),
         ) { value, _ -> lottieP = value }
         // 续播 18
         lottieP = 0f
@@ -107,12 +109,12 @@ private fun SplashContent() {
             gotoMain()
         }
     }
-    // 关闭动画
+    // 关闭动画静态 app_logo
     LaunchedEffect(Unit) {
         if (!animEnabled) {
             delay(
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) 120.milliseconds
-                else 600.milliseconds
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) 100.milliseconds
+                else 400.milliseconds
             )
             gotoMain()
         }
@@ -147,8 +149,8 @@ private fun SplashContent() {
                         },
                 )
             }
-        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            // 低版本静态展示
+        } else {
+            // 关闭动画，静态展示图标
             Image(
                 painter = painterResource(R.drawable.app_logo),
                 contentDescription = null,
