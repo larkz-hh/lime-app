@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -81,7 +82,7 @@ fun NoteBottomBar(
                     contentAlignment = Alignment.CenterStart,
                 ) {
                     Text(
-                        text = "编辑设置 >",
+                        text = stringResource(R.string.note_manage_entry),
                         color = contentColor,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
@@ -101,7 +102,7 @@ fun NoteBottomBar(
                         .padding(horizontal = 14.dp, vertical = inputVertical),
                     contentAlignment = Alignment.CenterStart,
                 ) {
-                    Text(text = "说点什么…", color = LimeGray, fontSize = 13.sp)
+                    Text(text = stringResource(R.string.video_comment_hint), color = LimeGray, fontSize = 13.sp)
                 }
             }
 
@@ -122,7 +123,7 @@ fun NoteBottomBar(
                         inactiveColor = contentColor,
                     )
                     Text(
-                        text = if (note.likeCount > 0) note.likeCount.toString() else "点赞",
+                        text = if (note.likeCount > 0) note.likeCount.toString() else stringResource(R.string.like),
                         fontSize = 12.sp,
                         color = contentColor,
                         maxLines = 1,
@@ -147,7 +148,7 @@ fun NoteBottomBar(
                         inactiveColor = contentColor,
                     )
                     Text(
-                        text = if (note.favCount > 0) note.favCount.toString() else "收藏",
+                        text = if (note.favCount > 0) note.favCount.toString() else stringResource(R.string.favorite),
                         fontSize = 12.sp,
                         color = contentColor,
                         maxLines = 1,
@@ -167,13 +168,13 @@ fun NoteBottomBar(
                     IconButton(onClick = onCommentClick, modifier = Modifier.size(32.dp)) {
                         Icon(
                             painter = painterResource(R.drawable.ic_chat),
-                            contentDescription = "评论",
+                            contentDescription = stringResource(R.string.comment),
                             tint = contentColor,
                             modifier = Modifier.size(22.dp),
                         )
                     }
                     Text(
-                        text = if (note.commentCount > 0) note.commentCount.toString() else "评论",
+                        text = if (note.commentCount > 0) note.commentCount.toString() else stringResource(R.string.comment),
                         fontSize = 12.sp,
                         color = contentColor,
                         maxLines = 1,

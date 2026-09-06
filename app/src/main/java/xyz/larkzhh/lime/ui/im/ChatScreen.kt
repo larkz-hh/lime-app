@@ -65,6 +65,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -77,6 +78,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.model.ImMessage
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
@@ -214,10 +216,10 @@ fun ChatScreen(
 
     if (showClearConfirm) {
         LimeAlertDialog(
-            title = "清空聊天记录",
-            text = "确定要清空与对方的历史消息吗？此操作不可恢复。",
-            firstButtonText = "取消",
-            secondButtonText = "清空",
+            title = stringResource(R.string.chat_clear_history_title),
+            text = stringResource(R.string.chat_clear_history_message),
+            firstButtonText = stringResource(R.string.cancel),
+            secondButtonText = stringResource(R.string.chat_clear_action),
             secondButtonColor = Color(0xFFFE2C55),
             onFirstButtonClick = { showClearConfirm = false },
             onSecondButtonClick = {
@@ -232,10 +234,10 @@ fun ChatScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text(state.peerNickname ?: if (state.isGroup) "群聊" else "私信") },
+                title = { Text(state.peerNickname ?: if (state.isGroup) stringResource(R.string.profile_group_chat) else stringResource(R.string.chat_private_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
@@ -247,7 +249,7 @@ fun ChatScreen(
                         ) {
                             Icon(
                                 Icons.Filled.Group,
-                                contentDescription = "群管理",
+                                contentDescription = stringResource(R.string.group_manage_title),
                                 tint = LimeGray,
                             )
                         }
@@ -255,7 +257,7 @@ fun ChatScreen(
                         IconButton(onClick = { showClearConfirm = true }) {
                             Icon(
                                 Icons.Outlined.Delete,
-                                contentDescription = "清空聊天记录",
+                                contentDescription = stringResource(R.string.chat_clear_history_title),
                                 tint = LimeGray,
                             )
                         }
@@ -274,7 +276,7 @@ fun ChatScreen(
                     text = inputText,
                     onTextChange = { inputText = it },
                     focusRequester = focusRequester,
-                    placeholder = "发消息…",
+                    placeholder = stringResource(R.string.chat_input_hint),
                     canSend = inputText.isNotBlank(),
                     onAddClick = { imagePicker.launch("image/*") },
                     onSend = {
@@ -402,7 +404,7 @@ private fun AvatarView(
 ) {
     AsyncImage(
         model = avatar,
-        contentDescription = "头像",
+        contentDescription = stringResource(R.string.profile_avatar),
         contentScale = ContentScale.Crop,
         modifier = modifier
             .size(36.dp)
@@ -433,7 +435,7 @@ private fun MessageBubble(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = if (message.isSelf) "你撤回了一条消息" else "对方撤回了一条消息",
+                text = if (message.isSelf) stringResource(R.string.chat_revoked_self) else stringResource(R.string.chat_revoked_other),
                 color = LimeGray,
                 fontSize = 12.sp,
             )
@@ -494,7 +496,7 @@ private fun MessageBubble(
                     when {
                         localFile != null && localFile.exists() -> AsyncImage(
                             model = localFile,
-                            contentDescription = "图片消息",
+                            contentDescription = stringResource(R.string.chat_image_message_desc),
                             modifier = imageModifier.clickable(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() },
@@ -504,7 +506,7 @@ private fun MessageBubble(
 
                         remoteOk -> AsyncImage(
                             model = message.imageUrl,
-                            contentDescription = "图片消息",
+                            contentDescription = stringResource(R.string.chat_image_message_desc),
                             modifier = imageModifier.clickable(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() },
@@ -517,7 +519,7 @@ private fun MessageBubble(
                             modifier = imageModifier.background(Color(0xFFEEEEEE)),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text("图片加载中…", color = LimeGray, fontSize = 12.sp)
+                            Text(stringResource(R.string.chat_image_loading), color = LimeGray, fontSize = 12.sp)
                         }
                     }
                 }
@@ -549,20 +551,20 @@ private fun MessageBubble(
             ) {
                 if (!message.text.isNullOrBlank()) {
                     DropdownMenuItem(
-                        text = { Text("复制") },
+                        text = { Text(stringResource(R.string.chat_copy)) },
                         leadingIcon = { Icon(Icons.Filled.ContentCopy, contentDescription = null) },
                         onClick = { showMenu = false; onCopy() },
                     )
                 }
                 if (canRevoke) {
                     DropdownMenuItem(
-                        text = { Text("撤回") },
+                        text = { Text(stringResource(R.string.chat_revoke)) },
                         leadingIcon = { Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = null) },
                         onClick = { showMenu = false; onRevoke() },
                     )
                 }
                 DropdownMenuItem(
-                    text = { Text("删除") },
+                    text = { Text(stringResource(R.string.delete)) },
                     leadingIcon = {
                         Icon(Icons.Outlined.Delete, contentDescription = null)
                     },

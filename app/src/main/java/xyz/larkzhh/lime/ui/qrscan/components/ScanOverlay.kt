@@ -37,8 +37,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 @Composable
@@ -131,13 +133,21 @@ fun ScanOverlay(camera: Camera? = null) {
                 ) {
                     Icon(
                         imageVector = if (torchOn) Icons.Filled.FlashlightOff else Icons.Filled.FlashlightOn,
-                        contentDescription = if (torchOn) "关闭手电筒" else "打开手电筒",
+                        contentDescription = if (torchOn) {
+                            stringResource(R.string.qr_torch_off)
+                        } else {
+                            stringResource(R.string.qr_torch_on)
+                        },
                         tint = Color.White,
                         modifier = Modifier.size(24.dp),
                     )
                 }
                 Text(
-                    text = if (torchOn) "轻触关闭" else "轻触照亮",
+                    text = if (torchOn) {
+                        stringResource(R.string.qr_torch_tap_off)
+                    } else {
+                        stringResource(R.string.qr_torch_tap_on)
+                    },
                     color = Color.White,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 4.dp),
@@ -147,7 +157,7 @@ fun ScanOverlay(camera: Camera? = null) {
 
         // 提示文字
         Text(
-            text = "请将二维码对准扫码框中心",
+            text = stringResource(R.string.qr_align_prompt),
             color = Color.White.copy(alpha = 0.8f),
             fontSize = 14.sp,
             modifier = Modifier

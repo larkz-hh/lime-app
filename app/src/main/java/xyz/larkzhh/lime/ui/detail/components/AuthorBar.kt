@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -56,7 +57,7 @@ fun AuthorBar(
         IconButton(onClick = onBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "返回",
+                contentDescription = stringResource(R.string.back),
                 tint = LimeDark,
             )
         }
@@ -111,7 +112,7 @@ fun AuthorBar(
         IconButton(onClick = onShareClick) {
             Icon(
                 painter = painterResource(R.drawable.ic_share),
-                contentDescription = "分享",
+                contentDescription = stringResource(R.string.video_share),
                 tint = LimeDark,
                 modifier = Modifier.size(20.dp),
             )

@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,6 +59,7 @@ import coil3.request.SuccessResult
 import coil3.request.allowHardware
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
@@ -78,6 +80,11 @@ fun AddFriendScreen(
     val user by viewModel.user.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    val limeIdCopiedToast = stringResource(R.string.friend_lime_id_copied)
+    val qrNotReadyToast = stringResource(R.string.friend_qr_not_ready)
+    val savedToAlbumToast = stringResource(R.string.friend_saved_to_album)
+    val saveFailedToast = stringResource(R.string.friend_save_failed)
 
     val current = user
     val limeId = current?.handle
@@ -110,14 +117,17 @@ fun AddFriendScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "添加好友",
+                        text = stringResource(R.string.friend_add_friend),
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -134,7 +144,7 @@ fun AddFriendScreen(
                     .padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("正在加载…", color = LimeGray)
+                Text(stringResource(R.string.friend_loading), color = LimeGray)
             }
             return@Scaffold
         }
@@ -165,7 +175,7 @@ fun AddFriendScreen(
                     if (qrBitmap != null) {
                         Image(
                             bitmap = qrBitmap.asImageBitmap(),
-                            contentDescription = "我的二维码",
+                            contentDescription = stringResource(R.string.friend_my_qr),
                             modifier = Modifier.size(240.dp),
                         )
                     } else {
@@ -175,7 +185,11 @@ fun AddFriendScreen(
                                 .background(LimeLightGray),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text("二维码生成失败", color = LimeGray, fontSize = 12.sp)
+                            Text(
+                                stringResource(R.string.friend_qr_failed),
+                                color = LimeGray,
+                                fontSize = 12.sp,
+                            )
                         }
                     }
                 }
@@ -192,7 +206,7 @@ fun AddFriendScreen(
             // Lime ID
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "Lime ID：$limeId",
+                    text = stringResource(R.string.friend_lime_id, limeId.orEmpty()),
                     fontSize = 15.sp,
                     color = LimeGray,
                 )
@@ -201,14 +215,14 @@ fun AddFriendScreen(
                     onClick = {
                         limeId?.let {
                             it.copyToClipboard(context)
-                            "已复制 Lime ID".showToast(context)
+                            limeIdCopiedToast.showToast(context)
                         }
                     },
                     modifier = Modifier.size(32.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Filled.ContentCopy,
-                        contentDescription = "复制 Lime ID",
+                        contentDescription = stringResource(R.string.friend_copy_lime_id),
                         tint = LimeGray,
                         modifier = Modifier.size(15.dp),
                     )
@@ -216,7 +230,7 @@ fun AddFriendScreen(
             }
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "保存二维码，让好友扫一扫添加你",
+                text = stringResource(R.string.friend_save_qr_hint),
                 fontSize = 12.sp,
                 color = LimeGray,
             )
@@ -238,7 +252,7 @@ fun AddFriendScreen(
                             modifier = Modifier.size(22.dp),
                         )
                     },
-                    label = "扫一扫",
+                    label = stringResource(R.string.friend_scan),
                     onClick = { navController.navigate(Screen.QrScan.route) },
                 )
                 HorizontalDivider(
@@ -255,15 +269,15 @@ fun AddFriendScreen(
                             modifier = Modifier.size(22.dp),
                         )
                     },
-                    label = "保存二维码",
+                    label = stringResource(R.string.friend_save_qr),
                     onClick = {
                         if (qrBitmap == null) {
-                            "二维码尚未生成".showToast(context)
+                            qrNotReadyToast.showToast(context)
                         } else {
                             scope.launch {
                                 val ok = saveBitmapToGallery(context,
                                     qrBitmap, "lime_qr_$limeId.jpg")
-                                if (ok) "已保存到相册".showToast(context) else "保存失败".showToast(context)
+                                if (ok) savedToAlbumToast.showToast(context) else saveFailedToast.showToast(context)
                             }
                         }
                     },

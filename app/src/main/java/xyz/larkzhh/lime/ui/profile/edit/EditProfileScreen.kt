@@ -58,6 +58,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -69,6 +70,7 @@ import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import java.io.File
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.profile.components.WheelDatePicker
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,6 +79,7 @@ fun EditProfileScreen(navController: NavHostController) {
     val viewModel: EditProfileViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val cropBgTitle = stringResource(R.string.edit_bg_crop_title)
 
     val avatarLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { viewModel.uploadAvatar(it) }
@@ -97,7 +100,7 @@ fun EditProfileScreen(navController: NavHostController) {
             val dest = Uri.fromFile(File(context.cacheDir, "bg_crop_tmp.jpg"))
             val intent = UCrop.of(uri, dest)
                 .withOptions(UCrop.Options().apply {
-                    setToolbarTitle("截取背景图")
+                    setToolbarTitle(cropBgTitle)
                     setCompressionQuality(90)
                     setFreeStyleCropEnabled(true)// 允许自由比例裁剪
                     setToolbarColor(0xFFFFFFFF.toInt())
@@ -130,10 +133,10 @@ fun EditProfileScreen(navController: NavHostController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("编辑资料", fontWeight = FontWeight.Medium) },
+                title = { Text(stringResource(R.string.edit_title), fontWeight = FontWeight.Medium) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
@@ -151,7 +154,7 @@ fun EditProfileScreen(navController: NavHostController) {
                                 strokeWidth = 2.dp,
                             )
                         } else {
-                            Text("保存", color = LimePrimary, fontWeight = FontWeight.Medium)
+                            Text(stringResource(R.string.save), color = LimePrimary, fontWeight = FontWeight.Medium)
                         }
                     }
                 },
@@ -204,7 +207,7 @@ fun EditProfileScreen(navController: NavHostController) {
                             if (form.avatarUrl != null) {
                                 AsyncImage(
                                     model = form.avatarUrl,
-                                    contentDescription = "头像",
+                                    contentDescription = stringResource(R.string.profile_avatar),
                                     modifier = Modifier.fillMaxSize(),
                                     contentScale = ContentScale.Crop,
                                 )
@@ -239,7 +242,7 @@ fun EditProfileScreen(navController: NavHostController) {
 
                     // 名字、背景图
                     FormCard {
-                        FormRow(label = "名字", value = form.nickname, onClick = { showNicknameDialog = true })
+                        FormRow(label = stringResource(R.string.edit_name), value = form.nickname, onClick = { showNicknameDialog = true })
                         HorizontalDivider(modifier = Modifier.padding(start = 16.dp), color = LimeLightGray)
                         // 背景图行
                         Row(
@@ -250,12 +253,12 @@ fun EditProfileScreen(navController: NavHostController) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text("背景图", style = MaterialTheme.typography.bodyLarge, color = LimeDark)
+                            Text(stringResource(R.string.edit_background), style = MaterialTheme.typography.bodyLarge, color = LimeDark)
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (form.backgroundUrl != null) {
                                     AsyncImage(
                                         model = form.backgroundUrl,
-                                        contentDescription = "背景图预览",
+                                        contentDescription = stringResource(R.string.edit_background_preview),
                                         modifier = Modifier
                                             .size(width = 48.dp, height = 32.dp)
                                             .clip(RoundedCornerShape(4.dp)),
@@ -277,8 +280,8 @@ fun EditProfileScreen(navController: NavHostController) {
                     // 简介
                     FormCard {
                         FormRow(
-                            label = "简介",
-                            value = form.bio.ifBlank { "填写简介" },
+                            label = stringResource(R.string.edit_bio),
+                            value = form.bio.ifBlank { stringResource(R.string.edit_bio_placeholder) },
                             valueColor = if (form.bio.isBlank()) LimeGray else LimeDark,
                             onClick = { showBioDialog = true },
                         )
@@ -288,19 +291,23 @@ fun EditProfileScreen(navController: NavHostController) {
 
                     // 性别、生日、地区
                     FormCard {
-                        val gender = when (form.gender) { 1 -> "男"; 2 -> "女"; else -> "未设置" }
-                        FormRow(label = "性别", value = gender, onClick = { showGenderDialog = true })
+                        val gender = when (form.gender) {
+                            1 -> stringResource(R.string.edit_gender_male)
+                            2 -> stringResource(R.string.edit_gender_female)
+                            else -> stringResource(R.string.edit_not_set)
+                        }
+                        FormRow(label = stringResource(R.string.edit_gender), value = gender, onClick = { showGenderDialog = true })
                         HorizontalDivider(modifier = Modifier.padding(start = 16.dp), color = LimeLightGray)
                         FormRow(
-                            label = "生日",
-                            value = form.birthday.ifBlank { "未设置" },
+                            label = stringResource(R.string.edit_birthday),
+                            value = form.birthday.ifBlank { stringResource(R.string.edit_not_set) },
                             valueColor = if (form.birthday.isBlank()) LimeGray else LimeDark,
                             onClick = { showBirthdayPicker = true },
                         )
                         HorizontalDivider(modifier = Modifier.padding(start = 16.dp), color = LimeLightGray)
                         FormRow(
-                            label = "地区",
-                            value = form.region.ifBlank { "未设置" },
+                            label = stringResource(R.string.edit_region),
+                            value = form.region.ifBlank { stringResource(R.string.edit_not_set) },
                             valueColor = if (form.region.isBlank()) LimeGray else LimeDark,
                             onClick = { showRegionDialog = true },
                         )
@@ -331,7 +338,7 @@ fun EditProfileScreen(navController: NavHostController) {
                     var draft by remember { mutableStateOf(form.nickname) }
                     AlertDialog(
                         onDismissRequest = { showNicknameDialog = false },
-                        title = { Text("修改名字") },
+                        title = { Text(stringResource(R.string.edit_nickname_title)) },
                         text = {
                             OutlinedTextField(
                                 value = draft,
@@ -342,11 +349,11 @@ fun EditProfileScreen(navController: NavHostController) {
                         },
                         confirmButton = {
                             TextButton(onClick = { viewModel.onNicknameChange(draft); showNicknameDialog = false }) {
-                                Text("确定", color = LimePrimary)
+                                Text(stringResource(R.string.edit_ok), color = LimePrimary)
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showNicknameDialog = false }) { Text("取消") }
+                            TextButton(onClick = { showNicknameDialog = false }) { Text(stringResource(R.string.cancel)) }
                         },
                     )
                 }
@@ -356,7 +363,7 @@ fun EditProfileScreen(navController: NavHostController) {
                     var draft by remember { mutableStateOf(form.bio) }
                     AlertDialog(
                         onDismissRequest = { showBioDialog = false },
-                        title = { Text("编辑简介") },
+                        title = { Text(stringResource(R.string.edit_bio_title)) },
                         text = {
                             OutlinedTextField(
                                 value = draft,
@@ -368,11 +375,11 @@ fun EditProfileScreen(navController: NavHostController) {
                         },
                         confirmButton = {
                             TextButton(onClick = { viewModel.onBioChange(draft); showBioDialog = false }) {
-                                Text("确定", color = LimePrimary)
+                                Text(stringResource(R.string.edit_ok), color = LimePrimary)
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showBioDialog = false }) { Text("取消") }
+                            TextButton(onClick = { showBioDialog = false }) { Text(stringResource(R.string.cancel)) }
                         },
                     )
                 }
@@ -381,12 +388,14 @@ fun EditProfileScreen(navController: NavHostController) {
                 if (showGenderDialog) {
                     AlertDialog(
                         onDismissRequest = { showGenderDialog = false },
-                        title = { Text("选择性别") },
+                        title = { Text(stringResource(R.string.edit_gender_title)) },
                         text = {
                             Column {
-                                listOf(Triple(0, "未设置", form.gender == 0),
-                                    Triple(1, "男", form.gender == 1),
-                                    Triple(2, "女", form.gender == 2)).forEach { (value, label, selected) ->
+                                listOf(
+                                    Triple(0, stringResource(R.string.edit_not_set), form.gender == 0),
+                                    Triple(1, stringResource(R.string.edit_gender_male), form.gender == 1),
+                                    Triple(2, stringResource(R.string.edit_gender_female), form.gender == 2),
+                                ).forEach { (value, label, selected) ->
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -406,7 +415,7 @@ fun EditProfileScreen(navController: NavHostController) {
                         },
                         confirmButton = {},
                         dismissButton = {
-                            TextButton(onClick = { showGenderDialog = false }) { Text("取消") }
+                            TextButton(onClick = { showGenderDialog = false }) { Text(stringResource(R.string.cancel)) }
                         },
                     )
                 }
@@ -428,7 +437,7 @@ fun EditProfileScreen(navController: NavHostController) {
                     var draft by remember { mutableStateOf(form.region) }
                     AlertDialog(
                         onDismissRequest = { showRegionDialog = false },
-                        title = { Text("填写地区") },
+                        title = { Text(stringResource(R.string.edit_region_title)) },
                         text = {
                             OutlinedTextField(
                                 value = draft,
@@ -439,11 +448,11 @@ fun EditProfileScreen(navController: NavHostController) {
                         },
                         confirmButton = {
                             TextButton(onClick = { viewModel.onRegionChange(draft); showRegionDialog = false }) {
-                                Text("确定", color = LimePrimary)
+                                Text(stringResource(R.string.edit_ok), color = LimePrimary)
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showRegionDialog = false }) { Text("取消") }
+                            TextButton(onClick = { showRegionDialog = false }) { Text(stringResource(R.string.cancel)) }
                         },
                     )
                 }

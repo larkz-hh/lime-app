@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.ui.ai
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -12,12 +13,17 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
 import javax.inject.Inject
 
-enum class NotePickerTab(val label: String) { FAVORITES("收藏"), LIKES("点赞"), PUBLISHED("发布") }
+enum class NotePickerTab(@StringRes val labelRes: Int) {
+    FAVORITES(R.string.note_picker_tab_favorites),
+    LIKES(R.string.note_picker_tab_likes),
+    PUBLISHED(R.string.note_picker_tab_published),
+}
 
 /**
  * 笔记选择器 ViewMode

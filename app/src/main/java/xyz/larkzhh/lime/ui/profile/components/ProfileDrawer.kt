@@ -28,8 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.annotation.StringRes
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 
@@ -61,35 +64,35 @@ fun ProfileDrawerContent(
             SheetGroup(cardColor = Color.White) {
                 DrawerRow(
                     icon = Icons.Outlined.Translate,
-                    label = "翻译",
+                    labelRes = R.string.drawer_translate,
                     onClick = onTranslateClick,
                 )
             }
             SheetGroup(cardColor = Color.White) {
                 DrawerRow(
                     icon = Icons.Outlined.Description,
-                    label = "草稿箱",
+                    labelRes = R.string.drawer_drafts,
                     onClick = onDraftsClick,
                 )
             }
             SheetGroup(cardColor = Color.White) {
                 DrawerRow(
                     icon = Icons.Outlined.Shield,
-                    label = "账号与隐私",
+                    labelRes = R.string.drawer_account_privacy,
                     onClick = onAccountPrivacyClick,
                 )
             }
             SheetGroup(cardColor = Color.White) {
                 DrawerRow(
                     icon = Icons.Outlined.Settings,
-                    label = "通用",
+                    labelRes = R.string.drawer_general,
                     onClick = onGeneralClick,
                 )
             }
             SheetGroup(cardColor = Color.White) {
                 DrawerRow(
                     icon = Icons.Outlined.Info,
-                    label = "关于",
+                    labelRes = R.string.drawer_about,
                     onClick = onAboutClick,
                 )
             }
@@ -101,9 +104,10 @@ fun ProfileDrawerContent(
 @Composable
 private fun DrawerRow(
     icon: ImageVector,
-    label: String,
+    @StringRes labelRes: Int,
     onClick: () -> Unit,
 ) {
+    val label = stringResource(labelRes)
     Row(
         modifier = Modifier
             .fillMaxWidth()

@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -44,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.model.ImGroup
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.theme.LimeGray
@@ -57,7 +59,6 @@ fun GroupListScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var tab by remember { mutableIntStateOf(0) }
-
     val owned = state.groups.filter { it.ownerId == state.selfImUserId }
     val joined = state.groups.filter { it.ownerId != state.selfImUserId }
 
@@ -78,18 +79,18 @@ fun GroupListScreen(
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "返回",
+                    contentDescription = stringResource(R.string.back),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
             Spacer(Modifier.width(2.dp))
             TopBarTab(
-                label = "我创建的",
+                label = stringResource(R.string.group_list_tab_created),
                 selected = tab == 0,
                 onClick = { tab = 0 },
             )
             TopBarTab(
-                label = "我加入的",
+                label = stringResource(R.string.group_list_tab_joined),
                 selected = tab == 1,
                 onClick = { tab = 1 },
             )
@@ -97,7 +98,7 @@ fun GroupListScreen(
             IconButton(onClick = { navController.navigate(Screen.CreateGroup.route) }) {
                 Icon(
                     Icons.Filled.Add,
-                    contentDescription = "创建群聊",
+                    contentDescription = stringResource(R.string.msg_create_group),
                     tint = LimePrimary,
                 )
             }
@@ -115,7 +116,7 @@ fun GroupListScreen(
             list.isEmpty() -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        text = if (tab == 0) "还没有创建群聊" else "还没有加入群聊",
+                        text = if (tab == 0) stringResource(R.string.group_list_empty_created) else stringResource(R.string.group_list_empty_joined),
                         color = LimeGray,
                         fontSize = 14.sp,
                     )
@@ -221,6 +222,6 @@ private fun GroupItem(group: ImGroup, onClick: () -> Unit) {
                 )
             }
         }
-        Text("${group.memberCount}人", fontSize = 12.sp, color = LimeGray)
+        Text(stringResource(R.string.group_member_count, group.memberCount), fontSize = 12.sp, color = LimeGray)
     }
 }

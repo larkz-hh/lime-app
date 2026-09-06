@@ -30,7 +30,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
@@ -88,13 +90,13 @@ fun HistoryManageBar(
                     }
                 }
                 Spacer(Modifier.width(6.dp))
-                Text(text = "全选", style = MaterialTheme.typography.bodyMedium)
+                Text(text = stringResource(R.string.profile_select_all), style = MaterialTheme.typography.bodyMedium)
             }
 
             // 已选数量提示
             if (selectedCount > 0) {
                 Text(
-                    text = "已选${selectedCount}篇笔记",
+                    text = stringResource(R.string.profile_selected_notes_count, selectedCount),
                     style = MaterialTheme.typography.bodySmall,
                     color = LimeGray,
                 )
@@ -120,7 +122,7 @@ fun HistoryManageBar(
                         strokeWidth = 2.dp,
                     )
                 } else {
-                    Text("删除")
+                    Text(stringResource(R.string.profile_delete))
                 }
             }
         }

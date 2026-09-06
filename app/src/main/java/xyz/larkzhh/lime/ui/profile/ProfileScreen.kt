@@ -2,6 +2,7 @@ package xyz.larkzhh.lime.ui.profile
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -48,6 +49,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -58,6 +60,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.AuthorProfileSession
 import xyz.larkzhh.lime.navigation.ProfileLayoutStore
 import xyz.larkzhh.lime.navigation.Screen
@@ -93,10 +96,10 @@ import xyz.larkzhh.lime.util.extractGradientColor
 import xyz.larkzhh.lime.util.showToast
 
 /// 主页 Tab 类型
-private enum class ProfileTab(val label: String) {
-    Notes("笔记"),
-    Likes("点赞"),
-    Favorites("收藏"),
+private enum class ProfileTab(@StringRes val labelRes: Int) {
+    Notes(R.string.profile_tab_notes),
+    Likes(R.string.profile_tab_likes),
+    Favorites(R.string.profile_tab_favorites),
 }
 
 @Composable
@@ -120,6 +123,7 @@ fun ProfileScreen(
     val uploadError by viewModel.uploadError.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val mutualFollowRequiredText = stringResource(R.string.profile_mutual_follow_required)
     var showUnfollowConfirm by remember { mutableStateOf(false) }
     var showLikeFavStats by remember { mutableStateOf(false) }
 
@@ -142,7 +146,7 @@ fun ProfileScreen(
             } ?: emptyList()
         }
     }
-    val tabs = remember(tabKinds) { tabKinds.map { it.label } }
+    val tabs = remember(tabKinds) { tabKinds.map { it.labelRes } }.map { stringResource(it) }
     // 应用会话记录
     val pagerState = rememberPagerState(initialPage = session?.currentPage ?: 0) { tabs.size }
     val coroutineScope = rememberCoroutineScope()
@@ -417,7 +421,7 @@ fun ProfileScreen(
                 onMessageClick = {
                     targetUserId?.let { target ->
                         if (followState != FollowActionState.Mutual) {
-                            "需互相关注后才能私信".showToast(context)
+                            mutualFollowRequiredText.showToast(context)
                         } else {
                             imViewModel.openConversation(target) { conversationId ->
                                 navController.navigate(Screen.ImChat.createRoute(conversationId)) {

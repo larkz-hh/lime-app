@@ -40,6 +40,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
@@ -111,7 +112,7 @@ fun DanmakuInputSheet(
                 // 弹幕开关
                 Icon(
                     painter = painterResource(R.drawable.ic_barrage),
-                    contentDescription = "关闭弹幕",
+                    contentDescription = stringResource(R.string.video_danmaku_disable),
                     tint = Color.Black,
                     modifier = Modifier
                         .size(24.dp)
@@ -141,7 +142,7 @@ fun DanmakuInputSheet(
                     cursorBrush = SolidColor(LimePrimary),
                     decorationBox = { inner ->
                         if (text.isEmpty()) {
-                            Text(text = "发个弹幕呗… (∠・ω< )⌒☆", color = LimeGray, fontSize = 12.sp)
+                            Text(text = stringResource(R.string.video_danmaku_input_hint), color = LimeGray, fontSize = 12.sp)
                         }
                         inner()
                     },
@@ -161,7 +162,7 @@ fun DanmakuInputSheet(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "发送",
+                        text = stringResource(R.string.chat_send),
                         fontSize = 13.sp,
                         color = if (canSend) Color.White else LimeGray,
                     )

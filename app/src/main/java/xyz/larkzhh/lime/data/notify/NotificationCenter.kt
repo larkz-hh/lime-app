@@ -31,7 +31,7 @@ import javax.inject.Singleton
  * - IM 新消息
  * - 桌面角标
  */
-@OptIn(UnstableApi::class)
+@androidx.annotation.OptIn(UnstableApi::class)
 @Singleton
 class NotificationCenter @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -205,10 +205,16 @@ class NotificationCenter @Inject constructor(
 
     /// 创建系统通知渠道
     private fun createChannels() {
-        val interactions = NotificationChannel(CHANNEL_INTERACTIONS, "互动消息", NotificationManager.IMPORTANCE_DEFAULT)
-            .apply { setShowBadge(true) }
-        val im = NotificationChannel(CHANNEL_IM, "聊天消息", NotificationManager.IMPORTANCE_HIGH)
-            .apply { setShowBadge(true) }
+        val interactions = NotificationChannel(
+            CHANNEL_INTERACTIONS,
+            "互动消息",
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply { setShowBadge(true) }
+        val im = NotificationChannel(
+            CHANNEL_IM,
+            "聊天消息",
+            NotificationManager.IMPORTANCE_HIGH,
+        ).apply { setShowBadge(true) }
         nm.createNotificationChannel(interactions)
         nm.createNotificationChannel(im)
     }

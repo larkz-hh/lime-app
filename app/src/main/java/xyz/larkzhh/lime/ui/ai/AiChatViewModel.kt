@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.ui.ai
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,6 +8,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.tencent.mmkv.MMKV
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.repository.chat.ChatSendEngine
 import xyz.larkzhh.lime.data.repository.chat.ChatSendState
 import xyz.larkzhh.lime.domain.model.AiModelInfo
@@ -69,6 +72,7 @@ class AiChatViewModel @Inject constructor(
     private val chatSendEngine: ChatSendEngine,
     networkMonitor: NetworkMonitor,
     savedStateHandle: SavedStateHandle,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AiChatUiState())
@@ -179,7 +183,7 @@ class AiChatViewModel @Inject constructor(
             it.copy(
                 serverConversationId = null,
                 localConversationId = newId,
-                title = "新对话",
+                title = context.getString(R.string.ai_new_chat),
                 messages = emptyList(),
                 inputText = "",
                 pendingImages = emptyList(),
@@ -204,7 +208,7 @@ class AiChatViewModel @Inject constructor(
                     onDone(true)
                 },
                 onFailure = { e ->
-                    _state.update { s -> s.copy(error = e.message ?: "删除失败，请重试") }
+                    _state.update { s -> s.copy(error = e.message ?: context.getString(R.string.ai_delete_failed)) }
                     onDone(false)
                 },
             )
@@ -219,7 +223,7 @@ class AiChatViewModel @Inject constructor(
                     onDone(true)
                 },
                 onFailure = { e ->
-                    _state.update { s -> s.copy(error = e.message ?: "清空失败，请重试") }
+                    _state.update { s -> s.copy(error = e.message ?: context.getString(R.string.ai_clear_failed)) }
                     onDone(false)
                 },
             )
@@ -263,11 +267,11 @@ class AiChatViewModel @Inject constructor(
         val text = s.inputText.trim()
         if (text.isBlank() && s.pendingImages.isEmpty()) return
         if (s.isOffline) {
-            _state.update { it.copy(error = "当前无网络，无法发送") }
+            _state.update { it.copy(error = context.getString(R.string.ai_offline_cannot_send)) }
             return
         }
         if (s.pendingImages.any { it.state == PendingImageState.FAILED }) {
-            _state.update { it.copy(error = "有图片上传失败，请点击重试或移除") }
+            _state.update { it.copy(error = context.getString(R.string.ai_image_upload_failed)) }
             return
         }
         val images = s.pendingImages.map { it.localUri }
@@ -334,7 +338,7 @@ class AiChatViewModel @Inject constructor(
     fun retryMessage(message: ChatMessage) {
         if (_state.value.busy || _state.value.streaming) return
         if (_state.value.isOffline) {
-            _state.update { it.copy(error = "当前无网络，无法重发") }
+            _state.update { it.copy(error = context.getString(R.string.ai_offline_cannot_resend)) }
             return
         }
         val conversationId = _state.value.localConversationId
@@ -363,7 +367,7 @@ class AiChatViewModel @Inject constructor(
     fun regenerate(assistant: ChatMessage) {
         if (_state.value.busy || _state.value.streaming) return
         if (_state.value.isOffline) {
-            _state.update { it.copy(error = "当前无网络，无法重新生成") }
+            _state.update { it.copy(error = context.getString(R.string.ai_offline_cannot_regenerate)) }
             return
         }
         val msgs = _state.value.messages
@@ -456,10 +460,10 @@ class AiChatViewModel @Inject constructor(
     private fun onSendSuccess(wasNew: Boolean, cid: String, text: String) {
         if (wasNew) {
             _state.update {
-                it.copy(serverConversationId = cid, title = text.ifBlank { "图片对话" }.take(30))
+                it.copy(serverConversationId = cid, title = text.ifBlank { context.getString(R.string.ai_image_chat_title) }.take(30))
             }
         } else {
-            _state.update { it.copy(title = it.title.ifBlank { text.ifBlank { "图片对话" }.take(30) }) }
+            _state.update { it.copy(title = it.title.ifBlank { text.ifBlank { context.getString(R.string.ai_image_chat_title) }.take(30) }) }
         }
     }
 
@@ -492,7 +496,7 @@ class AiChatViewModel @Inject constructor(
                     _state.update { it.copy(showClearDialog = false) }
                 },
                 onFailure = { e ->
-                    _state.update { it.copy(showClearDialog = false, error = e.message ?: "清空失败，请重试") }
+                    _state.update { it.copy(showClearDialog = false, error = e.message ?: context.getString(R.string.ai_clear_failed)) }
                 },
             )
         }

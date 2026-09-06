@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,6 +67,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.components.ImageGridItem
 import xyz.larkzhh.lime.ui.publish.components.PickerImagePreview
@@ -150,10 +152,11 @@ fun PhotoPickerScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.Filled.Close, contentDescription = "关闭", tint = Color.White)
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.picker_close), tint = Color.White)
             }
             Text(
-                text = if (replaceMode) "更换视频" else "选择",
+                text = if (replaceMode) stringResource(R.string.picker_title_replace_video)
+                else stringResource(R.string.picker_title_select),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White,
@@ -163,7 +166,7 @@ fun PhotoPickerScreen(
                 val count = pickerState.selectedUris.size
                 if (count > 0) {
                     Text(
-                        text = "已选 $count/9",
+                        text = stringResource(R.string.picker_selected_count, count),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(end = 16.dp),
@@ -181,8 +184,8 @@ fun PhotoPickerScreen(
                     .padding(start = 16.dp, top = 4.dp, bottom = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-                PickerTabItem("照片", tab == PickerTab.PHOTO) { tab = PickerTab.PHOTO }
-                PickerTabItem("视频", tab == PickerTab.VIDEO) { tab = PickerTab.VIDEO }
+                PickerTabItem(stringResource(R.string.picker_tab_photo), tab == PickerTab.PHOTO) { tab = PickerTab.PHOTO }
+                PickerTabItem(stringResource(R.string.picker_tab_video), tab == PickerTab.VIDEO) { tab = PickerTab.VIDEO }
             }
         }
 
@@ -196,12 +199,12 @@ fun PhotoPickerScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("需要相册访问权限才能选择", color = Color.White)
+                        Text(stringResource(R.string.picker_permission_required), color = Color.White)
                         Button(
                             onClick = requestPermission,
                             modifier = Modifier.padding(top = 12.dp),
                         ) {
-                            Text("授予权限")
+                            Text(stringResource(R.string.picker_permission_grant))
                         }
                     }
                 }
@@ -277,6 +280,7 @@ fun PhotoPickerScreen(
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         items(videoPickerState.videos, key = { it.id }) { video ->
+                            val videoConstraintText = stringResource(R.string.picker_video_constraint)
                             VideoGridItem(
                                 video = video,
                                 isSelected = videoPickerState.selectedVideo?.id == video.id,
@@ -294,7 +298,7 @@ fun PhotoPickerScreen(
                                             videoViewModel.toggleVideoSelection(video)
                                         }
                                     } else {
-                                        "视频需为 mp4，且不超过 200MB、10 分钟".showToast(context)
+                                        videoConstraintText.showToast(context)
                                     }
                                 },
                             )
@@ -320,7 +324,7 @@ fun PhotoPickerScreen(
             when {
                 replaceMode -> {
                     NextButton(
-                        text = "完成",
+                        text = stringResource(R.string.picker_done),
                         enabled = videoPickerState.selectedVideo != null,
                     ) {
                         navController.popBackStack()
@@ -329,7 +333,8 @@ fun PhotoPickerScreen(
                 tab == PickerTab.PHOTO -> {
                     val count = pickerState.selectedUris.size
                     NextButton(
-                        text = if (count > 0) "下一步($count)" else "下一步",
+                        text = if (count > 0) stringResource(R.string.picker_next_count, count)
+                        else stringResource(R.string.picker_next),
                         enabled = count > 0,
                     ) {
                         viewModel.confirmSelection()
@@ -338,7 +343,7 @@ fun PhotoPickerScreen(
                 }
                 else -> {
                     NextButton(
-                        text = "下一步",
+                        text = stringResource(R.string.picker_next),
                         enabled = videoPickerState.selectedVideo != null,
                     ) {
                         navController.navigate(Screen.VideoPublish.route)
@@ -535,7 +540,7 @@ private fun VideoGridItem(
                 if (isSelected) {
                     Icon(
                         Icons.Filled.Check,
-                        contentDescription = "已选",
+                        contentDescription = stringResource(R.string.picker_selected),
                         tint = Color.White,
                         modifier = Modifier.size(16.dp),
                     )

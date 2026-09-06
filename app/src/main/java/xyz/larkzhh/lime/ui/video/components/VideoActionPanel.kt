@@ -42,6 +42,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -104,7 +105,7 @@ fun VideoActionPanel(
         SheetGroup {
             SheetActionRow(
                 action = GroupedSheetAction(
-                    label = "保存到相册",
+                    label = stringResource(R.string.video_save_to_album),
                     icon = Icons.Outlined.FileDownload,
                     iconSize = 20.dp,
                     fontSize = 15.sp,
@@ -120,21 +121,21 @@ fun VideoActionPanel(
             SheetRowDivider(startIndent = 52.dp)
             SwitchRow(
                 painterRes = R.drawable.ic_clear_screen,
-                label = "清屏播放",
+                label = stringResource(R.string.video_clear_screen_playback),
                 checked = clearScreen,
                 onToggle = onClearScreen,
             )
             SheetRowDivider(startIndent = 52.dp)
             SwitchRow(
                 icon = Icons.Filled.Loop,
-                label = "自动连播",
+                label = stringResource(R.string.video_auto_play_next),
                 checked = autoPlayNext,
                 onToggle = onToggleAutoPlayNext,
             )
             SheetRowDivider(startIndent = 52.dp)
             SwitchRow(
                 icon = Icons.Filled.Headphones,
-                label = "后台继续播放",
+                label = stringResource(R.string.video_background_playback),
                 checked = backgroundAudio,
                 onToggle = onToggleBackgroundAudio,
             )
@@ -144,7 +145,7 @@ fun VideoActionPanel(
         SheetGroup {
             SwitchRow(
                 painterRes = R.drawable.ic_barrage,
-                label = "弹幕",
+                label = stringResource(R.string.video_danmaku),
                 checked = danmakuEnabled,
                 onToggle = onToggleDanmaku,
             )
@@ -228,7 +229,7 @@ private fun SpeedRow(currentSpeed: Float, onSpeedChange: (Float) -> Unit) {
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(14.dp))
-        Text(text = "倍速", color = LimeDark, fontSize = 15.sp)
+        Text(text = stringResource(R.string.video_speed), color = LimeDark, fontSize = 15.sp)
         Spacer(Modifier.width(12.dp))
         Row(
             modifier = Modifier.weight(1f),
@@ -258,7 +259,7 @@ private fun SpeedRow(currentSpeed: Float, onSpeedChange: (Float) -> Unit) {
 private fun OpacityRow(opacity: Float, onOpacityChange: (Float) -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "弹幕不透明度", color = LimeDark, fontSize = 15.sp)
+            Text(text = stringResource(R.string.video_danmaku_opacity), color = LimeDark, fontSize = 15.sp)
             Spacer(Modifier.weight(1f))
             Text(text = "${(opacity * 100).toInt()}%", color = Color(0xFF8E8E93), fontSize = 14.sp)
         }

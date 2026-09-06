@@ -56,6 +56,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -65,6 +66,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.LimeSwitch
 import xyz.larkzhh.lime.ui.components.SheetGroup
@@ -144,14 +146,14 @@ private fun AccountPrivacyRootPage(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "账号与隐私",
+                        text = stringResource(R.string.drawer_account_privacy),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -173,7 +175,7 @@ private fun AccountPrivacyRootPage(
                 .padding(horizontal = 16.dp)
                 .padding(top = 12.dp),
         ) {
-            SectionLabel("账号")
+            SectionLabel(stringResource(R.string.account_section_account))
             SheetGroup(cardColor = Color.White) {
                 Row(
                     modifier = Modifier
@@ -190,12 +192,12 @@ private fun AccountPrivacyRootPage(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "登录邮箱",
+                            text = stringResource(R.string.account_login_email),
                             fontSize = 15.sp,
                             color = Color(0xFF1C1C1E),
                         )
                         Text(
-                            text = state.email?.let { maskEmail(it) } ?: "未获取到账号邮箱",
+                            text = state.email?.let { maskEmail(it) } ?: stringResource(R.string.account_email_unavailable),
                             fontSize = 12.sp,
                             color = LimeGray,
                         )
@@ -205,7 +207,7 @@ private fun AccountPrivacyRootPage(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            SectionLabel("账号安全")
+            SectionLabel(stringResource(R.string.account_section_security))
             SheetGroup(cardColor = Color.White) {
                 Row(
                     modifier = Modifier
@@ -226,7 +228,7 @@ private fun AccountPrivacyRootPage(
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
-                        text = "修改密码",
+                        text = stringResource(R.string.account_change_password),
                         fontSize = 15.sp,
                         color = Color(0xFF1C1C1E),
                         modifier = Modifier.weight(1f),
@@ -241,19 +243,19 @@ private fun AccountPrivacyRootPage(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            SectionLabel("隐私")
+            SectionLabel(stringResource(R.string.account_section_privacy))
             SheetGroup(cardColor = Color.White) {
                 PrivacySwitchRow(
-                    title = "点赞列表",
-                    description = "开启后，其他人无法查看你点赞的笔记",
+                    title = stringResource(R.string.account_like_list_title),
+                    description = stringResource(R.string.account_like_list_desc),
                     checked = state.likePrivate,
                     enabled = !state.isPrivacySaving,
                     onCheckedChange = viewModel::setLikePrivate,
                 )
                 SheetRowDivider(startIndent = 16.dp)
                 PrivacySwitchRow(
-                    title = "收藏列表",
-                    description = "开启后，其他人无法查看你收藏的笔记",
+                    title = stringResource(R.string.account_fav_list_title),
+                    description = stringResource(R.string.account_fav_list_desc),
                     checked = state.favPrivate,
                     enabled = !state.isPrivacySaving,
                     onCheckedChange = viewModel::setFavPrivate,
@@ -263,7 +265,7 @@ private fun AccountPrivacyRootPage(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "• 修改密码需验证身份（原密码或邮箱验证码），成功后需重新登录",
+                text = stringResource(R.string.account_change_password_note),
                 fontSize = 12.sp,
                 color = LimeGray,
                 lineHeight = 18.sp,
@@ -285,7 +287,7 @@ private fun AccountPrivacyRootPage(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "退出登录",
+                        text = stringResource(R.string.account_logout),
                         fontSize = 16.sp,
                         color = Color(0xFFFF3B30),
                         textAlign = TextAlign.Center,
@@ -301,9 +303,9 @@ private fun AccountPrivacyRootPage(
     // 退出登录二次确认
     if (showLogoutConfirm) {
         LimeAlertDialog(
-            title = "确认退出登录吗？",
-            firstButtonText = "取消",
-            secondButtonText = "退出登录",
+            title = stringResource(R.string.account_logout_confirm_title),
+            firstButtonText = stringResource(R.string.cancel),
+            secondButtonText = stringResource(R.string.account_logout),
             secondButtonColor = Color(0xFFFF3B30),
             onFirstButtonClick = { showLogoutConfirm = false },
             onSecondButtonClick = {
@@ -365,14 +367,14 @@ private fun ChangePasswordPage(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "修改密码",
+                        text = stringResource(R.string.account_change_password),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -410,7 +412,7 @@ private fun ChangePasswordPage(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = mode.label,
+                            text = stringResource(mode.labelRes),
                             fontSize = 15.sp,
                             color = if (state.verifyMode == mode) Color(0xFF1C1C1E) else LimeGray,
                             fontWeight = if (state.verifyMode == mode) FontWeight.Medium else FontWeight.Normal,
@@ -433,7 +435,7 @@ private fun ChangePasswordPage(
                     PasswordField(
                         value = state.oldPassword,
                         onValueChange = viewModel::onOldPasswordChange,
-                        label = "当前密码",
+                        label = stringResource(R.string.account_current_password),
                     )
                 }
 
@@ -443,9 +445,9 @@ private fun ChangePasswordPage(
                     val emailHint = state.email?.let { maskEmail(it) }
                     Text(
                         text = if (emailHint != null) {
-                            "验证码将发送至绑定邮箱 $emailHint"
+                            stringResource(R.string.account_code_email_hint, emailHint)
                         } else {
-                            "暂未获取到账号邮箱，请改用原密码验证"
+                            stringResource(R.string.account_code_email_unavailable)
                         },
                         fontSize = 12.sp,
                         color = LimeGray,
@@ -458,7 +460,7 @@ private fun ChangePasswordPage(
                             value = state.code,
                             onValueChange = viewModel::onCodeChange,
                             modifier = Modifier.weight(1f),
-                            label = { Text("验证码") },
+                            label = { Text(stringResource(R.string.account_verification_code)) },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Number,
@@ -481,7 +483,7 @@ private fun ChangePasswordPage(
                                     "${state.sendCodeCountdown}s",
                                     style = MaterialTheme.typography.bodySmall,
                                 )
-                                else -> Text("获取验证码", style = MaterialTheme.typography.bodySmall)
+                                else -> Text(stringResource(R.string.account_send_code), style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
@@ -491,7 +493,7 @@ private fun ChangePasswordPage(
             PasswordField(
                 value = state.newPassword,
                 onValueChange = viewModel::onNewPasswordChange,
-                label = "新密码",
+                label = stringResource(R.string.account_new_password),
                 visible = state.passwordVisible,
                 onToggleVisible = viewModel::togglePasswordVisible,
             )
@@ -499,13 +501,13 @@ private fun ChangePasswordPage(
             PasswordField(
                 value = state.confirmPassword,
                 onValueChange = viewModel::onConfirmPasswordChange,
-                label = "确认新密码",
+                label = stringResource(R.string.account_confirm_new_password),
                 visible = state.passwordVisible,
                 onToggleVisible = viewModel::togglePasswordVisible,
             )
 
             Text(
-                text = "新密码需为 6-32 位，且同时包含字母和数字",
+                text = stringResource(R.string.account_password_rule),
                 fontSize = 12.sp,
                 color = LimeGray,
                 modifier = Modifier.padding(horizontal = 4.dp),
@@ -534,7 +536,7 @@ private fun ChangePasswordPage(
                         color = Color.White,
                     )
                 } else {
-                    Text("确认修改", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.account_change_password_submit), style = MaterialTheme.typography.titleMedium)
                 }
             }
         }
@@ -544,11 +546,11 @@ private fun ChangePasswordPage(
     if (state.success) {
         AlertDialog(
             onDismissRequest = onPasswordChanged,
-            title = { Text("修改成功") },
-            text = { Text("密码已修改，请使用新密码重新登录") },
+            title = { Text(stringResource(R.string.account_password_changed_title)) },
+            text = { Text(stringResource(R.string.account_password_changed_message)) },
             confirmButton = {
                 TextButton(onClick = onPasswordChanged) {
-                    Text("确定", color = LimePrimary, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.account_ok), color = LimePrimary, fontWeight = FontWeight.SemiBold)
                 }
             },
         )
@@ -581,7 +583,11 @@ private fun PasswordField(
                 IconButton(onClick = toggle) {
                     Icon(
                         imageVector = if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                        contentDescription = if (visible) "隐藏密码" else "显示密码",
+                        contentDescription = if (visible) {
+                            stringResource(R.string.account_password_hide)
+                        } else {
+                            stringResource(R.string.account_password_show)
+                        },
                     )
                 }
             }

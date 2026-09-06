@@ -17,9 +17,9 @@ import xyz.larkzhh.lime.navigation.Screen
 import javax.inject.Inject
 
 /// 关注、粉丝 tab
-enum class FollowTab(val label: String, val routeValue: String) {
-    Following("关注", Screen.FollowList.TAB_FOLLOWING),
-    Followers("粉丝", Screen.FollowList.TAB_FOLLOWERS);
+enum class FollowTab(val routeValue: String) {
+    Following(Screen.FollowList.TAB_FOLLOWING),
+    Followers(Screen.FollowList.TAB_FOLLOWERS);
 
     companion object {
         fun fromRoute(value: String?): FollowTab =

@@ -21,6 +21,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import xyz.larkzhh.lime.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Reply
@@ -143,6 +144,7 @@ fun DetailScreen(
     var showQrSaveConfirm by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val t = detailTexts()
 
     LaunchedEffect(noteId) {
         val id = noteId.toLongOrNull() ?: return@LaunchedEffect
@@ -267,9 +269,9 @@ fun DetailScreen(
                         onVoiceClick = {
                             commentViewModel.openInputSheet(null)
                             if (commentUiState.pendingImages.isNotEmpty()) {
-                                "图片和语音不能同时添加".showToast(context)
+                                t.imageVoiceMutexToast.showToast(context)
                             } else if (commentUiState.pendingVoice != null) {
-                                "只能添加一条语音".showToast(context)
+                                t.voiceOnlyToast.showToast(context)
                             } else {
                                 commentViewModel.openVoiceSheet()
                             }
@@ -277,7 +279,7 @@ fun DetailScreen(
                         onAlbumClick = {
                             commentViewModel.openInputSheet(null)
                             if (commentUiState.pendingVoice != null) {
-                                "图片和语音不能同时添加".showToast(context)
+                                t.imageVoiceMutexToast.showToast(context)
                             } else {
                                 navController.navigate(Screen.CommentPhotoPicker.route)
                             }
@@ -352,7 +354,9 @@ fun DetailScreen(
         // 评论输入框
         var voiceSheetHeightDp by remember { mutableIntStateOf(0) }
         if (commentUiState.showInputSheet) {
-            val hint = commentUiState.replyTarget?.let { "回复 @${it.replyToNickname}" } ?: "说点什么…"
+            val hint = commentUiState.replyTarget?.let { target ->
+                stringResource(R.string.comment_reply_to_hint, target.replyToNickname)
+            } ?: stringResource(R.string.comment_input_hint)
             CommentInputSheet(
                 hint = hint,
                 isSubmitting = commentUiState.isSubmitting,
@@ -390,12 +394,12 @@ fun DetailScreen(
                 onBackgroundDownload = {
                     translateViewModel.scheduleBackgroundDownload()
                     translateViewModel.dismiss()
-                    "已加入后台下载，完成后即可离线翻译".showToast(context)
+                    t.bgDownloadAddedToast.showToast(context)
                 },
                 onSwitchDirection = translateViewModel::switchDirection,
                 onCopy = { text ->
                     text.copyToClipboard(context)
-                    "已复制".showToast(context)
+                    t.copiedToast.showToast(context)
                 },
             )
         }
@@ -444,21 +448,21 @@ fun DetailScreen(
                 val m = menu ?: return@buildList
                 add(listOf(
                     GroupedSheetAction(
-                        label = "回复",
+                        label = t.replyMenuLabel,
                         icon = Icons.AutoMirrored.Outlined.Reply,
                         onClick = { commentViewModel.openInputSheet(m.replyTarget) },
                     ),
                     GroupedSheetAction(
-                        label = "复制",
+                        label = t.copyMenuLabel,
                         icon = Icons.Outlined.ContentCopy,
                         iconSize = 20.dp,
                         onClick = {
                             m.copyText?.copyToClipboard(context)
-                            "已复制".showToast(context)
+                            t.copiedToast.showToast(context)
                         },
                     ),
                     GroupedSheetAction(
-                        label = "翻译",
+                        label = t.translateMenuLabel,
                         icon = Icons.Outlined.Translate,
                         iconSize = 20.dp,
                         onClick = {
@@ -469,7 +473,7 @@ fun DetailScreen(
                 if (m.canDelete) {
                     add(listOf(
                         GroupedSheetAction(
-                            label = "删除",
+                            label = t.deleteMenuLabel,
                             icon = Icons.Outlined.Delete,
                             textColor = Color(0xFFFF3B30),
                             onClick = m.onDelete,
@@ -482,7 +486,10 @@ fun DetailScreen(
         // 删除确认对话框
         if (pendingDeleteAction != null) {
             LimeAlertDialog(
-                title = "确认删除这条评论吗？",
+                title = stringResource(R.string.comment_delete_confirm_title),
+                firstButtonText = stringResource(R.string.cancel),
+                secondButtonText = stringResource(R.string.delete),
+                secondButtonColor = Color(0xFFFF3B30),
                 onDismissRequest = { pendingDeleteAction = null },
                 onFirstButtonClick = { pendingDeleteAction = null },
                 onSecondButtonClick = {
@@ -511,17 +518,20 @@ fun DetailScreen(
         // 删除笔记确认
         if (showDeleteNoteConfirm) {
             LimeAlertDialog(
-                title = "确认永久删除作品？\n删除后不可恢复",
+                title = stringResource(R.string.detail_note_delete_confirm_title),
+                firstButtonText = stringResource(R.string.cancel),
+                secondButtonText = stringResource(R.string.delete),
+                secondButtonColor = Color(0xFFFF3B30),
                 onDismissRequest = { showDeleteNoteConfirm = false },
                 onFirstButtonClick = { showDeleteNoteConfirm = false },
                 onSecondButtonClick = {
                     showDeleteNoteConfirm = false
                     viewModel.deleteCurrentNote { ok ->
                         if (ok) {
-                            "笔记已删除".showToast(context)
+                            t.noteDeletedToast.showToast(context)
                             navController.popBackStack()
                         } else {
-                            "删除失败，请重试".showToast(context)
+                            t.deleteFailedToast.showToast(context)
                         }
                     }
                 },
@@ -531,10 +541,10 @@ fun DetailScreen(
         // 生成笔记二维码
         if (showQrSaveConfirm) {
             LimeAlertDialog(
-                title = "保存笔记二维码",
-                text = "将生成这篇笔记的二维码保存到相册，好友扫一扫即可打开笔记。",
-                firstButtonText = "取消",
-                secondButtonText = "保存",
+                title = stringResource(R.string.detail_save_qr_title),
+                text = stringResource(R.string.detail_save_qr_message),
+                firstButtonText = stringResource(R.string.cancel),
+                secondButtonText = stringResource(R.string.save),
                 onDismissRequest = { showQrSaveConfirm = false },
                 onFirstButtonClick = { showQrSaveConfirm = false },
                 onSecondButtonClick = {
@@ -546,10 +556,10 @@ fun DetailScreen(
                             }
                             if (qr != null) {
                                 val ok = saveBitmapToGallery(context, qr, "lime_note_${note.id}.jpg")
-                                if (ok) "二维码已保存到相册".showToast(context)
-                                else "保存失败，请重试".showToast(context)
+                                if (ok) t.qrSavedToast.showToast(context)
+                                else t.saveFailedToast.showToast(context)
                             } else {
-                                "二维码生成失败".showToast(context)
+                                t.qrGenFailedToast.showToast(context)
                             }
                         }
                     }
@@ -600,15 +610,32 @@ private fun NoteContent(
 ) {
     val context = LocalContext.current
     val chatActionPainter = painterResource(R.drawable.ic_chat)
-    val selectionActions = remember(context, onTranslate, onSearch, onAskAi) {
+    // 本地化文案（长按菜单与 Toast 使用）
+    val copyActionText = stringResource(R.string.chat_copy)
+    val searchActionText = stringResource(R.string.home_search_cd)
+    val translateActionText = stringResource(R.string.drawer_translate)
+    val askAiActionText = stringResource(R.string.shortcut_ai)
+    val copiedToastText = stringResource(R.string.detail_copied)
+    val translateFailedToast = stringResource(R.string.detail_translate_failed)
+    val selectionActions = remember(
+        context,
+        copyActionText,
+        searchActionText,
+        translateActionText,
+        askAiActionText,
+        copiedToastText,
+        onTranslate,
+        onSearch,
+        onAskAi,
+    ) {
         listOf(
             SelectionAction(
-                "复制",
+                copyActionText,
                 Icons.Outlined.ContentCopy
-            ) { it.copyToClipboard(context); "已复制".showToast(context) },
-            SelectionAction("搜索", Icons.Outlined.Search) { onSearch(it) },
-            SelectionAction("翻译", Icons.Outlined.Translate) { onTranslate(it) },
-            SelectionAction("问AI", painter = chatActionPainter) { onAskAi(it) },
+            ) { it.copyToClipboard(context); copiedToastText.showToast(context) },
+            SelectionAction(searchActionText, Icons.Outlined.Search) { onSearch(it) },
+            SelectionAction(translateActionText, Icons.Outlined.Translate) { onTranslate(it) },
+            SelectionAction(askAiActionText, painter = chatActionPainter) { onAskAi(it) },
         )
     }
 
@@ -620,7 +647,7 @@ private fun NoteContent(
     // 翻译失败提示
     LaunchedEffect(fullText.error) {
         if (fullText.error) {
-            "翻译失败，请检查网络后重试".showToast(context)
+            translateFailedToast.showToast(context)
         }
     }
 
@@ -708,7 +735,7 @@ private fun NoteContent(
                             modifier = Modifier.size(13.dp),
                         )
                         Text(
-                            text = if (fullText.translated) "查看原文" else "一键翻译",
+                            text = if (fullText.translated) stringResource(R.string.detail_view_original) else stringResource(R.string.detail_translate_full),
                             color = LimePrimary,
                             fontSize = 12.sp,
                         )
@@ -766,7 +793,7 @@ private fun NoteContent(
                         modifier = Modifier.size(180.dp),
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "这是一片荒草地", fontSize = 13.sp, color = LimeGray)
+                    Text(text = stringResource(R.string.comment_empty_hint), fontSize = 13.sp, color = LimeGray)
                 }
             }
         }
@@ -821,7 +848,7 @@ private fun NoteContent(
                         .padding(vertical = 20.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "- 到底了 -", fontSize = 12.sp, color = LimeGray)
+                    Text(text = stringResource(R.string.detail_end_of_list), fontSize = 12.sp, color = LimeGray)
                 }
             }
         }

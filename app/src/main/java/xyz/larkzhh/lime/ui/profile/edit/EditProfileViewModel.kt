@@ -1,14 +1,17 @@
 package xyz.larkzhh.lime.ui.profile.edit
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.domain.repository.UserRepository
 import javax.inject.Inject
@@ -42,6 +45,7 @@ sealed class EditProfileUiState {
  */
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
@@ -65,7 +69,7 @@ class EditProfileViewModel @Inject constructor(
                 .onSuccess { user -> _uiState.value = EditProfileUiState.Ready(form = user.toEditForm()) }
                 .onFailure { e ->
                     if (e is CancellationException) return@onFailure
-                    _uiState.value = EditProfileUiState.Error(e.message ?: "加载失败")
+                    _uiState.value = EditProfileUiState.Error(e.message ?: context.getString(R.string.edit_load_failed))
                 }
         }
     }
@@ -91,7 +95,8 @@ class EditProfileViewModel @Inject constructor(
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 updateForm { it.copy(avatarUrl = originalUrl) }
-                setUploadError("头像上传失败：${e.message ?: "网络错误"}")
+                val reason = e.message ?: context.getString(R.string.edit_network_error)
+                setUploadError(context.getString(R.string.edit_avatar_upload_failed, reason))
             } finally {
                 (_uiState.value as? EditProfileUiState.Ready)?.let {
                     _uiState.value = it.copy(isUploading = false)
@@ -115,7 +120,8 @@ class EditProfileViewModel @Inject constructor(
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 updateForm { it.copy(backgroundUrl = originalUrl) }
-                setUploadError("背景图上传失败：${e.message ?: "网络错误"}")
+                val reason = e.message ?: context.getString(R.string.edit_network_error)
+                setUploadError(context.getString(R.string.edit_bg_upload_failed, reason))
             } finally {
                 (_uiState.value as? EditProfileUiState.Ready)?.let {
                     _uiState.value = it.copy(isUploading = false)
@@ -150,7 +156,7 @@ class EditProfileViewModel @Inject constructor(
                 _uiState.value = state.copy(isSaving = false, done = true)
             }.onFailure { e ->
                 if (e is CancellationException) return@onFailure
-                _uiState.value = state.copy(isSaving = false, error = e.message ?: "保存失败")
+                _uiState.value = state.copy(isSaving = false, error = e.message ?: context.getString(R.string.edit_save_failed))
             }
         }
     }

@@ -1,15 +1,19 @@
 package xyz.larkzhh.lime.ui.publish.ai
 
+import android.content.Context
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.model.AiWriteEvent
 import xyz.larkzhh.lime.domain.repository.AiRepository
 import xyz.larkzhh.lime.domain.repository.NoteRepository
@@ -22,12 +26,12 @@ data class AiWriteImage(
 )
 
 /// AI 帮写动作
-enum class AiWriteAction(val code: String, val label: String) {
-    CAPTION("caption", "看图写文案"),
-    TITLE("title", "起标题"),
-    POLISH("polish", "润色"),
-    CONTINUE("continue", "续写"),
-    CONDENSE("condense", "精简"),
+enum class AiWriteAction(val code: String, @StringRes val labelRes: Int) {
+    CAPTION("caption", R.string.ai_write_action_caption),
+    TITLE("title", R.string.ai_write_action_title),
+    POLISH("polish", R.string.ai_write_action_polish),
+    CONTINUE("continue", R.string.ai_write_action_continue),
+    CONDENSE("condense", R.string.ai_write_action_condense),
     ;
 
     companion object {
@@ -63,6 +67,7 @@ data class AiWriteUiState(
 class AiWriteViewModel @Inject constructor(
     private val aiRepository: AiRepository,
     private val noteRepository: NoteRepository,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AiWriteUiState())
@@ -82,19 +87,27 @@ class AiWriteViewModel @Inject constructor(
         when (action) {
             AiWriteAction.CAPTION ->
                 if (!hasImages) {
-                    hint(action, "请先添加图片，才能看图写文案")
+                    hint(action, context.getString(R.string.ai_write_hint_caption_need_image))
                     return
                 }
 
             AiWriteAction.TITLE ->
                 if (trimmed.isEmpty() && !hasImages) {
-                    hint(action, "输入一点内容或添加图片后，再让 AI 起标题呗")
+                    hint(action, context.getString(R.string.ai_write_hint_title_need_input))
                     return
                 }
 
             AiWriteAction.POLISH, AiWriteAction.CONTINUE, AiWriteAction.CONDENSE ->
                 if (trimmed.length < MIN_TEXT_ACTION_CHARS) {
-                    hint(action, "拜托，正文至少 $MIN_TEXT_ACTION_CHARS 个字，才能${action.label}")
+                    val message = when (action) {
+                        AiWriteAction.CONTINUE ->
+                            context.getString(R.string.ai_write_min_text_continue, MIN_TEXT_ACTION_CHARS)
+                        AiWriteAction.CONDENSE ->
+                            context.getString(R.string.ai_write_min_text_condense, MIN_TEXT_ACTION_CHARS)
+                        else ->
+                            context.getString(R.string.ai_write_min_text_polish, MIN_TEXT_ACTION_CHARS)
+                    }
+                    hint(action, message)
                     return
                 }
         }
@@ -111,7 +124,11 @@ class AiWriteViewModel @Inject constructor(
             val imageUrls = if (needImages) {
                 resolveImageUrls(images).getOrElse {
                     _state.update {
-                        it.copy(isGenerating = false, isUploading = false, error = "图片上传失败，请重试")
+                        it.copy(
+                            isGenerating = false,
+                            isUploading = false,
+                            error = context.getString(R.string.ai_write_error_upload_failed),
+                        )
                     }
                     return@launch
                 }
@@ -189,7 +206,9 @@ class AiWriteViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isUploading = true,
-                        uploadProgressText = "正在上传图片 $uploaded/$localCount…",
+                        uploadProgressText = context.getString(
+                            R.string.ai_write_uploading_progress, uploaded, localCount
+                        ),
                     )
                 }
                 noteRepository.uploadImage(image.uri).getOrThrow()

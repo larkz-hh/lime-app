@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.FollowListItem
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.FollowRelation
@@ -89,18 +91,18 @@ fun FollowListScreen(
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "返回",
+                    contentDescription = stringResource(R.string.back),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
             Spacer(Modifier.width(2.dp))
             TopBarTab(
-                label = FollowTab.Following.label,
+                label = stringResource(R.string.follow_tab_following),
                 selected = uiState.selectedTab == FollowTab.Following,
                 onClick = { viewModel.selectTab(FollowTab.Following) },
             )
             TopBarTab(
-                label = FollowTab.Followers.label,
+                label = stringResource(R.string.follow_tab_followers),
                 selected = uiState.selectedTab == FollowTab.Followers,
                 onClick = { viewModel.selectTab(FollowTab.Followers) },
             )
@@ -135,7 +137,7 @@ fun FollowListScreen(
             page.items.isEmpty() -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        text = if (tab == FollowTab.Following) "还没有关注的人~" else "还没有粉丝~",
+                        text = if (tab == FollowTab.Following) stringResource(R.string.follow_empty_following) else stringResource(R.string.follow_empty_followers),
                         color = LimeGray,
                     )
                 }
@@ -307,7 +309,7 @@ private fun FollowUserCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = item.bio?.takeIf { it.isNotBlank() } ?: "还没有简介",
+                    text = item.bio?.takeIf { it.isNotBlank() } ?: stringResource(R.string.follow_bio_empty),
                     fontSize = 13.sp,
                     lineHeight = 16.sp,
                     color = LimeGray,

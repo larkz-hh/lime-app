@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -78,7 +79,10 @@ private const val DEFAULT_TAB_INDEX = TAB_DISCOVER
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
-    val tabs = listOf("关注", "发现")
+    val tabs = listOf(
+        stringResource(R.string.home_tab_follow),
+        stringResource(R.string.home_tab_discover),
+    )
     val pagerState = rememberPagerState(
         initialPage = DEFAULT_TAB_INDEX,
         pageCount = { tabs.size },
@@ -129,7 +133,7 @@ private fun HomeTopBar(
         IconButton(onClick = onChatClick) {
             Icon(
                 painter = painterResource(R.drawable.ic_chat),
-                contentDescription = "聊天",
+                contentDescription = stringResource(R.string.home_chat_cd),
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.size(20.dp),
             )
@@ -176,7 +180,7 @@ private fun HomeTopBar(
         IconButton(onClick = onSearchClick) {
             Icon(
                 imageVector = Icons.Outlined.Search,
-                contentDescription = "搜索",
+                contentDescription = stringResource(R.string.home_search_cd),
                 tint = MaterialTheme.colorScheme.onBackground,
             )
         }
@@ -190,7 +194,7 @@ private fun FollowTab(navController: NavHostController) {
     HomeFeedPage(
         navController = navController,
         feed = viewModel.followingFeed,
-        emptyHint = "关注的人还没有发布笔记",
+        emptyHint = stringResource(R.string.home_empty_following),
     )
 }
 
@@ -262,7 +266,7 @@ private fun HomeFeedPage(
                         textAlign = TextAlign.Center,
                     )
                     TextButton(onClick = { pagingItems.refresh() }) {
-                        Text(text = "刷新看看", color = LimePrimary)
+                        Text(text = stringResource(R.string.home_refresh_action), color = LimePrimary)
                     }
                 }
             }

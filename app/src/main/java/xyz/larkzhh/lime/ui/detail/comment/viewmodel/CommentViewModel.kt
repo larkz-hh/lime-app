@@ -2,11 +2,14 @@ package xyz.larkzhh.lime.ui.detail.comment.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.content.Context
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.CommentListResponse
 import xyz.larkzhh.lime.data.network.model.ReplyData
@@ -69,6 +72,7 @@ data class ReplyTarget(
  */
 @HiltViewModel
 class CommentViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val commentRepository: CommentRepository,
     private val userRepository: UserRepository,
     private val eventBus: NoteEventBus,
@@ -148,7 +152,7 @@ class CommentViewModel @Inject constructor(
                     }
                 } else {
                     _uiState.update {
-                        it.copy(isLoading = false, isLoadingMore = false, error = "评论加载失败，请重试")
+                        it.copy(isLoading = false, isLoadingMore = false, error = context.getString(R.string.comment_load_failed))
                     }
                 }
             }

@@ -32,11 +32,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import xyz.larkzhh.lime.R
 
 private val InkColor = Color(0xFF1C1C1E)
 
@@ -70,7 +72,7 @@ fun NoteManageSheet(
                     .padding(top = 8.dp),
             ) {
                 Text(
-                    text = "设置",
+                    text = stringResource(R.string.note_manage_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
@@ -82,7 +84,7 @@ fun NoteManageSheet(
                 IconButton(onClick = onDismiss, modifier = Modifier.align(Alignment.TopEnd)) {
                     Icon(
                         Icons.Outlined.Close,
-                        contentDescription = "关闭",
+                        contentDescription = stringResource(R.string.note_manage_close),
                         tint = InkColor,
                     )
                 }
@@ -96,7 +98,7 @@ fun NoteManageSheet(
             ) {
                 ManageActionItem(
                     icon = Icons.Outlined.Edit,
-                    label = "编辑",
+                    label = stringResource(R.string.note_manage_edit),
                     onClick = {
                         onEdit()
                         onDismiss()
@@ -104,7 +106,7 @@ fun NoteManageSheet(
                 )
                 ManageActionItem(
                     icon = Icons.Outlined.Delete,
-                    label = "删除",
+                    label = stringResource(R.string.delete),
                     color = Color(0xFFFF3B30),
                     onClick = {
                         onDelete()

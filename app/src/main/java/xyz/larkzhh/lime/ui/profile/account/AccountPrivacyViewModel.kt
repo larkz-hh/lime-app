@@ -1,9 +1,12 @@
 package xyz.larkzhh.lime.ui.profile.account
 
+import android.content.Context
 import android.util.Patterns
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,15 +14,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.repository.AuthRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 
 /// 身份验证方式
-enum class VerifyMode(val label: String) {
-    OldPassword("原密码验证"),
-    Code("邮箱验证码"),
+enum class VerifyMode(@StringRes val labelRes: Int) {
+    OldPassword(R.string.account_verify_old_password),
+    Code(R.string.account_verify_email_code),
 }
 
 data class AccountPrivacyUiState(
@@ -46,6 +50,7 @@ data class AccountPrivacyUiState(
  */
 @HiltViewModel
 class AccountPrivacyViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
 ) : ViewModel() {
@@ -133,7 +138,7 @@ class AccountPrivacyViewModel @Inject constructor(
                         isPrivacySaving = false,
                         likePrivate = prevLike,
                         favPrivate = prevFav,
-                        privacyError = e.message ?: "设置失败，请重试",
+                        privacyError = e.message ?: context.getString(R.string.account_privacy_save_failed),
                     )
                 }
             }
@@ -165,7 +170,7 @@ class AccountPrivacyViewModel @Inject constructor(
         val s = _uiState.value
         val email = s.email
         if (email.isNullOrBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _uiState.update { it.copy(errorMessage = "无法获取账号邮箱，请改用原密码验证") }
+            _uiState.update { it.copy(errorMessage = context.getString(R.string.account_code_send_no_email)) }
             return
         }
         viewModelScope.launch {
@@ -174,7 +179,7 @@ class AccountPrivacyViewModel @Inject constructor(
                 authRepository.sendCode(email).getOrThrow()
                 startCountdown()
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = e.message ?: "验证码发送失败") }
+                _uiState.update { it.copy(errorMessage = e.message ?: context.getString(R.string.account_code_send_failed)) }
             } finally {
                 _uiState.update { it.copy(isSendingCode = false) }
             }
@@ -185,11 +190,11 @@ class AccountPrivacyViewModel @Inject constructor(
     fun submitChangePassword() {
         val s = _uiState.value
         val error = when {
-            s.verifyMode == VerifyMode.OldPassword && s.oldPassword.isBlank() -> "请输入当前密码"
-            s.verifyMode == VerifyMode.Code && s.code.isBlank() -> "请输入邮箱验证码"
-            !isValidNewPassword(s.newPassword) -> "新密码需为 6-32 位，且同时包含字母和数字"
-            s.verifyMode == VerifyMode.OldPassword && s.newPassword == s.oldPassword -> "新密码不能与当前密码相同"
-            s.confirmPassword != s.newPassword -> "两次输入的新密码不一致"
+            s.verifyMode == VerifyMode.OldPassword && s.oldPassword.isBlank() -> context.getString(R.string.account_enter_current_password)
+            s.verifyMode == VerifyMode.Code && s.code.isBlank() -> context.getString(R.string.account_enter_email_code)
+            !isValidNewPassword(s.newPassword) -> context.getString(R.string.account_password_rule)
+            s.verifyMode == VerifyMode.OldPassword && s.newPassword == s.oldPassword -> context.getString(R.string.account_password_same_as_current)
+            s.confirmPassword != s.newPassword -> context.getString(R.string.account_password_mismatch)
             else -> null
         }
         if (error != null) {
@@ -207,7 +212,7 @@ class AccountPrivacyViewModel @Inject constructor(
                 _uiState.update { it.copy(isSubmitting = false, success = true) }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(isSubmitting = false, errorMessage = e.message ?: "修改失败，请重试")
+                    it.copy(isSubmitting = false, errorMessage = e.message ?: context.getString(R.string.account_change_password_failed))
                 }
             }
         }

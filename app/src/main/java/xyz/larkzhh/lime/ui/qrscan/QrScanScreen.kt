@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +47,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.qrscan.components.CameraPreview
 import xyz.larkzhh.lime.ui.qrscan.components.ScanOverlay
@@ -63,6 +65,11 @@ fun QrScanScreen(navController: NavHostController) {
     val scanner = remember { BarcodeScanning.getClient() }
     var isAlbumScanning by remember { mutableStateOf(false) }
     var camera by remember { mutableStateOf<Camera?>(null) }
+
+    val userNotFoundText = stringResource(R.string.qr_user_not_found)
+    val imageReadFailedText = stringResource(R.string.qr_image_read_failed)
+    val noQrDetectedText = stringResource(R.string.qr_none_detected)
+    val scanFailedText = stringResource(R.string.qr_scan_failed)
 
     DisposableEffect(Unit) {
         onDispose {
@@ -85,7 +92,7 @@ fun QrScanScreen(navController: NavHostController) {
                     navController.popBackStack()
                     navController.navigate(Screen.UserProfile.createRoute(userId))
                 } else {
-                    "未找到该用户".showToast(context)
+                    userNotFoundText.showToast(context)
                 }
             }
             return
@@ -111,7 +118,7 @@ fun QrScanScreen(navController: NavHostController) {
         val image: InputImage = try {
             InputImage.fromFilePath(context, imageUri)
         } catch (e: Exception) {
-            "无法读取图片".showToast(context)
+            imageReadFailedText.showToast(context)
             return@rememberLauncherForActivityResult
         }
         isAlbumScanning = true
@@ -120,11 +127,11 @@ fun QrScanScreen(navController: NavHostController) {
                 isAlbumScanning = false
                 val raw = barcodes.firstOrNull { it.format == Barcode.FORMAT_QR_CODE }?.rawValue
                 if (!raw.isNullOrBlank()) handleResult(raw)
-                else "未识别到二维码".showToast(context)
+                else noQrDetectedText.showToast(context)
             }
             .addOnFailureListener {
                 isAlbumScanning = false
-                "识别失败，请重试".showToast(context)
+                scanFailedText.showToast(context)
             }
     }
 
@@ -138,7 +145,7 @@ fun QrScanScreen(navController: NavHostController) {
             ScanOverlay(camera = camera)
         } else {
             Text(
-                text = "需要相机权限才能扫描二维码",
+                text = stringResource(R.string.qr_permission_required),
                 color = Color.White,
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
@@ -170,12 +177,12 @@ fun QrScanScreen(navController: NavHostController) {
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "返回",
+                    contentDescription = stringResource(R.string.back),
                     tint = Color.White,
                 )
             }
             Text(
-                text = "扫描二维码",
+                text = stringResource(R.string.qr_title),
                 color = Color.White,
                 fontSize = 18.sp,
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 12.dp),
@@ -201,13 +208,13 @@ fun QrScanScreen(navController: NavHostController) {
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Photo,
-                    contentDescription = "相册",
+                    contentDescription = stringResource(R.string.qr_album),
                     tint = Color.White,
                     modifier = Modifier.size(28.dp),
                 )
             }
             Text(
-                text = "相册",
+                text = stringResource(R.string.qr_album),
                 color = Color.White,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 8.dp),

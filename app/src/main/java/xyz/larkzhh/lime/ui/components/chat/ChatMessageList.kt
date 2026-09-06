@@ -37,9 +37,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import java.time.Instant
@@ -157,7 +159,7 @@ fun ChatMessageList(
             ) {
                 Icon(
                     Icons.Filled.ArrowDownward,
-                    contentDescription = "回到底部",
+                    contentDescription = stringResource(R.string.chat_scroll_to_bottom),
                     tint = Color(0xFF3A3A3A),
                     modifier = Modifier.size(20.dp),
                 )
@@ -194,7 +196,11 @@ private fun TimeDivider(timestamp: Long?) {
         horizontalArrangement = Arrangement.Center,
     ) {
         Text(
-            text = formatChatDividerTime(timestamp),
+            text = formatChatDividerTime(
+                timestamp,
+                sameYearPattern = stringResource(R.string.chat_time_format_same_year),
+                otherYearPattern = stringResource(R.string.chat_time_format_other_year),
+            ),
             color = LimeGray,
             fontSize = 11.sp,
             modifier = Modifier
@@ -205,14 +211,18 @@ private fun TimeDivider(timestamp: Long?) {
     }
 }
 
-private fun formatChatDividerTime(timestamp: Long?): String {
+private fun formatChatDividerTime(
+    timestamp: Long?,
+    sameYearPattern: String,
+    otherYearPattern: String,
+): String {
     if (timestamp == null) return ""
     val time = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault())
     val now = Instant.now().atZone(ZoneId.systemDefault())
     val hm = time.format(DateTimeFormatter.ofPattern("HH:mm"))
     return when {
         time.toLocalDate() == now.toLocalDate() -> hm
-        time.year == now.year -> time.format(DateTimeFormatter.ofPattern("M月d日 HH:mm"))
-        else -> time.format(DateTimeFormatter.ofPattern("yyyy年M月d日 HH:mm"))
+        time.year == now.year -> time.format(DateTimeFormatter.ofPattern(sameYearPattern))
+        else -> time.format(DateTimeFormatter.ofPattern(otherYearPattern))
     }
 }

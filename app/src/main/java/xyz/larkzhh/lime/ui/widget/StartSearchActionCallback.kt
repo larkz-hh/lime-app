@@ -5,11 +5,9 @@ import android.content.Intent
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
-import androidx.media3.common.util.UnstableApi
 import xyz.larkzhh.lime.MainActivity
 import xyz.larkzhh.lime.navigation.ShortcutActions
 
-@UnstableApi
 class StartSearchActionCallback : ActionCallback {
 
     companion object {

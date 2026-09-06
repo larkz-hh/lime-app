@@ -1,13 +1,16 @@
 package xyz.larkzhh.lime.ui.im.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.model.ImMessage
 import xyz.larkzhh.lime.domain.model.ImUserProfile
 import xyz.larkzhh.lime.domain.repository.ImRepository
@@ -37,6 +40,7 @@ data class ImChatUiState(
 class ImChatViewModel @Inject constructor(
     private val imRepository: ImRepository,
     private val userRepository: UserRepository,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ImChatUiState())
@@ -101,7 +105,7 @@ class ImChatViewModel @Inject constructor(
                     }
                 },
                 onFailure = { e ->
-                    _state.update { it.copy(errorMessage = e.message ?: "撤回失败") }
+                    _state.update { it.copy(errorMessage = e.message ?: context.getString(R.string.im_revoke_failed)) }
                 },
             )
         }
@@ -118,7 +122,7 @@ class ImChatViewModel @Inject constructor(
                     }
                 },
                 onFailure = { e ->
-                    _state.update { it.copy(errorMessage = e.message ?: "删除失败") }
+                    _state.update { it.copy(errorMessage = e.message ?: context.getString(R.string.im_delete_failed)) }
                 },
             )
         }
@@ -132,7 +136,7 @@ class ImChatViewModel @Inject constructor(
             imRepository.clearHistory(conversationId).fold(
                 onSuccess = { _state.update { it.copy(messages = emptyList()) } },
                 onFailure = { e ->
-                    _state.update { it.copy(errorMessage = e.message ?: "清空失败") }
+                    _state.update { it.copy(errorMessage = e.message ?: context.getString(R.string.im_clear_failed)) }
                 },
             )
         }
@@ -160,7 +164,7 @@ class ImChatViewModel @Inject constructor(
                     }
                 },
                 onFailure = { e ->
-                    _state.update { it.copy(errorMessage = e.message ?: "IM 登录失败") }
+                    _state.update { it.copy(errorMessage = e.message ?: context.getString(R.string.im_login_failed)) }
                 },
             )
         }
@@ -251,7 +255,7 @@ class ImChatViewModel @Inject constructor(
                     _state.update { it.copy(isSending = false, messages = listOf(sent) + it.messages) }
                 },
                 onFailure = { e ->
-                    _state.update { it.copy(isSending = false, errorMessage = e.message ?: "发送失败") }
+                    _state.update { it.copy(isSending = false, errorMessage = e.message ?: context.getString(R.string.im_send_failed)) }
                 },
             )
         }
@@ -267,7 +271,7 @@ class ImChatViewModel @Inject constructor(
                     _state.update { it.copy(isSending = false, messages = listOf(sent) + it.messages) }
                 },
                 onFailure = { e ->
-                    _state.update { it.copy(isSending = false, errorMessage = e.message ?: "发送失败") }
+                    _state.update { it.copy(isSending = false, errorMessage = e.message ?: context.getString(R.string.im_send_failed)) }
                 },
             )
         }

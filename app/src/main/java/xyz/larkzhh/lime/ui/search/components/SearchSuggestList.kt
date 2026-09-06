@@ -27,6 +27,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
@@ -74,7 +76,7 @@ fun SearchSuggestList(
                 IconButton(onClick = { onFillQuery(suggestion) }) {
                     Icon(
                         imageVector = Icons.Outlined.NorthWest,
-                        contentDescription = "补全",
+                        contentDescription = stringResource(R.string.search_fill_suggestion),
                         tint = LimeGray,
                         modifier = Modifier.size(18.dp),
                     )

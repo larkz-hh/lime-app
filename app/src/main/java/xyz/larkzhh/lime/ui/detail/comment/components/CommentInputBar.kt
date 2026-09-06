@@ -22,9 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 
@@ -81,7 +83,7 @@ fun CommentInputBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "说点什么…",
+                text = stringResource(R.string.video_comment_hint),
                 color = LimeGray,
                 fontSize = 13.sp,
                 modifier = Modifier.weight(1f),
@@ -90,7 +92,7 @@ fun CommentInputBar(
             IconButton(onClick = onVoiceClick, modifier = Modifier.size(32.dp)) {
                 Icon(
                     Icons.Outlined.Mic,
-                    contentDescription = "录音",
+                    contentDescription = stringResource(R.string.voice_record),
                     tint = LimeGray,
                     modifier = Modifier.size(20.dp)
                 )
@@ -99,7 +101,7 @@ fun CommentInputBar(
             IconButton(onClick = onAlbumClick, modifier = Modifier.size(32.dp)) {
                 Icon(
                     Icons.Outlined.Image,
-                    contentDescription = "相册",
+                    contentDescription = stringResource(R.string.chat_album),
                     tint = LimeGray,
                     modifier = Modifier.size(20.dp)
                 )

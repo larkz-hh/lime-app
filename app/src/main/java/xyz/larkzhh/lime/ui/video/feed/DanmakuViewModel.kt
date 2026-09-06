@@ -1,13 +1,16 @@
 package xyz.larkzhh.lime.ui.video.feed
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.DanmakuData
 import xyz.larkzhh.lime.domain.repository.DanmakuRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
@@ -32,6 +35,7 @@ data class DanmakuUiState(
  */
 @HiltViewModel
 class DanmakuViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val danmakuRepository: DanmakuRepository,
     private val userRepository: UserRepository,
 ) : ViewModel() {
@@ -72,7 +76,7 @@ class DanmakuViewModel @Inject constructor(
                     }
                 },
                 onFailure = {
-                    _uiState.update { it.copy(sendError = "弹幕发送失败") }
+                    _uiState.update { it.copy(sendError = context.getString(R.string.video_danmaku_send_failed)) }
                 },
             )
         }

@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.ui.components.LikeButton
@@ -79,7 +81,6 @@ fun CommentCard(
     val replies = expandedReplies?.replies ?: topReplies
     val replyCount = comment.replyCount
     val hiddenReplyCount = (replyCount - (topReplies?.size ?: 0)).coerceAtLeast(0)// 尚未展示的回复数
-
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -182,7 +183,7 @@ fun CommentCard(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "回复",
+                        text = stringResource(R.string.comment_reply_action),
                         fontSize = 12.sp,
                         color = LimeGray,
                         modifier = Modifier.clickable(
@@ -286,17 +287,16 @@ fun CommentCard(
                         expandedReplies?.hasMore == true -> {
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "展开更多回复",
+                                text = stringResource(R.string.comment_expand_more),
                                 fontSize = 12.sp,
                                 color = LimePrimary,
                                 modifier = Modifier.clickable { onLoadMoreReplies() },
                             )
                         }
                         !isExpanded && hiddenReplyCount > 0 -> {
-                            val label = if (hiddenReplyCount <= 5) "展开${hiddenReplyCount}条回复" else "展开5条回复"
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = label,
+                                text = stringResource(R.string.comment_expand_replies_count, minOf(hiddenReplyCount, 5)),
                                 fontSize = 12.sp,
                                 color = LimePrimary,
                                 modifier = Modifier.clickable { onLoadMoreReplies() },
@@ -305,9 +305,8 @@ fun CommentCard(
                     }
                 } else if (hiddenReplyCount > 0 && !isExpanded) {
                     Spacer(modifier = Modifier.height(6.dp))
-                    val label = if (hiddenReplyCount <= 5) "展开${hiddenReplyCount}条回复" else "展开5条回复"
                     Text(
-                        text = label,
+                        text = stringResource(R.string.comment_expand_replies_count, minOf(hiddenReplyCount, 5)),
                         fontSize = 12.sp,
                         color = LimePrimary,
                         modifier = Modifier.clickable { onLoadMoreReplies() },
@@ -422,7 +421,7 @@ private fun ReplyItem(
             if (reply.replyToNickname != null || hasText) {
                 val contentText = buildAnnotatedString {
                     if (reply.replyToNickname != null) {
-                        append("回复 ")
+                        append(stringResource(R.string.comment_reply_prefix))
                         withStyle(SpanStyle(color = LimePrimary)) { append(reply.replyToNickname) }
                         if (hasText) append(" ")
                     }
@@ -471,7 +470,7 @@ private fun ReplyItem(
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = "回复",
+                    text = stringResource(R.string.comment_reply_action),
                     fontSize = 11.sp,
                     color = LimeGray,
                 modifier = Modifier.clickable(
@@ -565,7 +564,7 @@ private fun CommentImageGrid(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    text = "共${total}张",
+                                    text = stringResource(R.string.comment_image_count, total),
                                     color = Color.White,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium,
@@ -582,7 +581,7 @@ private fun CommentImageGrid(
 @Composable
 private fun AuthorBadge() {
     Text(
-        text = "作者",
+        text = stringResource(R.string.comment_author_badge),
         fontSize = 10.sp,
         color = LimePrimary,
         modifier = Modifier

@@ -79,6 +79,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -92,6 +93,7 @@ import kotlinx.coroutines.launch
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.model.ChatConversation
 import xyz.larkzhh.lime.domain.model.ChatMessage
 import xyz.larkzhh.lime.domain.model.ChatMessageStatus
@@ -128,6 +130,11 @@ fun AiChatScreen(
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
     val conversations = viewModel.conversations.collectAsLazyPagingItems()
+
+    val clearedToast = stringResource(R.string.ai_cleared)
+    val conversationDeletedToast = stringResource(R.string.ai_conversation_deleted)
+    val copiedToast = stringResource(R.string.ai_copied)
+    val cameraFileFailedToast = stringResource(R.string.ai_camera_file_failed)
 
     DisposableEffect(Unit) {
         onDispose { TtsManager.shutdown() }
@@ -295,7 +302,7 @@ fun AiChatScreen(
                     },
                     onClearConversation = { conversation ->
                         viewModel.clearMessages(conversation) { ok ->
-                            if (ok) "已清空".showToast(context)
+                            if (ok) clearedToast.showToast(context)
                         }
                         closeDrawer()
                     },
@@ -337,7 +344,7 @@ fun AiChatScreen(
                         ) {
                             Icon(
                                 Icons.Outlined.Menu,
-                                contentDescription = "打开历史会话",
+                                contentDescription = stringResource(R.string.ai_open_history_cd),
                                 tint = MaterialTheme.colorScheme.onBackground,
                                 modifier = Modifier.size(20.dp),
                             )
@@ -346,7 +353,7 @@ fun AiChatScreen(
                         // 标题、模型选择
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = state.title.ifBlank { "新对话" },
+                                text = state.title.ifBlank { stringResource(R.string.ai_new_chat) },
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 maxLines = 1,
@@ -362,7 +369,7 @@ fun AiChatScreen(
                                 ) {
                                     Text(
                                         text = state.models.firstOrNull { it.name == state.selectedModel }?.displayName
-                                            ?: "默认模型",
+                                            ?: stringResource(R.string.ai_default_model),
                                         color = LimeGray,
                                         fontSize = 12.sp,
                                     )
@@ -380,7 +387,7 @@ fun AiChatScreen(
                                     shape = RoundedCornerShape(12.dp),
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("默认模型") },
+                                        text = { Text(stringResource(R.string.ai_default_model)) },
                                         onClick = { viewModel.selectModel(null) },
                                     )
                                     state.models.forEach { model ->
@@ -421,7 +428,7 @@ fun AiChatScreen(
                             IconButton(onClick = { viewModel.startNewConversation() }) {
                                 Icon(
                                     Icons.Outlined.Add,
-                                    contentDescription = "新建会话",
+                                    contentDescription = stringResource(R.string.ai_new_conversation_cd),
                                     tint = MaterialTheme.colorScheme.onBackground,
                                     modifier = Modifier.size(20.dp),
                                 )
@@ -432,7 +439,7 @@ fun AiChatScreen(
                             ) {
                                 Icon(
                                     Icons.Outlined.DeleteSweep,
-                                    contentDescription = "清空对话",
+                                    contentDescription = stringResource(R.string.ai_clear_conversation),
                                     tint = if (state.serverConversationId != null) {
                                         MaterialTheme.colorScheme.onBackground
                                     } else {
@@ -460,7 +467,7 @@ fun AiChatScreen(
                                 modifier = Modifier.size(14.dp),
                             )
                             Spacer(Modifier.width(6.dp))
-                            Text("当前无网络，显示缓存消息", color = LimeGray, fontSize = 12.sp)
+                            Text(stringResource(R.string.ai_offline_banner), color = LimeGray, fontSize = 12.sp)
                         }
                     }
 
@@ -474,7 +481,7 @@ fun AiChatScreen(
                         },
                         onCopy = { bubble ->
                             bubble.content.copyToClipboard(context)
-                            "已复制".showToast(context)
+                            copiedToast.showToast(context)
                         },
                         onRegenerate = { bubble ->
                             messagesById[bubble.id]?.let { viewModel.regenerate(it) }
@@ -556,15 +563,15 @@ fun AiChatScreen(
 
         deleteTarget?.let { target ->
             LimeAlertDialog(
-                title = "删除会话",
-                text = "「${target.title}」将被删除，且不可恢复。",
-                firstButtonText = "取消",
-                secondButtonText = "删除",
+                title = stringResource(R.string.ai_delete_conversation_title),
+                text = stringResource(R.string.ai_delete_conversation_message, target.title),
+                firstButtonText = stringResource(R.string.cancel),
+                secondButtonText = stringResource(R.string.delete),
                 secondButtonColor = MaterialTheme.colorScheme.error,
                 onFirstButtonClick = { deleteTarget = null },
                 onSecondButtonClick = {
                     viewModel.deleteConversation(target) { ok ->
-                        if (ok) "会话已删除".showToast(context)
+                        if (ok) conversationDeletedToast.showToast(context)
                     }
                     deleteTarget = null
                     closeDrawer()
@@ -575,10 +582,10 @@ fun AiChatScreen(
 
         if (state.showClearDialog) {
             LimeAlertDialog(
-                title = "清空对话",
-                text = "将清空该会话的全部消息，且不可恢复。",
-                firstButtonText = "取消",
-                secondButtonText = "清空",
+                title = stringResource(R.string.ai_clear_conversation),
+                text = stringResource(R.string.ai_clear_conversation_message),
+                firstButtonText = stringResource(R.string.cancel),
+                secondButtonText = stringResource(R.string.chat_clear_action),
                 secondButtonColor = MaterialTheme.colorScheme.error,
                 onFirstButtonClick = viewModel::dismissClearDialog,
                 onSecondButtonClick = viewModel::clearConversation,
@@ -589,10 +596,10 @@ fun AiChatScreen(
         // 删除单条消息确认
         pendingDeleteMessage?.let { msg ->
             LimeAlertDialog(
-                title = "删除消息",
-                text = "将删除这条消息及其关联的提问/回复，且不可恢复。",
-                firstButtonText = "取消",
-                secondButtonText = "删除",
+                title = stringResource(R.string.ai_delete_message_title),
+                text = stringResource(R.string.ai_delete_message_message),
+                firstButtonText = stringResource(R.string.cancel),
+                secondButtonText = stringResource(R.string.delete),
                 secondButtonColor = MaterialTheme.colorScheme.error,
                 onFirstButtonClick = { pendingDeleteMessage = null },
                 onSecondButtonClick = {
@@ -619,7 +626,7 @@ fun AiChatScreen(
                             cameraPermission.launchPermissionRequest()
                         }
                     } else {
-                        "无法创建拍照文件".showToast(context)
+                        cameraFileFailedToast.showToast(context)
                     }
                 },
                 onAlbum = {
@@ -674,7 +681,7 @@ fun AiChatScreen(
                         .padding(bottom = 24.dp),
                 ) {
                     Text(
-                        text = "选择文本",
+                        text = stringResource(R.string.ai_select_text_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -714,7 +721,7 @@ private fun DrawerContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "对话记录",
+                text = stringResource(R.string.ai_history_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
@@ -727,7 +734,7 @@ private fun DrawerContent(
                     modifier = Modifier.size(17.dp),
                 )
                 Spacer(Modifier.width(2.dp))
-                Text("新对话", color = LimePrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                Text(stringResource(R.string.ai_new_chat), color = LimePrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
@@ -737,7 +744,7 @@ private fun DrawerContent(
             conversations.itemCount == 0 &&
                     conversations.loadState.refresh !is LoadState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("暂无历史对话", color = LimeGray, fontSize = 13.sp)
+                    Text(stringResource(R.string.ai_no_history), color = LimeGray, fontSize = 13.sp)
                 }
             }
 
@@ -765,14 +772,14 @@ private fun DrawerContent(
                             shape = RoundedCornerShape(12.dp),
                         ) {
                             DropdownMenuItem(
-                                text = { Text("清空对话") },
+                                text = { Text(stringResource(R.string.ai_clear_conversation)) },
                                 onClick = {
                                     menuId = null
                                     onClearConversation(conversation)
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text("删除会话", color = MaterialTheme.colorScheme.error) },
+                                text = { Text(stringResource(R.string.ai_delete_conversation_title), color = MaterialTheme.colorScheme.error) },
                                 onClick = {
                                     menuId = null
                                     onDeleteConversation(conversation)
@@ -805,7 +812,7 @@ private fun DrawerContent(
                             contentAlignment = Alignment.Center,
                         ) {
                             TextButton(onClick = { conversations.retry() }) {
-                                Text("加载失败，点击重试", color = LimeGray, fontSize = 12.sp)
+                                Text(stringResource(R.string.ai_load_failed_retry), color = LimeGray, fontSize = 12.sp)
                             }
                         }
                     }
@@ -839,7 +846,7 @@ private fun DrawerConversationRow(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = conversation.title.ifBlank { "新对话" },
+                text = conversation.title.ifBlank { stringResource(R.string.ai_new_chat) },
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                 maxLines = 1,

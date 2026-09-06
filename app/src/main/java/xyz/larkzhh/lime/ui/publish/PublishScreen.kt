@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.PendingNoteEdit
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteImage
@@ -76,7 +78,7 @@ fun PublishScreen(
     val total = publishState.images.size
     val localTotal = localUris.size
     val progressText = if (publishState.isPublishing && publishState.publishProgress < localTotal) {
-        "正在上传图片 ${publishState.publishProgress}/$localTotal..."
+        stringResource(R.string.publish_uploading_images, publishState.publishProgress, localTotal)
     } else null
     // AI 可用图
     val aiImages: List<AiWriteImage> = publishState.images.map {
@@ -109,7 +111,7 @@ fun PublishScreen(
 
     NotePublishScaffold(
         navController = navController,
-        topBarTitle = if (isEdit) "编辑笔记" else "发布笔记",
+        topBarTitle = if (isEdit) stringResource(R.string.publish_title_edit_note) else stringResource(R.string.publish_title_new_note),
         title = publishState.title,
         content = publishState.content,
         onTitleChange = viewModel::onTitleChange,
@@ -181,7 +183,7 @@ fun PublishScreen(
                     ) {
                         Icon(
                             Icons.Filled.Add,
-                            contentDescription = "添加图片",
+                            contentDescription = stringResource(R.string.publish_add_image),
                             modifier = Modifier.size(24.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.24f),
                         )
@@ -255,7 +257,7 @@ private fun PublishImageItem(
         ) {
             Icon(
                 Icons.Filled.Close,
-                contentDescription = "删除",
+                contentDescription = stringResource(R.string.delete),
                 tint = Color.White,
                 modifier = Modifier.size(12.dp),
             )

@@ -2,6 +2,7 @@ package xyz.larkzhh.lime
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -17,15 +18,22 @@ import com.tencent.mmkv.MMKV
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
+import xyz.larkzhh.lime.util.AppLanguage
 import xyz.larkzhh.lime.work.TranslatePrefetchWorker
 import xyz.larkzhh.lime.work.WidgetHotRefreshWorker
 
-@UnstableApi
+@androidx.annotation.OptIn(UnstableApi::class)
 @HiltAndroidApp
 class LimeApplication : Application(), SingletonImageLoader.Factory {
 
     @Inject
     lateinit var playerManager: VideoPlayerManager
+
+    /// 应用语言
+    override fun attachBaseContext(base: Context) {
+        MMKV.initialize(base)
+        super.attachBaseContext(AppLanguage.wrap(base))
+    }
 
     override fun onCreate() {
         super.onCreate()

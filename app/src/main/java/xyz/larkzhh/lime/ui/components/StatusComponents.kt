@@ -19,8 +19,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 
@@ -35,7 +37,11 @@ fun ErrorState(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(text = message ?: "加载失败", color = LimeGray, fontSize = 14.sp)
+        Text(
+            text = message ?: stringResource(R.string.error_load_failed),
+            color = LimeGray,
+            fontSize = 14.sp,
+        )
         Spacer(modifier = Modifier.height(12.dp))
         RetryButton(onRetry = onRetry)
     }
@@ -61,7 +67,7 @@ fun RetryButton(
             modifier = Modifier.size(16.dp),
         )
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text = "点击重试", color = LimePrimary, fontSize = 13.sp)
+        Text(text = stringResource(R.string.retry), color = LimePrimary, fontSize = 13.sp)
     }
 }
 
@@ -79,10 +85,14 @@ fun LoadMoreErrorItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
-        Text(text = message ?: "加载失败", color = LimeGray, fontSize = 12.sp)
+        Text(
+            text = message ?: stringResource(R.string.error_load_failed),
+            color = LimeGray,
+            fontSize = 12.sp,
+        )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "点击重试",
+            text = stringResource(R.string.retry),
             color = LimePrimary,
             fontSize = 12.sp,
             modifier = Modifier.clickable(onClick = onRetry),

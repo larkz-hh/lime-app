@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,7 +48,7 @@ fun VideoSideActionBar(
         SideActionItem(
             onClick = onToggleLike,
             count = likeCount,
-            label = "点赞",
+            label = stringResource(R.string.video_like),
         ) {
             LikeButton(
                 liked = liked,
@@ -60,11 +61,11 @@ fun VideoSideActionBar(
         SideActionItem(
             onClick = onCommentClick,
             count = commentCount,
-            label = "评论",
+            label = stringResource(R.string.video_comment),
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_chat),
-                contentDescription = "评论",
+                contentDescription = stringResource(R.string.video_comment),
                 tint = Color.White,
                 modifier = Modifier.size(iconSize),
             )
@@ -72,7 +73,7 @@ fun VideoSideActionBar(
         SideActionItem(
             onClick = onToggleFavorite,
             count = favCount,
-            label = "收藏",
+            label = stringResource(R.string.video_favorite),
         ) {
             FavoriteButton(
                 favorited = favorited,
@@ -87,11 +88,11 @@ fun VideoSideActionBar(
             SideActionItem(
                 onClick = onManage,
                 count = 0,
-                label = "更多",
+                label = stringResource(R.string.video_more),
             ) {
                 Icon(
                     imageVector = Icons.Outlined.MoreHoriz,
-                    contentDescription = "更多",
+                    contentDescription = stringResource(R.string.video_more),
                     tint = Color.White,
                     modifier = Modifier.size(iconSize),
                 )

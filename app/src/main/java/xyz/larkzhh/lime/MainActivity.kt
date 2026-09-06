@@ -1,6 +1,7 @@
 package xyz.larkzhh.lime
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -29,11 +30,13 @@ import xyz.larkzhh.lime.ui.theme.LimeTheme
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.ui.widget.WidgetHotCache
 import xyz.larkzhh.lime.ui.widget.WidgetHotRefresher
+import xyz.larkzhh.lime.util.AppLanguage
 import xyz.larkzhh.lime.util.NetworkMonitor
 import xyz.larkzhh.lime.util.showToast
 import kotlin.time.Duration.Companion.milliseconds
 
-@UnstableApi
+
+@androidx.annotation.OptIn(UnstableApi::class)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -52,6 +55,11 @@ class MainActivity : ComponentActivity() {
     private val shortcutKeyword = mutableStateOf<String?>(null)
     /// IM 快捷入口
     private val shortcutConversationId = mutableStateOf<String?>(null)
+
+    /// 应用语言
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLanguage.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

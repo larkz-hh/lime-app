@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.video.videoFrameMillis
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.PendingNoteEdit
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteSheet
@@ -104,14 +106,14 @@ fun VideoPublishScreen(
 
     NotePublishScaffold(
         navController = navController,
-        topBarTitle = if (isEdit) "编辑视频笔记" else "发布视频笔记",
+        topBarTitle = if (isEdit) stringResource(R.string.publish_title_edit_video) else stringResource(R.string.publish_title_new_video),
         title = publishState.title,
         content = publishState.content,
         onTitleChange = viewModel::onTitleChange,
         onContentChange = viewModel::onContentChange,
         isPublishing = publishState.isPublishing,
         error = publishState.error,
-        progressText = publishState.uploadPhase?.let { "正在$it..." },
+        progressText = publishState.uploadPhase?.let { stringResource(R.string.publish_uploading_phase, it) },
         isSuccess = publishState.isSuccess,
         isDraftSuccess = publishState.isDraftSuccess,
         onClearSuccess = viewModel::clearSuccess,
@@ -153,7 +155,7 @@ fun VideoPublishScreen(
                 if (coverModel != null) {
                     AsyncImage(
                         model = coverModel,
-                        contentDescription = "封面",
+                        contentDescription = stringResource(R.string.publish_cover_cd),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
                     )
@@ -185,7 +187,7 @@ fun VideoPublishScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = if (hasCover) "更改封面" else "选封面",
+                        text = if (hasCover) stringResource(R.string.publish_cover_change) else stringResource(R.string.publish_cover_pick),
                         color = Color.White,
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Medium,
@@ -214,7 +216,7 @@ fun VideoPublishScreen(
                         modifier = Modifier.size(14.dp),
                     )
                     Text(
-                        text = "更换视频",
+                        text = stringResource(R.string.publish_change_video),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -27,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,6 +35,7 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.components.ImagePickerGrid
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ImagePickerViewModel
 import xyz.larkzhh.lime.ui.theme.LimeWhite
@@ -75,10 +77,10 @@ fun CommentPhotoPickerScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.Filled.Close, contentDescription = "关闭")
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.picker_close))
             }
             Text(
-                text = "选择照片",
+                text = stringResource(R.string.picker_title_select_photo),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
@@ -86,7 +88,7 @@ fun CommentPhotoPickerScreen(
             val count = uiState.selectedUris.size
             if (count > 0) {
                 Text(
-                    text = "已选 $count/9",
+                    text = stringResource(R.string.picker_selected_count, count),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(end = 16.dp),
@@ -104,12 +106,12 @@ fun CommentPhotoPickerScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("需要相册访问权限才能选择照片")
+                        Text(stringResource(R.string.picker_permission_required_photo))
                         Button(
                             onClick = { permissionState.launchPermissionRequest() },
                             modifier = Modifier.padding(top = 12.dp),
                         ) {
-                            Text("授予权限")
+                            Text(stringResource(R.string.picker_permission_grant))
                         }
                     }
                 }
@@ -161,7 +163,8 @@ fun CommentPhotoPickerScreen(
                 ),
             ) {
                 Text(
-                    text = if (count > 0) "完成($count)" else "完成",
+                    text = if (count > 0) stringResource(R.string.picker_done_count, count)
+                    else stringResource(R.string.picker_done),
                     fontWeight = FontWeight.Medium,
                 )
             }

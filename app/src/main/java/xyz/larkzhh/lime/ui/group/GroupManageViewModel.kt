@@ -1,14 +1,17 @@
 package xyz.larkzhh.lime.ui.group
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.domain.model.ImGroup
 import xyz.larkzhh.lime.domain.repository.ImRepository
@@ -31,6 +34,7 @@ data class GroupManageUiState(
 /// 群管理页 ViewModel
 @HiltViewModel
 class GroupManageViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val imRepository: ImRepository,
     private val userRepository: UserRepository,
 ) : ViewModel() {
@@ -71,7 +75,7 @@ class GroupManageViewModel @Inject constructor(
             ).onSuccess {
                 reloadGroup(groupId)
             }.onFailure { e ->
-                _uiState.update { it.copy(isSaving = false, error = e.message ?: "保存失败") }
+                _uiState.update { it.copy(isSaving = false, error = e.message ?: context.getString(R.string.group_save_failed)) }
             }
         }
     }
@@ -85,9 +89,9 @@ class GroupManageViewModel @Inject constructor(
             userRepository.uploadGroupAvatar(uri).onSuccess { url ->
                 imRepository.updateGroupInfo(groupId, faceUrl = url)
                     .onSuccess { reloadGroup(groupId) }
-                    .onFailure { e -> _uiState.update { it.copy(isSaving = false, error = e.message ?: "头像保存失败") } }
+                    .onFailure { e -> _uiState.update { it.copy(isSaving = false, error = e.message ?: context.getString(R.string.group_avatar_save_failed)) } }
             }.onFailure { e ->
-                _uiState.update { it.copy(isSaving = false, error = e.message ?: "头像上传失败") }
+                _uiState.update { it.copy(isSaving = false, error = e.message ?: context.getString(R.string.group_avatar_upload_failed)) }
             }
         }
     }
@@ -101,7 +105,7 @@ class GroupManageViewModel @Inject constructor(
             val ids = users.map { "lime_${it.id}" }
             imRepository.inviteToGroup(groupId, ids)
                 .onSuccess { reloadGroup(groupId) }
-                .onFailure { e -> _uiState.update { it.copy(isSaving = false, error = e.message ?: "邀请失败") } }
+                .onFailure { e -> _uiState.update { it.copy(isSaving = false, error = e.message ?: context.getString(R.string.group_invite_failed)) } }
         }
     }
 
@@ -113,7 +117,7 @@ class GroupManageViewModel @Inject constructor(
             _uiState.update { it.copy(isSaving = true, error = null) }
             imRepository.dismissGroup(groupId)
                 .onSuccess { _uiState.update { it.copy(isSaving = false, done = true) } }
-                .onFailure { e -> _uiState.update { it.copy(isSaving = false, error = e.message ?: "解散失败") } }
+                .onFailure { e -> _uiState.update { it.copy(isSaving = false, error = e.message ?: context.getString(R.string.group_dismiss_failed)) } }
         }
     }
 
@@ -125,7 +129,7 @@ class GroupManageViewModel @Inject constructor(
             _uiState.update { it.copy(isSaving = true, error = null) }
             imRepository.quitGroup(groupId)
                 .onSuccess { _uiState.update { it.copy(isSaving = false, done = true) } }
-                .onFailure { e -> _uiState.update { it.copy(isSaving = false, error = e.message ?: "退出失败") } }
+                .onFailure { e -> _uiState.update { it.copy(isSaving = false, error = e.message ?: context.getString(R.string.group_quit_failed)) } }
         }
     }
 

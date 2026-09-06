@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,6 +51,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.theme.LimeGray
@@ -89,12 +91,12 @@ fun NotePickerPage(
                     IconButton(onClick = onDismiss) {
                         Icon(
                             Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = "返回",
+                            contentDescription = stringResource(R.string.back),
                             tint = MaterialTheme.colorScheme.onBackground,
                         )
                     }
                     Text(
-                        text = "选择笔记",
+                        text = stringResource(R.string.note_picker_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.weight(1f),
@@ -104,7 +106,7 @@ fun NotePickerPage(
                         enabled = selected != null,
                     ) {
                         Text(
-                            text = "选择笔记",
+                            text = stringResource(R.string.note_picker_confirm),
                             color = if (selected != null) LimePrimary else LimeGray,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 14.sp,
@@ -124,7 +126,7 @@ fun NotePickerPage(
                                 .padding(horizontal = 14.dp, vertical = 10.dp),
                         ) {
                             Text(
-                                text = t.label,
+                                text = stringResource(t.labelRes),
                                 color = if (isSel) LimePrimary else LimeGray,
                                 fontWeight = if (isSel) FontWeight.SemiBold else FontWeight.Normal,
                                 fontSize = 14.sp,
@@ -217,7 +219,7 @@ fun NotePickerPage(
                                         contentAlignment = Alignment.Center,
                                     ) {
                                         Text(
-                                            text = append.error.message ?: "加载失败，点击重试",
+                                            text = append.error.message ?: stringResource(R.string.load_failed_retry),
                                             color = LimeGray,
                                             fontSize = 12.sp,
                                             modifier = Modifier.clickable { pagingItems.retry() },
@@ -239,7 +241,7 @@ fun NotePickerPage(
                             .padding(vertical = 40.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("暂无图文笔记", color = LimeGray, fontSize = 13.sp)
+                        Text(stringResource(R.string.note_picker_empty), color = LimeGray, fontSize = 13.sp)
                     }
                 }
             }
@@ -273,7 +275,7 @@ private fun PickerNoteCard(
                 contentScale = ContentScale.Crop,
             )
             Text(
-                text = item.title?.ifBlank { "无标题" } ?: "无标题",
+                text = item.title?.ifBlank { stringResource(R.string.untitled) } ?: stringResource(R.string.untitled),
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,

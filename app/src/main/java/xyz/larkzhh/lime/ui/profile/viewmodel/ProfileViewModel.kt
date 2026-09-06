@@ -1,15 +1,18 @@
 package xyz.larkzhh.lime.ui.profile.viewmodel
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.domain.model.FollowRelation
 import xyz.larkzhh.lime.domain.repository.FollowRepository
@@ -28,6 +31,7 @@ sealed class ProfileUiState {
  */
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle,
     private val userRepository: UserRepository,
     private val followRepository: FollowRepository,
@@ -42,7 +46,7 @@ class ProfileViewModel @Inject constructor(
     )
     val isSelf: StateFlow<Boolean> = _isSelf.asStateFlow()
 
-    private val _uiState = MutableStateFlow<ProfileUiState>(
+    private val _uiState = MutableStateFlow(
         if (requestedUserId == null)
             userRepository.userFlow.value?.let { ProfileUiState.Success(it) } ?: ProfileUiState.Loading
         else
@@ -83,7 +87,7 @@ class ProfileViewModel @Inject constructor(
             userRepository.refreshUser().onFailure { e ->
                 if (e is CancellationException) return@onFailure
                 if (_uiState.value !is ProfileUiState.Success) {
-                    _uiState.value = ProfileUiState.Error(e.message ?: "加载失败")
+                    _uiState.value = ProfileUiState.Error(e.message ?: context.getString(R.string.profile_load_failed))
                 }
             }
         }
@@ -101,7 +105,7 @@ class ProfileViewModel @Inject constructor(
             }.onFailure { e ->
                 if (e is CancellationException) return@onFailure
                 if (_uiState.value !is ProfileUiState.Success) {
-                    _uiState.value = ProfileUiState.Error(e.message ?: "加载失败")
+                    _uiState.value = ProfileUiState.Error(e.message ?: context.getString(R.string.profile_load_failed))
                 }
             }
         }
@@ -113,7 +117,8 @@ class ProfileViewModel @Inject constructor(
             userRepository.uploadAvatar(uri)
                 .onFailure { e ->
                     if (e is CancellationException) return@onFailure
-                    _uploadError.value = "头像上传失败：${e.message ?: "网络错误"}"
+                    val reason = e.message ?: context.getString(R.string.profile_network_error)
+                    _uploadError.value = context.getString(R.string.profile_avatar_upload_failed, reason)
                 }
         }
     }
@@ -135,7 +140,8 @@ class ProfileViewModel @Inject constructor(
                 }
                 .onFailure { e ->
                     if (e is CancellationException) return@onFailure
-                    _followError.value = "关注失败：${e.message ?: "网络错误"}"
+                    val reason = e.message ?: context.getString(R.string.profile_network_error)
+                    _followError.value = context.getString(R.string.profile_follow_failed, reason)
                 }
         }
     }
@@ -153,7 +159,8 @@ class ProfileViewModel @Inject constructor(
                 }
                 .onFailure { e ->
                     if (e is CancellationException) return@onFailure
-                    _followError.value = "取消关注失败：${e.message ?: "网络错误"}"
+                    val reason = e.message ?: context.getString(R.string.profile_network_error)
+                    _followError.value = context.getString(R.string.profile_unfollow_failed, reason)
                 }
         }
     }

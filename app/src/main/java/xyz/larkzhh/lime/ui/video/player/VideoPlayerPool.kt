@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.ForwardingPlayer
@@ -50,6 +51,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import javax.inject.Inject
 import javax.inject.Singleton
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.VideoActivity
 
 private const val PIP_SEEK_STEP_MS = 15_000L// 小窗跳转步长
@@ -359,7 +361,7 @@ fun VideoPage(
             ) {
                 Icon(
                     Icons.Filled.PlayArrow,
-                    contentDescription = "播放",
+                    contentDescription = stringResource(R.string.pip_play),
                     tint = Color.White,
                     modifier = Modifier.size(40.dp),
                 )

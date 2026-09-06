@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.VolumeUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -44,6 +43,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import kotlin.math.roundToInt
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.util.TtsManager
@@ -103,7 +104,7 @@ fun ChatMessageBubble(
                     IconButton(onClick = onRetry, modifier = Modifier.size(30.dp)) {
                         Icon(
                             Icons.Outlined.Error,
-                            contentDescription = "发送失败，点击重发",
+                            contentDescription = stringResource(R.string.chat_send_failed_retry),
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(20.dp),
                         )
@@ -135,7 +136,7 @@ fun ChatMessageBubble(
                 }
                 if (data.status == ChatBubbleStatus.STOPPED) {
                     if (!data.timeText.isNullOrBlank()) Spacer(Modifier.width(6.dp))
-                    Text(text = "已停止", color = LimeGray, fontSize = 10.sp)
+                    Text(text = stringResource(R.string.chat_stopped), color = LimeGray, fontSize = 10.sp)
                 }
             }
         }
@@ -155,19 +156,19 @@ fun ChatMessageBubble(
                 val itemModifier = Modifier.width(150.dp).height(56.dp)
                 val itemStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)
                 DropdownMenuItem(
-                    text = { Text("复制", style = itemStyle) },
+                    text = { Text(stringResource(R.string.chat_copy), style = itemStyle) },
                     onClick = { showMenu = false; onCopy?.invoke() },
                     enabled = onCopy != null,
                     modifier = itemModifier,
                 )
                 DropdownMenuItem(
-                    text = { Text("选取文字", style = itemStyle) },
+                    text = { Text(stringResource(R.string.chat_select_text), style = itemStyle) },
                     onClick = { showMenu = false; onSelectText?.invoke() },
                     enabled = onSelectText != null,
                     modifier = itemModifier,
                 )
                 DropdownMenuItem(
-                    text = { Text("删除", color = MaterialTheme.colorScheme.error, style = itemStyle) },
+                    text = { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error, style = itemStyle) },
                     onClick = { showMenu = false; onDelete?.invoke() },
                     enabled = onDelete != null,
                     modifier = itemModifier,
@@ -258,15 +259,15 @@ private fun AiBubble(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 if (onCopy != null) {
-                    BubbleActionIcon(Icons.Outlined.ContentCopy, "复制", onCopy)
+                    BubbleActionIcon(Icons.Outlined.ContentCopy, stringResource(R.string.chat_copy), onCopy)
                 }
                 if (onRegenerate != null) {
-                    BubbleActionIcon(Icons.Outlined.Refresh, "重新生成", onRegenerate)
+                    BubbleActionIcon(Icons.Outlined.Refresh, stringResource(R.string.chat_regenerate), onRegenerate)
                 }
                 if (onSpeak != null) {
                     BubbleActionIcon(
                         icon = if (speakingThis) Icons.Filled.Pause else Icons.AutoMirrored.Outlined.VolumeUp,
-                        description = if (speakingThis) "停止朗读" else "朗读",
+                        description = if (speakingThis) stringResource(R.string.chat_stop_speak) else stringResource(R.string.chat_speak),
                         iconSize = 18.dp,
                         onClick = { if (speakingThis) TtsManager.stop() else onSpeak() },
                     )
@@ -344,14 +345,14 @@ private fun NoteCardChip(
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = note.title?.ifBlank { "引用笔记" } ?: "引用笔记",
+                text = note.title?.ifBlank { stringResource(R.string.chat_quote_note) } ?: stringResource(R.string.chat_quote_note),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = "引用笔记",
+                text = stringResource(R.string.chat_quote_note),
                 color = LimeGray,
                 fontSize = 10.sp,
             )

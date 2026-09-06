@@ -36,12 +36,14 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.domain.model.FollowActionState
-import xyz.larkzhh.lime.domain.model.label
+import xyz.larkzhh.lime.domain.model.labelRes
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
@@ -132,19 +134,19 @@ fun ProfileHeader(
             Row(horizontalArrangement = Arrangement.Start) {
                 StatItem(
                     count = (user?.followingCount ?: 0).toString(),
-                    label = "关注",
+                    label = stringResource(R.string.profile_following),
                     onClick = onFollowingClick,
                 )
                 Spacer(Modifier.width(28.dp))
                 StatItem(
                     count = (user?.followerCount ?: 0).toString(),
-                    label = "粉丝",
+                    label = stringResource(R.string.profile_followers),
                     onClick = onFollowersClick,
                 )
                 Spacer(Modifier.width(28.dp))
                 StatItem(
                     count = ((user?.totalLikeCount ?: 0) + (user?.totalFavCount ?: 0)).toString(),
-                    label = "获赞与收藏",
+                    label = stringResource(R.string.profile_likes_favs),
                     onClick = onLikeFavClick,
                 )
             }
@@ -153,7 +155,7 @@ fun ProfileHeader(
 
             // 个人简介
             Text(
-                text = user?.bio?.takeIf { it.isNotBlank() } ?: "这个人是懒猪猪，还没有填写简介~",
+                text = user?.bio?.takeIf { it.isNotBlank() } ?: stringResource(R.string.profile_bio_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 //color = if (user?.bio?.isNotBlank() == true) LimeDark else LimeGray,
                 color = LimeWhite,
@@ -168,7 +170,7 @@ fun ProfileHeader(
                 2 -> "♀" to Color(0xFFE91E8C)
                 else -> null
             }
-            val ageText = age?.let { "${it}岁" }
+            val ageText = age?.let { stringResource(R.string.profile_age_years, it) }
             val showAgeGenderChip = ageText != null || genderIcon != null
             if (showAgeGenderChip || user?.region?.isNotBlank() == true) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -187,16 +189,16 @@ fun ProfileHeader(
                 Row(modifier = Modifier.fillMaxWidth()) {
                     QuickCard(
                         icon = Icons.Default.History,
-                        label = "浏览记录",
-                        subtitle = "看过的笔记",
+                        label = stringResource(R.string.profile_browse_history),
+                        subtitle = stringResource(R.string.profile_browse_history_desc),
                         modifier = Modifier.weight(1f),
                         onClick = onBrowseHistory,
                     )
                     Spacer(Modifier.width(12.dp))
                     QuickCard(
                         icon = Icons.Default.Groups,
-                        label = "群聊",
-                        subtitle = "查看详情",
+                        label = stringResource(R.string.profile_group_chat),
+                        subtitle = stringResource(R.string.profile_group_chat_desc),
                         modifier = Modifier.weight(1f),
                         onClick = onGroupChat,
                     )
@@ -208,13 +210,13 @@ fun ProfileHeader(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     ActionButton(
-                        text = followState.label,
+                        text = stringResource(followState.labelRes),
                         filled = followState == FollowActionState.Follow,
                         modifier = Modifier.weight(1f),
                         onClick = onFollowClick,
                     )
                     ActionButton(
-                        text = "发私信",
+                        text = stringResource(R.string.profile_send_message),
                         filled = false,
                         modifier = Modifier.weight(1f),
                         onClick = onMessageClick,
@@ -241,7 +243,7 @@ private fun AvatarSection(user: UserData?, editable: Boolean, onClick: () -> Uni
         if (user?.avatar != null) {
             AsyncImage(
                 model = user.avatar,
-                contentDescription = "头像",
+                contentDescription = stringResource(R.string.profile_avatar),
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
             )
@@ -257,7 +259,7 @@ private fun AvatarSection(user: UserData?, editable: Boolean, onClick: () -> Uni
                     modifier = Modifier.size(26.dp),
                 )
                 Text(
-                    text = "上传头像",
+                    text = stringResource(R.string.profile_upload_avatar),
                     style = MaterialTheme.typography.labelSmall,
                     color = LimeGray,
                 )
@@ -278,7 +280,7 @@ private fun AvatarSection(user: UserData?, editable: Boolean, onClick: () -> Uni
 private fun UserInfoSection(user: UserData?) {
     Column {
         Text(
-            text = user?.nickname ?: "未设置昵称",
+            text = user?.nickname ?: stringResource(R.string.profile_nickname_unset),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = LimeWhite,

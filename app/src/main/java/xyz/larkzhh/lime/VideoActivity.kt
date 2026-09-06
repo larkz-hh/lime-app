@@ -13,7 +13,6 @@ import android.util.Rational
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.OptIn
 import androidx.compose.runtime.mutableStateOf
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.R as Media3R
@@ -23,6 +22,7 @@ import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.VideoNavGraph
 import xyz.larkzhh.lime.ui.theme.LimeTheme
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
+import xyz.larkzhh.lime.util.AppLanguage
 
 /// 打开视频页
 fun Context.openVideo(noteId: Long, source: String) {
@@ -35,7 +35,7 @@ fun Context.openVideo(noteId: Long, source: String) {
     )
 }
 
-@OptIn(UnstableApi::class)
+@androidx.annotation.OptIn(UnstableApi::class)
 @AndroidEntryPoint
 class VideoActivity : ComponentActivity() {
 
@@ -47,6 +47,11 @@ class VideoActivity : ComponentActivity() {
     private var pipVideoWidth = 9
     private var pipVideoHeight = 16
     private var pipPaused = false
+
+    /// 应用语言
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLanguage.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -29,12 +29,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.compose.SubcomposeAsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
@@ -118,7 +120,7 @@ fun NoteCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.RemoveRedEye,
-                            contentDescription = "浏览人数",
+                            contentDescription = stringResource(R.string.view_count),
                             tint = Color.White,
                             modifier = Modifier.size(10.dp),
                         )
@@ -211,7 +213,7 @@ private fun CoverPlaceholder(ratio: Float, title: String?) {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = title?.take(4) ?: "图文",
+            text = title?.take(4) ?: stringResource(R.string.note_type_image_text),
             style = MaterialTheme.typography.bodySmall,
             color = LimeGray,
         )

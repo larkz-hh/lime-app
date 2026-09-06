@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -52,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.distinctUntilChanged
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.navigation.PendingNoteEdit
 import xyz.larkzhh.lime.navigation.Screen
@@ -72,11 +74,12 @@ fun DraftBoxScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val gridState = rememberLazyGridState()
+    val deleteFailedTemplate = stringResource(R.string.draft_delete_failed)
 
     // 删除失败提示
     LaunchedEffect(uiState.deleteError) {
         uiState.deleteError?.let {
-            "删除失败：$it".showToast(context)
+            deleteFailedTemplate.replace("%1\$s", it).showToast(context)
             viewModel.clearDeleteError()
         }
     }
@@ -110,10 +113,14 @@ fun DraftBoxScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconButton(onClick = { if (!navController.popBackStack()) onClose() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                 }
                 Text(
-                    text = if (uiState.isManaging) "已选 ${uiState.selectedIds.size}" else "草稿箱",
+                    text = if (uiState.isManaging) {
+                        stringResource(R.string.draft_selected_title, uiState.selectedIds.size)
+                    } else {
+                        stringResource(R.string.draft_box_title)
+                    },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f),
@@ -124,7 +131,10 @@ fun DraftBoxScreen(
                             if (uiState.isManaging) viewModel.exitManageMode() else viewModel.enterManageMode()
                         },
                     ) {
-                        Text(if (uiState.isManaging) "完成" else "管理")
+                        Text(
+                            if (uiState.isManaging) stringResource(R.string.draft_done)
+                            else stringResource(R.string.draft_manage)
+                        )
                     }
                 }
             }
@@ -158,7 +168,7 @@ fun DraftBoxScreen(
                             .weight(1f),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(text = "还没有草稿", color = LimeGray, fontSize = 14.sp)
+                        Text(text = stringResource(R.string.draft_empty), color = LimeGray, fontSize = 14.sp)
                     }
                 }
                 else -> {
@@ -231,7 +241,7 @@ fun DraftBoxScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = "已选 ${uiState.selectedIds.size} 项",
+                            text = stringResource(R.string.draft_selected_count, uiState.selectedIds.size),
                             color = LimeGray,
                             fontSize = 14.sp,
                             modifier = Modifier.weight(1f),
@@ -241,7 +251,8 @@ fun DraftBoxScreen(
                             enabled = uiState.selectedIds.isNotEmpty() && !uiState.isDeleting,
                         ) {
                             Text(
-                                text = if (uiState.isDeleting) "删除中…" else "删除",
+                                text = if (uiState.isDeleting) stringResource(R.string.draft_deleting)
+                                else stringResource(R.string.delete),
                                 color = Color(0xFFFF3B30),
                                 fontWeight = FontWeight.SemiBold,
                             )
@@ -292,7 +303,7 @@ private fun DraftGridItem(
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            text = item.title?.take(4) ?: "草稿",
+                            text = item.title?.take(4) ?: stringResource(R.string.draft_cover_placeholder),
                             color = LimeGray,
                             fontSize = 13.sp,
                         )
@@ -352,7 +363,7 @@ private fun DraftGridItem(
                         if (isSelected) {
                             Icon(
                                 Icons.Filled.Check,
-                                contentDescription = "已选",
+                                contentDescription = stringResource(R.string.draft_selected),
                                 tint = Color.White,
                                 modifier = Modifier.size(14.dp),
                             )
@@ -361,7 +372,7 @@ private fun DraftGridItem(
                 }
             }
             Text(
-                text = item.title ?: "未命名草稿",
+                text = item.title ?: stringResource(R.string.draft_unnamed),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 13.sp,
                 maxLines = 2,

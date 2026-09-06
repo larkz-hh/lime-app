@@ -52,11 +52,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.UserSearchItem
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.FollowRelation
@@ -92,7 +94,10 @@ fun SearchResultContent(
     onUnfollowUser: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    val tabs = listOf("全部", "用户")
+    val tabs = listOf(
+        stringResource(R.string.search_tab_all),
+        stringResource(R.string.search_tab_users),
+    )
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var filterExpanded by rememberSaveable { mutableStateOf(false) }
     var pendingUnfollowUser by remember { mutableStateOf<UserSearchItem?>(null) }
@@ -140,7 +145,7 @@ fun SearchResultContent(
                             Icon(
                                 imageVector = if (filterExpanded) Icons.Outlined.KeyboardArrowUp
                                               else Icons.Outlined.KeyboardArrowDown,
-                                contentDescription = "筛选",
+                                contentDescription = stringResource(R.string.search_filter),
                                 tint = if (selected) MaterialTheme.colorScheme.onBackground else LimeGray,
                                 modifier = Modifier.size(16.dp),
                             )
@@ -275,14 +280,14 @@ private fun NoteResultList(
             }
             uiState.resultError != null && uiState.resultItems.isEmpty() -> {
                 Text(
-                    text = uiState.resultError ?: "加载失败",
+                    text = uiState.resultError,
                     modifier = Modifier.align(Alignment.Center),
                     color = LimeGray,
                 )
             }
             uiState.resultItems.isEmpty() -> {
                 Text(
-                    text = "暂无相关笔记",
+                    text = stringResource(R.string.search_empty_notes),
                     modifier = Modifier.align(Alignment.Center),
                     color = LimeGray,
                 )
@@ -330,14 +335,14 @@ private fun UserResultList(
             }
             uiState.userError != null && uiState.userItems.isEmpty() -> {
                 Text(
-                    text = uiState.userError ?: "加载失败",
+                    text = uiState.userError,
                     modifier = Modifier.align(Alignment.Center),
                     color = LimeGray,
                 )
             }
             uiState.userItems.isEmpty() -> {
                 Text(
-                    text = "暂无相关用户",
+                    text = stringResource(R.string.search_empty_users),
                     modifier = Modifier.align(Alignment.Center),
                     color = LimeGray,
                 )
@@ -451,14 +456,14 @@ private fun UserResultCard(
                 )
                 // 粉丝数
                 Text(
-                    text = "粉丝 0",
+                    text = stringResource(R.string.search_followers_zero),
                     fontSize = 12.sp,
                     lineHeight = 14.sp,
                     color = LimeGray,
                     modifier = Modifier.padding(top = 1.dp),
                 )
                 Text(
-                    text = "LimeID：${user.handle}",
+                    text = stringResource(R.string.search_lime_id, user.handle),
                     fontSize = 12.sp,
                     lineHeight = 14.sp,
                     color = LimeGray,
@@ -483,7 +488,7 @@ private fun UserResultCard(
                 modifier = Modifier.padding(start = 64.dp, top = 3.dp),// 52+12
             ) {
                 Text(
-                    text = "我自己",
+                    text = stringResource(R.string.search_self_badge),
                     fontSize = 10.sp,
                     lineHeight = 10.sp,
                     color = LimeGray,
@@ -509,7 +514,7 @@ private fun SearchFilterPanel(
         Column(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "排序依据",
+                    text = stringResource(R.string.search_sort_by),
                     fontSize = 14.sp,
                     color = LimeGray,
                 )
@@ -520,7 +525,7 @@ private fun SearchFilterPanel(
                 ) {
                     NoteSort.entries.forEach { option ->
                         FilterChip(
-                            text = option.label,
+                            text = stringResource(option.labelRes),
                             selected = sort == option,
                             onClick = { onSortChange(option) },
                         )
@@ -528,7 +533,7 @@ private fun SearchFilterPanel(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "发布时间",
+                    text = stringResource(R.string.search_publish_time),
                     fontSize = 14.sp,
                     color = LimeGray,
                 )
@@ -539,7 +544,7 @@ private fun SearchFilterPanel(
                 ) {
                     SearchTimeRange.entries.forEach { option ->
                         FilterChip(
-                            text = option.label,
+                            text = stringResource(option.labelRes),
                             selected = timeRange == option,
                             onClick = { onTimeRangeChange(option) },
                         )
@@ -569,7 +574,7 @@ private fun SearchFilterPanel(
                         modifier = Modifier.size(16.dp),
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "重置", fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
+                    Text(text = stringResource(R.string.search_filter_reset), fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
                 }
                 Box(
                     modifier = Modifier
@@ -592,7 +597,7 @@ private fun SearchFilterPanel(
                         modifier = Modifier.size(16.dp),
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "收起", fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
+                    Text(text = stringResource(R.string.search_collapse), fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
                 }
             }
         }

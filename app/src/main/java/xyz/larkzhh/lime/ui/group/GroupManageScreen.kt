@@ -51,6 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -58,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
@@ -78,6 +80,7 @@ fun GroupManageScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val inviteSentText = stringResource(R.string.group_invite_sent)
     var name by remember { mutableStateOf("") }
     var introduction by remember { mutableStateOf("") }
     var nameInitialized by remember { mutableStateOf(false) }
@@ -109,11 +112,11 @@ fun GroupManageScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text("群管理", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = LimeTextMain)
+                    Text(stringResource(R.string.group_manage_title), fontWeight = FontWeight.Bold, fontSize = 17.sp, color = LimeTextMain)
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = LimeTextMain)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back), tint = LimeTextMain)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -160,27 +163,27 @@ fun GroupManageScreen(
             )
             if (state.isOwner) {
                 Spacer(Modifier.height(6.dp))
-                Text("点击更换头像", color = LimeGray, fontSize = 12.sp)
+                Text(stringResource(R.string.group_avatar_change_hint), color = LimeGray, fontSize = 12.sp)
             }
             Spacer(Modifier.height(16.dp))
 
             GroupFieldCard(
-                label = "群名称",
+                label = stringResource(R.string.group_name),
                 required = true,
                 value = name,
                 onValueChange = { name = it },
-                placeholder = "请输入群名称",
+                placeholder = stringResource(R.string.group_name_hint),
                 maxLength = 24,
                 singleLine = true,
                 enabled = state.isOwner,
             )
             Spacer(Modifier.height(16.dp))
             GroupFieldCard(
-                label = "群简介",
+                label = stringResource(R.string.group_manage_intro),
                 required = true,
                 value = introduction,
                 onValueChange = { introduction = it },
-                placeholder = "介绍一下这个群",
+                placeholder = stringResource(R.string.group_manage_intro_hint),
                 maxLength = 100,
                 singleLine = false,
                 minLines = 3,
@@ -203,7 +206,7 @@ fun GroupManageScreen(
                             modifier = Modifier.size(18.dp),
                         )
                     } else {
-                        Text("保存")
+                        Text(stringResource(R.string.save))
                     }
                 }
             }
@@ -225,9 +228,9 @@ fun GroupManageScreen(
             ) {
                 Icon(Icons.Filled.PersonAdd, contentDescription = null, tint = LimeTextMain)
                 Spacer(Modifier.width(12.dp))
-                Text("邀请好友入群", fontSize = 15.sp, color = LimeTextMain)
+                Text(stringResource(R.string.group_invite_friends), fontSize = 15.sp, color = LimeTextMain)
                 Spacer(Modifier.weight(1f))
-                Text("${state.group?.memberCount ?: 0}人", fontSize = 12.sp, color = LimeGray)
+                Text(stringResource(R.string.group_member_count, state.group?.memberCount ?: 0), fontSize = 12.sp, color = LimeGray)
             }
 
             Spacer(Modifier.height(30.dp))
@@ -238,7 +241,7 @@ fun GroupManageScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
-                    if (state.isOwner) "解散群聊" else "退出群聊",
+                    if (state.isOwner) stringResource(R.string.group_dismiss_group) else stringResource(R.string.group_quit_group),
                     color = MaterialTheme.colorScheme.error,
                 )
             }
@@ -249,10 +252,10 @@ fun GroupManageScreen(
     // 解散或退出确认
     if (showConfirm) {
         LimeAlertDialog(
-            title = if (state.isOwner) "解散群聊" else "退出群聊",
-            text = if (state.isOwner) "解散后所有成员将被移出，且不可恢复。" else "退出后你将不再接收该群消息。",
-            firstButtonText = "取消",
-            secondButtonText = if (state.isOwner) "解散" else "退出",
+            title = if (state.isOwner) stringResource(R.string.group_dismiss_group) else stringResource(R.string.group_quit_group),
+            text = if (state.isOwner) stringResource(R.string.group_dismiss_message) else stringResource(R.string.group_quit_message),
+            firstButtonText = stringResource(R.string.cancel),
+            secondButtonText = if (state.isOwner) stringResource(R.string.group_dismiss) else stringResource(R.string.group_quit),
             secondButtonColor = MaterialTheme.colorScheme.error,
             onDismissRequest = { showConfirm = false },
             onFirstButtonClick = { showConfirm = false },
@@ -268,14 +271,14 @@ fun GroupManageScreen(
         AlertDialog(
             onDismissRequest = { showFriendPicker = false },
             containerColor = Color.White,
-            title = { Text("选择互关好友", fontWeight = FontWeight.Bold, fontSize = 17.sp) },
+            title = { Text(stringResource(R.string.group_pick_friends_title), fontWeight = FontWeight.Bold, fontSize = 17.sp) },
             text = {
                 if (state.mutualFriends.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("暂无互关好友，先去互相关注吧", color = LimeGray, fontSize = 14.sp)
+                        Text(stringResource(R.string.group_no_mutual_friends), color = LimeGray, fontSize = 14.sp)
                     }
                 } else {
                     LazyColumn(modifier = Modifier.height(360.dp)) {
@@ -297,15 +300,15 @@ fun GroupManageScreen(
                         val selected = state.mutualFriends.filter { it.id in selectedIds }
                         if (selected.isNotEmpty()) {
                             viewModel.invite(selected)
-                            "已发送邀请".showToast(context)
+                            inviteSentText.showToast(context)
                         }
                         selectedIds = emptySet()
                         showFriendPicker = false
                     },
-                ) { Text("邀请") }
+                ) { Text(stringResource(R.string.group_invite)) }
             },
             dismissButton = {
-                TextButton(onClick = { showFriendPicker = false }) { Text("取消") }
+                TextButton(onClick = { showFriendPicker = false }) { Text(stringResource(R.string.cancel)) }
             },
         )
     }

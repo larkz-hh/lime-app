@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,6 +70,10 @@ fun AboutScreen(
     val context = LocalContext.current
     var pendingRelease by remember { mutableStateOf<ReleaseInfo?>(null) }
     var checking by remember { mutableStateOf(false) }
+    val aboutLatestText = stringResource(R.string.about_latest)
+    val emailCopiedText = stringResource(R.string.about_email_copied)
+    val installPermissionText = stringResource(R.string.about_install_permission_needed)
+    val aboutOpenUrlFailedText = stringResource(R.string.about_open_url_failed)
 
     BackHandler { onClose() }
 
@@ -77,14 +82,14 @@ fun AboutScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "关于",
+                        text = stringResource(R.string.about_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -111,7 +116,7 @@ fun AboutScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Icon(
                 painter = painterResource(R.drawable.app_logo),
-                contentDescription = "应用图标",
+                contentDescription = stringResource(R.string.about_app_icon),
                 tint = Color.Unspecified,
                 modifier = Modifier.size(84.dp),
             )
@@ -147,7 +152,7 @@ fun AboutScreen(
                                         checking = false
                                         when (result) {
                                             is UpdateCheckResult.Latest ->
-                                                "已是最新版本".showToast(context)
+                                                aboutLatestText.showToast(context)
                                             is UpdateCheckResult.Found ->
                                                 pendingRelease = result.release
                                             is UpdateCheckResult.Failed ->
@@ -167,7 +172,7 @@ fun AboutScreen(
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
-                            text = "检查更新",
+                            text = stringResource(R.string.about_check_update),
                             fontSize = 15.sp,
                             color = Color(0xFF1C1C1E),
                             modifier = Modifier.weight(1f),
@@ -194,24 +199,24 @@ fun AboutScreen(
             // 作者与项目信息
             val links = buildList {
                 if (AboutConfig.REPO.isNotBlank()) {
-                    add(AboutLink(Icons.Outlined.Code, "项目仓库", AboutConfig.REPO) {
-                        openUrl(context, "https://github.com/${AboutConfig.REPO}")
+                    add(AboutLink(Icons.Outlined.Code, stringResource(R.string.about_repo), AboutConfig.REPO) {
+                        openUrl(context, "https://github.com/${AboutConfig.REPO}", aboutOpenUrlFailedText)
                     })
                 }
                 if (AboutConfig.AUTHOR_GITHUB.isNotBlank()) {
-                    add(AboutLink(Icons.Outlined.Person, "作者 GitHub", "@${AboutConfig.AUTHOR_GITHUB}") {
-                        openUrl(context, "https://github.com/${AboutConfig.AUTHOR_GITHUB}")
+                    add(AboutLink(Icons.Outlined.Person, stringResource(R.string.about_author_github), "@${AboutConfig.AUTHOR_GITHUB}") {
+                        openUrl(context, "https://github.com/${AboutConfig.AUTHOR_GITHUB}", aboutOpenUrlFailedText)
                     })
                 }
                 if (AboutConfig.AUTHOR_EMAIL.isNotBlank()) {
-                    add(AboutLink(Icons.Outlined.Email, "QQ 邮箱", AboutConfig.AUTHOR_EMAIL) {
+                    add(AboutLink(Icons.Outlined.Email, stringResource(R.string.about_qq_email), AboutConfig.AUTHOR_EMAIL) {
                         AboutConfig.AUTHOR_EMAIL.copyToClipboard(context)
-                        "邮箱已复制".showToast(context)
+                        emailCopiedText.showToast(context)
                     })
                 }
                 if (AboutConfig.HOMEPAGE.isNotBlank()) {
-                    add(AboutLink(Icons.Outlined.Language, "网址", AboutConfig.HOMEPAGE) {
-                        openUrl(context, AboutConfig.HOMEPAGE)
+                    add(AboutLink(Icons.Outlined.Language, stringResource(R.string.about_homepage), AboutConfig.HOMEPAGE) {
+                        openUrl(context, AboutConfig.HOMEPAGE, aboutOpenUrlFailedText)
                     })
                 }
             }
@@ -273,17 +278,17 @@ fun AboutScreen(
     val release = pendingRelease
     if (release != null) {
         LimeAlertDialog(
-            title = "发现新版本 ${release.versionName}",
-            text = release.notes.take(500).ifBlank { "是否立即下载更新？" },
-            firstButtonText = "暂不更新",
-            secondButtonText = "立即更新",
+            title = stringResource(R.string.about_new_version_found, release.versionName),
+            text = release.notes.take(500).ifBlank { stringResource(R.string.about_update_prompt) },
+            firstButtonText = stringResource(R.string.about_update_later),
+            secondButtonText = stringResource(R.string.about_update_now),
             onFirstButtonClick = { pendingRelease = null },
             onSecondButtonClick = {
                 pendingRelease = null
                 viewModel.startUpdate(
                     release = release,
                     onNeedPermission = {
-                        "需要先允许安装未知来源应用".showToast(context)
+                        installPermissionText.showToast(context)
                         viewModel.openInstallSettings()
                     },
                     onFailed = { it.showToast(context) },
@@ -301,11 +306,11 @@ private data class AboutLink(
     val onClick: () -> Unit,
 )
 
-private fun openUrl(context: Context, url: String) {
+private fun openUrl(context: Context, url: String, openFailedText: String) {
     runCatching {
         context.startActivity(
             Intent(Intent.ACTION_VIEW, url.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
-    }.onFailure { "无法打开链接".showToast(context) }
+    }.onFailure { openFailedText.showToast(context) }
 }
 

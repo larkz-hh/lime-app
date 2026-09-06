@@ -37,8 +37,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 
@@ -71,19 +73,19 @@ fun ChatAddSheet(
             ) {
                 AddSquare(
                     icon = Icons.Outlined.PhotoCamera,
-                    label = "拍照",
+                    label = stringResource(R.string.chat_take_photo),
                     onClick = onCamera,
                     modifier = Modifier.weight(1f),
                 )
                 AddSquare(
                     icon = Icons.Outlined.PhotoLibrary,
-                    label = "相册",
+                    label = stringResource(R.string.chat_album),
                     onClick = onAlbum,
                     modifier = Modifier.weight(1f),
                 )
                 AddSquare(
                     icon = Icons.Outlined.Edit,
-                    label = "笔记",
+                    label = stringResource(R.string.chat_attach_note),
                     onClick = onNote,
                     modifier = Modifier.weight(1f),
                 )
@@ -151,19 +153,20 @@ private fun WebSearchRow(
     ) {
         Icon(
             Icons.Outlined.Public,
-            contentDescription = "联网搜索",
+            contentDescription = stringResource(R.string.chat_web_search),
             tint = Color(0xFF3A3A3A),
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(10.dp))
         Text(
-            text = "联网搜索",
+            text = stringResource(R.string.chat_web_search),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 14.sp,
         )
         Spacer(Modifier.weight(1f))
         Text(
-            text = if (webSearch) "自动" else "关闭",
+            text = if (webSearch) stringResource(R.string.chat_web_search_auto)
+            else stringResource(R.string.chat_web_search_off),
             color = LimeGray,
             fontSize = 14.sp,
         )
@@ -182,14 +185,14 @@ private fun WebSearchRow(
                 shape = RoundedCornerShape(12.dp),
             ) {
                 DropdownMenuItem(
-                    text = { Text("自动") },
+                    text = { Text(stringResource(R.string.chat_web_search_auto)) },
                     onClick = {
                         onChange(true)
                         menuExpanded = false
                     },
                 )
                 DropdownMenuItem(
-                    text = { Text("关闭") },
+                    text = { Text(stringResource(R.string.chat_web_search_off)) },
                     onClick = {
                         onChange(false)
                         menuExpanded = false

@@ -43,7 +43,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.local.TranslateMode
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.SheetGroup
@@ -73,14 +75,14 @@ fun TranslatePackScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "翻译设置",
+                        text = stringResource(R.string.translate_settings_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -103,7 +105,7 @@ fun TranslatePackScreen(
         ) {
             // 离线包分组
             Text(
-                text = "离线包",
+                text = stringResource(R.string.translate_offline_pack),
                 fontSize = 13.sp,
                 color = LimeGray,
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
@@ -129,12 +131,12 @@ fun TranslatePackScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "中英互译语言包",
+                            text = stringResource(R.string.translate_pack_name),
                             fontSize = 16.sp,
                             color = Color(0xFF1C1C1E),
                         )
                         Text(
-                            text = "$packSizeLabel · 中文 ⇄ 英文",
+                            text = stringResource(R.string.translate_pack_languages, packSizeLabel),
                             fontSize = 12.sp,
                             color = LimeGray,
                         )
@@ -151,7 +153,7 @@ fun TranslatePackScreen(
 
             // 翻译方式
             Text(
-                text = "翻译方式",
+                text = stringResource(R.string.translate_mode_section),
                 fontSize = 13.sp,
                 color = LimeGray,
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
@@ -170,7 +172,10 @@ fun TranslatePackScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = modeItem.label,
+                            text = when (modeItem) {
+                                TranslateMode.Auto -> stringResource(R.string.translate_mode_auto)
+                                TranslateMode.Offline -> stringResource(R.string.translate_mode_offline)
+                            },
                             fontSize = 15.sp,
                             color = Color(0xFF1C1C1E),
                             modifier = Modifier.weight(1f),
@@ -191,7 +196,7 @@ fun TranslatePackScreen(
 
             // 说明
             Text(
-                text = "• 语言包下载后即可离线翻译\n• 第一次需要联网下载\n• 语言包由 Google 提供",
+                text = stringResource(R.string.translate_pack_tips),
                 fontSize = 12.sp,
                 color = LimeGray,
                 lineHeight = 18.sp,
@@ -203,9 +208,9 @@ fun TranslatePackScreen(
     // 删除确认弹窗
     if (showDeleteConfirm) {
         LimeAlertDialog(
-            title = "删除中英语言包(；′⌒`)？\n删除后再次翻译需重新下载",
-            firstButtonText = "取消",
-            secondButtonText = "删除",
+            title = stringResource(R.string.translate_delete_pack_confirm_title),
+            firstButtonText = stringResource(R.string.cancel),
+            secondButtonText = stringResource(R.string.delete),
             onFirstButtonClick = { showDeleteConfirm = false },
             onSecondButtonClick = {
                 showDeleteConfirm = false
@@ -224,10 +229,10 @@ private fun PackAction(
     onDelete: () -> Unit,
 ) {
     when (status) {
-        PackStatus.Checking -> LoadingLabel("检查中…")
-        PackStatus.Downloading -> LoadingLabel("下载中…")
+        PackStatus.Checking -> LoadingLabel(stringResource(R.string.translate_checking))
+        PackStatus.Downloading -> LoadingLabel(stringResource(R.string.translate_downloading))
         PackStatus.NotDownloaded -> Chip(
-            text = "下载",
+            text = stringResource(R.string.translate_download),
             background = LimePrimary,
             textColor = Color.White,
             onClick = onDownload,
@@ -237,9 +242,9 @@ private fun PackAction(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(text = "下载失败", fontSize = 12.sp, color = Color(0xFFFF3B30))
+            Text(text = stringResource(R.string.translate_download_failed), fontSize = 12.sp, color = Color(0xFFFF3B30))
             Chip(
-                text = "重试",
+                text = stringResource(R.string.translate_retry),
                 background = LimePrimary,
                 textColor = Color.White,
                 onClick = onDownload,
@@ -250,9 +255,9 @@ private fun PackAction(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(text = "已下载", fontSize = 13.sp, color = LimePrimary)
+            Text(text = stringResource(R.string.translate_downloaded), fontSize = 13.sp, color = LimePrimary)
             Text(
-                text = "删除",
+                text = stringResource(R.string.delete),
                 fontSize = 13.sp,
                 color = Color(0xFFFF3B30),
                 modifier = Modifier

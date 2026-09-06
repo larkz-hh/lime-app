@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeTheme
@@ -81,7 +83,7 @@ private fun LikeFavStatsDialogContent(
                     .padding(horizontal = 22.dp, vertical = 28.dp),
             ) {
                 Text(
-                    text = "获赞与收藏",
+                    text = stringResource(R.string.profile_likes_favs),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
@@ -92,9 +94,21 @@ private fun LikeFavStatsDialogContent(
                 HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
                 Spacer(Modifier.height(14.dp))
-                StatsRow(icon = Icons.AutoMirrored.Outlined.Article, label = "当前发布笔记数", value = noteCount)
-                StatsRow(icon = Icons.Outlined.FavoriteBorder, label = "当前获得点赞数", value = likeCount)
-                StatsRow(icon = Icons.Outlined.StarBorder, label = "当前获得收藏数", value = favCount)
+                StatsRow(
+                    icon = Icons.AutoMirrored.Outlined.Article,
+                    label = stringResource(R.string.profile_stat_notes),
+                    value = noteCount,
+                )
+                StatsRow(
+                    icon = Icons.Outlined.FavoriteBorder,
+                    label = stringResource(R.string.profile_stat_likes),
+                    value = likeCount,
+                )
+                StatsRow(
+                    icon = Icons.Outlined.StarBorder,
+                    label = stringResource(R.string.profile_stat_favs),
+                    value = favCount,
+                )
 
                 Spacer(Modifier.height(26.dp))
 
@@ -114,7 +128,7 @@ private fun LikeFavStatsDialogContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "我知道了",
+                        text = stringResource(R.string.profile_got_it),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         color = LimeWhite,

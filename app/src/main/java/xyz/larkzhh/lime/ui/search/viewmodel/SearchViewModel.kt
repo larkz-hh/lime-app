@@ -1,6 +1,7 @@
 package xyz.larkzhh.lime.ui.search.viewmodel
 
 import android.content.Context
+import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.local.SearchHistoryStorage
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.data.network.model.HotSearchItem
@@ -34,20 +36,20 @@ import kotlin.time.Duration.Companion.milliseconds
 enum class SearchMode { Idle, Suggest, Result }
 
 /// 笔记排序依据
-enum class NoteSort(val label: String, val apiValue: String) {
-    Composite("综合", "composite"),
-    Latest("最新", "latest"),
-    MostLiked("最多点赞", "likes"),
-    MostCommented("最多评论", "comments"),
-    MostFavored("最多收藏", "favs"),
+enum class NoteSort(@StringRes val labelRes: Int, val apiValue: String) {
+    Composite(R.string.search_sort_composite, "composite"),
+    Latest(R.string.search_sort_latest, "latest"),
+    MostLiked(R.string.search_sort_most_liked, "likes"),
+    MostCommented(R.string.search_sort_most_commented, "comments"),
+    MostFavored(R.string.search_sort_most_favored, "favs"),
 }
 
 /// 发布时间筛选
-enum class SearchTimeRange(val label: String, val apiValue: String) {
-    All("不限", "all"),
-    Day("一天内", "day"),
-    Week("一周内", "week"),
-    HalfYear("半年内", "halfYear"),
+enum class SearchTimeRange(@StringRes val labelRes: Int, val apiValue: String) {
+    All(R.string.search_time_all, "all"),
+    Day(R.string.search_time_day, "day"),
+    Week(R.string.search_time_week, "week"),
+    HalfYear(R.string.search_time_half_year, "halfYear"),
 }
 
 data class SearchUiState(

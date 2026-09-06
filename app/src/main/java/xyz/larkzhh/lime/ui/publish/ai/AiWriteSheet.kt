@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,6 +79,7 @@ fun AiWriteSheet(
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val copiedText = stringResource(R.string.ai_write_copied)
 
     // 关闭时断开请求
     fun dismiss() {
@@ -134,13 +136,13 @@ fun AiWriteSheet(
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = "AI 帮写",
+                    text = stringResource(R.string.ai_write_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f),
                 )
                 IconButton(onClick = ::dismiss) {
-                    Icon(Icons.Outlined.Close, contentDescription = "关闭")
+                    Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.ai_write_close))
                 }
             }
 
@@ -162,7 +164,7 @@ fun AiWriteSheet(
                             .padding(horizontal = 14.dp, vertical = 6.dp),
                     ) {
                         Text(
-                            text = action.label,
+                            text = stringResource(action.labelRes),
                             color = if (selected) Color.White
                             else MaterialTheme.colorScheme.onSurface,
                             fontSize = 13.sp,
@@ -195,8 +197,10 @@ fun AiWriteSheet(
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                if (state.isUploading) (state.uploadProgressText ?: "正在上传图片…")
-                                else "正在生成…",
+                                if (state.isUploading) {
+                                    state.uploadProgressText
+                                        ?: stringResource(R.string.ai_write_uploading_images)
+                                } else stringResource(R.string.ai_write_generating),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.bodyMedium,
                             )
@@ -254,15 +258,16 @@ fun AiWriteSheet(
             // 状态说明行
             Text(
                 text = when {
-                    state.isUploading -> "正在上传图片，可随时停止"
-                    state.isGenerating -> "生成中，可随时停止"
-                    state.action == AiWriteAction.TITLE && state.finished -> "点选一个标题填入标题栏"
+                    state.isUploading -> stringResource(R.string.ai_write_status_uploading)
+                    state.isGenerating -> stringResource(R.string.ai_write_status_generating)
+                    state.action == AiWriteAction.TITLE && state.finished ->
+                        stringResource(R.string.ai_write_status_pick_title)
                     state.action == AiWriteAction.CAPTION && state.finished && state.text.isNotEmpty() ->
-                        "文案将填入正文"
+                        stringResource(R.string.ai_write_status_fill_body)
                     state.action == AiWriteAction.CONTINUE && state.finished && state.text.isNotEmpty() ->
-                        "续写内容将追加到正文末尾"
+                        stringResource(R.string.ai_write_status_continue_append)
                     state.finished && state.text.isNotEmpty() ->
-                        "共 ${state.text.length} 字 · 替换正文将覆盖当前内容"
+                        stringResource(R.string.ai_write_status_summary, state.text.length)
                     else -> " "
                 },
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -284,7 +289,8 @@ fun AiWriteSheet(
                         shape = RoundedCornerShape(20.dp),
                     ) {
                         Text(
-                            if (state.isUploading) "停止" else "停止生成",
+                            if (state.isUploading) stringResource(R.string.ai_write_stop)
+                            else stringResource(R.string.ai_write_stop_generating),
                             fontWeight = FontWeight.SemiBold,
                         )
                     }
@@ -302,7 +308,7 @@ fun AiWriteSheet(
                         ) {
                             Icon(
                                 Icons.Outlined.Refresh,
-                                contentDescription = "重新生成",
+                                contentDescription = stringResource(R.string.ai_write_regenerate),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(18.dp),
                             )
@@ -310,14 +316,14 @@ fun AiWriteSheet(
                         IconButton(
                             onClick = {
                                 state.text.copyToClipboard(context)
-                                "已复制".showToast(context)
+                                copiedText.showToast(context)
                             },
                             enabled = state.text.isNotEmpty(),
                             modifier = Modifier.size(32.dp),
                         ) {
                             Icon(
                                 Icons.Outlined.ContentCopy,
-                                contentDescription = "复制",
+                                contentDescription = stringResource(R.string.ai_write_copy),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(16.dp),
                             )
@@ -334,9 +340,9 @@ fun AiWriteSheet(
                         ) {
                             Text(
                                 text = when (state.action) {
-                                    AiWriteAction.CONTINUE -> "追加到正文"
-                                    AiWriteAction.CAPTION -> "填入正文"
-                                    else -> "替换正文"
+                                    AiWriteAction.CONTINUE -> stringResource(R.string.ai_write_append_to_body)
+                                    AiWriteAction.CAPTION -> stringResource(R.string.ai_write_fill_body)
+                                    else -> stringResource(R.string.ai_write_replace_body)
                                 },
                                 fontWeight = FontWeight.SemiBold,
                             )

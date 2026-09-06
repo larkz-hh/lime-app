@@ -26,11 +26,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.theme.LimePageBg
 import xyz.larkzhh.lime.ui.theme.LimeTextMain
@@ -42,7 +44,6 @@ fun CreateGroupScreen(
     viewModel: CreateGroupViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
-
     LaunchedEffect(state.createdGroupId) {
         state.createdGroupId?.let { groupId ->
             viewModel.clearCreatedGroupId()
@@ -58,7 +59,7 @@ fun CreateGroupScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        "创建群聊",
+                        stringResource(R.string.msg_create_group),
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp,
                         color = LimeTextMain,
@@ -68,7 +69,7 @@ fun CreateGroupScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回",
+                            contentDescription = stringResource(R.string.back),
                             tint = LimeTextMain,
                         )
                     }
@@ -92,21 +93,21 @@ fun CreateGroupScreen(
         ) {
             Spacer(Modifier.height(16.dp))
             GroupFieldCard(
-                label = "群名称",
+                label = stringResource(R.string.group_name),
                 required = true,
                 value = state.name,
                 onValueChange = viewModel::onNameChange,
-                placeholder = "请输入群名称",
+                placeholder = stringResource(R.string.group_name_hint),
                 maxLength = 24,
                 singleLine = true,
             )
             Spacer(Modifier.height(16.dp))
             GroupFieldCard(
-                label = "群介绍",
+                label = stringResource(R.string.group_create_intro),
                 required = true,
                 value = state.introduction,
                 onValueChange = viewModel::onIntroChange,
-                placeholder = "简单说说你想在群内讨论的话题、以及希望哪些人加入群聊",
+                placeholder = stringResource(R.string.group_create_intro_hint),
                 maxLength = 100,
                 singleLine = false,
                 minLines = 3,
@@ -129,7 +130,7 @@ fun CreateGroupScreen(
                         modifier = Modifier.height(20.dp),
                     )
                 } else {
-                    Text("创建", fontSize = 16.sp)
+                    Text(stringResource(R.string.group_create_action), fontSize = 16.sp)
                 }
             }
             Spacer(Modifier.height(24.dp))

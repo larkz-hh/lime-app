@@ -13,9 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import xyz.larkzhh.lime.R
 
 @Composable
 fun PublishBottomSheet(
@@ -28,7 +30,7 @@ fun PublishBottomSheet(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "从相册选择",
+            text = stringResource(R.string.publish_from_album),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
                 .fillMaxWidth()
@@ -45,11 +47,11 @@ fun PublishBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "相机",
+                text = stringResource(R.string.publish_camera),
                 style = MaterialTheme.typography.bodyLarge,
             )
             Text(
-                text = "拍摄",
+                text = stringResource(R.string.publish_take_photo),
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray,
             )
@@ -57,7 +59,7 @@ fun PublishBottomSheet(
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "取消",
+            text = stringResource(R.string.cancel),
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
             color = Color.Gray,

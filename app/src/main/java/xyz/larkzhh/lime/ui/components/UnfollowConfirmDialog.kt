@@ -1,6 +1,8 @@
 package xyz.larkzhh.lime.ui.components
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 取消关注确认弹窗
@@ -10,10 +12,10 @@ fun UnfollowConfirmDialog(
     onConfirm: () -> Unit,
 ) {
     LimeAlertDialog(
-        title = "不再关注 TA？",
+        title = stringResource(R.string.unfollow_title),
         text = null,
-        firstButtonText = "取消",
-        secondButtonText = "不再关注",
+        firstButtonText = stringResource(R.string.cancel),
+        secondButtonText = stringResource(R.string.unfollow_confirm),
         secondButtonColor = LimePrimary,
         onFirstButtonClick = onCancel,
         onSecondButtonClick = onConfirm,

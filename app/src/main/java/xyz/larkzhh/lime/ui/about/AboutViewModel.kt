@@ -14,6 +14,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
+import xyz.larkzhh.lime.R
 
 /// 检查更新结果
 sealed interface UpdateCheckResult {
@@ -60,7 +61,7 @@ class AboutViewModel @Inject constructor(
             val release = updater.fetchLatestRelease()
             onResult(
                 if (release == null) {
-                    UpdateCheckResult.Failed("检查失败，请检查网络或仓库配置")
+                    UpdateCheckResult.Failed(context.getString(R.string.about_check_failed))
                 } else if (release.versionCode > currentVersionCode()) {
                     UpdateCheckResult.Found(release)
                 } else {
@@ -81,7 +82,7 @@ class AboutViewModel @Inject constructor(
             return
         }
         runCatching { updater.enqueueDownload(release.apkUrl) }
-            .onFailure { onFailed("下载启动失败，请重试") }
+            .onFailure { onFailed(context.getString(R.string.about_download_start_failed)) }
     }
 
     /// 设置允许安装未知应用

@@ -4,7 +4,6 @@ import android.Manifest
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.BackHandler
-import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -65,6 +64,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -162,7 +162,7 @@ fun VideoFeedScreen(
             }
             uiState.items.isEmpty() -> {
                 Text(
-                    text = uiState.error ?: "暂无视频",
+                    text = uiState.error ?: stringResource(R.string.video_feed_empty),
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 14.sp,
                 )
@@ -209,7 +209,7 @@ fun VideoFeedScreen(
 }
 
 @UnstableApi
-@kotlin.OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun VideoFeedContent(
     navController: NavHostController,
@@ -229,6 +229,7 @@ private fun VideoFeedContent(
     val isUnmetered by viewModel.isUnmetered.collectAsState()
     val relations by viewModel.relations.collectAsState()
     val context = LocalContext.current
+    val t = videoFeedTexts()
     val scope = rememberCoroutineScope()
     val notificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
@@ -246,7 +247,7 @@ private fun VideoFeedContent(
             justRequested = false
             val status = notificationPermission?.status ?: return@LaunchedEffect
             if (!status.isGranted) {
-                "请在设置中开启通知".showToast(context)
+                t.enableNotificationHint.showToast(context)
             }
         }
     }
@@ -522,7 +523,12 @@ private fun VideoFeedContent(
 
         // 评论输入框
         if (commentUiState.showInputSheet) {
-            val hint = commentUiState.replyTarget?.let { "回复 @${it.replyToNickname}" } ?: "说点什么…"
+            val replyTarget = commentUiState.replyTarget
+            val hint = if (replyTarget != null) {
+                stringResource(R.string.video_reply_mention, replyTarget.replyToNickname)
+            } else {
+                stringResource(R.string.video_comment_hint)
+            }
             CommentInputSheet(
                 hint = hint,
                 isSubmitting = commentUiState.isSubmitting,
@@ -581,21 +587,21 @@ private fun VideoFeedContent(
                 val m = menu ?: return@buildList
                 add(listOf(
                     GroupedSheetAction(
-                        label = "回复",
+                        label = t.replyMenuLabel,
                         icon = Icons.AutoMirrored.Outlined.Reply,
                         onClick = { commentViewModel.openInputSheet(m.replyTarget) },
                     ),
                     GroupedSheetAction(
-                        label = "复制",
+                        label = t.copyMenuLabel,
                         icon = Icons.Outlined.ContentCopy,
                         iconSize = 20.dp,
                         onClick = {
                             m.copyText?.copyToClipboard(context)
-                            "已复制".showToast(context)
+                            t.copiedText.showToast(context)
                         },
                     ),
                     GroupedSheetAction(
-                        label = "翻译",
+                        label = t.translateMenuLabel,
                         icon = Icons.Outlined.Translate,
                         iconSize = 20.dp,
                         onClick = {
@@ -606,7 +612,7 @@ private fun VideoFeedContent(
                 if (m.canDelete) {
                     add(listOf(
                         GroupedSheetAction(
-                            label = "删除",
+                            label = t.deleteMenuLabel,
                             icon = Icons.Outlined.Delete,
                             textColor = Color(0xFFFF3B30),
                             onClick = m.onDelete,
@@ -619,7 +625,10 @@ private fun VideoFeedContent(
         // 删除确认对话框
         if (pendingDeleteAction != null) {
             LimeAlertDialog(
-                title = "确认删除这条评论吗？",
+                title = stringResource(R.string.video_delete_comment_confirm),
+                firstButtonText = stringResource(R.string.cancel),
+                secondButtonText = stringResource(R.string.delete),
+                secondButtonColor = Color(0xFFFF3B30),
                 onDismissRequest = { pendingDeleteAction = null },
                 onFirstButtonClick = { pendingDeleteAction = null },
                 onSecondButtonClick = {
@@ -638,12 +647,12 @@ private fun VideoFeedContent(
                 onBackgroundDownload = {
                     translateViewModel.scheduleBackgroundDownload()
                     translateViewModel.dismiss()
-                    "已加入后台下载，完成后即可离线翻译".showToast(context)
+                    t.backgroundDownloadToastText.showToast(context)
                 },
                 onSwitchDirection = translateViewModel::switchDirection,
                 onCopy = { text ->
                     text.copyToClipboard(context)
-                    "已复制".showToast(context)
+                    t.copiedText.showToast(context)
                 },
             )
         }
@@ -656,7 +665,7 @@ private fun VideoFeedContent(
                 onToggleOff = {
                     danmakuViewModel.toggleEnabled()// 关闭弹幕
                     danmakuViewModel.closeInput()
-                    "弹幕已关闭".showToast(context)
+                    t.danmakuOffText.showToast(context)
                 },
                 onSend = { text ->
                     val item = currentItem ?: return@DanmakuInputSheet
@@ -676,13 +685,13 @@ private fun VideoFeedContent(
             onSpeedChange = {
                 viewModel.setPlaybackSpeed(it)
                 showActionPanel = false
-                "已切换 ${it}倍速".showToast(context)
+                String.format(t.speedChangedFormat, it).showToast(context)
             },
             danmakuEnabled = danmakuUiState.enabled,
             onToggleDanmaku = {
                 val wasEnabled = danmakuUiState.enabled
                 danmakuViewModel.toggleEnabled()
-                if (wasEnabled) "弹幕已关闭".showToast(context) else "弹幕已开启".showToast(context)
+                if (wasEnabled) t.danmakuOffText.showToast(context) else t.danmakuOnText.showToast(context)
             },
             danmakuOpacity = uiState.danmakuOpacity,
             onOpacityChange = viewModel::setDanmakuOpacity,
@@ -690,7 +699,7 @@ private fun VideoFeedContent(
             onToggleAutoPlayNext = {
                 val wasOn = uiState.autoPlayNext
                 viewModel.toggleAutoPlayNext()
-                if (wasOn) "自动连播已关闭".showToast(context) else "自动连播已开启".showToast(context)
+                if (wasOn) t.autoplayOffText.showToast(context) else t.autoplayOnText.showToast(context)
             },
             backgroundAudio = uiState.backgroundAudio,
             onToggleBackgroundAudio = {
@@ -700,16 +709,16 @@ private fun VideoFeedContent(
                     justRequested = true
                     notificationPermission.launchPermissionRequest()
                 }
-                if (wasOn) "后台播放已关闭".showToast(context) else "后台播放已开启".showToast(context)
+                if (wasOn) t.backgroundPlaybackOffText.showToast(context) else t.backgroundPlaybackOnText.showToast(context)
             },
             onClearScreen = { viewModel.toggleClearScreen() },
             clearScreen = uiState.clearScreen,
             onSaveVideo = {
                 val url = currentItem?.video?.playUrl ?: return@VideoActionPanel
-                "开始保存…".showToast(context)
+                t.savingVideoText.showToast(context)
                 scope.launch {
                     val ok = saveVideoToGallery(context, url)
-                    (if (ok) "已保存到相册" else "保存失败").showToast(context)
+                    (if (ok) t.videoSavedToAlbumText else t.videoSaveFailedText).showToast(context)
                 }
             },
         )
@@ -743,13 +752,16 @@ private fun VideoFeedContent(
         // 删除视频笔记确认
         if (showDeleteNoteConfirm) {
             LimeAlertDialog(
-                title = "确认删除这条视频笔记吗？删除后不可恢复",
+                title = stringResource(R.string.video_delete_note_confirm),
+                firstButtonText = stringResource(R.string.cancel),
+                secondButtonText = stringResource(R.string.delete),
+                secondButtonColor = Color(0xFFFF3B30),
                 onDismissRequest = { showDeleteNoteConfirm = false },
                 onFirstButtonClick = { showDeleteNoteConfirm = false },
                 onSecondButtonClick = {
                     showDeleteNoteConfirm = false
                     viewModel.deleteCurrent { ok ->
-                        (if (ok) "视频笔记已删除" else "删除失败，请重试").showToast(context)
+                        (if (ok) t.videoNoteDeletedText else t.videoNoteDeleteFailedText).showToast(context)
                     }
                 },
             )
@@ -783,7 +795,7 @@ private data class LongPressMenu(
 )
 
 /// 视频页 chrome 浮层
-@OptIn(UnstableApi::class)
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 private fun VideoChrome(
     item: VideoItem,
@@ -853,7 +865,7 @@ private fun VideoChrome(
                     if (!useSideActions) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回",
+                            contentDescription = stringResource(R.string.back),
                             tint = Color.White,
                             modifier = Modifier
                                 .size(40.dp)
@@ -870,7 +882,7 @@ private fun VideoChrome(
                     if (onEnterMiniPlayer != null) {
                         Icon(
                             painter = painterResource(R.drawable.ic_pip),
-                            contentDescription = "小窗播放",
+                            contentDescription = stringResource(R.string.video_pip),
                             tint = Color.White,
                             modifier = Modifier
                                 .size(40.dp)
@@ -886,7 +898,7 @@ private fun VideoChrome(
                     Spacer(Modifier.weight(1f))
                     Icon(
                         imageVector = Icons.Filled.Share,
-                        contentDescription = "分享",
+                        contentDescription = stringResource(R.string.video_share),
                         tint = Color.White,
                         modifier = Modifier
                             .size(40.dp)
@@ -973,7 +985,7 @@ private fun VideoChrome(
                         // 发弹幕
                         Icon(
                             painter = painterResource(R.drawable.ic_barrage),
-                            contentDescription = "发弹幕",
+                            contentDescription = stringResource(R.string.video_send_danmaku),
                             tint = Color.White,
                             modifier = Modifier
                                 .size(20.dp)
@@ -1098,12 +1110,12 @@ private fun VideoChrome(
             ) {
                 Icon(
                     imageVector = Icons.Filled.Fullscreen,
-                    contentDescription = "全屏观看",
+                    contentDescription = stringResource(R.string.video_fullscreen),
                     tint = Color.White,
                     modifier = Modifier.size(18.dp),
                 )
                 Text(
-                    text = "全屏观看",
+                    text = stringResource(R.string.video_fullscreen),
                     color = Color.White,
                     fontSize = 13.sp,
                 )

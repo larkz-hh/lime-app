@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
@@ -160,7 +161,7 @@ fun CommentDrawer(
                                     modifier = Modifier.size(180.dp),
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text(text = "这是一片荒草地", fontSize = 13.sp, color = LimeGray)
+                                Text(text = stringResource(R.string.comment_empty_hint), fontSize = 13.sp, color = LimeGray)
                             }
                         }
                     }
@@ -208,7 +209,7 @@ fun CommentDrawer(
                                     .padding(vertical = 20.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Text(text = "- 到底了 -", fontSize = 12.sp, color = LimeGray)
+                                Text(text = stringResource(R.string.detail_end_of_list), fontSize = 12.sp, color = LimeGray)
                             }
                         }
                     }

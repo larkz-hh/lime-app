@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.local.TokenStorage
 import xyz.larkzhh.lime.data.local.TranslateMode
 import xyz.larkzhh.lime.data.local.TranslateSettings
@@ -170,7 +171,7 @@ class TranslateViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         phase = TranslatePhase.Error,
-                        error = "翻译失败：请检查网络后重试",
+                        error = appContext.getString(R.string.translate_error_network),
                     )
                 }
             }

@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,9 +51,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.NotificationData
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.FollowRelation
+import xyz.larkzhh.lime.domain.model.NotificationCategory
 import xyz.larkzhh.lime.domain.model.NotificationType
 import xyz.larkzhh.lime.domain.model.toFollowActionState
 import xyz.larkzhh.lime.navigation.Screen
@@ -80,6 +83,11 @@ fun NotificationListScreen(
 
     var pendingUnfollow by remember { mutableStateOf<NotificationData?>(null) }
 
+    val titleText = when (viewModel.category) {
+        NotificationCategory.LikesFavorites -> stringResource(R.string.notif_title_likes)
+        NotificationCategory.Follows -> stringResource(R.string.notif_title_follows)
+        NotificationCategory.Comments -> stringResource(R.string.notif_title_comments)
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -98,12 +106,12 @@ fun NotificationListScreen(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "返回",
+                    contentDescription = stringResource(R.string.back),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
             Text(
-                text = viewModel.category.title,
+                text = titleText,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -127,7 +135,7 @@ fun NotificationListScreen(
             pageState.error != null && items.isEmpty() -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        text = pageState.error ?: "加载失败",
+                        text = pageState.error ?: stringResource(R.string.notif_load_failed),
                         color = LimeGray,
                         modifier = Modifier.clickable { viewModel.loadInitial() },
                     )
@@ -136,7 +144,7 @@ fun NotificationListScreen(
 
             items.isEmpty() -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "暂时没有新消息~", color = LimeGray)
+                    Text(text = stringResource(R.string.notif_empty), color = LimeGray)
                 }
             }
 
@@ -157,7 +165,7 @@ fun NotificationListScreen(
                         SwipeActionItem(
                             actionContent = {
                                 Text(
-                                    text = "删除",
+                                    text = stringResource(R.string.delete),
                                     color = Color.White,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Medium,
@@ -237,6 +245,14 @@ private fun NotificationCard(
 ) {
     val type = NotificationType.fromCode(item.type)
     val time = formatRelativeTime(item.createTime.orEmpty())
+    val actionText = when (type) {
+        NotificationType.LikeNote -> stringResource(R.string.notif_action_like_note)
+        NotificationType.Favorite -> stringResource(R.string.notif_action_favorite_note)
+        NotificationType.LikeComment -> stringResource(R.string.notif_action_like_comment)
+        NotificationType.Follow -> stringResource(R.string.notif_action_follow)
+        NotificationType.Comment -> stringResource(R.string.notif_action_comment_note)
+        NotificationType.Reply -> stringResource(R.string.notif_action_reply_comment)
+    }
 
     Row(
         modifier = Modifier
@@ -293,7 +309,7 @@ private fun NotificationCard(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = "${type.actionText()} · $time",
+                text = "$actionText · $time",
                 fontSize = 13.sp,
                 lineHeight = 17.sp,
                 color = LimeGray,
@@ -367,17 +383,6 @@ private fun NoteCover(url: String?) {
     }
 }
 
-/// 通知类型对应的动作文案
-private fun NotificationType.actionText(): String = when (this) {
-    NotificationType.LikeNote -> "赞了你的笔记"
-    NotificationType.Favorite -> "收藏了你的笔记"
-    NotificationType.LikeComment -> "赞了你的评论"
-    NotificationType.Follow -> "开始关注你了"
-    NotificationType.Comment -> "评论了你的笔记"
-    NotificationType.Reply -> "回复了你的评论"
-}
-
-
 private fun previewItem(
     id: Long,
     type: Int,
@@ -428,7 +433,7 @@ private fun PreviewInbox(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "返回",
+                    contentDescription = stringResource(R.string.back),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
@@ -467,7 +472,7 @@ private fun LikesFavoritesInboxPreview() {
     LimeTheme {
         Surface {
             PreviewInbox(
-                title = "收到的赞和收藏",
+                title = stringResource(R.string.notif_title_likes),
                 items = listOf(
                     previewItem(1, 1, "小明"),
                     previewItem(2, 2, "小红"),
@@ -484,7 +489,7 @@ private fun FollowsInboxPreview() {
     LimeTheme {
         Surface {
             PreviewInbox(
-                title = "新增关注",
+                title = stringResource(R.string.notif_title_follows),
                 items = listOf(
                     previewItem(4, 5, "；李华"),
                     previewItem(5, 5, "hh"),
@@ -508,7 +513,7 @@ private fun CommentsInboxPreview() {
     LimeTheme {
         Surface {
             PreviewInbox(
-                title = "收到的评论与回复",
+                title = stringResource(R.string.notif_title_comments),
                 items = listOf(
                     previewItem(7, 3, "hhh", content = "拍得太好了吧，构图好棒！"),
                     previewItem(

@@ -20,9 +20,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentSort
 import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
@@ -44,7 +46,7 @@ fun CommentHeader(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
-            text = "共${commentCount}条评论",
+            text = stringResource(R.string.comment_count, commentCount),
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             color = LimeDark,
@@ -54,15 +56,15 @@ fun CommentHeader(
                 onClick = { showMenu = true },
                 modifier = Modifier.size(32.dp),
             ) {
-                Icon(Icons.AutoMirrored.Outlined.Sort, contentDescription = "排序", tint = LimeGray, modifier = Modifier.size(20.dp))
+                Icon(Icons.AutoMirrored.Outlined.Sort, contentDescription = stringResource(R.string.sort), tint = LimeGray, modifier = Modifier.size(20.dp))
             }
             DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }, containerColor = LimeWhite) {
                 DropdownMenuItem(
-                    text = { Text("按热度", fontSize = 14.sp, color = if (sort == CommentSort.HOT) LimePrimary else LimeDark) },
+                    text = { Text(stringResource(R.string.sort_by_hot), fontSize = 14.sp, color = if (sort == CommentSort.HOT) LimePrimary else LimeDark) },
                     onClick = { onSortChange(CommentSort.HOT); showMenu = false },
                 )
                 DropdownMenuItem(
-                    text = { Text("按时间", fontSize = 14.sp, color = if (sort == CommentSort.TIME) LimePrimary else LimeDark) },
+                    text = { Text(stringResource(R.string.sort_by_time), fontSize = 14.sp, color = if (sort == CommentSort.TIME) LimePrimary else LimeDark) },
                     onClick = { onSortChange(CommentSort.TIME); showMenu = false },
                 )
             }

@@ -45,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -73,13 +74,13 @@ private data class EntryStyle(
     val iconVector: ImageVector?,
     val background: Color,
     val tint: Color,
-    val label: String,
+    val labelRes: Int,
 )
 
 private val entryStyles = listOf(
-    EntryStyle(null, Icons.Filled.Favorite, Color(0xFFFBE9EC), Color(0xFFFF4D67), "赞和收藏"),
-    EntryStyle(null, Icons.Filled.Person, Color(0xFFE7EFFE), Color(0xFF4A7DFF), "新增关注"),
-    EntryStyle(R.drawable.ic_chat, null, Color(0xFFE3F5EC), Color(0xFF00B578), "评论和@"),
+    EntryStyle(null, Icons.Filled.Favorite, Color(0xFFFBE9EC), Color(0xFFFF4D67), R.string.msg_entry_likes),
+    EntryStyle(null, Icons.Filled.Person, Color(0xFFE7EFFE), Color(0xFF4A7DFF), R.string.msg_entry_follows),
+    EntryStyle(R.drawable.ic_chat, null, Color(0xFFE3F5EC), Color(0xFF00B578), R.string.msg_entry_comments),
 )
 
 private val categories = listOf(
@@ -122,14 +123,14 @@ fun MessageScreen(
     deleteTarget?.let { target ->
         val isGroup = target.conversationId.startsWith("group_")
         LimeAlertDialog(
-            title = "删除会话",
+            title = stringResource(R.string.msg_delete_conversation),
             text = if (isGroup) {
-                "是否移除群聊，移除后会清空聊天记录。"
+                stringResource(R.string.msg_delete_group_hint)
             } else {
-                "是否删除会话，删除会清空聊天记录。"
+                stringResource(R.string.msg_delete_conversation_hint)
             },
-            firstButtonText = "取消",
-            secondButtonText = "删除",
+            firstButtonText = stringResource(R.string.cancel),
+            secondButtonText = stringResource(R.string.delete),
             secondButtonColor = Color(0xFFFE2C55),
             onFirstButtonClick = { deleteTarget = null },
             onSecondButtonClick = {
@@ -166,7 +167,7 @@ private fun MessagePageContent(
         ) {
             var showAddMenu by remember { mutableStateOf(false) }
             Text(
-                text = "消息",
+                text = stringResource(R.string.nav_message),
                 modifier = Modifier.align(Alignment.Center),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
@@ -181,7 +182,7 @@ private fun MessagePageContent(
                 IconButton(onClick = { showAddMenu = true }) {
                     Icon(
                         Icons.Filled.Add,
-                        contentDescription = "更多",
+                        contentDescription = stringResource(R.string.msg_more),
                         tint = MaterialTheme.colorScheme.onBackground,
                     )
                 }
@@ -191,15 +192,15 @@ private fun MessagePageContent(
                     containerColor = Color.White,
                 ) {
                     DropdownMenuItem(
-                        text = { Text("创建群聊", color = Color(0xFF111111)) },
+                        text = { Text(stringResource(R.string.msg_create_group), color = Color(0xFF111111)) },
                         onClick = { showAddMenu = false; onCreateGroup() },
                     )
                     DropdownMenuItem(
-                        text = { Text("添加好友", color = Color(0xFF111111)) },
+                        text = { Text(stringResource(R.string.msg_add_friend), color = Color(0xFF111111)) },
                         onClick = { showAddMenu = false; onAddFriend() },
                     )
                     DropdownMenuItem(
-                        text = { Text("扫一扫", color = Color(0xFF111111)) },
+                        text = { Text(stringResource(R.string.msg_scan), color = Color(0xFF111111)) },
                         onClick = { showAddMenu = false; onScan() },
                     )
                 }
@@ -241,7 +242,7 @@ private fun MessagePageContent(
                     )
                     Spacer(Modifier.height(12.dp))
                     Text(
-                        text = "暂无私信",
+                        text = stringResource(R.string.msg_empty),
                         fontSize = 15.sp,
                         color = LimeGray,
                     )
@@ -257,7 +258,7 @@ private fun MessagePageContent(
                     SwipeActionItem(
                         actionContent = {
                             Text(
-                                text = "删除",
+                                text = stringResource(R.string.delete),
                                 color = Color.White,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium,
@@ -333,7 +334,7 @@ private fun ConversationListItem(
             )
             Spacer(Modifier.height(2.dp))
             Text(
-                text = conversation.lastMessageText.ifBlank { "开始聊天吧" },
+                text = conversation.lastMessageText.ifBlank { stringResource(R.string.msg_start_chat) },
                 fontSize = 13.sp,
                 color = LimeGray,
                 maxLines = 1,
@@ -365,6 +366,7 @@ private fun NotificationEntry(
     unread: Int,
     onClick: () -> Unit,
 ) {
+    val label = stringResource(style.labelRes)
     Column(
         modifier = Modifier
             .clickable(
@@ -386,14 +388,14 @@ private fun NotificationEntry(
                 if (style.painterRes != null) {
                     Icon(
                         painter = painterResource(style.painterRes),
-                        contentDescription = style.label,
+                        contentDescription = label,
                         tint = style.tint,
                         modifier = Modifier.size(34.dp),
                     )
                 } else {
                     Icon(
                         imageVector = style.iconVector!!,
-                        contentDescription = style.label,
+                        contentDescription = label,
                         tint = style.tint,
                         modifier = Modifier.size(34.dp),
                     )
@@ -408,7 +410,7 @@ private fun NotificationEntry(
         }
         Spacer(Modifier.height(8.dp))
         Text(
-            text = style.label,
+            text = label,
             fontSize = 13.sp,
             color = MaterialTheme.colorScheme.onBackground,
         )

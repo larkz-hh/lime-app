@@ -40,11 +40,13 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
@@ -67,7 +69,7 @@ fun ChatInputBar(
     note: ChatNote? = null,
     sending: Boolean = false,
     canSend: Boolean = true,
-    placeholder: String = "尽管问，带图也行",
+    placeholder: String = "",
     onAddClick: () -> Unit = {},
     onRemoveImage: (uri: String) -> Unit = {},
     onRetryImage: (uri: String) -> Unit = {},
@@ -78,6 +80,7 @@ fun ChatInputBar(
     emojiActive: Boolean = false,
     onEmojiClick: () -> Unit = {},
 ) {
+    val effectivePlaceholder = placeholder.ifBlank { stringResource(R.string.chat_ask_hint) }
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -133,7 +136,7 @@ fun ChatInputBar(
             ) {
                 Icon(
                     Icons.Outlined.Add,
-                    contentDescription = "添加",
+                    contentDescription = stringResource(R.string.chat_add),
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.size(24.dp),
                 )
@@ -161,7 +164,7 @@ fun ChatInputBar(
                             Box(modifier = Modifier.weight(1f)) {
                                 if (text.isEmpty()) {
                                     Text(
-                                        text = placeholder,
+                                        text = effectivePlaceholder,
                                         color = LimeGray,
                                         fontSize = 16.sp,
                                     )
@@ -175,7 +178,11 @@ fun ChatInputBar(
                                 ) {
                                     Icon(
                                         imageVector = if (emojiActive) Icons.Outlined.Keyboard else Icons.Outlined.EmojiEmotions,
-                                        contentDescription = if (emojiActive) "键盘" else "表情",
+                                        contentDescription = if (emojiActive) {
+                                            stringResource(R.string.chat_keyboard)
+                                        } else {
+                                            stringResource(R.string.chat_emoji)
+                                        },
                                         tint = if (emojiActive) MaterialTheme.colorScheme.primary else LimeGray,
                                         modifier = Modifier.size(24.dp),
                                     )
@@ -207,14 +214,14 @@ fun ChatInputBar(
                 if (sending) {
                     Icon(
                         Icons.Filled.Stop,
-                        contentDescription = "停止生成",
+                        contentDescription = stringResource(R.string.chat_stop_generating),
                         tint = LimeWhite,
                         modifier = Modifier.size(18.dp),
                     )
                 } else {
                     Icon(
                         Icons.Filled.ArrowUpward,
-                        contentDescription = "发送",
+                        contentDescription = stringResource(R.string.chat_send),
                         tint = LimeWhite,
                         modifier = Modifier.size(20.dp),
                     )
@@ -272,7 +279,7 @@ private fun PendingImageThumb(
         ) {
             Icon(
                 Icons.Outlined.Close,
-                contentDescription = "移除图片",
+                contentDescription = stringResource(R.string.chat_remove_image),
                 tint = LimeWhite,
                 modifier = Modifier.size(12.dp),
             )
@@ -304,7 +311,7 @@ private fun NotePreviewChip(
         )
         Spacer(Modifier.width(6.dp))
         Text(
-            text = note.title?.ifBlank { "引用笔记" } ?: "引用笔记",
+            text = note.title?.ifBlank { stringResource(R.string.chat_referenced_note) } ?: stringResource(R.string.chat_referenced_note),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onBackground,
             maxLines = 1,
@@ -314,7 +321,7 @@ private fun NotePreviewChip(
         IconButton(onClick = onRemove, modifier = Modifier.size(22.dp)) {
             Icon(
                 Icons.Outlined.Close,
-                contentDescription = "移除笔记",
+                contentDescription = stringResource(R.string.chat_remove_note),
                 tint = LimeGray,
                 modifier = Modifier.size(14.dp),
             )

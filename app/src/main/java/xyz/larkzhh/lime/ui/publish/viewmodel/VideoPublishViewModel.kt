@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.domain.repository.NoteRepository
@@ -268,7 +269,7 @@ class VideoPublishViewModel @Inject constructor(
                 .onFailure { e ->
                     _publishState.update { state ->
                         if (!shown) {
-                            state.copy(isLoadingEdit = false, error = e.message ?: "加载笔记失败")
+                            state.copy(isLoadingEdit = false, error = e.message ?: context.getString(R.string.publish_error_load_note))
                         } else {
                             state.copy(isLoadingEdit = false, error = null)
                         }
@@ -283,7 +284,7 @@ class VideoPublishViewModel @Inject constructor(
         if (v == null) {
             _publishState.update {
                 if (it.editingNoteId == noteId) {
-                    it.copy(isLoadingEdit = false, error = "该笔记不是视频笔记")
+                    it.copy(isLoadingEdit = false, error = context.getString(R.string.publish_error_not_video))
                 } else it
             }
             return
@@ -469,7 +470,7 @@ class VideoPublishViewModel @Inject constructor(
         val keepOriginal = editingId != null && originalVideo != null &&
             (video == null || video.uri == baseLocalUri)
         if (video == null && !keepOriginal) {
-            _publishState.update { it.copy(error = "请先选择视频") }
+            _publishState.update { it.copy(error = context.getString(R.string.publish_error_no_video)) }
             return
         }
         viewModelScope.launch {
@@ -486,7 +487,7 @@ class VideoPublishViewModel @Inject constructor(
                     width = o.width
                     height = o.height
                 } else {
-                    _publishState.update { it.copy(uploadPhase = "上传视频") }
+                    _publishState.update { it.copy(uploadPhase = context.getString(R.string.publish_phase_upload_video)) }
                     videoUrl = noteRepository.uploadVideo(video!!.uri).getOrThrow()
                     durationMs = video.durationMs
                     width = state.videoWidth
@@ -494,7 +495,7 @@ class VideoPublishViewModel @Inject constructor(
                 }
 
                 // 封面沿用原封面不重传
-                _publishState.update { it.copy(uploadPhase = "上传封面") }
+                _publishState.update { it.copy(uploadPhase = context.getString(R.string.publish_phase_upload_cover)) }
                 val cover = state.cover
                 val coverUrl: String?
                 val coverSize: ImageSize?
@@ -548,9 +549,9 @@ class VideoPublishViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 val errorMsg = when {
-                    status == 0 -> "存草稿失败，请重试"
-                    _publishState.value.editingNoteId != null -> "保存失败，请重试"
-                    else -> "发布失败，请重试"
+                    status == 0 -> context.getString(R.string.publish_error_draft)
+                    _publishState.value.editingNoteId != null -> context.getString(R.string.publish_error_save)
+                    else -> context.getString(R.string.publish_error_publish)
                 }
                 _publishState.update {
                     it.copy(isPublishing = false, uploadPhase = null, error = e.message ?: errorMsg)

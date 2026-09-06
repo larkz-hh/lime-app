@@ -48,6 +48,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,6 +65,7 @@ import com.airbnb.lottie.compose.rememberLottieDynamicProperty
 import com.airbnb.lottie.LottieProperty
 import androidx.compose.ui.graphics.toArgb
 import kotlinx.coroutines.delay
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.VoiceRecord
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
@@ -268,7 +270,7 @@ fun VoiceRecordSheet(
                         },
                         modifier = Modifier.align(Alignment.TopEnd),
                     ) {
-                        Icon(Icons.Filled.Close, contentDescription = "关闭", tint = LimeGray)
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.voice_close), tint = LimeGray)
                     }
                 }
 
@@ -302,9 +304,9 @@ fun VoiceRecordSheet(
                 // 提示文字
                 Text(
                     text = when {
-                        isCancelling -> "松开取消"
-                        isRecording -> "${recordSeconds}\" · 松手保存"
-                        else -> "按住麦克风开始录音"
+                        isCancelling -> stringResource(R.string.voice_release_cancel)
+                        isRecording -> stringResource(R.string.voice_release_send, recordSeconds)
+                        else -> stringResource(R.string.voice_hold_to_record)
                     },
                     fontSize = 14.sp,
                     color = if (isCancelling) Color(0xFFFF5252) else LimeGray,
@@ -368,7 +370,7 @@ fun VoiceRecordSheet(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Mic,
-                        contentDescription = "录音",
+                        contentDescription = stringResource(R.string.voice_record),
                         tint = if (isRecording) Color.White else LimeGray,
                         modifier = Modifier.size(32.dp),
                     )

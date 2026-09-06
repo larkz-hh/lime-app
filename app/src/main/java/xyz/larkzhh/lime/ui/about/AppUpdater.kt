@@ -19,6 +19,7 @@ import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 import androidx.core.net.toUri
+import xyz.larkzhh.lime.R
 
 /// GitHub Release 信息
 data class ReleaseInfo(
@@ -103,8 +104,8 @@ class AppUpdater @Inject constructor(
         cancelPending() // 清理旧任务
         targetFile().delete()
         val request = DownloadManager.Request(url.toUri())
-            .setTitle("Lime 更新")
-            .setDescription("正在下载新版本…")
+            .setTitle(context.getString(R.string.updater_notify_title))
+            .setDescription(context.getString(R.string.updater_notify_desc))
             .setMimeType("application/vnd.android.package-archive")
             .setDestinationUri(Uri.fromFile(targetFile()))
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)

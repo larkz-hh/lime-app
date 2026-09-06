@@ -16,10 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.domain.model.FollowActionState
-import xyz.larkzhh.lime.domain.model.label
+import xyz.larkzhh.lime.domain.model.labelRes
 import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
@@ -50,7 +51,7 @@ fun FollowButton(
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = state.label,
+            text = stringResource(state.labelRes),
             color = if (followed) outlineColor else LimeWhite,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,

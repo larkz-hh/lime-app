@@ -1,7 +1,6 @@
 package xyz.larkzhh.lime.navigation
 
 import androidx.activity.compose.BackHandler
-import androidx.annotation.OptIn
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
@@ -37,7 +36,7 @@ import xyz.larkzhh.lime.ui.video.player.SyncPiPPlayState
 import xyz.larkzhh.lime.ui.video.player.VideoPage
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 
-@OptIn(UnstableApi::class)
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun VideoNavGraph(
     noteId: Long,

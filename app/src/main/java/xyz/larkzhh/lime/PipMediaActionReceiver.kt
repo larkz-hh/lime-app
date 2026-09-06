@@ -3,7 +3,6 @@ package xyz.larkzhh.lime
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -13,7 +12,7 @@ import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 /**
  * 画中画模式媒体控制广播接收器
  */
-@OptIn(UnstableApi::class)
+@androidx.annotation.OptIn(UnstableApi::class)
 @AndroidEntryPoint
 class PipMediaActionReceiver : BroadcastReceiver() {
 

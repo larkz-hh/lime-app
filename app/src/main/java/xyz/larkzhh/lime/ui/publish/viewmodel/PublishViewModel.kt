@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.domain.repository.NoteRepository
@@ -196,7 +197,7 @@ class PublishViewModel @Inject constructor(
                 .onFailure { e ->
                     _publishState.update { s ->
                         if (!shown) {
-                            s.copy(isLoadingEdit = false, error = e.message ?: "加载笔记失败")
+                            s.copy(isLoadingEdit = false, error = e.message ?: context.getString(R.string.publish_error_load_note))
                         } else {
                             s.copy(isLoadingEdit = false, error = null)
                         }
@@ -224,11 +225,11 @@ class PublishViewModel @Inject constructor(
     private fun submitNote(status: Int) {
         val state = _publishState.value
         if (state.images.isEmpty()) {
-            _publishState.update { it.copy(error = "请至少添加一张图片") }
+            _publishState.update { it.copy(error = context.getString(R.string.publish_error_no_image)) }
             return
         }
         if (state.title.isBlank() && state.content.isBlank()) {
-            _publishState.update { it.copy(error = "标题和正文至少填写一项") }
+            _publishState.update { it.copy(error = context.getString(R.string.publish_error_need_content)) }
             return
         }
         viewModelScope.launch {
@@ -283,9 +284,9 @@ class PublishViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 val errorMsg = when {
-                    status == 0 -> "存草稿失败，请重试"
-                    _publishState.value.editingNoteId != null -> "保存失败，请重试"
-                    else -> "发布失败，请重试"
+                    status == 0 -> context.getString(R.string.publish_error_draft)
+                    _publishState.value.editingNoteId != null -> context.getString(R.string.publish_error_save)
+                    else -> context.getString(R.string.publish_error_publish)
                 }
                 _publishState.update {
                     it.copy(isPublishing = false, error = e.message ?: errorMsg)
