@@ -42,6 +42,7 @@ glance = "1.1.1"
 imsdk = "9.0.7652"
 shortcutBadger = "1.1.22"
 zxing = "3.5.3"
+animatedNavigationBar = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -160,6 +161,9 @@ androidx-glance-preview = { group = "androidx.glance", name = "glance-preview", 
 # 腾讯云即时通信 IM
 tencent-imsdk-plus = { group = "com.tencent.imsdk", name = "imsdk-plus", version.ref = "imsdk" }
 shortcut-badger = { group = "me.leolin", name = "ShortcutBadger", version.ref = "shortcutBadger" }
+
+# 动画底部导航
+exyte-animated-navigation-bar = { group = "com.exyte", name = "animated-navigation-bar", version.ref = "animatedNavigationBar" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agpUser" }

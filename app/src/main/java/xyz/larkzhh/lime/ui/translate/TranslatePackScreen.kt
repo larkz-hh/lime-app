@@ -43,7 +43,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import xyz.larkzhh.lime.R
@@ -52,7 +51,6 @@ import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.util.TranslateModelInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,8 +65,7 @@ fun TranslatePackScreen(
     val uiState by viewModel.uiState.collectAsState()
     val mode by viewModel.mode.collectAsState()
     var showDeleteConfirm by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val packSizeLabel = remember { TranslateModelInfo.downloadSizeLabel(context) }
+    val packSizeLabel = TranslateModelInfo.downloadSizeLabel()
 
     Scaffold(
         topBar = {

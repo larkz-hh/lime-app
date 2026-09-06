@@ -34,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
@@ -43,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.util.TranslateModelInfo
 import xyz.larkzhh.lime.util.languageDisplayName
 
@@ -67,8 +65,7 @@ fun TranslateResultSheet(
     onSwitchDirection: () -> Unit,
     onCopy: (String) -> Unit,
 ) {
-    val context = LocalContext.current
-    val packSizeLabel = remember { TranslateModelInfo.downloadSizeLabel(context) }
+    val packSizeLabel = TranslateModelInfo.downloadSizeLabel()
     val maxSheetHeight = with(LocalDensity.current) {
         (LocalWindowInfo.current.containerSize.height * 0.6f).toDp()
     }
