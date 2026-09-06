@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.ui.profile.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,7 +49,6 @@ import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.labelRes
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimaryLight
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import java.time.LocalDate
@@ -102,14 +103,15 @@ fun ProfileHeader(
                 BlurMask(gradientEndColor)
             }
         } else {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(LimePrimaryLight, LimePrimaryPale)
-                        )
-                    )
+            // 无背景图时本地默认背景
+            Image(
+                painter = painterResource(R.drawable.bg),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                colorFilter = ColorFilter.colorMatrix(
+                    ColorMatrix().apply { setToScale(0.52f, 0.52f, 0.52f, 1f) }
+                ),
             )
             BlurMask(gradientEndColor)
         }

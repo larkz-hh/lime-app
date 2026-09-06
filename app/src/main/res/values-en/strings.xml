@@ -238,6 +238,7 @@
     <string name="edit_background">Background</string>
     <string name="edit_background_preview">Background preview</string>
     <string name="edit_bg_crop_title">Crop Background</string>
+    <string name="edit_avatar_crop_title">Crop Avatar</string>
     <string name="edit_bio">Bio</string>
     <string name="edit_bio_title">Edit Bio</string>
     <string name="edit_bio_placeholder">Write a bio</string>

@@ -66,7 +66,6 @@ import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.yalantis.ucrop.UCrop
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import java.io.File
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.profile.components.WheelDatePicker
@@ -78,9 +77,34 @@ fun EditProfileScreen(navController: NavHostController) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val cropBgTitle = stringResource(R.string.edit_bg_crop_title)
+    val cropAvatarTitle = stringResource(R.string.edit_avatar_crop_title)
 
+    /// 接收头像裁剪结果后上传
+    val avatarCropLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            UCrop.getOutput(result.data!!)?.let { viewModel.uploadAvatar(it) }
+        }
+    }
+
+    /// 选图后跳转头像裁剪页
     val avatarLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let { viewModel.uploadAvatar(it) }
+        if (uri != null) {
+            val dest = Uri.fromFile(File(context.cacheDir, "avatar_crop_tmp.jpg"))
+            val intent = UCrop.of(uri, dest)
+                .withOptions(UCrop.Options().apply {
+                    setToolbarTitle(cropAvatarTitle)
+                    setCompressionQuality(90)
+                    setCircleDimmedLayer(true)// 圆形遮罩
+                    setToolbarColor(0xFFFFFFFF.toInt())
+                    setStatusBarColor(0xFF1A1A1A.toInt())
+                    setActiveControlsWidgetColor(0xFF4A9B6F.toInt())
+                })
+                .withAspectRatio(1f, 1f)
+                .getIntent(context)
+            avatarCropLauncher.launch(intent)
+        }
     }
 
     /// 接收裁剪结果后上传
@@ -139,7 +163,6 @@ fun EditProfileScreen(navController: NavHostController) {
                 },
                 actions = {
                     val ready = uiState as? EditProfileUiState.Ready
-                    // 上传时禁用保存，防止 ViewModel 被提前销毁导致上传协程取消
                     val canSave = ready != null && !ready.isSaving && !ready.isUploading
                     TextButton(
                         onClick = { viewModel.saveProfile() },
@@ -217,13 +240,16 @@ fun EditProfileScreen(navController: NavHostController) {
                                     modifier = Modifier.size(32.dp),
                                 )
                             }
-                            // 相机角标
+                        }
+                        // 相机角标
+                        Box(modifier = Modifier.size(88.dp)) {
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
                                     .size(26.dp)
                                     .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)),
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.85f))
+                                    .clickable { avatarLauncher.launch("image/*") },
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(

@@ -1,5 +1,7 @@
 package xyz.larkzhh.lime.ui.profile
 
+import android.app.Activity
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
@@ -58,6 +60,8 @@ import androidx.navigation.NavHostController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.yalantis.ucrop.UCrop
+import java.io.File
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import xyz.larkzhh.lime.R
@@ -155,10 +159,36 @@ fun ProfileScreen(
         }
     }
 
-    /// 选择图片上传头像
+    /// 接收头像裁剪结果后上传
+    val avatarCropLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            UCrop.getOutput(result.data!!)?.let { viewModel.uploadAvatar(it) }
+        }
+    }
+
+    /// 选图后跳转头像裁剪页
+    val avatarCropTitle = stringResource(R.string.edit_avatar_crop_title)
     val avatarPickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
-    ) { uri -> if (uri != null) viewModel.uploadAvatar(uri) }
+    ) { uri ->
+        if (uri != null) {
+            val dest = Uri.fromFile(File(context.cacheDir, "avatar_crop_tmp.jpg"))
+            val intent = UCrop.of(uri, dest)
+                .withOptions(UCrop.Options().apply {
+                    setToolbarTitle(avatarCropTitle)
+                    setCompressionQuality(90)
+                    setCircleDimmedLayer(true)// 圆形遮罩
+                    setToolbarColor(0xFFFFFFFF.toInt())
+                    setStatusBarColor(0xFF1A1A1A.toInt())
+                    setActiveControlsWidgetColor(0xFF4A9B6F.toInt())
+                })
+                .withAspectRatio(1f, 1f)
+                .getIntent(context)
+            avatarCropLauncher.launch(intent)
+        }
+    }
 
     /// 错误弹窗提示
     LaunchedEffect(uploadError) {
@@ -250,9 +280,11 @@ fun ProfileScreen(
         mutableStateOf(session?.backgroundDominantRgb?.let { Color(it) } ?: Color.Black)
     }
     LaunchedEffect(backgroundUrl) {
-        val rgb = backgroundUrl?.let { extractGradientColor(context, it) }
+        val source = backgroundUrl
+            ?: "android.resource://${context.packageName}/${R.drawable.bg}"
+        val rgb = extractGradientColor(context, source)
         dominantColor = if (rgb != null) Color(rgb) else Color.Black
-        if (rgb != null) session?.backgroundDominantRgb = rgb
+        if (rgb != null && backgroundUrl != null) session?.backgroundDominantRgb = rgb
     }
     val gradientEndColor = dominantColor.copy(alpha = 0.95f)
 

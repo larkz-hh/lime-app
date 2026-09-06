@@ -2,7 +2,6 @@ package xyz.larkzhh.lime.ui.theme
 
 import androidx.compose.ui.graphics.Color
 // Light theme
-val LimePrimaryLight = Color(0xFF6DB890)
 val LimePrimaryPale = Color(0xFFE8F5EE)
 val LimeWhite = Color(0xFFFFFFFF)
 val LimeGray = Color(0xFFA6A6A6)

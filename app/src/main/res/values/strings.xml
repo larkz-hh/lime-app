@@ -238,6 +238,7 @@
     <string name="edit_background">背景图</string>
     <string name="edit_background_preview">背景图预览</string>
     <string name="edit_bg_crop_title">截取背景图</string>
+    <string name="edit_avatar_crop_title">截取头像</string>
     <string name="edit_bio">简介</string>
     <string name="edit_bio_title">编辑简介</string>
     <string name="edit_bio_placeholder">填写简介</string>

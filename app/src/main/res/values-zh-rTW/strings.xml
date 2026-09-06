@@ -238,6 +238,7 @@
     <string name="edit_background">背景圖片</string>
     <string name="edit_background_preview">背景圖片預覽</string>
     <string name="edit_bg_crop_title">裁切背景圖片</string>
+    <string name="edit_avatar_crop_title">裁切頭像</string>
     <string name="edit_bio">簡介</string>
     <string name="edit_bio_title">編輯簡介</string>
     <string name="edit_bio_placeholder">填寫簡介</string>
