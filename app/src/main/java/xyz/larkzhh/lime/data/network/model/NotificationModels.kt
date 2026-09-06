@@ -5,6 +5,7 @@ data class NotificationData(
     val id: Long,
     val type: Int,
     val noteId: Long? = null,
+    val noteType: Int? = null,
     val commentId: Long? = null,
     val content: String? = null,
     val parentCommentId: Long? = null,

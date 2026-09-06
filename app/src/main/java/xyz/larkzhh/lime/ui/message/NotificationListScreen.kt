@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,12 +61,11 @@ import xyz.larkzhh.lime.domain.model.NotificationType
 import xyz.larkzhh.lime.domain.model.toFollowActionState
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
+import xyz.larkzhh.lime.openVideo
 import xyz.larkzhh.lime.ui.components.FollowButton
 import xyz.larkzhh.lime.ui.components.SwipeActionItem
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeTheme
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.util.formatRelativeTime
@@ -79,6 +79,7 @@ fun NotificationListScreen(
     val pageState by viewModel.pageState.collectAsState()
     val items by viewModel.items.collectAsState()
     val relations by viewModel.relations.collectAsState()
+    val context = LocalContext.current
 
     var pendingUnfollow by remember { mutableStateOf<NotificationData?>(null) }
 
@@ -182,8 +183,12 @@ fun NotificationListScreen(
                                         NotificationType.Follow -> item.senderId?.let {
                                             navController.navigateToUserProfile(it)
                                         }
-                                        else -> item.noteId?.let {
-                                            navController.navigate(Screen.Detail.createRoute(it.toString()))
+                                        else -> item.noteId?.let { noteId ->
+                                            if (item.noteType == 2) {
+                                                context.openVideo(noteId, Screen.VideoFeed.SOURCE_RECOMMENDATION)
+                                            } else {
+                                                navController.navigate(Screen.Detail.createRoute(noteId.toString()))
+                                            }
                                         }
                                     }
                                 },
@@ -289,7 +294,7 @@ private fun NotificationCard(
                 Text(
                     text = item.senderNickname?.take(1).orEmpty(),
                     fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = LimeGray,
                 )
             }
         }
