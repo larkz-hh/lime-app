@@ -29,7 +29,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Reply
 import androidx.compose.material.icons.filled.Fullscreen
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Translate
@@ -79,8 +78,10 @@ import coil3.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.DanmakuData
@@ -120,6 +121,9 @@ import xyz.larkzhh.lime.ui.video.feed.components.CommentDrawer
 import xyz.larkzhh.lime.ui.video.player.VideoPage
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.util.copyToClipboard
+import xyz.larkzhh.lime.util.generateGradientQrBitmap
+import xyz.larkzhh.lime.util.limeNoteQrContent
+import xyz.larkzhh.lime.util.saveBitmapToGallery
 import xyz.larkzhh.lime.util.saveVideoToGallery
 import xyz.larkzhh.lime.util.showToast
 import kotlin.time.Duration.Companion.milliseconds
@@ -241,6 +245,8 @@ private fun VideoFeedContent(
     // 管理菜单
     var showNoteManage by remember { mutableStateOf(false) }
     var showDeleteNoteConfirm by remember { mutableStateOf(false) }
+    // 分享 id
+    var shareQrNoteId by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(notificationPermission?.status) {
         if (justRequested) {
@@ -436,7 +442,7 @@ private fun VideoFeedContent(
                             clearScreen = uiState.clearScreen,
                             onScrubbingChange = { scrubbing = it },
                             onBack = { if (!navController.popBackStack()) onExit() },
-                            onShare = {},
+                            onShare = { shareQrNoteId = item.id },
                             onAuthorClick = { navController.navigateToUserProfile(item.author.id, selfUserId) },
                             onFollow = {
                                 if (followState == FollowActionState.Follow) viewModel.followAuthor()
@@ -767,6 +773,36 @@ private fun VideoFeedContent(
             )
         }
 
+        // 分享
+        val qrSavedText = stringResource(R.string.detail_qr_saved)
+        val qrSaveFailedText = stringResource(R.string.detail_save_failed)
+        val qrGenFailedText = stringResource(R.string.detail_qr_generate_failed)
+        shareQrNoteId?.let { noteId ->
+            LimeAlertDialog(
+                title = stringResource(R.string.detail_save_qr_title),
+                text = stringResource(R.string.detail_save_qr_message),
+                firstButtonText = stringResource(R.string.cancel),
+                secondButtonText = stringResource(R.string.save),
+                onDismissRequest = { shareQrNoteId = null },
+                onFirstButtonClick = { shareQrNoteId = null },
+                onSecondButtonClick = {
+                    shareQrNoteId = null
+                    scope.launch {
+                        val qr = withContext(Dispatchers.IO) {
+                            generateGradientQrBitmap(limeNoteQrContent(noteId))
+                        }
+                        if (qr != null) {
+                            val ok = saveBitmapToGallery(context, qr, "lime_note_$noteId.jpg")
+                            if (ok) qrSavedText.showToast(context)
+                            else qrSaveFailedText.showToast(context)
+                        } else {
+                            qrGenFailedText.showToast(context)
+                        }
+                    }
+                },
+            )
+        }
+
         // 取消关注确认弹窗
         if (showUnfollowConfirm) {
             UnfollowConfirmDialog(
@@ -897,7 +933,7 @@ private fun VideoChrome(
                     }
                     Spacer(Modifier.weight(1f))
                     Icon(
-                        imageVector = Icons.Filled.Share,
+                        painter = painterResource(R.drawable.ic_share),
                         contentDescription = stringResource(R.string.video_share),
                         tint = Color.White,
                         modifier = Modifier
@@ -908,7 +944,7 @@ private fun VideoChrome(
                                 interactionSource = remember { MutableInteractionSource() },
                                 onClick = onShare,
                             )
-                            .padding(8.dp),
+                            .padding(10.dp),
                     )
                 }
             } else if (!scrubbing) {
