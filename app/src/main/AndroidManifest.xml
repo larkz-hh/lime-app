@@ -41,6 +41,7 @@
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:name=".LimeApplication"
@@ -83,6 +84,16 @@
             android:theme="@style/Theme.UCrop.Fullscreen"
             tools:ignore="LockedOrientationActivity"
             />
+        <!-- 应用内更新安装：通过 FileProvider 暴露下载的 APK -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
         <!-- 媒体按钮接收器 -->
         <receiver
             android:name="androidx.media3.session.MediaButtonReceiver"

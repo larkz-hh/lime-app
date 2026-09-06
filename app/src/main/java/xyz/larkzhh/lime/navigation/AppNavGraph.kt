@@ -39,6 +39,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.ui.ai.AiChatScreen
+import xyz.larkzhh.lime.ui.about.AboutScreen
 import xyz.larkzhh.lime.ui.auth.LoginScreen
 import xyz.larkzhh.lime.ui.auth.RegisterScreen
 import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
@@ -120,6 +121,7 @@ fun AppNavGraph(
     var showDraftBox by remember { mutableStateOf(false) }
     var showAccountPrivacy by remember { mutableStateOf(false) }
     var showGeneralSettings by remember { mutableStateOf(false) }
+    var showAbout by remember { mutableStateOf(false) }
     var forceLogout by remember { mutableStateOf(false) }
 
     val navController = rememberNavController()
@@ -176,10 +178,11 @@ fun AppNavGraph(
             showDraftBox = false
             showAccountPrivacy = false
             showGeneralSettings = false
+            showAbout = false
         }
     }
 
-    // // 登录后进入主界面同步未读红点并保持 SSE并预登录 IM
+    // 登录后进入主界面同步未读红点并保持 SSE并预登录 IM
     LaunchedEffect(currentRoute) {
         when (currentRoute) {
             in authRoutes -> messageViewModel.onLoggedOut()// 登录注册时通知
@@ -201,6 +204,7 @@ fun AppNavGraph(
                     onDraftsClick = { showDraftBox = true },
                     onAccountPrivacyClick = { showAccountPrivacy = true },
                     onGeneralClick = { showGeneralSettings = true },
+                    onAboutClick = { showAbout = true },
                 )
             },
         ) {
@@ -682,12 +686,20 @@ fun AppNavGraph(
         ) {
             GeneralSettingsScreen(onClose = { showGeneralSettings = false })
         }
+        // 关于覆盖层
+        AnimatedVisibility(
+            visible = showAbout,
+            enter = slideInHorizontally(initialOffsetX = { it }),
+            exit = slideOutHorizontally(targetOffsetX = { it }),
+        ) {
+            AboutScreen(onClose = { showAbout = false })
+        }
     }
 
     // 覆盖层、抽屉优先返回
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher// 获取分发器
     val backEnabled = (showTranslatePack || drawerState.isOpen) &&
-            !showDraftBox && !showAccountPrivacy && !showGeneralSettings
+            !showDraftBox && !showAccountPrivacy && !showGeneralSettings && !showAbout
     DisposableEffect(backDispatcher, backEnabled) {
         if (backEnabled) {
             val callback = object : OnBackPressedCallback(true) {
