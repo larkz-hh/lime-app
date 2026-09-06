@@ -169,6 +169,9 @@ fun limeUserQrContent(uid: String): String = "lime://user/${Uri.encode(uid)}"
 /// 笔记分享二维码内容
 fun limeNoteQrContent(noteId: Long): String = "lime://note/$noteId"
 
+/// 视频分享二维码内容
+fun limeVideoQrContent(noteId: Long): String = "lime://video/$noteId"
+
 /// 解析用户名片二维码文本
 fun parseLimeUserQr(raw: String): String? {
     val uri = runCatching { raw.toUri() }.getOrNull() ?: return null
@@ -183,6 +186,16 @@ fun parseLimeUserQr(raw: String): String? {
 fun parseLimeNoteQr(raw: String): String? {
     val uri = runCatching { raw.toUri() }.getOrNull() ?: return null
     return if (uri.scheme == "lime" && uri.host == "note") {
+        uri.pathSegments.firstOrNull()
+    } else {
+        null
+    }
+}
+
+/// 解析视频分享二维码文本
+fun parseLimeVideoQr(raw: String): String? {
+    val uri = runCatching { raw.toUri() }.getOrNull() ?: return null
+    return if (uri.scheme == "lime" && uri.host == "video") {
         uri.pathSegments.firstOrNull()
     } else {
         null

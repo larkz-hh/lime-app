@@ -49,10 +49,12 @@ import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.openVideo
 import xyz.larkzhh.lime.ui.qrscan.components.CameraPreview
 import xyz.larkzhh.lime.ui.qrscan.components.ScanOverlay
 import xyz.larkzhh.lime.util.parseLimeNoteQr
 import xyz.larkzhh.lime.util.parseLimeUserQr
+import xyz.larkzhh.lime.util.parseLimeVideoQr
 import xyz.larkzhh.lime.util.showToast
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -93,6 +95,19 @@ fun QrScanScreen(navController: NavHostController) {
                     navController.navigate(Screen.UserProfile.createRoute(userId))
                 } else {
                     userNotFoundText.showToast(context)
+                }
+            }
+            return
+        }
+        parseLimeVideoQr(raw)?.let { noteId ->
+            navController.popBackStack()
+            noteId.toLongOrNull()?.let { id ->
+                if (navController.graph.findNode(Screen.VideoFeed.ROUTE) != null) {
+                    navController.navigate(
+                        Screen.VideoFeed.createRoute(id, Screen.VideoFeed.SOURCE_RECOMMENDATION)
+                    )
+                } else {
+                    context.openVideo(id, Screen.VideoFeed.SOURCE_RECOMMENDATION)
                 }
             }
             return

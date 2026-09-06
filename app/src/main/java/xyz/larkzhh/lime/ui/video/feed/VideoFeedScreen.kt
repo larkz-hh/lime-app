@@ -122,7 +122,7 @@ import xyz.larkzhh.lime.ui.video.player.VideoPage
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.generateGradientQrBitmap
-import xyz.larkzhh.lime.util.limeNoteQrContent
+import xyz.larkzhh.lime.util.limeVideoQrContent
 import xyz.larkzhh.lime.util.saveBitmapToGallery
 import xyz.larkzhh.lime.util.saveVideoToGallery
 import xyz.larkzhh.lime.util.showToast
@@ -307,7 +307,13 @@ private fun VideoFeedContent(
     val currentItem = uiState.items.getOrNull(currentPage)
     val authorId = currentItem?.author?.id
     val selfUserId = commentViewModel.currentUserId
-    val followState = authorId?.let { relations[it]?.toFollowActionState() } ?: FollowActionState.Follow
+    // 本人视频
+    val isOwnVideo = authorId != null && authorId == selfUserId
+    val followState = if (isOwnVideo) {
+        null
+    } else {
+        authorId?.let { relations[it]?.toFollowActionState() } ?: FollowActionState.Follow
+    }
     LaunchedEffect(authorId) {
         currentItem?.author?.let { author ->
             if (author.id != selfUserId) viewModel.seedFollowRelation(author)
@@ -445,8 +451,10 @@ private fun VideoFeedContent(
                             onShare = { shareQrNoteId = item.id },
                             onAuthorClick = { navController.navigateToUserProfile(item.author.id, selfUserId) },
                             onFollow = {
-                                if (followState == FollowActionState.Follow) viewModel.followAuthor()
-                                else showUnfollowConfirm = true
+                                if (!isOwnVideo) {
+                                    if (followState == FollowActionState.Follow) viewModel.followAuthor()
+                                    else showUnfollowConfirm = true
+                                }
                             },
                             followState = followState,
                             onToggleLike = viewModel::toggleLike,
@@ -789,7 +797,7 @@ private fun VideoFeedContent(
                     shareQrNoteId = null
                     scope.launch {
                         val qr = withContext(Dispatchers.IO) {
-                            generateGradientQrBitmap(limeNoteQrContent(noteId))
+                            generateGradientQrBitmap(limeVideoQrContent(noteId))
                         }
                         if (qr != null) {
                             val ok = saveBitmapToGallery(context, qr, "lime_note_$noteId.jpg")
@@ -1016,7 +1024,9 @@ private fun VideoChrome(
                                     onClick = onAuthorClick,
                                 ),
                         )
-                        FollowButton(state = followState ?: FollowActionState.Follow, onClick = onFollow)
+                        if (followState != null) {
+                            FollowButton(state = followState, onClick = onFollow)
+                        }
                         Spacer(Modifier.weight(1f))
                         // 发弹幕
                         Icon(
