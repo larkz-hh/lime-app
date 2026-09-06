@@ -1,6 +1,5 @@
 package xyz.larkzhh.lime.ui.publish.ai
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -49,8 +48,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.theme.LimePrimary
-import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.showToast
 
@@ -131,7 +128,7 @@ fun AiWriteSheet(
                 Icon(
                     painterResource(R.drawable.ic_ai),
                     contentDescription = null,
-                    tint = LimePrimary,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp),
                 )
                 Spacer(Modifier.width(8.dp))
@@ -157,7 +154,7 @@ fun AiWriteSheet(
                         modifier = Modifier
                             .clip(RoundedCornerShape(18.dp))
                             .background(
-                                if (selected) LimePrimary
+                                if (selected) MaterialTheme.colorScheme.primary
                                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
                             )
                             .clickable { viewModel.start(action, content, images) }
@@ -193,7 +190,7 @@ fun AiWriteSheet(
                             CircularProgressIndicator(
                                 modifier = Modifier.size(18.dp),
                                 strokeWidth = 2.dp,
-                                color = LimePrimary,
+                                color = MaterialTheme.colorScheme.primary,
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
@@ -224,7 +221,7 @@ fun AiWriteSheet(
                                 ) {
                                     Text(
                                         text = "${index + 1}.",
-                                        color = LimePrimary,
+                                        color = MaterialTheme.colorScheme.primary,
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
                                     )
@@ -336,7 +333,7 @@ fun AiWriteSheet(
                             enabled = state.finished && state.text.isNotEmpty(),
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(20.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = LimePrimary),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         ) {
                             Text(
                                 text = when (state.action) {

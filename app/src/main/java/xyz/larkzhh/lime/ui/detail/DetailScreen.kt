@@ -91,10 +91,8 @@ import xyz.larkzhh.lime.ui.detail.translate.FullTextUiState
 import xyz.larkzhh.lime.ui.detail.translate.TranslateResultSheet
 import xyz.larkzhh.lime.ui.detail.translate.TranslateViewModel
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.formatRelativeTime
 import xyz.larkzhh.lime.util.generateGradientQrBitmap
@@ -214,7 +212,7 @@ fun DetailScreen(
                             .fillMaxWidth(),
                         contentAlignment = Alignment.Center,
                     ) {
-                        CircularProgressIndicator(color = LimePrimary)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
 
@@ -673,7 +671,7 @@ private fun NoteContent(
                     actions = selectionActions,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = LimeDark,
+                        color = MaterialTheme.colorScheme.onSurface,
                     ),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 )
@@ -688,7 +686,7 @@ private fun NoteContent(
                     text = displayContent,
                     actions = selectionActions,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = LimeDark,
+                        color = MaterialTheme.colorScheme.onSurface,
                         lineHeight = 22.sp,
                     ),
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -713,7 +711,7 @@ private fun NoteContent(
                 if (fullText.translating) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(14.dp),
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 2.dp,
                     )
                 } else {
@@ -731,19 +729,19 @@ private fun NoteContent(
                         Icon(
                             imageVector = Icons.Outlined.Translate,
                             contentDescription = null,
-                            tint = LimePrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(13.dp),
                         )
                         Text(
                             text = if (fullText.translated) stringResource(R.string.detail_view_original) else stringResource(R.string.detail_translate_full),
-                            color = LimePrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 12.sp,
                         )
                     }
                 }
             }
         }
-        item { HorizontalDivider(color = LimeLightGray, thickness = 1.dp) }
+        item { HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f), thickness = 1.dp) }
 
         // 评论区标题栏
         item {
@@ -815,7 +813,7 @@ private fun NoteContent(
                 onReplyLongPress = { reply -> onCommentReplyLongPress(comment.id, reply) },
                 onAuthorClick = onAuthorClick,
             )
-            HorizontalDivider(color = LimeLightGray, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
         }
 
         // 加载更多
@@ -827,7 +825,7 @@ private fun NoteContent(
                         .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = LimePrimary, strokeWidth = 2.dp)
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 2.dp)
                 }
             }
         }

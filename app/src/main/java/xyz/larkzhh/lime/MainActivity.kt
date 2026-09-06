@@ -22,6 +22,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.data.local.TokenStorage
 import xyz.larkzhh.lime.data.notify.NotificationCenter
 import javax.inject.Inject
 import xyz.larkzhh.lime.navigation.AppNavGraph
@@ -49,6 +50,12 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var notificationCenter: NotificationCenter
 
+    @Inject
+    lateinit var tokenStorage: TokenStorage
+
+    /// 上次账号 id
+    private var lastSeenUserId: Long? = null
+
     /// 快捷入口
     private val shortcutAction = mutableStateOf<String?>(null)
     /// 快捷入口携带关键词
@@ -66,6 +73,18 @@ class MainActivity : ComponentActivity() {
         resolveShortcut(intent)
         // 启动系统通知中心
         notificationCenter.ensureStarted()
+        // 账号切换后重建界面
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                tokenStorage.currentUserIdFlow.collect { uid ->
+                    if (lastSeenUserId != null && lastSeenUserId != uid) {
+                        recreate()
+                    } else {
+                        lastSeenUserId = uid
+                    }
+                }
+            }
+        }
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 var offlineToastJob: Job? = null

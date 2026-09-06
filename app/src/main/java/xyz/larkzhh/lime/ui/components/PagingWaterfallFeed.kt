@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,7 +22,6 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import xyz.larkzhh.lime.data.network.model.FeedItem
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /**
  * 瀑布流列表组件
@@ -71,7 +71,7 @@ fun PagingWaterfallFeed(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 2.dp,
                     )
                 }

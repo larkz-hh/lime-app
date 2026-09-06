@@ -60,7 +60,6 @@ import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimeTheme
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
@@ -107,7 +106,7 @@ fun FollowListScreen(
                 onClick = { viewModel.selectTab(FollowTab.Followers) },
             )
         }
-        HorizontalDivider(thickness = 0.5.dp, color = LimeLightGray)
+        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
 
         val tab = uiState.selectedTab
         val page = if (tab == FollowTab.Following) uiState.following else uiState.followers
@@ -117,7 +116,7 @@ fun FollowListScreen(
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(28.dp),
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         trackColor = LimeWhite,
                         strokeWidth = 2.dp,
                     )
@@ -168,7 +167,7 @@ fun FollowListScreen(
                         )
                         HorizontalDivider(
                             thickness = 0.5.dp,
-                            color = LimeLightGray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
                             modifier = Modifier.padding(start = 80.dp),
                         )
                     }
@@ -182,7 +181,7 @@ fun FollowListScreen(
                             ) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(20.dp),
-                                    color = LimePrimary,
+                                    color = MaterialTheme.colorScheme.primary,
                                     trackColor = LimeWhite,
                                     strokeWidth = 2.dp,
                                 )
@@ -228,7 +227,7 @@ private fun TopBarTab(
             text = label,
             fontSize = 16.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            color = if (selected) LimePrimary else LimeGray,
+            color = if (selected) MaterialTheme.colorScheme.primary else LimeGray,
         )
         if (selected) {
             Spacer(Modifier.height(3.dp))
@@ -237,7 +236,7 @@ private fun TopBarTab(
                     .width(18.dp)
                     .height(2.dp)
                     .clip(RoundedCornerShape(1.dp))
-                    .background(LimePrimary),
+                    .background(MaterialTheme.colorScheme.primary),
             )
         }
     }
@@ -284,13 +283,13 @@ private fun FollowUserCard(
                 )
             } else {
                 Box(
-                    modifier = avatarModifier.background(LimePrimaryPale),
+                    modifier = avatarModifier.background(MaterialTheme.colorScheme.secondaryContainer),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = item.nickname.take(1),
                         fontSize = 20.sp,
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -352,7 +351,7 @@ private fun FollowUserCardPreview() {
                 )
                 HorizontalDivider(
                     thickness = 0.5.dp,
-                    color = LimeLightGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
                     modifier = Modifier.padding(start = 80.dp),
                 )
                 // 互相关注
@@ -372,7 +371,7 @@ private fun FollowUserCardPreview() {
                 )
                 HorizontalDivider(
                     thickness = 0.5.dp,
-                    color = LimeLightGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
                     modifier = Modifier.padding(start = 80.dp),
                 )
                 // 未关注

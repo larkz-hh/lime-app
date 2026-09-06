@@ -34,8 +34,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.Screen
-import xyz.larkzhh.lime.ui.theme.LimePageBg
-import xyz.larkzhh.lime.ui.theme.LimeTextMain
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +52,7 @@ fun CreateGroupScreen(
     }
 
     Scaffold(
-        containerColor = LimePageBg,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -62,7 +60,7 @@ fun CreateGroupScreen(
                         stringResource(R.string.msg_create_group),
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp,
-                        color = LimeTextMain,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 },
                 navigationIcon = {
@@ -70,12 +68,12 @@ fun CreateGroupScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back),
-                            tint = LimeTextMain,
+                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = LimePageBg,
+                    containerColor = MaterialTheme.colorScheme.background,
                     scrolledContainerColor = Color.Unspecified,
                     navigationIconContentColor = Color.Unspecified,
                     titleContentColor = Color.Unspecified,

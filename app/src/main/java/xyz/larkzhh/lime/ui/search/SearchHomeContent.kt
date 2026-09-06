@@ -49,7 +49,6 @@ import xyz.larkzhh.lime.data.network.model.HotSearchItem
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 历史记录收起时最多展示行数
 private const val HISTORY_COLLAPSED_ROWS = 2
@@ -235,7 +234,7 @@ private fun HistoryFlow(
                         onClick = { if (!editing) onKeywordClick(keyword) },
                         shape = RoundedCornerShape(8.dp),
                         color = MaterialTheme.colorScheme.surface,
-                        border = BorderStroke(1.dp, LimeLightGray),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f)),
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -272,7 +271,7 @@ private fun HistoryFlow(
                         onClick = { expanded = !expanded },
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surface,
-                        border = BorderStroke(1.dp, LimeLightGray),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f)),
                     ) {
                         Icon(
                             imageVector = if (expanded) Icons.Outlined.KeyboardArrowUp
@@ -313,7 +312,7 @@ private fun HotSearchList(
                         Text(
                             text = rank.toString(),
                             fontSize = 14.sp,
-                            color = if (rank <= 3) LimePrimary else LimeGray,
+                            color = if (rank <= 3) MaterialTheme.colorScheme.primary else LimeGray,
                             modifier = Modifier.widthIn(min = 24.dp),
                         )
                         Text(

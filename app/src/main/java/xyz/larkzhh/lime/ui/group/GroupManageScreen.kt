@@ -64,9 +64,6 @@ import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePageBg
-import xyz.larkzhh.lime.ui.theme.LimePrimary
-import xyz.larkzhh.lime.ui.theme.LimeTextMain
 import xyz.larkzhh.lime.util.showToast
 
 private val CheckBorderGray = Color(0xFFCCCCCC)
@@ -108,19 +105,19 @@ fun GroupManageScreen(
     }
 
     Scaffold(
-        containerColor = LimePageBg,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(stringResource(R.string.group_manage_title), fontWeight = FontWeight.Bold, fontSize = 17.sp, color = LimeTextMain)
+                    Text(stringResource(R.string.group_manage_title), fontWeight = FontWeight.Bold, fontSize = 17.sp, color = MaterialTheme.colorScheme.onSurface)
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back), tint = LimeTextMain)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back), tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = LimePageBg,
+                    containerColor = MaterialTheme.colorScheme.background,
                     scrolledContainerColor = Color.Unspecified,
                     navigationIconContentColor = Color.Unspecified,
                     titleContentColor = Color.Unspecified,
@@ -131,7 +128,7 @@ fun GroupManageScreen(
     ) { padding ->
         if (state.isLoading) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = LimePrimary)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
             return@Scaffold
         }
@@ -153,7 +150,7 @@ fun GroupManageScreen(
                 modifier = Modifier
                     .size(84.dp)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() },
@@ -217,7 +214,7 @@ fun GroupManageScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() },
@@ -226,9 +223,9 @@ fun GroupManageScreen(
                     .padding(horizontal = 16.dp, vertical = 15.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Filled.PersonAdd, contentDescription = null, tint = LimeTextMain)
+                Icon(Icons.Filled.PersonAdd, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.width(12.dp))
-                Text(stringResource(R.string.group_invite_friends), fontSize = 15.sp, color = LimeTextMain)
+                Text(stringResource(R.string.group_invite_friends), fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.weight(1f))
                 Text(stringResource(R.string.group_member_count, state.group?.memberCount ?: 0), fontSize = 12.sp, color = LimeGray)
             }
@@ -270,7 +267,7 @@ fun GroupManageScreen(
     if (showFriendPicker) {
         AlertDialog(
             onDismissRequest = { showFriendPicker = false },
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text(stringResource(R.string.group_pick_friends_title), fontWeight = FontWeight.Bold, fontSize = 17.sp) },
             text = {
                 if (state.mutualFriends.isEmpty()) {
@@ -332,7 +329,7 @@ private fun FriendRow(friend: UserData, checked: Boolean, onToggle: () -> Unit) 
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(LimeLightGray),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -350,7 +347,7 @@ private fun FriendRow(friend: UserData, checked: Boolean, onToggle: () -> Unit) 
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(LimeLightGray),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
             )
         }
         Spacer(Modifier.width(12.dp))
@@ -370,7 +367,7 @@ private fun CircleCheck(checked: Boolean, onToggle: () -> Unit) {
         modifier = Modifier
             .size(22.dp)
             .clip(CircleShape)
-            .background(if (checked) LimePrimary else Color.White)
+            .background(if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
             .border(
                 width = if (checked) 0.dp else 1.5.dp,
                 color = if (checked) Color.Transparent else CheckBorderGray,

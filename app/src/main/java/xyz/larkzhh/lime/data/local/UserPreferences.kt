@@ -55,6 +55,8 @@ class UserPreferences @Inject constructor(
 
     /// 常用偏好键
     object Keys {
-        const val NOTIFY_ENABLED = "notify_enabled"
+        const val NOTIFY_ENABLED = "notify_enabled"// 通知
+        const val THEME = "theme"// 主题
+        const val FONT = "font"// 字体
     }
 }

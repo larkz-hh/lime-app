@@ -27,7 +27,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 private val EMOJI_GROUPS = listOf(
     R.string.emoji_smiley to listOf(
@@ -74,7 +73,7 @@ fun EmojiPanel(
             selectedTabIndex = selectedGroup,
             edgePadding = 8.dp,
             containerColor = MaterialTheme.colorScheme.background,
-            contentColor = LimePrimary,
+            contentColor = MaterialTheme.colorScheme.primary,
             divider = {},
         ) {
             EMOJI_GROUPS.forEachIndexed { index, (nameRes, _) ->
@@ -85,7 +84,7 @@ fun EmojiPanel(
                         Text(
                             text = stringResource(nameRes),
                             fontSize = 13.sp,
-                            color = if (selectedGroup == index) LimePrimary
+                            color = if (selectedGroup == index) MaterialTheme.colorScheme.primary
                                     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         )
                     },

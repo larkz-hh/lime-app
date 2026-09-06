@@ -42,10 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.util.TranslateModelInfo
 import xyz.larkzhh.lime.util.languageDisplayName
 
@@ -98,7 +96,7 @@ fun TranslateResultSheet(
                         text = stringResource(R.string.translate_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = LimeDark,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     // 语言方向标签
                     Row(
@@ -134,7 +132,7 @@ fun TranslateResultSheet(
                     )
                 }
             }
-            HorizontalDivider(color = LimeLightGray)
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
 
             // 原文、结果
             Column(
@@ -150,7 +148,7 @@ fun TranslateResultSheet(
                     ),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 )
-                HorizontalDivider(color = LimeLightGray, thickness = 0.5.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f), thickness = 0.5.dp)
 
                 when (state.phase) {
                     TranslatePhase.Downloading -> StatusRow(
@@ -178,7 +176,7 @@ private fun StatusRow(text: String) {
     ) {
         CircularProgressIndicator(
             modifier = Modifier.size(18.dp),
-            color = LimePrimary,
+            color = MaterialTheme.colorScheme.primary,
             strokeWidth = 2.dp,
         )
         Text(text = text, fontSize = 13.sp, color = LimeGray)
@@ -202,17 +200,17 @@ private fun ErrorBlock(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(LimeLightGray)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable { onBackgroundDownload() }
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(text = stringResource(R.string.translate_background_download), fontSize = 13.sp, color = LimeDark)
+                Text(text = stringResource(R.string.translate_background_download), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
             }
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(LimePrimary)
+                    .background(MaterialTheme.colorScheme.primary)
                     .clickable { onRetry() }
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
@@ -236,14 +234,14 @@ private fun ResultBlock(result: String, onCopy: (String) -> Unit) {
         } else {
             Text(
                 text = result,
-                style = MaterialTheme.typography.bodyMedium.copy(color = LimeDark, lineHeight = 22.sp),
+                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface, lineHeight = 22.sp),
             )
             Spacer(modifier = Modifier.height(12.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(LimePrimary)
+                        .background(MaterialTheme.colorScheme.primary)
                         .clickable { onCopy(result) }
                         .padding(horizontal = 16.dp, vertical = 6.dp),
                     contentAlignment = Alignment.Center,

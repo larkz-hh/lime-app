@@ -153,7 +153,7 @@ fun ChatMessageList(
                     .size(40.dp)
                     .shadow(6.dp, CircleShape, spotColor = Color.Black.copy(alpha = 0.12f))
                     .clip(CircleShape)
-                    .background(LimeWhite)
+                    .background(MaterialTheme.colorScheme.surface)
                     .clickable { scope.launch { listState.animateScrollToItem(0) } },
                 contentAlignment = Alignment.Center,
             ) {

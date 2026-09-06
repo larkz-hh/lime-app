@@ -38,7 +38,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeTheme
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
@@ -117,7 +116,7 @@ private fun LikeFavStatsDialogContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(22.dp))
-                        .background(LimePrimary)
+                        .background(MaterialTheme.colorScheme.primary)
                         .clickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() },
@@ -163,7 +162,7 @@ private fun StatsRow(icon: ImageVector, label: String, value: Int) {
             text = value.toString(),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
-            color = LimePrimary,
+            color = MaterialTheme.colorScheme.primary,
         )
     }
 }

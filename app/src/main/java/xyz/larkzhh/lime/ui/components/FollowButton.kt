@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -20,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.labelRes
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /**
  * 通用关注按钮
@@ -32,7 +32,7 @@ fun FollowButton(
     modifier: Modifier = Modifier,
 ) {
     val followed = state != FollowActionState.Follow
-    val borderColor = if (followed) LimeGray else LimePrimary
+    val borderColor = if (followed) LimeGray else MaterialTheme.colorScheme.primary
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(50))

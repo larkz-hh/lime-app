@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 笔记/点赞/收藏 tab 栏
 @Composable
@@ -52,11 +51,11 @@ fun ProfileTabRow(
                         .offset(y = (-8).dp)
                         .height(2.dp)
                         .clip(RoundedCornerShape(1.5.dp))
-                        .background(LimePrimary)
+                        .background(MaterialTheme.colorScheme.primary)
                 )
             },
             divider = {
-                HorizontalDivider(thickness = 0.5.dp, color = LimeLightGray)
+                HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
             },
         ) {
             tabs.forEachIndexed { index, title ->
@@ -109,10 +108,10 @@ private fun SingleTabBar(tab: String) {
                         .fillMaxWidth()
                         .height(2.dp)
                         .clip(RoundedCornerShape(1.5.dp))
-                        .background(LimePrimary),
+                        .background(MaterialTheme.colorScheme.primary),
                 )
             }
         }
-        HorizontalDivider(thickness = 0.5.dp, color = LimeLightGray)
+        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
     }
 }

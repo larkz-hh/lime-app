@@ -22,8 +22,8 @@ import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChangeIgnoreConsumed
 import androidx.compose.ui.input.pointer.util.VelocityTracker
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -76,7 +76,7 @@ fun SwipeBackScaffold(
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
-    val screenWidthPx = with(density) { LocalConfiguration.current.screenWidthDp.dp.toPx() }// 获取当前屏幕的宽度
+    val screenWidthPx = LocalWindowInfo.current.containerSize.width.toFloat()// 获取当前容器宽度（像素）
     val flingVelocityPx = with(density) { FLING_VELOCITY_DP.dp.toPx() }// 轻弹速度阈值
     val scope = rememberCoroutineScope()
     val forwardActive = forwardPeek != null

@@ -82,7 +82,6 @@ import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesViewModel
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileViewModel
 import xyz.larkzhh.lime.ui.im.viewmodel.ImViewModel
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -318,8 +317,8 @@ fun ProfileScreen(
                 PullToRefreshDefaults.Indicator(
                     state = refreshState,
                     isRefreshing = currentIsRefreshing,
-                    containerColor = LimeWhite,
-                    color = LimePrimary,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.align(Alignment.TopCenter),
                 )
             },
@@ -327,7 +326,7 @@ fun ProfileScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(LimeLightGray)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .nestedScroll(nestedScrollConnection)
         ) {
             val overlapPx = with(density) { 24.dp.toPx() }
@@ -392,7 +391,7 @@ fun ProfileScreen(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(28.dp),
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         trackColor = LimeWhite,
                         strokeWidth = 2.dp,
                     )
@@ -541,7 +540,7 @@ private fun TabPage(
 ) {
     val context = LocalContext.current
     val refreshState = pagingItems.loadState.refresh
-    val stateModifier = Modifier.fillMaxSize().background(LimeLightGray)
+    val stateModifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)
 
     when (refreshState) {
         // 无缓存首屏加载
@@ -552,7 +551,7 @@ private fun TabPage(
             ) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(28.dp),
-                    color = LimePrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = LimeWhite,
                     strokeWidth = 2.dp,
                 )

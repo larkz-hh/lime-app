@@ -91,7 +91,7 @@ fun SearchTopBar(
                 .weight(1f)
                 .height(36.dp)
                 .clip(RoundedCornerShape(18.dp))
-                .background(LimeLightGray)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

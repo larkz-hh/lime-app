@@ -72,10 +72,8 @@ import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.VoiceRecord
 import xyz.larkzhh.lime.ui.detail.components.EmojiPanel
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.util.showToast
 
 /**
@@ -197,14 +195,14 @@ fun CommentInputSheet(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 40.dp, max = 144.dp)
-                            .background(LimeLightGray, RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
                             .padding(horizontal = 12.dp, vertical = 10.dp)
                             .focusRequester(focusRequester),
                         textStyle = MaterialTheme.typography.bodyMedium.copy(
-                            color = LimeDark,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 15.sp,
                         ),
-                        cursorBrush = SolidColor(LimePrimary),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         decorationBox = { inner ->
                             if (textValue.text.isEmpty()) {
                                 Text(text = hint ?: stringResource(R.string.comment_input_hint), color = LimeGray, fontSize = 15.sp)
@@ -274,7 +272,7 @@ fun CommentInputSheet(
                                     modifier = Modifier
                                         .size(56.dp)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(LimeLightGray)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant)
                                         .clickable { onImagePickRequest() },
                                     contentAlignment = Alignment.Center,
                                 ) {
@@ -321,7 +319,7 @@ fun CommentInputSheet(
                     }
                 }
 
-                HorizontalDivider(modifier = Modifier.padding(top = 8.dp), color = LimeLightGray)
+                HorizontalDivider(modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
 
                 Row(
                     modifier = Modifier
@@ -342,7 +340,7 @@ fun CommentInputSheet(
                         Icon(
                             Icons.Outlined.Mic,
                             contentDescription = stringResource(R.string.comment_record_voice),
-                            tint = if (pendingVoice != null) LimePrimary else LimeGray,
+                            tint = if (pendingVoice != null) MaterialTheme.colorScheme.primary else LimeGray,
                             modifier = Modifier.size(22.dp),
                         )
                     }
@@ -372,7 +370,7 @@ fun CommentInputSheet(
                         Icon(
                             imageVector = if (showEmojiPanel) Icons.Outlined.Keyboard else Icons.Outlined.EmojiEmotions,
                             contentDescription = if (showEmojiPanel) stringResource(R.string.comment_keyboard) else stringResource(R.string.comment_emoji),
-                            tint = if (showEmojiPanel) LimePrimary else LimeGray,
+                            tint = if (showEmojiPanel) MaterialTheme.colorScheme.primary else LimeGray,
                             modifier = Modifier.size(22.dp),
                         )
                     }
@@ -384,14 +382,14 @@ fun CommentInputSheet(
                     if (isSubmitting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(22.dp),
-                            color = LimePrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             strokeWidth = 2.dp,
                         )
                     } else {
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (canSend) LimePrimary else LimeLightGray)
+                                .background(if (canSend) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                                 .clickable(enabled = canSend) {
                                     onSubmit(textValue.text)
                                     textValue = TextFieldValue()

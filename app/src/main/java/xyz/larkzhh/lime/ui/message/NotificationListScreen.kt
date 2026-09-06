@@ -65,7 +65,6 @@ import xyz.larkzhh.lime.ui.components.SwipeActionItem
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeTheme
 import xyz.larkzhh.lime.ui.theme.LimeWhite
@@ -118,14 +117,14 @@ fun NotificationListScreen(
                 modifier = Modifier.align(Alignment.Center),
             )
         }
-        HorizontalDivider(thickness = 0.5.dp, color = LimeLightGray)
+        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
 
         when {
             pageState.isInitialLoading && items.isEmpty() -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(28.dp),
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         trackColor = LimeWhite,
                         strokeWidth = 2.dp,
                     )
@@ -197,7 +196,7 @@ fun NotificationListScreen(
                         }
                         HorizontalDivider(
                             thickness = 0.5.dp,
-                            color = LimeLightGray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
                             modifier = Modifier.padding(start = 72.dp),
                         )
                     }
@@ -211,7 +210,7 @@ fun NotificationListScreen(
                             ) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(20.dp),
-                                    color = LimePrimary,
+                                    color = MaterialTheme.colorScheme.primary,
                                     trackColor = LimeWhite,
                                     strokeWidth = 2.dp,
                                 )
@@ -284,13 +283,13 @@ private fun NotificationCard(
             )
         } else {
             Box(
-                modifier = avatarModifier.background(LimePrimaryPale),
+                modifier = avatarModifier.background(MaterialTheme.colorScheme.secondaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = item.senderNickname?.take(1).orEmpty(),
                     fontSize = 18.sp,
-                    color = LimePrimary,
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
@@ -343,7 +342,7 @@ private fun NotificationCard(
                         .fillMaxWidth()
                         .padding(top = 4.dp)
                         .clip(RoundedCornerShape(6.dp))
-                        .background(LimeLightGray)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(horizontal = 8.dp, vertical = 5.dp),
                 )
             }
@@ -378,7 +377,7 @@ private fun NoteCover(url: String?) {
         )
     } else {
         Box(
-            modifier = modifier.background(LimeLightGray),
+            modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant),
         )
     }
 }
@@ -445,7 +444,7 @@ private fun PreviewInbox(
                 modifier = Modifier.align(Alignment.Center),
             )
         }
-        HorizontalDivider(thickness = 0.5.dp, color = LimeLightGray)
+        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
         Column(Modifier.fillMaxWidth()) {
             items.forEach { item ->
                 NotificationCard(
@@ -458,7 +457,7 @@ private fun PreviewInbox(
                 )
                 HorizontalDivider(
                     thickness = 0.5.dp,
-                    color = LimeLightGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
                     modifier = Modifier.padding(start = 72.dp),
                 )
             }

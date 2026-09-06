@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,7 +32,6 @@ import androidx.compose.ui.res.stringResource
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /**
  * 搜索联想列表
@@ -82,25 +82,30 @@ fun SearchSuggestList(
                     )
                 }
             }
-            HorizontalDivider(thickness = 0.5.dp, color = LimeLightGray)
+            HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
         }
     }
 }
 
 /// 构造高亮文本
 @Composable
-private fun rememberHighlighted(suggestion: String, query: String) = remember(suggestion, query) {
-    buildAnnotatedString {
-        val keyword = query.trim()
-        val start = if (keyword.isEmpty()) -1 else suggestion.indexOf(keyword, ignoreCase = true)
-        if (start < 0) {
-            append(suggestion)// 未匹配到
-        } else {
-            append(suggestion.substring(0, start))
-            withStyle(SpanStyle(color = LimePrimary)) {
-                append(suggestion.substring(start, start + keyword.length))
+private fun rememberHighlighted(suggestion: String, query: String) = rememberHighlighted(suggestion, query, MaterialTheme.colorScheme.primary)
+
+/// 高亮匹配部分
+@Composable
+private fun rememberHighlighted(suggestion: String, query: String, highlightColor: Color) =
+    remember(suggestion, query, highlightColor) {
+        buildAnnotatedString {
+            val keyword = query.trim()
+            val start = if (keyword.isEmpty()) -1 else suggestion.indexOf(keyword, ignoreCase = true)
+            if (start < 0) {
+                append(suggestion)// 未匹配到
+            } else {
+                append(suggestion.substring(0, start))
+                withStyle(SpanStyle(color = highlightColor)) {
+                    append(suggestion.substring(start, start + keyword.length))
+                }
+                append(suggestion.substring(start + keyword.length))
             }
-            append(suggestion.substring(start + keyword.length))
         }
     }
-}

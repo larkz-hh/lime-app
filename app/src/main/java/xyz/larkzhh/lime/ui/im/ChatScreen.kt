@@ -34,6 +34,7 @@ import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -336,7 +337,7 @@ fun ChatScreen(
                             fontSize = 11.sp,
                             modifier = Modifier
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(LimeLightGray)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                                 .padding(horizontal = 10.dp, vertical = 3.dp),
                         )
                     }
@@ -409,7 +410,7 @@ private fun AvatarView(
         modifier = modifier
             .size(36.dp)
             .clip(CircleShape)
-            .background(LimeLightGray)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onClick),
     )
 }
@@ -546,7 +547,7 @@ private fun MessageBubble(
             DropdownMenu(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false },
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 modifier = Modifier,
             ) {
                 if (!message.text.isNullOrBlank()) {

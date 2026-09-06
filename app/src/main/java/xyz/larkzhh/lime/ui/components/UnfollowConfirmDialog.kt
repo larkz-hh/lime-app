@@ -1,9 +1,9 @@
 package xyz.larkzhh.lime.ui.components
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 取消关注确认弹窗
 @Composable
@@ -16,7 +16,7 @@ fun UnfollowConfirmDialog(
         text = null,
         firstButtonText = stringResource(R.string.cancel),
         secondButtonText = stringResource(R.string.unfollow_confirm),
-        secondButtonColor = LimePrimary,
+        secondButtonColor = MaterialTheme.colorScheme.primary,
         onFirstButtonClick = onCancel,
         onSecondButtonClick = onConfirm,
         onDismissRequest = onCancel,

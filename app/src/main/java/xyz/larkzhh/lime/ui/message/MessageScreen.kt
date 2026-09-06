@@ -189,18 +189,18 @@ private fun MessagePageContent(
                 DropdownMenu(
                     expanded = showAddMenu,
                     onDismissRequest = { showAddMenu = false },
-                    containerColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ) {
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.msg_create_group), color = Color(0xFF111111)) },
+                        text = { Text(stringResource(R.string.msg_create_group), color = MaterialTheme.colorScheme.onSurface) },
                         onClick = { showAddMenu = false; onCreateGroup() },
                     )
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.msg_add_friend), color = Color(0xFF111111)) },
+                        text = { Text(stringResource(R.string.msg_add_friend), color = MaterialTheme.colorScheme.onSurface) },
                         onClick = { showAddMenu = false; onAddFriend() },
                     )
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.msg_scan), color = Color(0xFF111111)) },
+                        text = { Text(stringResource(R.string.msg_scan), color = MaterialTheme.colorScheme.onSurface) },
                         onClick = { showAddMenu = false; onScan() },
                     )
                 }
@@ -223,7 +223,7 @@ private fun MessagePageContent(
             }
         }
 
-        HorizontalDivider(thickness = 0.5.dp, color = LimeLightGray)
+        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
 
         // 私信会话列表
         if (conversations.isEmpty()) {
@@ -300,7 +300,7 @@ private fun ConversationListItem(
             modifier = Modifier
                 .size(52.dp)
                 .clip(CircleShape)
-                .background(LimeLightGray),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center,
         ) {
             if (!conversation.faceUrl.isNullOrBlank()) {

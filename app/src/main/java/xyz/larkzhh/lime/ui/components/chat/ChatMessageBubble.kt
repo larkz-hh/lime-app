@@ -150,7 +150,7 @@ fun ChatMessageBubble(
             DropdownMenu(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false },
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 shape = RoundedCornerShape(12.dp),
             ) {
                 val itemModifier = Modifier.width(150.dp).height(56.dp)

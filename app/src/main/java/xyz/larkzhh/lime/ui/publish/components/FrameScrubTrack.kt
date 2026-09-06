@@ -1,4 +1,5 @@
 package xyz.larkzhh.lime.ui.publish.components
+import androidx.compose.material3.MaterialTheme
 
 import android.content.Context
 import android.net.Uri
@@ -95,7 +96,7 @@ fun FrameScrubTrack(
                 .padding(start = handleOffsetDp)
                 .width(handleWidthDp)
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.surface)
         )
 
         //轨道的拖动、点按手势

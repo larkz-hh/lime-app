@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
@@ -52,7 +53,6 @@ import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.util.TranslateModelInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,7 +86,7 @@ fun TranslatePackScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = LimeLightGray,
+                    containerColor = MaterialTheme.colorScheme.background,
                     scrolledContainerColor = Color.Unspecified,
                     navigationIconContentColor = Color.Unspecified,
                     titleContentColor = Color.Unspecified,
@@ -94,7 +94,7 @@ fun TranslatePackScreen(
                 ),
             )
         },
-        containerColor = LimeLightGray,
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -114,7 +114,7 @@ fun TranslatePackScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp))
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surface),
             ) {
                 Row(
                     modifier = Modifier
@@ -125,7 +125,7 @@ fun TranslatePackScreen(
                     Icon(
                         imageVector = Icons.Outlined.Translate,
                         contentDescription = null,
-                        tint = LimePrimary,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(24.dp),
                     )
                     Spacer(modifier = Modifier.width(16.dp))
@@ -133,12 +133,16 @@ fun TranslatePackScreen(
                         Text(
                             text = stringResource(R.string.translate_pack_name),
                             fontSize = 16.sp,
-                            color = Color(0xFF1C1C1E),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            text = stringResource(R.string.translate_pack_languages, packSizeLabel),
+                            text = packSizeLabel,
                             fontSize = 12.sp,
                             color = LimeGray,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                     PackAction(
@@ -158,7 +162,7 @@ fun TranslatePackScreen(
                 color = LimeGray,
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
             )
-            SheetGroup(cardColor = Color.White) {
+            SheetGroup(cardColor = MaterialTheme.colorScheme.surface) {
                 TranslateMode.entries.forEachIndexed { index, modeItem ->
                     if (index > 0) SheetRowDivider(startIndent = 16.dp)
                     Row(
@@ -177,14 +181,14 @@ fun TranslatePackScreen(
                                 TranslateMode.Offline -> stringResource(R.string.translate_mode_offline)
                             },
                             fontSize = 15.sp,
-                            color = Color(0xFF1C1C1E),
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f),
                         )
                         if (mode == modeItem) {
                             Icon(
                                 imageVector = Icons.Filled.Check,
                                 contentDescription = null,
-                                tint = LimePrimary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp),
                             )
                         }
@@ -233,7 +237,7 @@ private fun PackAction(
         PackStatus.Downloading -> LoadingLabel(stringResource(R.string.translate_downloading))
         PackStatus.NotDownloaded -> Chip(
             text = stringResource(R.string.translate_download),
-            background = LimePrimary,
+            background = MaterialTheme.colorScheme.primary,
             textColor = Color.White,
             onClick = onDownload,
         )
@@ -245,7 +249,7 @@ private fun PackAction(
             Text(text = stringResource(R.string.translate_download_failed), fontSize = 12.sp, color = Color(0xFFFF3B30))
             Chip(
                 text = stringResource(R.string.translate_retry),
-                background = LimePrimary,
+                background = MaterialTheme.colorScheme.primary,
                 textColor = Color.White,
                 onClick = onDownload,
             )
@@ -255,7 +259,12 @@ private fun PackAction(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(text = stringResource(R.string.translate_downloaded), fontSize = 13.sp, color = LimePrimary)
+            Text(
+                text = stringResource(R.string.translate_downloaded),
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Medium,
+            )
             Text(
                 text = stringResource(R.string.delete),
                 fontSize = 13.sp,
@@ -293,7 +302,7 @@ private fun LoadingLabel(text: String) {
     ) {
         CircularProgressIndicator(
             modifier = Modifier.size(14.dp),
-            color = LimePrimary,
+            color = MaterialTheme.colorScheme.primary,
             strokeWidth = 2.dp,
         )
         Text(text = text, fontSize = 12.sp, color = LimeGray)

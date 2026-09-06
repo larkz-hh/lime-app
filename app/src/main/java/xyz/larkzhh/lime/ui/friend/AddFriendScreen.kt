@@ -63,7 +63,6 @@ import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.generateGradientQrBitmap
@@ -161,16 +160,16 @@ fun AddFriendScreen(
             // 我的二维码
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = LimeWhite),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                 modifier = Modifier
                     .padding(1.dp)
-                    .background(LimeLightGray, RoundedCornerShape(17.dp)),
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(17.dp)),
             ) {
                 Box(
                     modifier = Modifier
                         .padding(16.dp)
-                        .background(Color.White, RoundedCornerShape(10.dp)),
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(10.dp)),
                 ) {
                     if (qrBitmap != null) {
                         Image(
@@ -182,7 +181,7 @@ fun AddFriendScreen(
                         Box(
                             modifier = Modifier
                                 .size(240.dp)
-                                .background(LimeLightGray),
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
@@ -239,7 +238,7 @@ fun AddFriendScreen(
             // 操作列表
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = LimeWhite),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -248,7 +247,7 @@ fun AddFriendScreen(
                         Icon(
                             Icons.Filled.QrCodeScanner,
                             contentDescription = null,
-                            tint = LimePrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(22.dp),
                         )
                     },
@@ -257,7 +256,7 @@ fun AddFriendScreen(
                 )
                 HorizontalDivider(
                     thickness = 0.5.dp,
-                    color = LimeLightGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
                     modifier = Modifier.padding(start = 54.dp),
                 )
                 ActionRow(
@@ -265,7 +264,7 @@ fun AddFriendScreen(
                         Icon(
                             Icons.Outlined.Download,
                             contentDescription = null,
-                            tint = LimePrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(22.dp),
                         )
                     },

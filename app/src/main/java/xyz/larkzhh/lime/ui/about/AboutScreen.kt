@@ -55,7 +55,6 @@ import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.showToast
 import androidx.core.net.toUri
@@ -93,7 +92,7 @@ fun AboutScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = LimeLightGray,
+                    containerColor = MaterialTheme.colorScheme.background,
                     scrolledContainerColor = Color.Unspecified,
                     navigationIconContentColor = Color.Unspecified,
                     titleContentColor = Color.Unspecified,
@@ -101,7 +100,7 @@ fun AboutScreen(
                 ),
             )
         },
-        containerColor = LimeLightGray,
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -125,7 +124,7 @@ fun AboutScreen(
                 text = "Lime",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF1C1C1E),
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -138,7 +137,7 @@ fun AboutScreen(
 
             // 检查更新
             Column(modifier = Modifier.fillMaxWidth()) {
-                SheetGroup(cardColor = Color.White) {
+                SheetGroup(cardColor = MaterialTheme.colorScheme.surface) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -167,21 +166,21 @@ fun AboutScreen(
                         Icon(
                             imageVector = Icons.Outlined.SystemUpdateAlt,
                             contentDescription = null,
-                            tint = Color(0xFF1C1C1E),
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.width(24.dp),
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
                             text = stringResource(R.string.about_check_update),
                             fontSize = 15.sp,
-                            color = Color(0xFF1C1C1E),
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f),
                         )
                         if (checking) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp,
-                                color = LimePrimary,
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         } else {
                             Icon(
@@ -221,7 +220,7 @@ fun AboutScreen(
                 }
             }
             if (links.isNotEmpty()) {
-                SheetGroup(cardColor = Color.White) {
+                SheetGroup(cardColor = MaterialTheme.colorScheme.surface) {
                     links.forEachIndexed { index, link ->
                         if (index > 0) {
                             HorizontalDivider(
@@ -244,14 +243,14 @@ fun AboutScreen(
                             Icon(
                                 imageVector = link.icon,
                                 contentDescription = null,
-                                tint = Color(0xFF1C1C1E),
+                                tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.width(24.dp),
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
                                 text = link.label,
                                 fontSize = 15.sp,
-                                color = Color(0xFF1C1C1E),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.weight(1f),
                             )
                             Text(

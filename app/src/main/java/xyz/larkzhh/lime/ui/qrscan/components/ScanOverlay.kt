@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.FlashlightOff
 import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,7 +42,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 @Composable
 fun ScanOverlay(camera: Camera? = null) {
@@ -64,6 +64,7 @@ fun ScanOverlay(camera: Camera? = null) {
         val boxSizeDp = screenWidthDp * 0.65f
         val boxTopDp = (screenHeightDp - boxSizeDp) / 2f
         val boxBottomDp = boxTopDp + boxSizeDp
+        val scanBarColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)// 组合作用域取值
 
         Canvas(modifier = Modifier.fillMaxSize()) {
             // 计算取景框的位置与大小
@@ -105,7 +106,7 @@ fun ScanOverlay(camera: Camera? = null) {
             // 绘制扫描横杆
             val barY = scanRect.top + scanRect.height * scanY// 计算扫描杆y轴
             drawLine(
-                color = LimePrimary.copy(alpha = 0.85f),
+                color = scanBarColor,
                 start = Offset(scanRect.left + 8.dp.toPx(), barY),
                 end = Offset(scanRect.right - 8.dp.toPx(), barY),
                 strokeWidth = 2.dp.toPx(),

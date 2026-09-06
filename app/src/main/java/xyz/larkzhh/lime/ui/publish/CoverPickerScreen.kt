@@ -70,7 +70,6 @@ import xyz.larkzhh.lime.ui.publish.components.AlbumSquare
 import xyz.larkzhh.lime.ui.publish.components.FrameScrubTrack
 import xyz.larkzhh.lime.ui.publish.viewmodel.CropTransform
 import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 预览层最大放大倍数
 private const val MAX_COVER_SCALE = 8f
@@ -246,7 +245,7 @@ fun CoverPickerScreen(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(LimePrimary)
+                    .background(MaterialTheme.colorScheme.primary)
                     .clickable {
                         viewModel.commitCover()
                         navController.popBackStack()

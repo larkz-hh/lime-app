@@ -81,7 +81,7 @@ class TokenStorage @Inject constructor() {
     }
 
     /// 一些和认证相关的常量
-    private companion object {
+    internal companion object {
         const val KEY_ACCESS_TOKEN = "access_token"
         const val KEY_REFRESH_TOKEN = "refresh_token"
         const val KEY_EXPIRES_AT = "expires_at"

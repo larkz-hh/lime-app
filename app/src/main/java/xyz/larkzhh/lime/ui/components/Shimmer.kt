@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
@@ -43,9 +44,11 @@ import xyz.larkzhh.lime.ui.theme.LimeTheme
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 fun Modifier.shimmer(
-    baseColor: Color = LimeLightGray,
+    baseColor: Color? = null,
     highlightColor: Color = LimeWhite,
 ): Modifier = composed {
+    // null 跟随当前主题占位底色
+    val resolvedBase = baseColor ?: MaterialTheme.colorScheme.surfaceVariant
     val transition = rememberInfiniteTransition(label = "shimmer")
     val progress = transition.animateFloat(
         initialValue = 0f,
@@ -61,7 +64,7 @@ fun Modifier.shimmer(
         val gradientWidth = size.width * 0.6f
         val x = -gradientWidth + p * (size.width + gradientWidth)
         val brush = Brush.linearGradient(
-            colors = listOf(baseColor, highlightColor, baseColor),
+            colors = listOf(resolvedBase, highlightColor, resolvedBase),
             start = Offset(x, 0f),
             end = Offset(x + gradientWidth, size.height),
         )
@@ -107,7 +110,7 @@ private fun NoteCardSkeleton(ratio: Float) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column {

@@ -40,7 +40,6 @@ import xyz.larkzhh.lime.ui.components.SelectableNoteCard
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.profile.components.HistoryManageBar
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -114,7 +113,7 @@ fun BrowseHistoryScreen(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(28.dp),
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 2.dp,
                     )
                 }

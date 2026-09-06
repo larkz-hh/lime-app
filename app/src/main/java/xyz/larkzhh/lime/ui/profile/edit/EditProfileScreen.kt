@@ -65,10 +65,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.yalantis.ucrop.UCrop
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import java.io.File
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.profile.components.WheelDatePicker
@@ -150,18 +148,18 @@ fun EditProfileScreen(navController: NavHostController) {
                         if (ready?.isUploading == true) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
-                                color = LimePrimary,
+                                color = MaterialTheme.colorScheme.primary,
                                 strokeWidth = 2.dp,
                             )
                         } else {
-                            Text(stringResource(R.string.save), color = LimePrimary, fontWeight = FontWeight.Medium)
+                            Text(stringResource(R.string.save), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
             )
         },
-        containerColor = LimeLightGray,
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { paddingValues ->
         when (val state = uiState) {
@@ -170,7 +168,7 @@ fun EditProfileScreen(navController: NavHostController) {
                     modifier = Modifier.fillMaxSize().padding(paddingValues),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CircularProgressIndicator(color = LimePrimary)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
 
@@ -225,7 +223,7 @@ fun EditProfileScreen(navController: NavHostController) {
                                     .align(Alignment.BottomEnd)
                                     .size(26.dp)
                                     .clip(CircleShape)
-                                    .background(LimePrimary.copy(alpha = 0.85f)),
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
@@ -243,7 +241,7 @@ fun EditProfileScreen(navController: NavHostController) {
                     // 名字、背景图
                     FormCard {
                         FormRow(label = stringResource(R.string.edit_name), value = form.nickname, onClick = { showNicknameDialog = true })
-                        HorizontalDivider(modifier = Modifier.padding(start = 16.dp), color = LimeLightGray)
+                        HorizontalDivider(modifier = Modifier.padding(start = 16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
                         // 背景图行
                         Row(
                             modifier = Modifier
@@ -253,7 +251,7 @@ fun EditProfileScreen(navController: NavHostController) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(stringResource(R.string.edit_background), style = MaterialTheme.typography.bodyLarge, color = LimeDark)
+                            Text(stringResource(R.string.edit_background), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (form.backgroundUrl != null) {
                                     AsyncImage(
@@ -282,7 +280,7 @@ fun EditProfileScreen(navController: NavHostController) {
                         FormRow(
                             label = stringResource(R.string.edit_bio),
                             value = form.bio.ifBlank { stringResource(R.string.edit_bio_placeholder) },
-                            valueColor = if (form.bio.isBlank()) LimeGray else LimeDark,
+                            valueColor = if (form.bio.isBlank()) LimeGray else MaterialTheme.colorScheme.onSurface,
                             onClick = { showBioDialog = true },
                         )
                     }
@@ -297,18 +295,18 @@ fun EditProfileScreen(navController: NavHostController) {
                             else -> stringResource(R.string.edit_not_set)
                         }
                         FormRow(label = stringResource(R.string.edit_gender), value = gender, onClick = { showGenderDialog = true })
-                        HorizontalDivider(modifier = Modifier.padding(start = 16.dp), color = LimeLightGray)
+                        HorizontalDivider(modifier = Modifier.padding(start = 16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
                         FormRow(
                             label = stringResource(R.string.edit_birthday),
                             value = form.birthday.ifBlank { stringResource(R.string.edit_not_set) },
-                            valueColor = if (form.birthday.isBlank()) LimeGray else LimeDark,
+                            valueColor = if (form.birthday.isBlank()) LimeGray else MaterialTheme.colorScheme.onSurface,
                             onClick = { showBirthdayPicker = true },
                         )
-                        HorizontalDivider(modifier = Modifier.padding(start = 16.dp), color = LimeLightGray)
+                        HorizontalDivider(modifier = Modifier.padding(start = 16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
                         FormRow(
                             label = stringResource(R.string.edit_region),
                             value = form.region.ifBlank { stringResource(R.string.edit_not_set) },
-                            valueColor = if (form.region.isBlank()) LimeGray else LimeDark,
+                            valueColor = if (form.region.isBlank()) LimeGray else MaterialTheme.colorScheme.onSurface,
                             onClick = { showRegionDialog = true },
                         )
                     }
@@ -326,7 +324,7 @@ fun EditProfileScreen(navController: NavHostController) {
                     if (state.isSaving) {
                         Spacer(Modifier.height(16.dp))
                         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = LimePrimary, modifier = Modifier.size(24.dp))
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                         }
                     }
 
@@ -344,12 +342,12 @@ fun EditProfileScreen(navController: NavHostController) {
                                 value = draft,
                                 onValueChange = { if (it.length <= 20) draft = it },
                                 singleLine = true,
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = LimePrimary),
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary),
                             )
                         },
                         confirmButton = {
                             TextButton(onClick = { viewModel.onNicknameChange(draft); showNicknameDialog = false }) {
-                                Text(stringResource(R.string.edit_ok), color = LimePrimary)
+                                Text(stringResource(R.string.edit_ok), color = MaterialTheme.colorScheme.primary)
                             }
                         },
                         dismissButton = {
@@ -370,12 +368,12 @@ fun EditProfileScreen(navController: NavHostController) {
                                 onValueChange = { if (it.length <= 200) draft = it },
                                 minLines = 3,
                                 maxLines = 5,
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = LimePrimary),
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary),
                             )
                         },
                         confirmButton = {
                             TextButton(onClick = { viewModel.onBioChange(draft); showBioDialog = false }) {
-                                Text(stringResource(R.string.edit_ok), color = LimePrimary)
+                                Text(stringResource(R.string.edit_ok), color = MaterialTheme.colorScheme.primary)
                             }
                         },
                         dismissButton = {
@@ -406,7 +404,7 @@ fun EditProfileScreen(navController: NavHostController) {
                                         RadioButton(
                                             selected = selected,
                                             onClick = { viewModel.onGenderChange(value); showGenderDialog = false },
-                                            colors = RadioButtonDefaults.colors(selectedColor = LimePrimary),
+                                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary),
                                         )
                                         Text(label, modifier = Modifier.padding(start = 4.dp))
                                     }
@@ -443,12 +441,12 @@ fun EditProfileScreen(navController: NavHostController) {
                                 value = draft,
                                 onValueChange = { if (it.length <= 50) draft = it },
                                 singleLine = true,
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = LimePrimary),
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary),
                             )
                         },
                         confirmButton = {
                             TextButton(onClick = { viewModel.onRegionChange(draft); showRegionDialog = false }) {
-                                Text(stringResource(R.string.edit_ok), color = LimePrimary)
+                                Text(stringResource(R.string.edit_ok), color = MaterialTheme.colorScheme.primary)
                             }
                         },
                         dismissButton = {
@@ -469,7 +467,7 @@ private fun FormCard(content: @Composable () -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column { content() }
@@ -481,7 +479,7 @@ private fun FormCard(content: @Composable () -> Unit) {
 private fun FormRow(
     label: String,
     value: String,
-    valueColor: Color = LimeDark,
+    valueColor: Color = MaterialTheme.colorScheme.onSurface,
     onClick: () -> Unit,
 ) {
     Row(
@@ -492,7 +490,7 @@ private fun FormRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(label, style = MaterialTheme.typography.bodyLarge, color = LimeDark)
+        Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 value,

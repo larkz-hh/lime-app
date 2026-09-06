@@ -10,6 +10,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -720,7 +721,7 @@ fun AppNavGraph(
         ModalBottomSheet(
             onDismissRequest = { showPublishSheet = false },
             sheetState = sheetState,
-            containerColor = LimeWhite
+            containerColor = MaterialTheme.colorScheme.surface
         ) {
             PublishBottomSheet(
                 onAlbum = {

@@ -60,7 +60,6 @@ import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.ui.video.components.formatTime
 import xyz.larkzhh.lime.util.showToast
@@ -103,7 +102,7 @@ fun DraftBoxScreen(
             }
     }
 
-    Surface(color = LimeLightGray, modifier = Modifier.fillMaxSize()) {
+    Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             // 顶栏
             Row(
@@ -149,7 +148,7 @@ fun DraftBoxScreen(
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(28.dp),
-                            color = LimePrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             strokeWidth = 2.dp,
                         )
                     }
@@ -216,7 +215,7 @@ fun DraftBoxScreen(
                                 ) {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(24.dp),
-                                        color = LimePrimary,
+                                        color = MaterialTheme.colorScheme.primary,
                                         strokeWidth = 2.dp,
                                     )
                                 }
@@ -277,7 +276,7 @@ private fun DraftGridItem(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = LimeWhite),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column {
@@ -299,7 +298,7 @@ private fun DraftGridItem(
                             .fillMaxWidth()
                             .aspectRatio(3f / 4f)
                             .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                            .background(LimeLightGray),
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -351,7 +350,7 @@ private fun DraftGridItem(
                             .padding(6.dp)
                             .size(22.dp)
                             .clip(CircleShape)
-                            .background(if (isSelected) LimePrimary else Color.Black.copy(alpha = 0.3f))
+                            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Black.copy(alpha = 0.3f))
                             .border(
                                 width = 1.5.dp,
                                 color = if (isSelected) Color.Transparent else Color.White,

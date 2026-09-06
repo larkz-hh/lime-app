@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
@@ -64,7 +65,7 @@ fun ScrubBar(
                         .offset(y = 4.5.dp)
                         .size(12.dp)
                         .clip(CircleShape)
-                        .background(Color.White),
+                        .background(MaterialTheme.colorScheme.surface),
                 )
             }
         },
@@ -87,7 +88,7 @@ fun ScrubBar(
                         .fillMaxWidth(state.value.coerceIn(0f, 1f))
                         .height(3.dp)
                         .clip(RoundedCornerShape(2.dp))
-                        .background(Color.White),
+                        .background(MaterialTheme.colorScheme.surface),
                 )
             }
         },

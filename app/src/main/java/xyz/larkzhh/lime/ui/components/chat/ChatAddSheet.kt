@@ -59,7 +59,7 @@ fun ChatAddSheet(
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Column(
             modifier = Modifier
@@ -116,13 +116,13 @@ private fun AddSquare(
             modifier = Modifier
                 .size(64.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(LimeLightGray),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 icon,
                 contentDescription = label,
-                tint = Color(0xFF3A3A3A),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(30.dp),
             )
         }
@@ -146,7 +146,7 @@ private fun WebSearchRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(LimeLightGray)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable { menuExpanded = true }
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -154,7 +154,7 @@ private fun WebSearchRow(
         Icon(
             Icons.Outlined.Public,
             contentDescription = stringResource(R.string.chat_web_search),
-            tint = Color(0xFF3A3A3A),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(10.dp))
@@ -181,7 +181,7 @@ private fun WebSearchRow(
             DropdownMenu(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false },
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 shape = RoundedCornerShape(12.dp),
             ) {
                 DropdownMenuItem(

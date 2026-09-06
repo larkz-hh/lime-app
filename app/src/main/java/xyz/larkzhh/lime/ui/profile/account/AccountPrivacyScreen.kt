@@ -73,7 +73,6 @@ import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.util.showToast
 
 
@@ -157,7 +156,7 @@ private fun AccountPrivacyRootPage(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = LimeLightGray,
+                    containerColor = MaterialTheme.colorScheme.background,
                     scrolledContainerColor = Color.Unspecified,
                     navigationIconContentColor = Color.Unspecified,
                     titleContentColor = Color.Unspecified,
@@ -165,7 +164,7 @@ private fun AccountPrivacyRootPage(
                 ),
             )
         },
-        containerColor = LimeLightGray,
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -176,7 +175,7 @@ private fun AccountPrivacyRootPage(
                 .padding(top = 12.dp),
         ) {
             SectionLabel(stringResource(R.string.account_section_account))
-            SheetGroup(cardColor = Color.White) {
+            SheetGroup(cardColor = MaterialTheme.colorScheme.surface) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -186,7 +185,7 @@ private fun AccountPrivacyRootPage(
                     Icon(
                         imageVector = Icons.Filled.Email,
                         contentDescription = null,
-                        tint = Color(0xFF1C1C1E),
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(24.dp),
                     )
                     Spacer(modifier = Modifier.width(16.dp))
@@ -194,7 +193,7 @@ private fun AccountPrivacyRootPage(
                         Text(
                             text = stringResource(R.string.account_login_email),
                             fontSize = 15.sp,
-                            color = Color(0xFF1C1C1E),
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
                             text = state.email?.let { maskEmail(it) } ?: stringResource(R.string.account_email_unavailable),
@@ -208,7 +207,7 @@ private fun AccountPrivacyRootPage(
             Spacer(modifier = Modifier.height(20.dp))
 
             SectionLabel(stringResource(R.string.account_section_security))
-            SheetGroup(cardColor = Color.White) {
+            SheetGroup(cardColor = MaterialTheme.colorScheme.surface) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -223,14 +222,14 @@ private fun AccountPrivacyRootPage(
                     Icon(
                         imageVector = Icons.Filled.Lock,
                         contentDescription = null,
-                        tint = Color(0xFF1C1C1E),
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(24.dp),
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
                         text = stringResource(R.string.account_change_password),
                         fontSize = 15.sp,
-                        color = Color(0xFF1C1C1E),
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f),
                     )
                     Icon(
@@ -244,7 +243,7 @@ private fun AccountPrivacyRootPage(
             Spacer(modifier = Modifier.height(20.dp))
 
             SectionLabel(stringResource(R.string.account_section_privacy))
-            SheetGroup(cardColor = Color.White) {
+            SheetGroup(cardColor = MaterialTheme.colorScheme.surface) {
                 PrivacySwitchRow(
                     title = stringResource(R.string.account_like_list_title),
                     description = stringResource(R.string.account_like_list_desc),
@@ -275,7 +274,7 @@ private fun AccountPrivacyRootPage(
             Spacer(modifier = Modifier.height(24.dp))
 
             // 退出登录
-            SheetGroup(cardColor = Color.White) {
+            SheetGroup(cardColor = MaterialTheme.colorScheme.surface) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -336,7 +335,7 @@ private fun PrivacySwitchRow(
             Text(
                 text = title,
                 fontSize = 15.sp,
-                color = Color(0xFF1C1C1E),
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = description,
@@ -378,7 +377,7 @@ private fun ChangePasswordPage(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = LimeLightGray,
+                    containerColor = MaterialTheme.colorScheme.background,
                     scrolledContainerColor = Color.Unspecified,
                     navigationIconContentColor = Color.Unspecified,
                     titleContentColor = Color.Unspecified,
@@ -386,7 +385,7 @@ private fun ChangePasswordPage(
                 ),
             )
         },
-        containerColor = LimeLightGray,
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -398,7 +397,7 @@ private fun ChangePasswordPage(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             // 验证方式
-            SheetGroup(cardColor = Color.White) {
+            SheetGroup(cardColor = MaterialTheme.colorScheme.surface) {
                 VerifyMode.entries.forEachIndexed { index, mode ->
                     if (index > 0) SheetRowDivider(startIndent = 16.dp)
                     Row(
@@ -414,7 +413,7 @@ private fun ChangePasswordPage(
                         Text(
                             text = stringResource(mode.labelRes),
                             fontSize = 15.sp,
-                            color = if (state.verifyMode == mode) Color(0xFF1C1C1E) else LimeGray,
+                            color = if (state.verifyMode == mode) MaterialTheme.colorScheme.onSurface else LimeGray,
                             fontWeight = if (state.verifyMode == mode) FontWeight.Medium else FontWeight.Normal,
                             modifier = Modifier.weight(1f),
                         )
@@ -422,7 +421,7 @@ private fun ChangePasswordPage(
                             Icon(
                                 imageVector = Icons.Filled.Check,
                                 contentDescription = null,
-                                tint = LimePrimary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp),
                             )
                         }
@@ -466,7 +465,7 @@ private fun ChangePasswordPage(
                                 keyboardType = KeyboardType.Number,
                                 imeAction = ImeAction.Next,
                             ),
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = LimePrimary),
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         OutlinedButton(
@@ -550,7 +549,7 @@ private fun ChangePasswordPage(
             text = { Text(stringResource(R.string.account_password_changed_message)) },
             confirmButton = {
                 TextButton(onClick = onPasswordChanged) {
-                    Text(stringResource(R.string.account_ok), color = LimePrimary, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.account_ok), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                 }
             },
         )
@@ -598,7 +597,7 @@ private fun PasswordField(
             keyboardType = KeyboardType.Password,
             imeAction = ImeAction.Next,
         ),
-        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = LimePrimary),
+        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary),
     )
 }
 

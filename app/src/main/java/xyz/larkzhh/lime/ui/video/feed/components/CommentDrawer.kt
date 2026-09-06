@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,7 +55,6 @@ import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentUiState
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 视频页评论抽屉
 @Composable
@@ -125,7 +125,7 @@ fun CommentDrawer(
                     .fillMaxWidth()
                     .fillMaxHeight(heightFraction)
                     .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .navigationBarsPadding()
                     // 消费触摸，防止穿透
                     .clickable(
@@ -183,7 +183,7 @@ fun CommentDrawer(
                             onReplyLongPress = { reply -> onCommentReplyLongPress(comment.id, reply) },
                             onAuthorClick = onAuthorClick,
                         )
-                        HorizontalDivider(color = LimeLightGray, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
                     }
 
                     // 加载更多
@@ -195,7 +195,7 @@ fun CommentDrawer(
                                     .padding(16.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = LimePrimary, strokeWidth = 2.dp)
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 2.dp)
                             }
                         }
                     }

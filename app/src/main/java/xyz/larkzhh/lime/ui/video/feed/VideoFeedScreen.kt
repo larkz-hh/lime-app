@@ -36,6 +36,7 @@ import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
@@ -91,7 +92,6 @@ import xyz.larkzhh.lime.navigation.PendingNoteEdit
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.SwipeBackScaffold
 import xyz.larkzhh.lime.navigation.navigateToUserProfile
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.components.CommentInputSheet
 import xyz.larkzhh.lime.ui.video.components.ExpandableText
 import xyz.larkzhh.lime.ui.video.components.DanmakuInputSheet
@@ -193,8 +193,8 @@ fun VideoFeedScreen(
                                 state = refreshState,
                                 isRefreshing = uiState.isRefreshing,
                                 modifier = Modifier.align(Alignment.TopCenter),
-                                containerColor = Color.White,
-                                color = LimePrimary,
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         },
                     ) {

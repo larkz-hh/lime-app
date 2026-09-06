@@ -48,11 +48,8 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.model.ChatNote
-import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
-private val InputPillColor = LimeWhite
 private val SendColor = Color(0xFF111111)
 private val SendDisabledColor = Color(0xFFBBBBBB)
 
@@ -120,8 +117,8 @@ fun ChatInputBar(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .shadow(6.dp, RoundedCornerShape(28.dp), spotColor = Color.Black.copy(alpha = 0.12f))
                 .clip(RoundedCornerShape(28.dp))
-                .background(InputPillColor)
-                .border(1.dp, Color.Black.copy(alpha = 0.05f), RoundedCornerShape(28.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), RoundedCornerShape(28.dp))
                 .padding(horizontal = 8.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -130,7 +127,7 @@ fun ChatInputBar(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(LimeLightGray)
+                    .background(MaterialTheme.colorScheme.surface)
                     .clickable(onClick = onAddClick),
                 contentAlignment = Alignment.Center,
             ) {
@@ -165,7 +162,7 @@ fun ChatInputBar(
                                 if (text.isEmpty()) {
                                     Text(
                                         text = effectivePlaceholder,
-                                        color = LimeGray,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontSize = 16.sp,
                                     )
                                 }
@@ -183,7 +180,7 @@ fun ChatInputBar(
                                         } else {
                                             stringResource(R.string.chat_emoji)
                                         },
-                                        tint = if (emojiActive) MaterialTheme.colorScheme.primary else LimeGray,
+                                        tint = if (emojiActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(24.dp),
                                     )
                                 }
@@ -297,7 +294,7 @@ private fun NotePreviewChip(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(LimeLightGray)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(start = 6.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -322,7 +319,7 @@ private fun NotePreviewChip(
             Icon(
                 Icons.Outlined.Close,
                 contentDescription = stringResource(R.string.chat_remove_note),
-                tint = LimeGray,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(14.dp),
             )
         }

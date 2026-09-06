@@ -44,7 +44,6 @@ import java.time.LocalDate
 import java.time.YearMonth
 import kotlin.math.abs
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 private val ITEM_H = 52.dp  // 每个选项项的高度
@@ -92,7 +91,7 @@ fun WheelDatePicker(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = LimeWhite,
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
         Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 32.dp)) {
 
@@ -118,7 +117,7 @@ fun WheelDatePicker(
                 }) {
                     Text(
                         stringResource(R.string.save),
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                     )
@@ -128,7 +127,7 @@ fun WheelDatePicker(
             // 滚轮白色圆角卡片
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(0.dp),
                 modifier = Modifier.fillMaxWidth(),
             ) {

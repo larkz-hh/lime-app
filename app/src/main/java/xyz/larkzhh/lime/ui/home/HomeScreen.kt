@@ -66,7 +66,6 @@ import xyz.larkzhh.lime.ui.components.FeedSkeleton
 import xyz.larkzhh.lime.ui.components.PagingWaterfallFeed
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 private const val PRELOAD_COUNT = 4
@@ -151,7 +150,7 @@ private fun HomeTopBar(
                         .offset(y = (-8).dp)
                         .height(2.dp)
                         .clip(RoundedCornerShape(1.5.dp))
-                        .background(LimePrimary)
+                        .background(MaterialTheme.colorScheme.primary)
                 )
             },
             divider = {},
@@ -236,7 +235,7 @@ private fun HomeFeedPage(
             }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(LimeLightGray)) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
         when (refreshState) {
             // 无缓存首屏加载
             is LoadState.Loading if pagingItems.itemCount == 0 -> {
@@ -266,7 +265,7 @@ private fun HomeFeedPage(
                         textAlign = TextAlign.Center,
                     )
                     TextButton(onClick = { pagingItems.refresh() }) {
-                        Text(text = stringResource(R.string.home_refresh_action), color = LimePrimary)
+                        Text(text = stringResource(R.string.home_refresh_action), color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -283,8 +282,8 @@ private fun HomeFeedPage(
                             PullToRefreshDefaults.Indicator(
                                 state = pullState,
                                 isRefreshing = refreshState is LoadState.Loading,
-                                containerColor = LimeWhite,
-                                color = LimePrimary,
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.align(Alignment.TopCenter),
                             )
                         },

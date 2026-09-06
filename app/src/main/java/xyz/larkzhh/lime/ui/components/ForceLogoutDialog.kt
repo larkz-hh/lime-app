@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /**
  * 强制下线弹窗
@@ -74,7 +73,7 @@ internal fun ForceLogoutDialogContent(onConfirm: () -> Unit) {
             ) {
                 Text(
                     stringResource(R.string.force_logout_login_again),
-                    color = LimePrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
                 )
             }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,7 +34,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import java.io.File
 
@@ -56,8 +56,8 @@ fun VoiceMessageCard(
     isCurrentlyPlaying: Boolean = false,
     onPlayStart: () -> Unit = {},
     onPlayStop: () -> Unit = {},
-    backgroundColor: Color = LimeLightGray,
-    textColor: Color = LimeDark,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
 ) {
     var isPlaying by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
@@ -158,7 +158,7 @@ fun VoiceMessageCard(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_voice),
                     contentDescription = null,
-                    tint = LimeDark,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(20.dp),
                 )
             }

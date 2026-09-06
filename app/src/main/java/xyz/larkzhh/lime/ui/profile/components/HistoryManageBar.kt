@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 管理模式底部操作栏
 @Composable
@@ -72,7 +71,7 @@ fun HistoryManageBar(
                     modifier = Modifier
                         .size(22.dp)
                         .clip(CircleShape)
-                        .background(if (allSelected) LimePrimary else Color.Transparent)
+                        .background(if (allSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
                         .border(
                             width = 1.5.dp,
                             color = if (allSelected) Color.Transparent else LimeGray,
@@ -110,7 +109,7 @@ fun HistoryManageBar(
                 enabled = selectedCount > 0 && !isDeleting,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFFF4444),
-                    disabledContainerColor = LimeLightGray,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     disabledContentColor = LimeGray,
                 ),
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),

@@ -41,7 +41,6 @@ import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
@@ -95,7 +94,7 @@ fun ProfileTopBar(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(LimePrimaryPale),
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
                     contentAlignment = Alignment.Center,
                 ) {
                     if (user?.avatar != null) {
@@ -109,7 +108,7 @@ fun ProfileTopBar(
                         Text(
                             text = user?.nickname?.take(1) ?: "",
                             style = MaterialTheme.typography.labelMedium,
-                            color = LimePrimary,
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }

@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,7 +30,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeTheme
 
@@ -91,7 +91,7 @@ fun WaterfallFeed(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 2.dp,
                     )
                 }
@@ -118,7 +118,7 @@ private fun WaterfallFeedPreview() {
                         .fillMaxWidth()
                         .height((120 + index * 30).dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(LimePrimaryPale),
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text("Card $index")
@@ -142,7 +142,7 @@ private fun WaterfallFeedLoadingPreview() {
                         .fillMaxWidth()
                         .height(150.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(LimePrimaryPale),
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text("Card $index")

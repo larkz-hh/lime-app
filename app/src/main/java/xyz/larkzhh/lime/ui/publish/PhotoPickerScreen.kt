@@ -75,7 +75,6 @@ import xyz.larkzhh.lime.ui.publish.components.PickerVideoPreview
 import xyz.larkzhh.lime.ui.publish.viewmodel.LocalVideo
 import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
 import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.util.showToast
 
 private enum class PickerTab { PHOTO, VIDEO }
@@ -421,7 +420,7 @@ private fun PickerTabItem(text: String, selected: Boolean, onClick: () -> Unit) 
                 .padding(top = 2.dp)
                 .height(2.dp)
                 .width(20.dp)
-                .background(if (selected) LimePrimary else Color.Transparent)
+                .background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent)
         )
     }
 }

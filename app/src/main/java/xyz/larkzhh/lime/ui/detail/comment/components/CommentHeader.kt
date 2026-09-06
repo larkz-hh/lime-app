@@ -12,6 +12,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,9 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentSort
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 @Composable
@@ -49,7 +48,7 @@ fun CommentHeader(
             text = stringResource(R.string.comment_count, commentCount),
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
-            color = LimeDark,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Box {
             IconButton(
@@ -58,13 +57,13 @@ fun CommentHeader(
             ) {
                 Icon(Icons.AutoMirrored.Outlined.Sort, contentDescription = stringResource(R.string.sort), tint = LimeGray, modifier = Modifier.size(20.dp))
             }
-            DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }, containerColor = LimeWhite) {
+            DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.sort_by_hot), fontSize = 14.sp, color = if (sort == CommentSort.HOT) LimePrimary else LimeDark) },
+                    text = { Text(stringResource(R.string.sort_by_hot), fontSize = 14.sp, color = if (sort == CommentSort.HOT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface) },
                     onClick = { onSortChange(CommentSort.HOT); showMenu = false },
                 )
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.sort_by_time), fontSize = 14.sp, color = if (sort == CommentSort.TIME) LimePrimary else LimeDark) },
+                    text = { Text(stringResource(R.string.sort_by_time), fontSize = 14.sp, color = if (sort == CommentSort.TIME) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface) },
                     onClick = { onSortChange(CommentSort.TIME); showMenu = false },
                 )
             }

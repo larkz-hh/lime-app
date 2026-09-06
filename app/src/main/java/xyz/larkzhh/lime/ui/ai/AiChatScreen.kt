@@ -108,9 +108,7 @@ import xyz.larkzhh.lime.ui.components.chat.ChatInputImage
 import xyz.larkzhh.lime.ui.components.chat.ChatInputImageState
 import xyz.larkzhh.lime.ui.components.chat.ChatMessageList
 import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
-import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.formatRelativeTime
 import xyz.larkzhh.lime.util.showToast
@@ -321,7 +319,7 @@ fun AiChatScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(LimeLightGray)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .imePadding(),
                 ) {
                     // 顶部栏
@@ -338,7 +336,7 @@ fun AiChatScreen(
                                 .size(40.dp)
                                 .shadow(2.dp, CircleShape)
                                 .clip(CircleShape)
-                                .background(Color.White)
+                                .background(MaterialTheme.colorScheme.surface)
                                 .clickable { if (drawerOpen) closeDrawer() else openDrawer() },
                             contentAlignment = Alignment.Center,
                         ) {
@@ -370,13 +368,13 @@ fun AiChatScreen(
                                     Text(
                                         text = state.models.firstOrNull { it.name == state.selectedModel }?.displayName
                                             ?: stringResource(R.string.ai_default_model),
-                                        color = LimeGray,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontSize = 12.sp,
                                     )
                                     Icon(
                                         Icons.Filled.ArrowDropDown,
                                         contentDescription = null,
-                                        tint = LimeGray,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(14.dp),
                                     )
                                 }
@@ -406,7 +404,7 @@ fun AiChatScreen(
                                                         Text(
                                                             text = model.description,
                                                             fontSize = 11.sp,
-                                                            color = LimeGray,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                         )
                                                     }
                                                 }
@@ -422,7 +420,7 @@ fun AiChatScreen(
                             modifier = Modifier
                                 .shadow(2.dp, RoundedCornerShape(20.dp))
                                 .clip(RoundedCornerShape(20.dp))
-                                .background(Color.White),
+                                .background(MaterialTheme.colorScheme.surface),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             IconButton(onClick = { viewModel.startNewConversation() }) {
@@ -443,7 +441,7 @@ fun AiChatScreen(
                                     tint = if (state.serverConversationId != null) {
                                         MaterialTheme.colorScheme.onBackground
                                     } else {
-                                        LimeGray.copy(alpha = 0.4f)
+                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                                     },
                                     modifier = Modifier.size(20.dp),
                                 )
@@ -456,18 +454,18 @@ fun AiChatScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(LimeLightGray)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                                 .padding(horizontal = 16.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
                                 Icons.Outlined.WifiOff,
                                 contentDescription = null,
-                                tint = LimeGray,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(14.dp),
                             )
                             Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.ai_offline_banner), color = LimeGray, fontSize = 12.sp)
+                            Text(stringResource(R.string.ai_offline_banner), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                         }
                     }
 
@@ -730,11 +728,11 @@ private fun DrawerContent(
                 Icon(
                     Icons.Outlined.Add,
                     contentDescription = null,
-                    tint = LimePrimary,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(17.dp),
                 )
                 Spacer(Modifier.width(2.dp))
-                Text(stringResource(R.string.ai_new_chat), color = LimePrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                Text(stringResource(R.string.ai_new_chat), color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
@@ -744,7 +742,7 @@ private fun DrawerContent(
             conversations.itemCount == 0 &&
                     conversations.loadState.refresh !is LoadState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.ai_no_history), color = LimeGray, fontSize = 13.sp)
+                    Text(stringResource(R.string.ai_no_history), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
                 }
             }
 
@@ -799,7 +797,7 @@ private fun DrawerContent(
                             CircularProgressIndicator(
                                 modifier = Modifier.size(18.dp),
                                 strokeWidth = 2.dp,
-                                color = LimePrimary,
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
@@ -812,7 +810,7 @@ private fun DrawerContent(
                             contentAlignment = Alignment.Center,
                         ) {
                             TextButton(onClick = { conversations.retry() }) {
-                                Text(stringResource(R.string.ai_load_failed_retry), color = LimeGray, fontSize = 12.sp)
+                                Text(stringResource(R.string.ai_load_failed_retry), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                             }
                         }
                     }
@@ -855,7 +853,7 @@ private fun DrawerConversationRow(
             Spacer(Modifier.height(2.dp))
             Text(
                 text = formatRelativeTime(conversation.updateTime),
-                color = LimeGray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 11.sp,
             )
         }

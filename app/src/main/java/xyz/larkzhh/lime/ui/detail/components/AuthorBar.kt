@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -34,7 +35,6 @@ import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.ui.components.FollowButton
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 
 /// 顶部栏
@@ -58,7 +58,7 @@ fun AuthorBar(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(R.string.back),
-                tint = LimeDark,
+                tint = MaterialTheme.colorScheme.onSurface,
             )
         }
 
@@ -81,7 +81,7 @@ fun AuthorBar(
                 modifier = Modifier
                     .size(38.dp)
                     .clip(CircleShape)
-                    .background(LimeLightGray),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
             )
 
             Spacer(modifier = Modifier.width(10.dp))
@@ -91,7 +91,7 @@ fun AuthorBar(
                 text = note.author.nickname,
                 fontWeight = FontWeight.Medium,
                 fontSize = 15.sp,
-                color = LimeDark,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
@@ -113,7 +113,7 @@ fun AuthorBar(
             Icon(
                 painter = painterResource(R.drawable.ic_share),
                 contentDescription = stringResource(R.string.video_share),
-                tint = LimeDark,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(20.dp),
             )
         }

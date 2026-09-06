@@ -53,7 +53,6 @@ import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteAction
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.util.findActivity
 import xyz.larkzhh.lime.util.showToast
@@ -184,7 +183,7 @@ fun NotePublishScaffold(
                 Icon(
                     painterResource(R.drawable.ic_ai),
                     contentDescription = stringResource(R.string.publish_ai_write),
-                    tint = if (aiEnabled) LimePrimary
+                    tint = if (aiEnabled) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
                     modifier = Modifier.size(20.dp),
                 )
@@ -255,7 +254,7 @@ fun NotePublishScaffold(
             Icon(
                 painterResource(R.drawable.ic_ai),
                 contentDescription = null,
-                tint = LimePrimary,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(16.dp),
             )
             Text(
@@ -317,7 +316,7 @@ fun NotePublishScaffold(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = LimeWhite,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     disabledContainerColor = Color.White.copy(alpha = 0.6f),
                     disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
@@ -332,7 +331,7 @@ fun NotePublishScaffold(
                 enabled = !isPublishing,
                 modifier = Modifier.weight(2f),
                 shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = LimePrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             ) {
                 if (isPublishing) {
                     CircularProgressIndicator(

@@ -69,7 +69,6 @@ import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.VoiceRecord
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -334,7 +333,7 @@ fun VoiceRecordSheet(
                     modifier = Modifier
                         .size(72.dp)
                         .clip(CircleShape)
-                        .background(if (isRecording) LimePrimary else LimeLightGray)
+                        .background(if (isRecording) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                         .pointerInput(audioPermission.status.isGranted) {
                             fun vibrate() =
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)

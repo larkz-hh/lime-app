@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -26,7 +27,6 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.data.network.model.NoteImageData
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 //// 笔记图片轮播器
 @Composable
@@ -87,7 +87,7 @@ fun NoteImagePager(
                             .size(if (isSelected) 7.dp else 5.dp)
                             .clip(CircleShape)
                             .background(
-                                if (isSelected) LimePrimary else LimeGray.copy(alpha = 0.6f)
+                                if (isSelected) MaterialTheme.colorScheme.primary else LimeGray.copy(alpha = 0.6f)
                             ),
                     )
                 }

@@ -32,7 +32,6 @@ import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.ui.components.FavoriteButton
 import xyz.larkzhh.lime.ui.components.LikeButton
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 
@@ -46,8 +45,8 @@ fun NoteBottomBar(
     onManageClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.background,
-    contentColor: Color = LimeDark,
-    inputBackground: Color = LimeLightGray,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    inputBackground: Color = MaterialTheme.colorScheme.surfaceVariant,
     elevated: Boolean = true,
     compact: Boolean = false,
 ) {

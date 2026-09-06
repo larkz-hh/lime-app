@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 相册入口
 @Composable
@@ -61,7 +61,7 @@ fun AlbumSquare(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(LimePrimary.copy(alpha = 0.18f))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
                 )
             }
             // 清掉相册图回截帧

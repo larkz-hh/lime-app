@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Mic
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -64,7 +65,7 @@ fun CommentInputBar(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(LimeLightGray),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
             )
         }
 
@@ -73,7 +74,7 @@ fun CommentInputBar(
             modifier = Modifier
                 .weight(1f)
                 .clip(RoundedCornerShape(50))
-                .background(LimeLightGray)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },

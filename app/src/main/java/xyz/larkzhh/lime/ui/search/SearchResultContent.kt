@@ -70,10 +70,8 @@ import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.search.viewmodel.NoteSort
 import xyz.larkzhh.lime.ui.search.viewmodel.SearchTimeRange
 import xyz.larkzhh.lime.ui.search.viewmodel.SearchUiState
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
@@ -156,12 +154,12 @@ fun SearchResultContent(
                         modifier = Modifier
                             .width(20.dp)
                             .height(2.dp)
-                            .background(if (selected) LimePrimary else Color.Transparent),
+                            .background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent),
                     )
                 }
             }
         }
-        HorizontalDivider(thickness = 0.5.dp, color = LimeLightGray)
+        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
 
         // 内容区
         Box(modifier = Modifier.fillMaxSize()) {
@@ -265,7 +263,7 @@ private fun NoteResultList(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LimeLightGray),
+            .background(MaterialTheme.colorScheme.surfaceVariant),
     ) {
         when {
             uiState.isResultLoading -> {
@@ -273,7 +271,7 @@ private fun NoteResultList(
                     modifier = Modifier
                         .size(32.dp)
                         .align(Alignment.Center),
-                    color = LimePrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = LimeWhite,
                     strokeWidth = 2.dp,
                 )
@@ -328,7 +326,7 @@ private fun UserResultList(
                     modifier = Modifier
                         .size(32.dp)
                         .align(Alignment.Center),
-                    color = LimePrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = LimeWhite,
                     strokeWidth = 2.dp,
                 )
@@ -376,7 +374,7 @@ private fun UserResultList(
                         )
                         HorizontalDivider(
                             thickness = 0.5.dp,
-                            color = LimeLightGray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
                             modifier = Modifier.padding(start = 80.dp),// 16+52+12
                         )
                     }
@@ -390,7 +388,7 @@ private fun UserResultList(
                             ) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(20.dp),
-                                    color = LimePrimary,
+                                    color = MaterialTheme.colorScheme.primary,
                                     trackColor = LimeWhite,
                                     strokeWidth = 2.dp,
                                 )
@@ -432,13 +430,13 @@ private fun UserResultCard(
                 )
             } else {
                 Box(
-                    modifier = avatarModifier.background(LimePrimaryPale),
+                    modifier = avatarModifier.background(MaterialTheme.colorScheme.secondaryContainer),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = user.nickname.take(1),
                         fontSize = 20.sp,
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -484,7 +482,7 @@ private fun UserResultCard(
         if (user.isMe) {
             Surface(
                 shape = RoundedCornerShape(4.dp),
-                color = LimeLightGray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
                 modifier = Modifier.padding(start = 64.dp, top = 3.dp),// 52+12
             ) {
                 Text(
@@ -551,7 +549,7 @@ private fun SearchFilterPanel(
                     }
                 }
             }
-            HorizontalDivider(thickness = 0.5.dp, color = LimeLightGray)
+            HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
             // 重置、收起
             Row(
                 modifier = Modifier
@@ -580,7 +578,7 @@ private fun SearchFilterPanel(
                     modifier = Modifier
                         .width(0.5.dp)
                         .height(20.dp)
-                        .background(LimeLightGray),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                 )
                 Row(
                     modifier = Modifier
@@ -613,12 +611,12 @@ private fun FilterChip(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(6.dp),
-        color = if (selected) LimePrimaryPale else LimeLightGray,
+        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
     ) {
         Text(
             text = text,
             fontSize = 13.sp,
-            color = if (selected) LimePrimary else LimeDark,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
         )
     }

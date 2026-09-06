@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
@@ -46,7 +47,6 @@ import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.labelRes
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryLight
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
@@ -269,7 +269,7 @@ private fun AvatarSection(user: UserData?, editable: Boolean, onClick: () -> Uni
             Text(
                 text = user?.nickname?.take(1) ?: "?",
                 style = MaterialTheme.typography.titleLarge,
-                color = LimePrimary,
+                color = MaterialTheme.colorScheme.primary,
             )
         }
     }
@@ -385,17 +385,21 @@ private fun QuickCard(
                 modifier = Modifier.size(22.dp),
             )
             Spacer(Modifier.width(8.dp))
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = LimeWhite,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.labelSmall,
                     color = LimeGray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -414,7 +418,7 @@ private fun ActionButton(
         modifier = modifier
             .clip(RoundedCornerShape(22.dp))
             .then(
-                if (filled) Modifier.background(LimePrimary)
+                if (filled) Modifier.background(MaterialTheme.colorScheme.primary)
                 else Modifier.background(Color.White.copy(alpha = 0.3f))
             )
             .clickable(onClick = onClick)

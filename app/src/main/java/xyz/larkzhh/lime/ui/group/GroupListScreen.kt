@@ -50,7 +50,6 @@ import xyz.larkzhh.lime.domain.model.ImGroup
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 @Composable
 fun GroupListScreen(
@@ -99,17 +98,17 @@ fun GroupListScreen(
                 Icon(
                     Icons.Filled.Add,
                     contentDescription = stringResource(R.string.msg_create_group),
-                    tint = LimePrimary,
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
         }
-        HorizontalDivider(thickness = 0.5.dp, color = LimeLightGray)
+        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
 
         val list = if (tab == 0) owned else joined
         when {
             state.isLoading -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = LimePrimary)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
 
@@ -134,7 +133,7 @@ fun GroupListScreen(
                                 }
                             },
                         )
-                        HorizontalDivider(thickness = 0.5.dp, color = LimeLightGray)
+                        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
                     }
                 }
             }
@@ -164,7 +163,7 @@ private fun TopBarTab(
             text = label,
             fontSize = 16.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            color = if (selected) LimePrimary else LimeGray,
+            color = if (selected) MaterialTheme.colorScheme.primary else LimeGray,
         )
         if (selected) {
             Spacer(Modifier.height(3.dp))
@@ -173,7 +172,7 @@ private fun TopBarTab(
                     .width(18.dp)
                     .height(2.dp)
                     .clip(RoundedCornerShape(1.dp))
-                    .background(LimePrimary),
+                    .background(MaterialTheme.colorScheme.primary),
             )
         }
     }
@@ -199,7 +198,7 @@ private fun GroupItem(group: ImGroup, onClick: () -> Unit) {
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(LimeLightGray),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
         )
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {

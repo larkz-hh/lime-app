@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 空内容加载失败状态
 @Composable
@@ -63,11 +63,11 @@ fun RetryButton(
         Icon(
             imageVector = Icons.Outlined.Refresh,
             contentDescription = null,
-            tint = LimePrimary,
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(16.dp),
         )
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text = stringResource(R.string.retry), color = LimePrimary, fontSize = 13.sp)
+        Text(text = stringResource(R.string.retry), color = MaterialTheme.colorScheme.primary, fontSize = 13.sp)
     }
 }
 
@@ -93,7 +93,7 @@ fun LoadMoreErrorItem(
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = stringResource(R.string.retry),
-            color = LimePrimary,
+            color = MaterialTheme.colorScheme.primary,
             fontSize = 12.sp,
             modifier = Modifier.clickable(onClick = onRetry),
         )

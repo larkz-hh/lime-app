@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,10 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeRed
-import xyz.larkzhh.lime.ui.theme.LimeTextMain
 
 /// 卡片式输框
 @Composable
@@ -43,7 +41,8 @@ fun GroupFieldCard(
     minLines: Int = 1,
     enabled: Boolean = true,
 ) {
-    val textColor = if (enabled) LimeTextMain else LimeGray
+    val textColor = if (enabled) MaterialTheme.colorScheme.onSurface
+    else MaterialTheme.colorScheme.onSurfaceVariant
     val cardShape = RoundedCornerShape(12.dp)
     Column(
         modifier = Modifier
@@ -56,7 +55,10 @@ fun GroupFieldCard(
                 spotColor = Color(0x33000000),
             )
             .clip(cardShape)
-            .background(if (enabled) Color.White else Color(0xFFEFEFEF))
+            .background(
+                if (enabled) MaterialTheme.colorScheme.surface
+                else MaterialTheme.colorScheme.surfaceVariant
+            )
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -74,14 +76,18 @@ fun GroupFieldCard(
             singleLine = singleLine,
             minLines = if (singleLine) 1 else minLines,
             textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, color = textColor),
-            cursorBrush = SolidColor(LimePrimary),
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = if (singleLine) 22.dp else (minLines * 24).dp),
             decorationBox = { innerTextField ->
                 Box {
                     if (value.isEmpty()) {
-                        Text(placeholder, fontSize = 16.sp, color = LimeGray.copy(alpha = if (enabled) 1f else 0.6f))
+                        Text(
+                            placeholder,
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 1f else 0.6f),
+                        )
                     }
                     innerTextField()
                 }
@@ -91,7 +97,7 @@ fun GroupFieldCard(
         Text(
             text = "${value.length}/$maxLength",
             fontSize = 12.sp,
-            color = LimeGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.End,
         )

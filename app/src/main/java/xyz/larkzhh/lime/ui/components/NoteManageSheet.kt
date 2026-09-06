@@ -56,7 +56,7 @@ fun NoteManageSheet(
     if (!visible) return
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = null,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {

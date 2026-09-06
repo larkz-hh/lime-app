@@ -56,7 +56,6 @@ import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 @Composable
 fun NotePickerPage(
@@ -107,7 +106,7 @@ fun NotePickerPage(
                     ) {
                         Text(
                             text = stringResource(R.string.note_picker_confirm),
-                            color = if (selected != null) LimePrimary else LimeGray,
+                            color = if (selected != null) MaterialTheme.colorScheme.primary else LimeGray,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 14.sp,
                         )
@@ -127,7 +126,7 @@ fun NotePickerPage(
                         ) {
                             Text(
                                 text = stringResource(t.labelRes),
-                                color = if (isSel) LimePrimary else LimeGray,
+                                color = if (isSel) MaterialTheme.colorScheme.primary else LimeGray,
                                 fontWeight = if (isSel) FontWeight.SemiBold else FontWeight.Normal,
                                 fontSize = 14.sp,
                             )
@@ -157,7 +156,7 @@ fun NotePickerPage(
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(22.dp),
                                         strokeWidth = 2.dp,
-                                        color = LimePrimary,
+                                        color = MaterialTheme.colorScheme.primary,
                                     )
                                 }
                             }
@@ -206,7 +205,7 @@ fun NotePickerPage(
                                         CircularProgressIndicator(
                                             modifier = Modifier.size(18.dp),
                                             strokeWidth = 2.dp,
-                                            color = LimePrimary,
+                                            color = MaterialTheme.colorScheme.primary,
                                         )
                                     }
                                 }
@@ -271,7 +270,7 @@ private fun PickerNoteCard(
                     .fillMaxWidth()
                     .aspectRatio(0.75f)
                     .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                    .background(LimeLightGray),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentScale = ContentScale.Crop,
             )
             Text(
@@ -290,7 +289,7 @@ private fun PickerNoteCard(
                 .padding(6.dp)
                 .size(20.dp)
                 .clip(CircleShape)
-                .background(if (isSelected) LimePrimary else Color.White.copy(alpha = 0.8f))
+                .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.8f))
                 .then(
                     if (!isSelected) Modifier.border(1.5.dp, Color.White, CircleShape)
                     else Modifier

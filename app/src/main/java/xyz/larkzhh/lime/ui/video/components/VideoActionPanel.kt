@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Loop
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,9 +54,7 @@ import xyz.larkzhh.lime.ui.components.LimeSwitch
 import xyz.larkzhh.lime.ui.components.SheetActionRow
 import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.components.SheetRowDivider
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 倍速选项
 val SPEED_OPTIONS = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f)
@@ -179,36 +178,22 @@ private fun SwitchRow(
             icon != null -> Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = LimeDark,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(20.dp),
             )
             painterRes != null -> Icon(
                 painter = painterResource(painterRes),
                 contentDescription = label,
-                tint = LimeDark,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(20.dp),
             )
         }
         Spacer(Modifier.width(14.dp))
-        Text(text = label, color = LimeDark, fontSize = 15.sp)
+        Text(text = label, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
         Spacer(Modifier.weight(1f))
-//        Switch(
-//            checked = checked,
-//            onCheckedChange = null,
-//            modifier = Modifier.scale(0.7f),
-//            colors = SwitchDefaults.colors(
-//                checkedThumbColor = Color.White,
-//                checkedTrackColor = Accent,
-//                checkedBorderColor = Accent,
-//                uncheckedThumbColor = Color.White,
-//                uncheckedTrackColor = ChipIdle,
-//                uncheckedBorderColor = Color.Transparent,
-//            ),
         LimeSwitch(
             checked = checked,
             onCheckedChange = null,
-            checkedTrackColor = Color(0xFF34C759),
-            uncheckedTrackColor = Color(0xFFEFEFF0),
         )
     }
 }
@@ -225,11 +210,11 @@ private fun SpeedRow(currentSpeed: Float, onSpeedChange: (Float) -> Unit) {
         Icon(
             painter = painterResource(R.drawable.ic_speed),
             contentDescription = null,
-            tint = LimeDark,
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(14.dp))
-        Text(text = stringResource(R.string.video_speed), color = LimeDark, fontSize = 15.sp)
+        Text(text = stringResource(R.string.video_speed), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
         Spacer(Modifier.width(12.dp))
         Row(
             modifier = Modifier.weight(1f),
@@ -240,7 +225,7 @@ private fun SpeedRow(currentSpeed: Float, onSpeedChange: (Float) -> Unit) {
                 val selected = speed == currentSpeed
                 Text(
                     text = formatSpeedNumber(speed),
-                    color = if (selected) LimePrimary else Color(0xFF8E8E93),
+                    color = if (selected) MaterialTheme.colorScheme.primary else Color(0xFF8E8E93),
                     fontSize = 13.sp,
                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                     modifier = Modifier.clickable(
@@ -259,7 +244,7 @@ private fun SpeedRow(currentSpeed: Float, onSpeedChange: (Float) -> Unit) {
 private fun OpacityRow(opacity: Float, onOpacityChange: (Float) -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = stringResource(R.string.video_danmaku_opacity), color = LimeDark, fontSize = 15.sp)
+            Text(text = stringResource(R.string.video_danmaku_opacity), color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
             Spacer(Modifier.weight(1f))
             Text(text = "${(opacity * 100).toInt()}%", color = Color(0xFF8E8E93), fontSize = 14.sp)
         }
@@ -301,7 +286,7 @@ private fun OpacitySlider(
                         .size(16.dp)
                         .shadow(elevation = 2.dp, shape = CircleShape, clip = false)
                         .clip(CircleShape)
-                        .background(Color.White),
+                        .background(MaterialTheme.colorScheme.surface),
                 )
             }
         },
@@ -324,7 +309,7 @@ private fun OpacitySlider(
                         .fillMaxWidth(state.value.coerceIn(0f, 1f))
                         .height(2.dp)
                         .clip(RoundedCornerShape(1.dp))
-                        .background(LimePrimary),
+                        .background(MaterialTheme.colorScheme.primary),
                 )
             }
         },
@@ -404,7 +389,7 @@ fun SpeedDrawer(
                     ) {
                         Text(
                             text = formatSpeed(speed),
-                            color = if (selected) LimePrimary else Color.White,
+                            color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
                             fontSize = 15.sp,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                         )
