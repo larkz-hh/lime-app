@@ -37,6 +37,8 @@
     <string name="settings_title">通用</string>
     <string name="settings_section_notify">通知</string>
     <string name="settings_notify_reminders">通知提醒</string>
+    <string name="settings_splash_animation">启动动画</string>
+    <string name="exit_again_hint">再按一次退出程序</string>
     <string name="settings_section_storage">存储</string>
     <string name="settings_clear_cache">清空缓存</string>
     <string name="settings_clear_cache_confirm_title">确定清除应用缓存吗？</string>

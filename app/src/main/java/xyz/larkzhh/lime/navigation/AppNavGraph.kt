@@ -1,7 +1,9 @@
 package xyz.larkzhh.lime.navigation
 
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -23,11 +25,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavType
@@ -39,12 +44,14 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.ai.AiChatScreen
 import xyz.larkzhh.lime.ui.about.AboutScreen
 import xyz.larkzhh.lime.ui.auth.LoginScreen
 import xyz.larkzhh.lime.ui.auth.RegisterScreen
 import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
 import xyz.larkzhh.lime.util.ForceLogoutBus
+import xyz.larkzhh.lime.util.showToast
 import xyz.larkzhh.lime.ui.components.ForceLogoutDialog
 import xyz.larkzhh.lime.ui.detail.comment.CommentPhotoPickerScreen
 import xyz.larkzhh.lime.ui.draft.DraftBoxOverlay
@@ -74,7 +81,6 @@ import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
 import xyz.larkzhh.lime.ui.qrscan.QrScanScreen
 import xyz.larkzhh.lime.ui.search.SearchScreen
 import xyz.larkzhh.lime.ui.settings.GeneralSettingsScreen
-import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.ui.translate.TranslatePackScreen
 import xyz.larkzhh.lime.ui.video.feed.VideoFeedScreen
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
@@ -107,7 +113,6 @@ fun AppNavGraph(
     val authViewModel: AuthViewModel = hiltViewModel()
     val messageViewModel: MessageViewModel = hiltViewModel()
     val imViewModel: ImViewModel = hiltViewModel()
-    val totalUnread by messageViewModel.totalUnread.collectAsState()
     val combinedUnread by messageViewModel.combinedUnread.collectAsState()
     val startDestination = Screen.Home.route
     var pendingRedirect by remember { mutableStateOf<String?>(null) }
@@ -191,6 +196,20 @@ fun AppNavGraph(
                 messageViewModel.sync()
                 imViewModel.ensureImLogin()
             }
+        }
+    }
+
+    // 双击返回退出
+    var lastExitBackTime by remember { mutableLongStateOf(0L) }
+    val exitContext = LocalContext.current
+    val exitHintText = stringResource(R.string.exit_again_hint)
+    BackHandler(enabled = showBottomBar) {
+        val now = System.currentTimeMillis()
+        if (now - lastExitBackTime <= 2000) {
+            (exitContext as? Activity)?.finish()
+        } else {
+            lastExitBackTime = now
+            exitHintText.showToast(exitContext)
         }
     }
 

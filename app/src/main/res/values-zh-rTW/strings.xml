@@ -37,6 +37,8 @@
     <string name="settings_title">一般</string>
     <string name="settings_section_notify">通知</string>
     <string name="settings_notify_reminders">通知提醒</string>
+    <string name="settings_splash_animation">啟動動畫</string>
+    <string name="exit_again_hint">再按一次離開程式</string>
     <string name="settings_section_storage">儲存空間</string>
     <string name="settings_clear_cache">清除快取</string>
     <string name="settings_clear_cache_confirm_title">確定清除應用程式快取嗎？</string>

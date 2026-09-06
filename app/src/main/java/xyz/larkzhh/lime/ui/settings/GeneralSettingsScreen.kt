@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.NotificationsActive
@@ -58,6 +59,7 @@ import xyz.larkzhh.lime.ui.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.util.AppLanguage
+import xyz.larkzhh.lime.util.AppSplashAnim
 import xyz.larkzhh.lime.util.showToast
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,6 +70,7 @@ fun GeneralSettingsScreen(
 ) {
     val notifyEnabled by viewModel.notifyEnabled.collectAsState()
     val cacheLabel by viewModel.cacheLabel.collectAsState()
+    var splashAnimEnabled by remember { mutableStateOf(AppSplashAnim.enabled()) }
     var showLanguagePage by remember { mutableStateOf(false) }
     var showThemePage by remember { mutableStateOf(false) }
     var showFontPage by remember { mutableStateOf(false) }
@@ -96,6 +99,11 @@ fun GeneralSettingsScreen(
             cacheLabel = cacheLabel,
             onClose = onClose,
             onNotifyChange = viewModel::setNotifyEnabled,
+            splashAnimEnabled = splashAnimEnabled,
+            onSplashAnimChange = { value ->
+                splashAnimEnabled = value
+                AppSplashAnim.setEnabled(value)
+            },
             onOpenLanguage = { showLanguagePage = true },
             onOpenTheme = { showThemePage = true },
             onOpenFont = { showFontPage = true },
@@ -163,6 +171,8 @@ private fun GeneralSettingsRootPage(
     cacheLabel: String,
     onClose: () -> Unit,
     onNotifyChange: (Boolean) -> Unit,
+    splashAnimEnabled: Boolean,
+    onSplashAnimChange: (Boolean) -> Unit,
     onOpenLanguage: () -> Unit,
     onOpenTheme: () -> Unit,
     onOpenFont: () -> Unit,
@@ -269,6 +279,32 @@ private fun GeneralSettingsRootPage(
                     value = stringResource(themeDisplayRes()),
                     onClick = onOpenTheme,
                 )
+                SheetRowDivider(startIndent = 16.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Autorenew,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.width(24.dp),
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = stringResource(R.string.settings_splash_animation),
+                        fontSize = 15.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    LimeSwitch(
+                        checked = splashAnimEnabled,
+                        onCheckedChange = onSplashAnimChange,
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
