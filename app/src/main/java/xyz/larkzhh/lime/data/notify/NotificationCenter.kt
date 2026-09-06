@@ -160,7 +160,7 @@ class NotificationCenter @Inject constructor(
     /// 发送信箱聚合通知
     private fun postInbox(count: Int) {
         val notification = NotificationCompat.Builder(context, CHANNEL_INTERACTIONS)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.mipmap.ic_lime)
             .setContentTitle("互动消息")
             .setContentText("你有 $count 条新互动，点击查看")
             .setNumber(count)
@@ -174,7 +174,7 @@ class NotificationCenter @Inject constructor(
     private fun postImMessage(conversationId: String, preview: String) {
         val title = convNames[conversationId] ?: "新消息"
         val notification = NotificationCompat.Builder(context, CHANNEL_IM)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.mipmap.ic_lime)
             .setContentTitle(title)
             .setContentText(preview)
             .setAutoCancel(true)
