@@ -26,12 +26,28 @@ class BaselineProfileGenerator {
                 ?: throw Exception("targetAppId not passed as instrumentation runner arg"),
             includeInStartupProfile = true,
         ) {
-            // 冷启动
-            pressHome()
+            pressHome() //冷启动到首页首屏
             startActivityAndWait()
             device.waitForIdle()
-            SystemClock.sleep(1200)
+            SystemClock.sleep(1500)// 等待首页 Paging 数据,面图加载
             device.waitForIdle()
+
+            // 浏览首页瀑布流
+            repeat(4) {
+                device.swipe(500, 1600, 500, 300, 120)
+                device.waitForIdle()
+                SystemClock.sleep(350)
+            }
+
+            // 点击进入内容
+            device.click(500, 900)
+            device.waitForIdle()
+            SystemClock.sleep(800)
+            device.pressBack()
+            device.waitForIdle()
+
+            // 回桌面
+            device.pressHome()
         }
     }
 }
