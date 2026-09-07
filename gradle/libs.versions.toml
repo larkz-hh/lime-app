@@ -43,6 +43,11 @@ imsdk = "9.0.7652"
 shortcutBadger = "1.1.22"
 zxing = "3.5.3"
 animatedNavigationBar = "1.0.0"
+uiautomator = "2.2.0"
+benchmarkMacroJunit4 = "1.2.4"
+androidBuiltInKotlin = "9.2.1"
+baselineprofile = "1.2.4"
+profileinstaller = "1.3.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -164,6 +169,9 @@ shortcut-badger = { group = "me.leolin", name = "ShortcutBadger", version.ref = 
 
 # 动画底部导航
 exyte-animated-navigation-bar = { group = "com.exyte", name = "animated-navigation-bar", version.ref = "animatedNavigationBar" }
+androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
+androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmarkMacroJunit4" }
+androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agpUser" }
@@ -172,3 +180,6 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinUser" }
+android-test = { id = "com.android.test", version.ref = "agpUser" }
+android-built-in1-kotlin = { id = "com.android.built-in-kotlin", version.ref = "androidBuiltInKotlin" }
+baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
