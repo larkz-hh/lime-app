@@ -117,10 +117,10 @@ class AboutViewModel @Inject constructor(
         super.onCleared()
     }
 
-    /// 当前版本
+    /// 已安装版本的编码
     private fun currentVersionCode(): Long =
         runCatching {
             val info = context.packageManager.getPackageInfo(context.packageName, 0)
-            PackageInfoCompat.getLongVersionCode(info)
+            updater.encodeSemver(info.versionName ?: "0") ?: 0L
         }.getOrDefault(0L)
 }

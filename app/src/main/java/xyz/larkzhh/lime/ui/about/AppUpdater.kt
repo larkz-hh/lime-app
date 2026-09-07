@@ -53,42 +53,39 @@ class AppUpdater @Inject constructor(
                 val tag = json.optString("tag_name")
                 val notes = json.optString("body")
                 val assets = json.optJSONArray("assets")
+                val versionCode = encodeSemver(tag) ?: return@use null
                 var apkUrl: String? = null
-                val codes = mutableListOf<Long>()
-                digitsOf(tag).let { codes.addAll(it) }
+                var fallbackUrl: String? = null
                 if (assets != null) {
                     for (i in 0 until assets.length()) {
                         val a = assets.optJSONObject(i) ?: continue
                         val name = a.optString("name")
                         if (!name.endsWith(".apk", ignoreCase = true)) continue
-                        apkUrl = a.optString("browser_download_url").ifBlank { a.optString("url") }
-                        digitsOf(name).let { codes.addAll(it) }
+                        val url = a.optString("browser_download_url").ifBlank { a.optString("url") }
+                        val lower = name.lowercase()
+                        val isDedicatedAbi =
+                            lower.contains("arm64") || lower.contains("armv7") || lower.contains("x86")
+                        if (lower.contains("universal")) {
+                            apkUrl = url
+                        } else if (!isDedicatedAbi && fallbackUrl == null) {
+                            fallbackUrl = url
+                        }
                     }
                 }
-                val versionCode = codes.maxOrNull() ?: return@use null
-                val url = apkUrl ?: return@use null
+                val url = apkUrl ?: fallbackUrl ?: return@use null
                 ReleaseInfo(versionCode, tag, notes, url)
             }
         }.getOrNull()
     }
 
-    /// 提取字符串里连续数字并解析
-    private fun digitsOf(text: String): List<Long> {
-        val result = mutableListOf<Long>()
-        var i = 0
-        while (i < text.length) {
-            val c = text[i]
-            if (c.isDigit()) {
-                val sb = StringBuilder()
-                while (i < text.length && text[i].isDigit()) {
-                    sb.append(text[i]); i++
-                }
-                sb.toString().toLongOrNull()?.let { result.add(it) }
-            } else {
-                i++
-            }
-        }
-        return result
+    /// 语义化版本号编码
+    fun encodeSemver(name: String): Long? {
+        val nums = Regex("\\d+").findAll(name).map { it.value.toLong() }.toList()
+        if (nums.isEmpty()) return null
+        val major = nums.getOrElse(0) { 0L }
+        val minor = nums.getOrElse(1) { 0L }
+        val patch = nums.getOrElse(2) { 0L }
+        return major * 1_000_000 + minor * 1_000 + patch
     }
 
     /// APK 保存路径
