@@ -21,8 +21,8 @@ import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.model.FollowRelation
 import xyz.larkzhh.lime.domain.repository.FollowRepository
 import xyz.larkzhh.lime.domain.repository.NoteRepository
-import xyz.larkzhh.lime.navigation.Screen
-import xyz.larkzhh.lime.util.NetworkMonitor
+import xyz.larkzhh.lime.navigation.route.Screen
+import xyz.larkzhh.lime.util.system.NetworkMonitor
 import javax.inject.Inject
 
 /// 视频页模型

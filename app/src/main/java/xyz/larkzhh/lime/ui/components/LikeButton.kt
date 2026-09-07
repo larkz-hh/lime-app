@@ -26,7 +26,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.navigation.LoginGate
+import xyz.larkzhh.lime.ui.auth.LoginGate
 import xyz.larkzhh.lime.ui.theme.LimeGray
 
 /**

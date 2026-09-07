@@ -3,8 +3,8 @@ package xyz.larkzhh.lime.data.mapper
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
-import xyz.larkzhh.lime.data.local.chat.ConversationEntity
-import xyz.larkzhh.lime.data.local.chat.MessageEntity
+import xyz.larkzhh.lime.data.local.ai.ConversationEntity
+import xyz.larkzhh.lime.data.local.ai.MessageEntity
 import xyz.larkzhh.lime.data.network.model.ChatMessageDto
 import xyz.larkzhh.lime.data.network.model.ConversationDto
 import xyz.larkzhh.lime.domain.model.ChatConversation

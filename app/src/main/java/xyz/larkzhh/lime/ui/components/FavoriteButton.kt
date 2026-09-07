@@ -15,7 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.navigation.LoginGate
+import xyz.larkzhh.lime.ui.auth.LoginGate
 import xyz.larkzhh.lime.ui.theme.LimeGray
 
 /**

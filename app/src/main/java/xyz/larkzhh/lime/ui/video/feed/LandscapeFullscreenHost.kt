@@ -67,9 +67,9 @@ import xyz.larkzhh.lime.ui.video.components.formatSpeed
 import xyz.larkzhh.lime.ui.video.components.formatTime
 import xyz.larkzhh.lime.ui.video.player.VideoPage
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
-import xyz.larkzhh.lime.util.LockLandscapeImmersive
-import xyz.larkzhh.lime.util.rememberBrightnessController
-import xyz.larkzhh.lime.util.rememberVolumeController
+import xyz.larkzhh.lime.util.system.LockLandscapeImmersive
+import xyz.larkzhh.lime.util.system.rememberBrightnessController
+import xyz.larkzhh.lime.util.system.rememberVolumeController
 import xyz.larkzhh.lime.util.showToast
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull

@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
-import xyz.larkzhh.lime.util.JsonListCache
+import xyz.larkzhh.lime.util.cache.JsonListCache
 import javax.inject.Inject
 
 data class DraftBoxUiState(

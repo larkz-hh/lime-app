@@ -11,9 +11,17 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.data.network.AuthInterceptor
 import xyz.larkzhh.lime.data.network.RetryInterceptor
+import xyz.larkzhh.lime.data.network.ai.AiApi
+import xyz.larkzhh.lime.data.network.auth.AuthApi
+import xyz.larkzhh.lime.data.network.comment.CommentApi
+import xyz.larkzhh.lime.data.network.danmaku.DanmakuApi
+import xyz.larkzhh.lime.data.network.im.ImApi
+import xyz.larkzhh.lime.data.network.notification.NotificationApi
+import xyz.larkzhh.lime.data.network.note.NoteApi
+import xyz.larkzhh.lime.data.network.search.SearchApi
+import xyz.larkzhh.lime.data.network.user.UserApi
 import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
@@ -84,6 +92,46 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideApiService(retrofit: Retrofit): ApiService =
-        retrofit.create(ApiService::class.java)
+    fun provideAuthApi(retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideUserApi(retrofit: Retrofit): UserApi =
+        retrofit.create(UserApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideNoteApi(retrofit: Retrofit): NoteApi =
+        retrofit.create(NoteApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCommentApi(retrofit: Retrofit): CommentApi =
+        retrofit.create(CommentApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideDanmakuApi(retrofit: Retrofit): DanmakuApi =
+        retrofit.create(DanmakuApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSearchApi(retrofit: Retrofit): SearchApi =
+        retrofit.create(SearchApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAiApi(retrofit: Retrofit): AiApi =
+        retrofit.create(AiApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideImApi(retrofit: Retrofit): ImApi =
+        retrofit.create(ImApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideNotificationApi(retrofit: Retrofit): NotificationApi =
+        retrofit.create(NotificationApi::class.java)
 }

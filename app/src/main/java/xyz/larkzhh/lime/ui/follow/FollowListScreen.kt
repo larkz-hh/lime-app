@@ -54,7 +54,7 @@ import xyz.larkzhh.lime.data.network.model.FollowListItem
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.FollowRelation
 import xyz.larkzhh.lime.domain.model.toFollowActionState
-import xyz.larkzhh.lime.navigation.navigateToUserProfile
+import xyz.larkzhh.lime.navigation.route.navigateToUserProfile
 import xyz.larkzhh.lime.ui.components.FollowButton
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray

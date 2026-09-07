@@ -14,7 +14,7 @@ import xyz.larkzhh.lime.data.repository.NoteRepositoryImpl
 import xyz.larkzhh.lime.data.repository.NotificationRepositoryImpl
 import xyz.larkzhh.lime.data.repository.SearchRepositoryImpl
 import xyz.larkzhh.lime.data.repository.UserRepositoryImpl
-import xyz.larkzhh.lime.data.repository.chat.ChatRepositoryImpl
+import xyz.larkzhh.lime.data.repository.ai.ChatRepositoryImpl
 import xyz.larkzhh.lime.domain.repository.AiRepository
 import xyz.larkzhh.lime.domain.repository.AuthRepository
 import xyz.larkzhh.lime.domain.repository.ChatRepository

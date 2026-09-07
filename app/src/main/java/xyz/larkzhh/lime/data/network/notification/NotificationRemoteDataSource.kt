@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import okhttp3.OkHttpClient
 import xyz.larkzhh.lime.data.local.TokenStorage
-import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.notification.NotificationApi
 import xyz.larkzhh.lime.data.network.model.NotificationListResponse
 import xyz.larkzhh.lime.data.network.model.UnreadCountData
 import xyz.larkzhh.lime.data.network.notificationUnreadFlow
@@ -17,7 +17,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class NotificationRemoteDataSource @Inject constructor(
-    private val apiService: ApiService,
+    private val apiService: NotificationApi,
     private val tokenStorage: TokenStorage,
     @Named("base_url") private val baseUrl: String,
     @Named("sse") private val sseClient: OkHttpClient,

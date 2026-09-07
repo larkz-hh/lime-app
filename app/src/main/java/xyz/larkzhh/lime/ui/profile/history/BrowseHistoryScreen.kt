@@ -35,7 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.toFeedItem
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.components.SelectableNoteCard
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.profile.components.HistoryManageBar

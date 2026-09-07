@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
+import xyz.larkzhh.lime.util.text.stripMarkdown
 
 
 object TtsManager {

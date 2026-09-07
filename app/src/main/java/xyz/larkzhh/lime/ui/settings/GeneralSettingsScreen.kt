@@ -57,8 +57,8 @@ import xyz.larkzhh.lime.ui.components.LimeSwitch
 import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.util.AppLanguage
-import xyz.larkzhh.lime.util.AppSplashAnim
+import xyz.larkzhh.lime.util.text.AppLanguage
+import xyz.larkzhh.lime.ui.AppSplashAnim
 import xyz.larkzhh.lime.util.showToast
 
 @OptIn(ExperimentalMaterial3Api::class)

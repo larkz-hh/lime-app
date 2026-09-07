@@ -16,7 +16,7 @@ import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
-import xyz.larkzhh.lime.util.JsonListCache
+import xyz.larkzhh.lime.util.cache.JsonListCache
 import javax.inject.Inject
 
 data class BrowseHistoryUiState(

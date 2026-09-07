@@ -18,8 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.data.repository.chat.ChatSendEngine
-import xyz.larkzhh.lime.data.repository.chat.ChatSendState
+import xyz.larkzhh.lime.data.repository.ai.ChatSendEngine
+import xyz.larkzhh.lime.data.repository.ai.ChatSendState
 import xyz.larkzhh.lime.domain.model.AiModelInfo
 import xyz.larkzhh.lime.domain.model.ChatConversation
 import xyz.larkzhh.lime.domain.model.ChatMessage
@@ -27,9 +27,9 @@ import xyz.larkzhh.lime.domain.model.ChatMessageStatus
 import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.domain.model.ChatRole
 import xyz.larkzhh.lime.domain.repository.ChatRepository
-import xyz.larkzhh.lime.navigation.PendingChatStore
-import xyz.larkzhh.lime.navigation.Screen
-import xyz.larkzhh.lime.util.NetworkMonitor
+import xyz.larkzhh.lime.navigation.state.PendingChatStore
+import xyz.larkzhh.lime.navigation.route.Screen
+import xyz.larkzhh.lime.util.system.NetworkMonitor
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds

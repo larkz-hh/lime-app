@@ -52,7 +52,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import javax.inject.Inject
 import javax.inject.Singleton
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.VideoActivity
+import xyz.larkzhh.lime.ui.VideoActivity
 
 private const val PIP_SEEK_STEP_MS = 15_000L// 小窗跳转步长
 

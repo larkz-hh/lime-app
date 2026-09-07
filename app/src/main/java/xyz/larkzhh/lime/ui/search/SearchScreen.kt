@@ -12,8 +12,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import xyz.larkzhh.lime.navigation.Screen
-import xyz.larkzhh.lime.navigation.navigateToUserProfile
+import xyz.larkzhh.lime.navigation.route.Screen
+import xyz.larkzhh.lime.navigation.route.navigateToUserProfile
 import xyz.larkzhh.lime.ui.search.components.SearchSuggestList
 import xyz.larkzhh.lime.ui.search.components.SearchTopBar
 import xyz.larkzhh.lime.ui.search.viewmodel.SearchMode

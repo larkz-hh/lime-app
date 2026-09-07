@@ -59,16 +59,16 @@ import xyz.larkzhh.lime.domain.model.FollowRelation
 import xyz.larkzhh.lime.domain.model.NotificationCategory
 import xyz.larkzhh.lime.domain.model.NotificationType
 import xyz.larkzhh.lime.domain.model.toFollowActionState
-import xyz.larkzhh.lime.navigation.Screen
-import xyz.larkzhh.lime.navigation.navigateToUserProfile
-import xyz.larkzhh.lime.openVideo
+import xyz.larkzhh.lime.navigation.route.Screen
+import xyz.larkzhh.lime.navigation.route.navigateToUserProfile
+import xyz.larkzhh.lime.ui.openVideo
 import xyz.larkzhh.lime.ui.components.FollowButton
 import xyz.larkzhh.lime.ui.components.SwipeActionItem
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeTheme
 import xyz.larkzhh.lime.ui.theme.LimeWhite
-import xyz.larkzhh.lime.util.formatRelativeTime
+import xyz.larkzhh.lime.util.text.formatRelativeTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

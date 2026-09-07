@@ -1,7 +1,7 @@
 package xyz.larkzhh.lime.data.repository
 
 import xyz.larkzhh.lime.data.local.TokenStorage
-import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.auth.AuthApi
 import xyz.larkzhh.lime.data.network.model.ChangePasswordRequest
 import xyz.larkzhh.lime.data.network.model.LoginRequest
 import xyz.larkzhh.lime.data.network.model.RefreshTokenRequest
@@ -17,7 +17,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
-    private val apiService: ApiService,
+    private val apiService: AuthApi,
     private val tokenStorage: TokenStorage,
 ) : AuthRepository {
 

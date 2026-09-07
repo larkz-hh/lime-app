@@ -1,7 +1,7 @@
 package xyz.larkzhh.lime.data.network.comment
 
 import okhttp3.MultipartBody
-import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.comment.CommentApi
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.CommentListResponse
 import xyz.larkzhh.lime.data.network.model.PostCommentRequest
@@ -16,7 +16,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class CommentRemoteDataSource @Inject constructor(
-    private val apiService: ApiService,
+    private val apiService: CommentApi,
 ) {
 
     /// 获取评论

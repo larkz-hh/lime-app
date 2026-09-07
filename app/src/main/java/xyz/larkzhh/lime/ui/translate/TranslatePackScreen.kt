@@ -51,7 +51,7 @@ import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.util.TranslateModelInfo
+import xyz.larkzhh.lime.ui.translate.TranslateModelInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

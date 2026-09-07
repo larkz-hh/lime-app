@@ -16,7 +16,7 @@ import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.NoteRepository
-import xyz.larkzhh.lime.util.NetworkMonitor
+import xyz.larkzhh.lime.util.system.NetworkMonitor
 import javax.inject.Inject
 
 data class FeedUiState(

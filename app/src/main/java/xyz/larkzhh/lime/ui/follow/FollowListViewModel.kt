@@ -13,7 +13,7 @@ import xyz.larkzhh.lime.data.network.model.FollowListItem
 import xyz.larkzhh.lime.data.network.model.FollowListResponse
 import xyz.larkzhh.lime.domain.model.FollowRelation
 import xyz.larkzhh.lime.domain.repository.FollowRepository
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.route.Screen
 import javax.inject.Inject
 
 /// 关注、粉丝 tab

@@ -68,7 +68,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.components.ImageGridItem
 import xyz.larkzhh.lime.ui.publish.components.PickerImagePreview
 import xyz.larkzhh.lime.ui.publish.components.PickerVideoPreview

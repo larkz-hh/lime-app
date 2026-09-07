@@ -1,6 +1,6 @@
 package xyz.larkzhh.lime.data.repository
 
-import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.danmaku.DanmakuApi
 import xyz.larkzhh.lime.data.network.model.DanmakuData
 import xyz.larkzhh.lime.data.network.model.DanmakuListResponse
 import xyz.larkzhh.lime.data.network.model.PostDanmakuRequest
@@ -10,7 +10,7 @@ import javax.inject.Singleton
 
 @Singleton
 class DanmakuRepositoryImpl @Inject constructor(
-    private val apiService: ApiService,
+    private val apiService: DanmakuApi,
 ) : DanmakuRepository {
 
     /// 拉取弹幕列表

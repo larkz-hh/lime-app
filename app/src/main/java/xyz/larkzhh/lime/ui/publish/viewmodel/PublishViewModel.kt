@@ -21,7 +21,7 @@ import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.domain.repository.NoteRepository
-import xyz.larkzhh.lime.util.readImageDimensions
+import xyz.larkzhh.lime.util.media.readImageDimensions
 import javax.inject.Inject
 import androidx.core.net.toUri
 

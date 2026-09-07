@@ -27,7 +27,7 @@ import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.note.NoteRemoteDataSource
 import xyz.larkzhh.lime.domain.repository.NoteRepository
-import xyz.larkzhh.lime.util.ImageCompressor
+import xyz.larkzhh.lime.util.media.ImageCompressor
 import javax.inject.Inject
 import javax.inject.Singleton
 

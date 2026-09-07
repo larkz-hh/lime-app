@@ -26,7 +26,7 @@ import xyz.larkzhh.lime.domain.model.FollowRelation
 import xyz.larkzhh.lime.domain.repository.FollowRepository
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.SearchRepository
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.widget.SearchWidget
 import xyz.larkzhh.lime.ui.widget.WidgetHotCache
 import javax.inject.Inject

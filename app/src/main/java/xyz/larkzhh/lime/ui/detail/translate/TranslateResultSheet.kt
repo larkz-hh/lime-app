@@ -42,8 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.util.TranslateModelInfo
-import xyz.larkzhh.lime.util.languageDisplayName
+import xyz.larkzhh.lime.ui.translate.TranslateModelInfo
+import xyz.larkzhh.lime.util.text.languageDisplayName
 
 /**
  * 选词翻译的译文弹窗

@@ -9,7 +9,7 @@ import javax.inject.Singleton
 import kotlin.math.roundToLong
 
 /**
- * App 缓存管理器：
+ * App 缓存管理器
  *
  * - Room 数据库文件（AI 聊天、信息流、笔记详情、通知缓存）
  * - 应用 cacheDir（图片加载缓存、网络缓存、临时文件等）

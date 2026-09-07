@@ -110,9 +110,9 @@ import xyz.larkzhh.lime.ui.components.chat.ChatMessageList
 import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.util.copyToClipboard
-import xyz.larkzhh.lime.util.formatRelativeTime
+import xyz.larkzhh.lime.util.text.formatRelativeTime
 import xyz.larkzhh.lime.util.showToast
-import xyz.larkzhh.lime.util.stripMarkdown
+import xyz.larkzhh.lime.util.text.stripMarkdown
 import xyz.larkzhh.lime.util.TtsManager
 import kotlin.math.abs
 import kotlin.math.roundToInt

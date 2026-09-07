@@ -11,7 +11,7 @@ import okhttp3.Response
 import xyz.larkzhh.lime.data.local.TokenStorage
 import xyz.larkzhh.lime.data.network.model.ApiResponse
 import xyz.larkzhh.lime.data.network.model.TokenData
-import xyz.larkzhh.lime.util.ForceLogoutBus
+import xyz.larkzhh.lime.domain.ForceLogoutBus
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton

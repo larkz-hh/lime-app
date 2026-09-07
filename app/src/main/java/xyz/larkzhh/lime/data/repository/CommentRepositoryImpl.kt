@@ -13,7 +13,7 @@ import xyz.larkzhh.lime.data.network.model.CommentListResponse
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.data.network.model.ReplyListResponse
 import xyz.larkzhh.lime.domain.repository.CommentRepository
-import xyz.larkzhh.lime.util.ImageCompressor
+import xyz.larkzhh.lime.util.media.ImageCompressor
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton

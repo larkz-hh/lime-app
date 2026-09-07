@@ -46,8 +46,8 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.video.videoFrameMillis
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.navigation.PendingNoteEdit
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.state.PendingNoteEdit
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteSheet
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteViewModel
 import xyz.larkzhh.lime.ui.publish.components.NotePublishScaffold

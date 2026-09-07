@@ -81,8 +81,8 @@ import kotlinx.coroutines.withContext
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.model.ImMessage
-import xyz.larkzhh.lime.navigation.Screen
-import xyz.larkzhh.lime.navigation.navigateToUserProfile
+import xyz.larkzhh.lime.navigation.route.Screen
+import xyz.larkzhh.lime.navigation.route.navigateToUserProfile
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.chat.ChatInputBar
 import xyz.larkzhh.lime.ui.detail.components.EmojiPanel
@@ -91,10 +91,10 @@ import xyz.larkzhh.lime.ui.im.viewmodel.ImChatViewModel
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.util.copyToClipboard
-import xyz.larkzhh.lime.util.copyUriToCache
-import xyz.larkzhh.lime.util.formatChatTime
-import xyz.larkzhh.lime.util.imageAspectRatio
-import xyz.larkzhh.lime.util.isSameChatDay
+import xyz.larkzhh.lime.util.media.copyUriToCache
+import xyz.larkzhh.lime.util.text.formatChatTime
+import xyz.larkzhh.lime.util.media.imageAspectRatio
+import xyz.larkzhh.lime.util.text.isSameChatDay
 import java.io.File
 
 private const val TIME_GROUP_GAP_SECONDS = 5 * 60L

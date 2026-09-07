@@ -53,7 +53,7 @@ import xyz.larkzhh.lime.ui.components.VoiceMessageCard
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ExpandedRepliesState
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.util.formatRelativeTime
+import xyz.larkzhh.lime.util.text.formatRelativeTime
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable

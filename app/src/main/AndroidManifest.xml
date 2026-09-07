@@ -57,14 +57,14 @@
         android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.Lime">
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
             android:theme="@style/Theme.Lime"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".SplashActivity"
+            android:name=".ui.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.Lime.Splash">
             <intent-filter>
@@ -78,7 +78,7 @@
                 android:resource="@xml/shortcuts" />
         </activity>
         <activity
-            android:name=".VideoActivity"
+            android:name=".ui.VideoActivity"
             android:exported="false"
             android:supportsPictureInPicture="true"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
@@ -109,7 +109,7 @@
         </receiver>
         <!-- PiP 小窗自定义按钮的广播接收器 -->
         <receiver
-            android:name=".PipMediaActionReceiver"
+            android:name=".ui.PipMediaActionReceiver"
             android:exported="false" />
         <!-- 后台播放服务-->
         <service
@@ -123,7 +123,7 @@
         </service>
         <!-- 消息保活前台服务 -->
         <service
-            android:name=".data.notify.NotificationService"
+            android:name=".data.notification.NotificationService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
         <!-- 桌面搜索栏组件 -->

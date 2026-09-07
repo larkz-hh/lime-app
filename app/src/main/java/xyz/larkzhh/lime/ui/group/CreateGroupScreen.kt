@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.route.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

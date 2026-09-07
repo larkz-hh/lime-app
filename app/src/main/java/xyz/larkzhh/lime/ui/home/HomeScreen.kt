@@ -60,9 +60,9 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.FeedItem
-import xyz.larkzhh.lime.navigation.LoginGate
-import xyz.larkzhh.lime.navigation.Screen
-import xyz.larkzhh.lime.openVideo
+import xyz.larkzhh.lime.ui.auth.LoginGate
+import xyz.larkzhh.lime.navigation.route.Screen
+import xyz.larkzhh.lime.ui.openVideo
 import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.components.FeedSkeleton
 import xyz.larkzhh.lime.ui.components.PagingWaterfallFeed

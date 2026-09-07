@@ -120,23 +120,23 @@
 
 ```
 app/src/main/java/xyz/larkzhh/lime/
-├── data/
-│   ├── local/          # TokenStorage（MMKV）
-│   ├── network/        # ApiService、AuthInterceptor、网络数据模型
-│   └── repository/     # Auth / Note / User 仓储实现
-├── di/                 # Hilt 模块（网络、仓储）
-├── domain/             # Repository 接口、NoteEventBus
-├── navigation/         # NavGraph、BottomBar、Screen 路由定义
-├── ui/
-│   ├── auth/           # 登录、注册页面
-│   ├── components/     # 公共组件
-│   ├── detail/         # 笔记详情页
-│   ├── home/           # 首页信息流
-│   ├── message/        # 消息页
-│   ├── profile/        # 个人主页、编辑资料、浏览历史
-│   ├── publish/        # 发布笔记、图片选择
-│   ├── qrscan/         # QR 码扫描
-│   ├── theme/          # 颜色、字体、主题
-│   └── video/          # 视频页
-└── util/               # 工具函数（Toast、Clipboard、图片保存）
+├── data/        # 数据层：Room 分库、网络接口与模型、仓储、IM、通知中心
+├── domain/      # 领域层：仓储接口、领域模型、事件总线
+├── di/          # Hilt 依赖注入
+├── navigation/  # 导航：图、路由、状态等
+├── ui/          # 页面层：按功能分包，各功能内含 Screen 与 ViewModel
+├── util/        # 通用工具：cache / media / system / text
+└── work/        # WorkManager 后台任务
+```
+
+### :baselineprofile 性能模块
+
+生成冷启动与关键路径的 Baseline Profile，产物随 release 自动打包。
+
+```
+baselineprofile/
+├── build.gradle.kts                                # 托管模拟器等生成配置
+└── src/main/java/xyz/larkzhh/baselineprofile/
+    ├── BaselineProfileGenerator.kt                 # 生成场景
+    └── StartupBenchmarks.kt # 启动基准对比
 ```

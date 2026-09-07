@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.flowOn
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import xyz.larkzhh.lime.data.network.model.UnreadCountData
-import xyz.larkzhh.lime.util.ForceLogoutBus
+import xyz.larkzhh.lime.domain.ForceLogoutBus
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val RECONNECT_DELAY_MS = 5_000L

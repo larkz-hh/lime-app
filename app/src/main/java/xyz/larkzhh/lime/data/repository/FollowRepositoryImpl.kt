@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.user.UserApi
 import xyz.larkzhh.lime.data.network.model.FollowListResponse
 import xyz.larkzhh.lime.domain.model.FollowRelation
 import xyz.larkzhh.lime.domain.repository.FollowRepository
@@ -16,7 +16,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class FollowRepositoryImpl @Inject constructor(
-    private val apiService: ApiService,
+    private val apiService: UserApi,
 ) : FollowRepository {
 
     private val _relations = MutableStateFlow<Map<Long, FollowRelation>>(emptyMap())

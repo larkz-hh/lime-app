@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import xyz.larkzhh.lime.data.local.TokenStorage
-import xyz.larkzhh.lime.util.ForceLogoutBus
+import xyz.larkzhh.lime.domain.ForceLogoutBus
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject

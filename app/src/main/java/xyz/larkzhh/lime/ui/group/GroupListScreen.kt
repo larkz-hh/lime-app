@@ -47,7 +47,7 @@ import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.model.ImGroup
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 

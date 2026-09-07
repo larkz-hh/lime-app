@@ -65,13 +65,13 @@ import java.io.File
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.navigation.AuthorProfileSession
-import xyz.larkzhh.lime.navigation.LoginGate
-import xyz.larkzhh.lime.navigation.ProfileLayoutStore
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.state.AuthorProfileSession
+import xyz.larkzhh.lime.ui.auth.LoginGate
+import xyz.larkzhh.lime.navigation.state.ProfileLayoutStore
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.video.feed.PersonalVideoPayload
 import xyz.larkzhh.lime.ui.video.feed.VideoFeedSessionStore
-import xyz.larkzhh.lime.navigation.SwipeBackScaffold
+import xyz.larkzhh.lime.navigation.component.SwipeBackScaffold
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.toFollowActionState
@@ -94,8 +94,8 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import xyz.larkzhh.lime.openVideo
-import xyz.larkzhh.lime.util.extractGradientColor
+import xyz.larkzhh.lime.ui.openVideo
+import xyz.larkzhh.lime.util.media.extractGradientColor
 import xyz.larkzhh.lime.util.showToast
 
 /// 主页 Tab 类型

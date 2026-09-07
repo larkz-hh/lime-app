@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import xyz.larkzhh.lime.data.im.ImException
 import xyz.larkzhh.lime.data.im.ImManager
-import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.im.ImApi
 import xyz.larkzhh.lime.data.network.model.ConversationOpenRequest
 import xyz.larkzhh.lime.domain.model.ImConversation
 import xyz.larkzhh.lime.domain.model.ImGroup
@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ImRepositoryImpl @Inject constructor(
-    private val apiService: ApiService,
+    private val apiService: ImApi,
     private val imManager: ImManager,
     private val userRepository: UserRepository,
 ) : ImRepository {

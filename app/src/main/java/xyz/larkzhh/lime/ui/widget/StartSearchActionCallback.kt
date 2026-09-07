@@ -5,8 +5,8 @@ import android.content.Intent
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
-import xyz.larkzhh.lime.MainActivity
-import xyz.larkzhh.lime.navigation.ShortcutActions
+import xyz.larkzhh.lime.ui.MainActivity
+import xyz.larkzhh.lime.navigation.action.ShortcutActions
 
 class StartSearchActionCallback : ActionCallback {
 

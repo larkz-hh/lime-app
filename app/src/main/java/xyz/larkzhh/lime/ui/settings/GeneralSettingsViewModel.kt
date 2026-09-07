@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import xyz.larkzhh.lime.data.local.AppCacheManager
 import xyz.larkzhh.lime.data.local.UserPreferences
-import xyz.larkzhh.lime.data.notify.NotificationCenter
+import xyz.larkzhh.lime.data.notification.NotificationCenter
 import javax.inject.Inject
 
 /**

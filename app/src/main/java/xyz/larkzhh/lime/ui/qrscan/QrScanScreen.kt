@@ -48,8 +48,8 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.navigation.Screen
-import xyz.larkzhh.lime.openVideo
+import xyz.larkzhh.lime.navigation.route.Screen
+import xyz.larkzhh.lime.ui.openVideo
 import xyz.larkzhh.lime.ui.qrscan.components.CameraPreview
 import xyz.larkzhh.lime.ui.qrscan.components.ScanOverlay
 import xyz.larkzhh.lime.util.parseLimeNoteQr

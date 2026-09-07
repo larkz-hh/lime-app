@@ -20,7 +20,7 @@ import xyz.larkzhh.lime.data.local.TranslateMode
 import xyz.larkzhh.lime.data.local.TranslateSettings
 import xyz.larkzhh.lime.data.local.TranslatorHolder
 import xyz.larkzhh.lime.domain.repository.AiRepository
-import xyz.larkzhh.lime.util.detectLanguageTag
+import xyz.larkzhh.lime.util.text.detectLanguageTag
 import xyz.larkzhh.lime.work.TranslatePrefetchWorker
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds

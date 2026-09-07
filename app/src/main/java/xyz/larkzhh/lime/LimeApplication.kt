@@ -18,7 +18,7 @@ import com.tencent.mmkv.MMKV
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
-import xyz.larkzhh.lime.util.AppLanguage
+import xyz.larkzhh.lime.util.text.AppLanguage
 import xyz.larkzhh.lime.work.TranslatePrefetchWorker
 import xyz.larkzhh.lime.work.WidgetHotRefreshWorker
 

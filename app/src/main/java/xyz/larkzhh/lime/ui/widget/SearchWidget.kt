@@ -38,10 +38,10 @@ import androidx.glance.preview.Preview
 import androidx.media3.common.util.UnstableApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import xyz.larkzhh.lime.MainActivity
+import xyz.larkzhh.lime.ui.MainActivity
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.HotSearchItem
-import xyz.larkzhh.lime.navigation.ShortcutActions
+import xyz.larkzhh.lime.navigation.action.ShortcutActions
 import xyz.larkzhh.lime.work.WidgetHotRefreshWorker
 
 /// 搜索栏小组件

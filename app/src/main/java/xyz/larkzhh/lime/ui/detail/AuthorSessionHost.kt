@@ -13,8 +13,8 @@ import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.FollowRepository
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
-import xyz.larkzhh.lime.navigation.AuthorProfileSession
-import xyz.larkzhh.lime.navigation.AuthorProfileStore
+import xyz.larkzhh.lime.navigation.state.AuthorProfileSession
+import xyz.larkzhh.lime.navigation.state.AuthorProfileStore
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesViewModel
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileViewModel
 import javax.inject.Inject

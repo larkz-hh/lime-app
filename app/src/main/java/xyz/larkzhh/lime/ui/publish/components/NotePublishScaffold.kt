@@ -50,11 +50,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteAction
 import xyz.larkzhh.lime.ui.theme.LimeWhite
-import xyz.larkzhh.lime.util.findActivity
+import xyz.larkzhh.lime.util.system.findActivity
 import xyz.larkzhh.lime.util.showToast
 
 /**

@@ -45,8 +45,8 @@ import coil3.compose.AsyncImage
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.navigation.PendingNoteEdit
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.state.PendingNoteEdit
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteImage
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteSheet
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteViewModel

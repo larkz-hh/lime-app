@@ -41,7 +41,7 @@ import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.util.AppLanguage
+import xyz.larkzhh.lime.util.text.AppLanguage
 import xyz.larkzhh.lime.util.showToast
 
 /// 语言设置子页

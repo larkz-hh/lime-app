@@ -55,8 +55,8 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.distinctUntilChanged
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.FeedItem
-import xyz.larkzhh.lime.navigation.PendingNoteEdit
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.state.PendingNoteEdit
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray

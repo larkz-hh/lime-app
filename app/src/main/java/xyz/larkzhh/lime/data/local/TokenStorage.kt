@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.json.JSONObject
-import xyz.larkzhh.lime.util.ForceLogoutBus
+import xyz.larkzhh.lime.domain.ForceLogoutBus
 import javax.inject.Inject
 import javax.inject.Singleton
 

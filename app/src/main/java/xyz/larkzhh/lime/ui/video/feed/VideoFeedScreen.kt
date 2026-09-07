@@ -89,10 +89,10 @@ import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.toFollowActionState
-import xyz.larkzhh.lime.navigation.PendingNoteEdit
-import xyz.larkzhh.lime.navigation.Screen
-import xyz.larkzhh.lime.navigation.SwipeBackScaffold
-import xyz.larkzhh.lime.navigation.navigateToUserProfile
+import xyz.larkzhh.lime.navigation.state.PendingNoteEdit
+import xyz.larkzhh.lime.navigation.route.Screen
+import xyz.larkzhh.lime.navigation.component.SwipeBackScaffold
+import xyz.larkzhh.lime.navigation.route.navigateToUserProfile
 import xyz.larkzhh.lime.ui.components.CommentInputSheet
 import xyz.larkzhh.lime.ui.video.components.ExpandableText
 import xyz.larkzhh.lime.ui.video.components.DanmakuInputSheet
@@ -123,8 +123,8 @@ import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.generateGradientQrBitmap
 import xyz.larkzhh.lime.util.limeVideoQrContent
-import xyz.larkzhh.lime.util.saveBitmapToGallery
-import xyz.larkzhh.lime.util.saveVideoToGallery
+import xyz.larkzhh.lime.util.media.saveBitmapToGallery
+import xyz.larkzhh.lime.util.media.saveVideoToGallery
 import xyz.larkzhh.lime.util.showToast
 import kotlin.time.Duration.Companion.milliseconds
 

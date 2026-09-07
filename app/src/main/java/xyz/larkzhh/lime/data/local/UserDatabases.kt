@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import dagger.hilt.android.qualifiers.ApplicationContext
-import xyz.larkzhh.lime.data.local.chat.ChatDao
-import xyz.larkzhh.lime.data.local.chat.ChatDatabase
+import xyz.larkzhh.lime.data.local.ai.ChatDao
+import xyz.larkzhh.lime.data.local.ai.ChatDatabase
 import xyz.larkzhh.lime.data.local.feed.FeedDao
 import xyz.larkzhh.lime.data.local.feed.FeedDatabase
 import xyz.larkzhh.lime.data.local.note.NoteCacheDao

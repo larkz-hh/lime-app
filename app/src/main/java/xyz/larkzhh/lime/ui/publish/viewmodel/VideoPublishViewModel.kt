@@ -25,11 +25,11 @@ import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.domain.repository.NoteRepository
-import xyz.larkzhh.lime.util.cropCoverToCache
-import xyz.larkzhh.lime.util.downloadToFile
-import xyz.larkzhh.lime.util.extractFrameToCache
-import xyz.larkzhh.lime.util.readImageDimensions
-import xyz.larkzhh.lime.util.readVideoDimensions
+import xyz.larkzhh.lime.util.media.cropCoverToCache
+import xyz.larkzhh.lime.util.media.downloadToFile
+import xyz.larkzhh.lime.util.media.extractFrameToCache
+import xyz.larkzhh.lime.util.media.readImageDimensions
+import xyz.larkzhh.lime.util.media.readVideoDimensions
 import javax.inject.Inject
 
 /// 视频限制常量

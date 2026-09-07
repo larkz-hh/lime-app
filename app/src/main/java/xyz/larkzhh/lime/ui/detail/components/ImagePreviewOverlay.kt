@@ -35,7 +35,7 @@ import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.components.BottomActionSheet
 import xyz.larkzhh.lime.ui.components.SheetAction
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.util.saveImageToGallery
+import xyz.larkzhh.lime.util.media.saveImageToGallery
 import xyz.larkzhh.lime.util.showToast
 
 /// 全屏图片预览浮层

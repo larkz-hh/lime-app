@@ -1,7 +1,7 @@
 package xyz.larkzhh.lime.data.network.note
 
 import okhttp3.MultipartBody
-import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.note.NoteApi
 import xyz.larkzhh.lime.data.network.model.DeleteHistoryRequest
 import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.HistoryResponse
@@ -19,7 +19,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class NoteRemoteDataSource @Inject constructor(
-    private val apiService: ApiService,
+    private val apiService: NoteApi,
 ) {
 
     /// 上传笔记图片

@@ -18,11 +18,11 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import xyz.larkzhh.lime.data.im.ImManager
 import xyz.larkzhh.lime.data.local.TokenStorage
-import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.user.UserApi
 import xyz.larkzhh.lime.data.network.model.UpdateProfileRequest
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.domain.repository.UserRepository
-import xyz.larkzhh.lime.util.LruCache
+import xyz.larkzhh.lime.util.cache.LruCache
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,7 +31,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class UserRepositoryImpl @Inject constructor(
-    private val apiService: ApiService,
+    private val apiService: UserApi,
     @param:ApplicationContext private val context: Context,
     private val imManager: ImManager,
     private val tokenStorage: TokenStorage,
