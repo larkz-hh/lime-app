@@ -23,7 +23,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -111,7 +113,7 @@ dependencies {
     implementation(libs.lottie.compose)
 
     // exyte 动画底部导航
-    implementation("com.exyte:animated-navigation-bar:1.0.0")
+    implementation(libs.exyte.animated.navigation.bar)
 
     // Media3 ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
