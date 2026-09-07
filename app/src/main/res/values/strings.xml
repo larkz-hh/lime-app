@@ -7,6 +7,8 @@
     <string name="pip_play">播放</string>
     <!-- 后台播放通知渠道 -->
     <string name="playback_channel_name">正在播放</string>
+    <!-- 消息保活前台服务 -->
+    <string name="notification_service_running">正在接收互动与私信通知</string>
     <!-- 长按图标快捷入口 -->
     <string name="shortcut_search">搜索</string>
     <string name="shortcut_ai">问AI</string>

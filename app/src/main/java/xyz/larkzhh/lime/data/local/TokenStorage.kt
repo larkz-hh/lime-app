@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.json.JSONObject
+import xyz.larkzhh.lime.util.ForceLogoutBus
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -53,6 +54,8 @@ class TokenStorage @Inject constructor() {
         _currentUserId.value = uid
         mmkv.encode(KEY_CURRENT_USER_ID, uid ?: -1L)
         _isLoggedIn.value = true
+        // 登录、刷新成功
+        ForceLogoutBus.clearPending()
     }
 
     /// 清除所有本地保存的 Token 信息

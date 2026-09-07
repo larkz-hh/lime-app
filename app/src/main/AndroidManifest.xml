@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- vivo 桌面角标 -->
     <uses-permission android:name="com.vivo.notification.permission.BADGE_ICON" />
@@ -110,15 +111,21 @@
         <receiver
             android:name=".PipMediaActionReceiver"
             android:exported="false" />
-        <!-- 后台播放服务 -->
+        <!-- 后台播放服务-->
         <service
             android:name=".ui.video.player.PlaybackService"
             android:exported="true"
-            android:foregroundServiceType="mediaPlayback">
+            android:foregroundServiceType="mediaPlayback"
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+        <!-- 消息保活前台服务 -->
+        <service
+            android:name=".data.notify.NotificationService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
         <!-- 桌面搜索栏组件 -->
         <receiver
             android:name=".ui.widget.SearchWidgetReceiver"

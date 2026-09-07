@@ -24,6 +24,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.local.TokenStorage
 import xyz.larkzhh.lime.data.notify.NotificationCenter
+import xyz.larkzhh.lime.data.notify.NotificationService
 import javax.inject.Inject
 import xyz.larkzhh.lime.navigation.AppNavGraph
 import xyz.larkzhh.lime.navigation.ShortcutActions
@@ -73,7 +74,7 @@ class MainActivity : ComponentActivity() {
         resolveShortcut(intent)
         // 启动系统通知中心
         notificationCenter.ensureStarted()
-        // 账号切换后重建界面
+        // 账号切换后重建界面，启动消息保活前台服务
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 tokenStorage.currentUserIdFlow.collect { uid ->
@@ -81,6 +82,9 @@ class MainActivity : ComponentActivity() {
                         recreate()
                     } else {
                         lastSeenUserId = uid
+                    }
+                    if (uid != null) {
+                        NotificationService.start(this@MainActivity)
                     }
                 }
             }

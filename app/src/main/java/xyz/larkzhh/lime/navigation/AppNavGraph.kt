@@ -35,6 +35,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavType
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -171,9 +173,23 @@ fun AppNavGraph(
     // 强制下线弹窗
     LaunchedEffect(Unit) {
         ForceLogoutBus.events.collect {
+            ForceLogoutBus.clearPending()
             forceLogout = true
             runCatching { cleanupForceLogout() }
         }
+    }
+
+    // 前台检查是否待处理下线
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START && ForceLogoutBus.consumePending()) {
+                forceLogout = true
+                runCatching { cleanupForceLogout() }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     // 长按图标快捷入口 / 通知点击跳转

@@ -18,6 +18,7 @@ import com.tencent.imsdk.v2.V2TIMImageElem
 import com.tencent.imsdk.v2.V2TIMManager
 import com.tencent.imsdk.v2.V2TIMMessage
 import com.tencent.imsdk.v2.V2TIMSDKConfig
+import com.tencent.imsdk.v2.V2TIMSDKListener
 import com.tencent.imsdk.v2.V2TIMSendCallback
 import com.tencent.imsdk.v2.V2TIMUserFullInfo
 import com.tencent.imsdk.v2.V2TIMValueCallback
@@ -26,6 +27,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
+import xyz.larkzhh.lime.data.local.TokenStorage
+import xyz.larkzhh.lime.util.ForceLogoutBus
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -39,6 +42,7 @@ import kotlin.coroutines.resumeWithException
 @Singleton
 class ImManager @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val tokenStorage: TokenStorage,
 ) {
 
     private var initialized = false
@@ -82,10 +86,19 @@ class ImManager @Inject constructor(
         }
     }
 
+    /// SDK 全局监听被踢下线
+    private val sdkListener = object : V2TIMSDKListener() {
+        override fun onKickedOffline() {
+            tokenStorage.clearTokens()
+            ForceLogoutBus.emit()
+        }
+    }
+
     /// 初始化 SDK
     fun init(sdkAppId: Long) {
         if (initialized && this.sdkAppId == sdkAppId) return
         V2TIMManager.getInstance().initSDK(context, sdkAppId.toInt(), V2TIMSDKConfig())
+        V2TIMManager.getInstance().addIMSDKListener(sdkListener)
         V2TIMManager.getMessageManager().addAdvancedMsgListener(messageListener)
         V2TIMManager.getConversationManager().addConversationListener(conversationListener)
         this.sdkAppId = sdkAppId

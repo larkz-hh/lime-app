@@ -7,6 +7,8 @@
     <string name="pip_play">Play</string>
     <!-- Background playback notification channel -->
     <string name="playback_channel_name">Now playing</string>
+    <!-- Message keep-alive foreground service -->
+    <string name="notification_service_running">Receiving interactions and messages</string>
     <!-- App shortcuts -->
     <string name="shortcut_search">Search</string>
     <string name="shortcut_ai">Ask AI</string>

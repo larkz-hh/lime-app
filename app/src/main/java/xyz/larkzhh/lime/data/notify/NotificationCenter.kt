@@ -22,6 +22,7 @@ import xyz.larkzhh.lime.data.local.UserPreferences
 import xyz.larkzhh.lime.domain.repository.ImRepository
 import xyz.larkzhh.lime.domain.repository.NotificationRepository
 import xyz.larkzhh.lime.navigation.ShortcutActions
+import xyz.larkzhh.lime.util.ForceLogoutBus
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -54,6 +55,10 @@ class NotificationCenter @Inject constructor(
 
     init {
         createChannels()
+        // 被踢下线系统通知
+        scope.launch {
+            ForceLogoutBus.events.collect { postForcedLogout() }
+        }
     }
 
     /// 监听登录态，登录后跟踪同步
@@ -69,6 +74,7 @@ class NotificationCenter @Inject constructor(
                     nm.cancelAll()
                     lastInbox = 0
                     lastBadge = 0
+                    NotificationService.stop(context)
                 } else {
                     startWatching()
                 }
@@ -183,6 +189,20 @@ class NotificationCenter @Inject constructor(
         nm.notify(convNotificationId(conversationId), notification)
     }
 
+    /// 发送账号异地登录系统通知
+    private fun postForcedLogout() {
+        val notification = NotificationCompat.Builder(context, CHANNEL_IM)
+            .setContentTitle(context.getString(R.string.force_logout_title))
+            .setContentText(context.getString(R.string.force_logout_message))
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setContentIntent(clickIntent(ShortcutActions.OPEN_MESSAGE, null))
+            .setSmallIcon(R.drawable.ic_stat_notification)
+            .build()
+        nm.notify(FORCED_LOGOUT_NOTIFICATION_ID, notification)
+    }
+
     private fun clickIntent(action: String, conversationId: String?): PendingIntent {
         val intent = Intent(context, MainActivity::class.java)
             .setAction(action)
@@ -222,7 +242,9 @@ class NotificationCenter @Inject constructor(
     private companion object {
         const val CHANNEL_INTERACTIONS = "interactions"
         const val CHANNEL_IM = "im_chat"
-        const val INBOX_NOTIFICATION_ID = 1001
+        // 避开 PlaybackService 的 NOTIFICATION_ID(1001)，避免互动通知被播放通知顶掉
+        const val INBOX_NOTIFICATION_ID = 4001
+        const val FORCED_LOGOUT_NOTIFICATION_ID = 4002
         const val IM_NOTIFICATION_ID_BASE = 2000
     }
 }
