@@ -440,6 +440,21 @@ class AiChatViewModel @Inject constructor(
         sendJob?.cancel()
         sendJob = null
         _state.update { it.copy(streaming = false, busy = false) }
+        val pending = msgs.filter {
+            (it.role == ChatRole.USER && it.status == ChatMessageStatus.SENDING) ||
+                (it.role == ChatRole.ASSISTANT && it.status == ChatMessageStatus.STREAMING)
+        }
+        if (pending.isNotEmpty()) {
+            viewModelScope.launch {
+                pending.forEach { m ->
+                    if (m.role == ChatRole.USER) {
+                        chatRepository.updateMessageStatus(m.localId, ChatMessageStatus.DONE)
+                    } else {
+                        chatRepository.updateMessage(m.localId, null, m.content, ChatMessageStatus.STOPPED)
+                    }
+                }
+            }
+        }
         if (clientId != null) {
             viewModelScope.launch {
                 chatRepository.cancelGeneration(clientId, partial)

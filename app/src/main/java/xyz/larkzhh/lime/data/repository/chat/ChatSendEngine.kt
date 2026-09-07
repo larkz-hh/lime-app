@@ -59,28 +59,29 @@ class ChatSendEngine @Inject constructor(
                 uploadedUrls += url
             }
         } catch (ce: CancellationException) {
-            // 上传阶段取消
+            // 上传阶段停止
             withContext(NonCancellable) {
-                chatRepository.updateMessageStatus(userMessageLocalId, ChatMessageStatus.FAILED)
+                chatRepository.updateMessageStatus(userMessageLocalId, ChatMessageStatus.DONE)
                 onState(ChatSendState.Idle)
             }
             throw ce
         }
 
         onState(ChatSendState.Streaming)
-        val assistantLocalId = chatRepository.saveMessage(
-            ChatMessage(
-                conversationId = conversationId,
-                role = ChatRole.ASSISTANT,
-                status = ChatMessageStatus.STREAMING,
-            )
-        )
         val buffer = StringBuilder()
         var lastPersist = System.currentTimeMillis()
         var done: ChatStreamEvent.Done? = null
         var streamError: String? = null
-
+        var assistantLocalId = 0L
         try {
+            // 创建 assistant 占位消息，不留 SENDING
+            assistantLocalId = chatRepository.saveMessage(
+                ChatMessage(
+                    conversationId = conversationId,
+                    role = ChatRole.ASSISTANT,
+                    status = ChatMessageStatus.STREAMING,
+                )
+            )
             chatRepository.chatStream(
                 conversationId = conversationId,
                 messageClientId = messageClientId,
@@ -106,52 +107,56 @@ class ChatSendEngine @Inject constructor(
                     is ChatStreamEvent.Error -> streamError = event.message
                 }
             }
-        } catch (ce: CancellationException) {
-            // 流式阶段取消
-            withContext(NonCancellable) {
-                chatRepository.updateMessage(
-                    assistantLocalId, null, buffer.toString(), ChatMessageStatus.STOPPED
+            // 正常完成
+            val doneEvent = done
+            if (doneEvent != null) {
+                chatRepository.updateMessageWithImages(
+                    userMessageLocalId, doneEvent.userMessageId, displayText,
+                    uploadedUrls.ifEmpty { null }, ChatMessageStatus.DONE,
                 )
+                chatRepository.updateMessage(
+                    assistantLocalId, doneEvent.assistantMessageId, buffer.toString(),
+                    ChatMessageStatus.DONE,
+                )
+                val existing = chatRepository.getLocalConversation(conversationId)
+                chatRepository.saveConversation(
+                    ChatConversation(
+                        id = conversationId,
+                        title = existing?.title ?: displayText.ifBlank { "图片对话" }.take(30),
+                        updateTime = System.currentTimeMillis(),
+                    )
+                )
+                return Result.success(conversationId)
+            } else {
+                chatRepository.updateMessage(
+                    assistantLocalId, null, buffer.toString(), ChatMessageStatus.FAILED
+                )
+                chatRepository.updateMessageStatus(userMessageLocalId, ChatMessageStatus.FAILED)
+                return Result.failure(IllegalStateException(streamError ?: "生成失败，请重试"))
+            }
+        } catch (ce: CancellationException) {
+            // 流式阶段被停止、取消
+            withContext(NonCancellable) {
+                if (assistantLocalId != 0L) {
+                    chatRepository.updateMessage(
+                        assistantLocalId, null, buffer.toString(), ChatMessageStatus.STOPPED
+                    )
+                }
                 chatRepository.updateMessageStatus(userMessageLocalId, ChatMessageStatus.DONE)
             }
             throw ce
         } catch (e: Exception) {
             withContext(NonCancellable) {
-                chatRepository.updateMessage(
-                    assistantLocalId, null, buffer.toString(), ChatMessageStatus.FAILED
-                )
+                if (assistantLocalId != 0L) {
+                    chatRepository.updateMessage(
+                        assistantLocalId, null, buffer.toString(), ChatMessageStatus.FAILED
+                    )
+                }
                 chatRepository.updateMessageStatus(userMessageLocalId, ChatMessageStatus.FAILED)
             }
             return Result.failure(e)
         } finally {
             onState(ChatSendState.Idle)
-        }
-
-        val doneEvent = done
-        return if (doneEvent != null) {
-            chatRepository.updateMessageWithImages(
-                userMessageLocalId, doneEvent.userMessageId, displayText,
-                uploadedUrls.ifEmpty { null }, ChatMessageStatus.DONE,
-            )
-            chatRepository.updateMessage(
-                assistantLocalId, doneEvent.assistantMessageId, buffer.toString(),
-                ChatMessageStatus.DONE,
-            )
-            val existing = chatRepository.getLocalConversation(conversationId)
-            chatRepository.saveConversation(
-                ChatConversation(
-                    id = conversationId,
-                    title = existing?.title ?: displayText.ifBlank { "图片对话" }.take(30),
-                    updateTime = System.currentTimeMillis(),
-                )
-            )
-            Result.success(conversationId)
-        } else {
-            chatRepository.updateMessage(
-                assistantLocalId, null, buffer.toString(), ChatMessageStatus.FAILED
-            )
-            chatRepository.updateMessageStatus(userMessageLocalId, ChatMessageStatus.FAILED)
-            Result.failure(IllegalStateException(streamError ?: "生成失败，请重试"))
         }
     }
 

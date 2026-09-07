@@ -51,26 +51,69 @@ class ChatRepositoryImpl @Inject constructor(
 
     /// 远端历史消息合并进本地缓存
     override suspend fun syncMessages(conversationId: String): Result<Boolean> = runCatching {
+        // 按时间升序处理远端消息
         val remoteMessages = remote.fetchMessages(conversationId).getOrThrow()
+            .sortedWith(compareBy<ChatMessage> { it.createTime }.thenBy { it.serverId ?: Long.MAX_VALUE })
         val localMessages = local.getMessages(conversationId)
-        // 增量合并
+        var anchorLocalId: Long? = null
+
         remoteMessages.forEach { r ->
-            if (r.serverId == null) return@forEach
-            val existing = localMessages.firstOrNull { it.serverId == r.serverId }
-            if (existing == null) {
-                local.upsertMessage(r.toEntity())
-            } else if (existing.content != r.content || existing.status != r.status.name) {
-                local.updateMessageByServerId(r.serverId, r.content, r.status.name)
+            val serverId = r.serverId ?: return@forEach
+            val remoteRole = if (r.role == ChatRole.USER) "user" else "assistant"
+
+            //  已同步消息
+            val byServer = localMessages.firstOrNull { it.serverId == serverId }
+            if (byServer != null) {
+                if (byServer.content != r.content || byServer.status != r.status.name) {
+                    local.updateMessageByServerId(serverId, r.content, mergeMessageStatus(byServer.status, r.status).name)
+                }
+                anchorLocalId = byServer.localId
+                return@forEach
             }
+
+            // 本地临时消息
+            val byClient = if (r.clientId != null) {
+                localMessages.lastOrNull {
+                    it.serverId == null && it.clientId == r.clientId && it.role == remoteRole
+                }
+            } else null
+            if (byClient != null) {
+                local.updateMessageFull(
+                    byClient.localId, serverId, r.content, r.images.toJson(),
+                    mergeMessageStatus(byClient.status, r.status).name,
+                )
+                anchorLocalId = byClient.localId
+                return@forEach
+            }
+
+            if (remoteRole == "assistant" && anchorLocalId != null) {
+                val anchorIndex = localMessages.indexOfFirst { it.localId == anchorLocalId }
+                val placeholder = localMessages.getOrNull(anchorIndex + 1)
+                if (placeholder != null && placeholder.role == "assistant" && placeholder.serverId == null &&
+                    (placeholder.status == ChatMessageStatus.STOPPED.name ||
+                        placeholder.status == ChatMessageStatus.FAILED.name ||
+                        placeholder.status == ChatMessageStatus.STREAMING.name)
+                ) {
+                    local.updateMessageFull(
+                        placeholder.localId, serverId, r.content, r.images.toJson(),
+                        mergeMessageStatus(placeholder.status, r.status).name,
+                    )
+                    anchorLocalId = placeholder.localId
+                    return@forEach
+                }
+            }
+
+            // 新远端消息
+            local.upsertMessage(r.toEntity())
+            anchorLocalId = null
         }
-        // 清理本地残留
-        val refreshed = local.getMessages(conversationId)
-        refreshed.forEach { entity ->
+
+        local.getMessages(conversationId).forEach { entity ->
             if (entity.serverId != null) return@forEach
-            val delivered = entity.role == "user" && entity.clientId != null && remoteMessages.any {
-                it.role == ChatRole.USER && it.clientId == entity.clientId
-            }
-            if (entity.role == "assistant" || delivered) {
+            if (entity.role == "assistant" &&
+                (entity.status == ChatMessageStatus.FAILED.name ||
+                    entity.status == ChatMessageStatus.STREAMING.name)
+            ) {
                 local.deleteMessage(entity.localId)
             }
         }
@@ -174,5 +217,17 @@ class ChatRepositoryImpl @Inject constructor(
 
     private companion object {
         const val CONVERSATION_PAGE_SIZE = 20// 每页加载20条
+
+        /// 合并本地与远端状态
+        fun mergeMessageStatus(localStatus: String, remoteStatus: ChatMessageStatus): ChatMessageStatus {
+            val local = runCatching { ChatMessageStatus.valueOf(localStatus) }
+                .getOrDefault(ChatMessageStatus.DONE)
+            return when {
+                local == ChatMessageStatus.DONE || remoteStatus == ChatMessageStatus.DONE ->
+                    ChatMessageStatus.DONE
+                local == ChatMessageStatus.STOPPED -> ChatMessageStatus.STOPPED
+                else -> remoteStatus
+            }
+        }
     }
 }
