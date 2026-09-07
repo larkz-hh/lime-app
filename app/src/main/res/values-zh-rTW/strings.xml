@@ -106,6 +106,7 @@
     <string name="home_chat_cd">聊天</string>
     <string name="home_search_cd">搜尋</string>
     <string name="home_empty_following">追蹤的人還沒有發布筆記</string>
+    <string name="home_follow_login_hint">登入後查看追蹤內容</string>
     <string name="home_refresh_action">重新整理看看</string>
 
     <!-- 強制下線彈窗 -->

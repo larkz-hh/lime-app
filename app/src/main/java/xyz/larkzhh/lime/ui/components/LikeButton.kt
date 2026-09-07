@@ -26,6 +26,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.navigation.LoginGate
 import xyz.larkzhh.lime.ui.theme.LimeGray
 
 /**
@@ -69,8 +70,11 @@ fun LikeButton(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() },
             ) {
-                if (!liked) isAnimating = true
-                onToggle()
+                // 点赞登录拦截
+                if (!LoginGate.onRequireLogin(null)) {
+                    if (!liked) isAnimating = true
+                    onToggle()
+                }
             },
         contentAlignment = Alignment.Center,
     ) {

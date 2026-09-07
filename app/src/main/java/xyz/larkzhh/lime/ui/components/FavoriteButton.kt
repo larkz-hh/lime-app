@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.navigation.LoginGate
 import xyz.larkzhh.lime.ui.theme.LimeGray
 
 /**
@@ -40,7 +41,10 @@ fun FavoriteButton(
         modifier = modifier.clickable(
             indication = null,
             interactionSource = remember { MutableInteractionSource() },
-            onClick = onToggle,
+            onClick = {
+                // 收藏登录拦截
+                if (!LoginGate.onRequireLogin(null)) onToggle()
+            },
         ),
         contentAlignment = Alignment.Center,
     ) {

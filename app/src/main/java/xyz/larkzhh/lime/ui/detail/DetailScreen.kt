@@ -60,6 +60,7 @@ import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.toFollowActionState
+import xyz.larkzhh.lime.navigation.LoginGate
 import xyz.larkzhh.lime.navigation.PendingNoteEdit
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.navigation.SwipeBackScaffold
@@ -252,7 +253,9 @@ fun DetailScreen(
                         onRetryComments = commentViewModel::retryComments,
                         onLoadMoreComments = { commentViewModel.loadComments() },
                         onCommentLike = commentViewModel::toggleCommentLike,
-                        onReply = { commentViewModel.openInputSheet(it) },
+                        onReply = { replyId ->
+                            if (!LoginGate.onRequireLogin(null)) commentViewModel.openInputSheet(replyId)
+                        },
                         onLoadMoreReplies = commentViewModel::loadMoreReplies,
                         onReplyLike = commentViewModel::toggleReplyLike,
                         onCommentImageClick = { images, index ->
@@ -262,23 +265,29 @@ fun DetailScreen(
                         onCommentLongPress = { longPressTarget = LongPressTarget.Comment(it) },
                         onCommentReplyLongPress = { commentId, reply -> longPressTarget = LongPressTarget.Reply(commentId, reply) },
                         currentUserAvatar = commentViewModel.currentUserAvatar,
-                        onCommentBoxClick = { commentViewModel.openInputSheet(null) },
+                        onCommentBoxClick = {
+                            if (!LoginGate.onRequireLogin(null)) commentViewModel.openInputSheet(null)
+                        },
                         onVoiceClick = {
-                            commentViewModel.openInputSheet(null)
-                            if (commentUiState.pendingImages.isNotEmpty()) {
-                                t.imageVoiceMutexToast.showToast(context)
-                            } else if (commentUiState.pendingVoice != null) {
-                                t.voiceOnlyToast.showToast(context)
-                            } else {
-                                commentViewModel.openVoiceSheet()
+                            if (!LoginGate.onRequireLogin(null)) {
+                                commentViewModel.openInputSheet(null)
+                                if (commentUiState.pendingImages.isNotEmpty()) {
+                                    t.imageVoiceMutexToast.showToast(context)
+                                } else if (commentUiState.pendingVoice != null) {
+                                    t.voiceOnlyToast.showToast(context)
+                                } else {
+                                    commentViewModel.openVoiceSheet()
+                                }
                             }
                         },
                         onAlbumClick = {
-                            commentViewModel.openInputSheet(null)
-                            if (commentUiState.pendingVoice != null) {
-                                t.imageVoiceMutexToast.showToast(context)
-                            } else {
-                                navController.navigate(Screen.CommentPhotoPicker.route)
+                            if (!LoginGate.onRequireLogin(null)) {
+                                commentViewModel.openInputSheet(null)
+                                if (commentUiState.pendingVoice != null) {
+                                    t.imageVoiceMutexToast.showToast(context)
+                                } else {
+                                    navController.navigate(Screen.CommentPhotoPicker.route)
+                                }
                             }
                         },
                         onAuthorClick = { userId ->
@@ -289,11 +298,13 @@ fun DetailScreen(
                             navController.navigate(Screen.Search.createRoute(text))
                         },
                         onAskAi = { text ->
-                            val n = uiState.note
-                            PendingChatStore.askAiNote =
-                                n?.let { ChatNote(it.id, it.title, it.images.firstOrNull()?.url) }
-                            PendingChatStore.askAiText = text
-                            navController.navigate(Screen.AiChat.createRoute(Screen.AiChat.NEW_CONVERSATION))
+                            if (!LoginGate.onRequireLogin(null)) {
+                                val n = uiState.note
+                                PendingChatStore.askAiNote =
+                                    n?.let { ChatNote(it.id, it.title, it.images.firstOrNull()?.url) }
+                                PendingChatStore.askAiText = text
+                                navController.navigate(Screen.AiChat.createRoute(Screen.AiChat.NEW_CONVERSATION))
+                            }
                         },
                         fullText = fullTextUiState,
                         onToggleFullText = {
@@ -309,7 +320,9 @@ fun DetailScreen(
                         ),
                         onToggleLike = viewModel::toggleLike,
                         onToggleFavorite = viewModel::toggleFavorite,
-                        onCommentClick = { commentViewModel.openInputSheet(null) },
+                        onCommentClick = {
+                            if (!LoginGate.onRequireLogin(null)) commentViewModel.openInputSheet(null)
+                        },
                         isAuthor = selfUserId != null && uiState.note!!.author.id == selfUserId,
                         onManageClick = { showNoteManage = true },
                     )

@@ -24,6 +24,10 @@ class TokenStorage @Inject constructor() {
     /// 当前账号变化流
     val currentUserIdFlow: StateFlow<Long?> = _currentUserId.asStateFlow()
 
+    /// 登录状态
+    private val _isLoggedIn = MutableStateFlow(!refreshToken.isNullOrEmpty())
+    val isLoggedInFlow: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
+
     /// 访问令牌
     var accessToken: String?
         get() = mmkv.decodeString(KEY_ACCESS_TOKEN)
@@ -48,6 +52,7 @@ class TokenStorage @Inject constructor() {
         val uid = decodeUserId(accessToken)
         _currentUserId.value = uid
         mmkv.encode(KEY_CURRENT_USER_ID, uid ?: -1L)
+        _isLoggedIn.value = true
     }
 
     /// 清除所有本地保存的 Token 信息
@@ -57,6 +62,7 @@ class TokenStorage @Inject constructor() {
         mmkv.removeValueForKey(KEY_EXPIRES_AT)
         _currentUserId.value = null
         mmkv.encode(KEY_CURRENT_USER_ID, -1L)
+        _isLoggedIn.value = false
     }
 
     /// 通过刷新令牌是否存在来判断用户是否处于登录状态

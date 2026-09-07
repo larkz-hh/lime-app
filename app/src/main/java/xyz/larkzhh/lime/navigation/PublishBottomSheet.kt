@@ -22,7 +22,6 @@ import xyz.larkzhh.lime.R
 @Composable
 fun PublishBottomSheet(
     onAlbum: () -> Unit,
-    onCamera: () -> Unit,
     onCancel: () -> Unit,
 ) {
     Column(
@@ -38,24 +37,6 @@ fun PublishBottomSheet(
                 .padding(vertical = 20.dp),
             textAlign = TextAlign.Center,
         )
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onCamera)
-                .padding(vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = stringResource(R.string.publish_camera),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Text(
-                text = stringResource(R.string.publish_take_photo),
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray,
-            )
-        }
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Spacer(Modifier.height(8.dp))
         Text(

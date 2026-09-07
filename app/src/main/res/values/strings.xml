@@ -106,6 +106,7 @@
     <string name="home_chat_cd">聊天</string>
     <string name="home_search_cd">搜索</string>
     <string name="home_empty_following">关注的人还没有发布笔记</string>
+    <string name="home_follow_login_hint">登录后查看关注内容</string>
     <string name="home_refresh_action">刷新看看</string>
 
     <!-- 强制下线弹窗 -->

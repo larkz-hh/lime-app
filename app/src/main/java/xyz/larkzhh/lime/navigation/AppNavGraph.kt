@@ -29,6 +29,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -116,6 +117,7 @@ fun AppNavGraph(
     val combinedUnread by messageViewModel.combinedUnread.collectAsState()
     val startDestination = Screen.Home.route
     var pendingRedirect by remember { mutableStateOf<String?>(null) }
+    var loginReturnToPrevious by remember { mutableStateOf(false) }// 操作登录拦截
     var showPublishSheet by remember { mutableStateOf(false) }
     var isFullScreenActive by remember { mutableStateOf(false) }// 是否全屏
     var videoTabFullscreen by remember { mutableStateOf(false) }// 视频 tab 横屏全屏
@@ -128,7 +130,7 @@ fun AppNavGraph(
     var showAccountPrivacy by remember { mutableStateOf(false) }
     var showGeneralSettings by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
-    var forceLogout by remember { mutableStateOf(false) }
+    var forceLogout by rememberSaveable { mutableStateOf(false) }// 重建后弹窗状态保留
 
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -136,9 +138,42 @@ fun AppNavGraph(
     val showBottomBar =
         currentRoute in bottomNavRoutes && !isFullScreenActive && !videoTabFullscreen && !videoTabOverlay
 
+    // 操作登录拦截
+    remember {
+        val gate: (String?) -> Boolean = { target ->
+            if (authViewModel.isLoggedIn()) {
+                false
+            } else {
+                pendingRedirect = target
+                loginReturnToPrevious = target == null
+                val topRoute = navController.currentBackStackEntry?.destination?.route
+                if (topRoute !in authRoutes) {
+                    navController.navigate(Screen.Login.route)
+                }
+                true
+            }
+        }
+        LoginGate.onRequireLogin = gate
+        gate
+    }
+
+    // 强制下线本地清理
+    fun cleanupForceLogout() {
+        showTranslatePack = false
+        showDraftBox = false
+        showAccountPrivacy = false
+        scope.launch { drawerState.close() }
+        authViewModel.logout()
+        imViewModel.logout()
+        messageViewModel.onLoggedOut()
+    }
+
     // 强制下线弹窗
     LaunchedEffect(Unit) {
-        ForceLogoutBus.events.collect { forceLogout = true }
+        ForceLogoutBus.events.collect {
+            forceLogout = true
+            runCatching { cleanupForceLogout() }
+        }
     }
 
     // 长按图标快捷入口 / 通知点击跳转
@@ -148,7 +183,7 @@ fun AppNavGraph(
             ShortcutActions.SEARCH_KEYWORD -> Screen.Search.createRoute(shortcutKeyword.orEmpty())
             ShortcutActions.AI_CHAT -> Screen.AiChat.createRoute(Screen.AiChat.NEW_CONVERSATION)
             ShortcutActions.QR_SCAN -> Screen.QrScan.route
-            // 系统通知点击：进消息页（信箱）
+            // 系统通知点击进消息页
             ShortcutActions.OPEN_MESSAGE -> Screen.Message.route
             else -> null
         }
@@ -158,7 +193,6 @@ fun AppNavGraph(
             onShortcutHandled()
         } else if (route != null) {
             if (route == Screen.Message.route) {
-                // 底部 tab 语义：弹到首页再进入消息页，保留各 tab 状态
                 navController.navigate(Screen.Message.route) {
                     popUpTo(Screen.Home.route) { saveState = true }
                     launchSingleTop = true
@@ -281,10 +315,20 @@ fun AppNavGraph(
                     composable(Screen.Login.route) {
                         LoginScreen(
                             onLoginSuccess = {
-                                val target = pendingRedirect ?: Screen.Home.route
+                                val target = pendingRedirect
                                 pendingRedirect = null
-                                navController.navigate(target) {
-                                    popUpTo(Screen.Login.route) { inclusive = true }
+                                when {
+                                    // 操作拦截
+                                    loginReturnToPrevious -> {
+                                        loginReturnToPrevious = false
+                                        navController.popBackStack()
+                                    }
+                                    target != null -> navController.navigate(target) {
+                                        popUpTo(Screen.Login.route) { inclusive = true }
+                                    }
+                                    else -> navController.navigate(Screen.Home.route) {
+                                        popUpTo(Screen.Login.route) { inclusive = true }
+                                    }
                                 }
                             },
                             onNavigateToRegister = {
@@ -570,7 +614,6 @@ fun AppNavGraph(
                         exitTransition = {
                             slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { it })
                         },
-                        // 返回聊天页/离开时不做动画（避免从用户主页返回时聊天页自己又播放入场）
                         popEnterTransition = { EnterTransition.None },
                         popExitTransition = { ExitTransition.None },
                     ) { backStackEntry ->
@@ -752,11 +795,6 @@ fun AppNavGraph(
                         navController.navigate(Screen.Publish.route)
                     }
                 },
-                onCamera = {
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        showPublishSheet = false
-                    }
-                },
                 onCancel = {
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
                         showPublishSheet = false
@@ -771,13 +809,7 @@ fun AppNavGraph(
         ForceLogoutDialog(
             onConfirm = {
                 forceLogout = false
-                showTranslatePack = false
-                showDraftBox = false
-                showAccountPrivacy = false
-                scope.launch { drawerState.close() }
-                authViewModel.logout()
-                imViewModel.logout()
-                messageViewModel.onLoggedOut()
+                cleanupForceLogout()
                 navController.navigate(Screen.Login.route) {
                     popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
                     launchSingleTop = true

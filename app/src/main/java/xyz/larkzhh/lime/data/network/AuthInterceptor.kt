@@ -101,7 +101,7 @@ class AuthInterceptor @Inject constructor(
                 }
             } else {
                 // 刷新令牌失效，清除凭证
-                if (response.code == 401) {
+                if (response.code == 401 || response.code == 403) {
                     lastRefreshRevoked = true
                     tokenStorage.clearTokens()
                 }

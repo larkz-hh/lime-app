@@ -66,6 +66,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.AuthorProfileSession
+import xyz.larkzhh.lime.navigation.LoginGate
 import xyz.larkzhh.lime.navigation.ProfileLayoutStore
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.ui.video.feed.PersonalVideoPayload
@@ -85,7 +86,6 @@ import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileLikeState
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesViewModel
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileViewModel
 import xyz.larkzhh.lime.ui.im.viewmodel.ImViewModel
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -443,37 +443,46 @@ fun ProfileScreen(
                 onBrowseHistory = { navController.navigate(Screen.BrowseHistory.route) },
                 onGroupChat = { navController.navigate(Screen.GroupList.route) },
                 onFollowClick = {
-                    if (followState == FollowActionState.Follow) {
-                        viewModel.follow()
-                    } else {
-                        showUnfollowConfirm = true
+                    // 关注他人登录拦截
+                    if (!LoginGate.onRequireLogin(null)) {
+                        if (followState == FollowActionState.Follow) {
+                            viewModel.follow()
+                        } else {
+                            showUnfollowConfirm = true
+                        }
                     }
                 },
                 onMessageClick = {
-                    targetUserId?.let { target ->
-                        if (followState != FollowActionState.Mutual) {
-                            mutualFollowRequiredText.showToast(context)
-                        } else {
-                            imViewModel.openConversation(target) { conversationId ->
-                                navController.navigate(Screen.ImChat.createRoute(conversationId)) {
-                                    launchSingleTop = true
+                    // 私信录拦截
+                    if (!LoginGate.onRequireLogin(null)) {
+                        targetUserId?.let { target ->
+                            if (followState != FollowActionState.Mutual) {
+                                mutualFollowRequiredText.showToast(context)
+                            } else {
+                                imViewModel.openConversation(target) { conversationId ->
+                                    navController.navigate(Screen.ImChat.createRoute(conversationId)) {
+                                        launchSingleTop = true
+                                    }
                                 }
                             }
                         }
                     }
                 },
                 onFollowingClick = {
-                    targetUserId?.let {
-                        navController.navigate(
-                            Screen.FollowList.createRoute(it, Screen.FollowList.TAB_FOLLOWING),
-                        )
+                    targetUserId?.let { target ->
+                        // 关注、粉丝列表登录拦截
+                        val route = Screen.FollowList.createRoute(target, Screen.FollowList.TAB_FOLLOWING)
+                        if (!LoginGate.onRequireLogin(route)) {
+                            navController.navigate(route)
+                        }
                     }
                 },
                 onFollowersClick = {
-                    targetUserId?.let {
-                        navController.navigate(
-                            Screen.FollowList.createRoute(it, Screen.FollowList.TAB_FOLLOWERS),
-                        )
+                    targetUserId?.let { target ->
+                        val route = Screen.FollowList.createRoute(target, Screen.FollowList.TAB_FOLLOWERS)
+                        if (!LoginGate.onRequireLogin(route)) {
+                            navController.navigate(route)
+                        }
                     }
                 },
                 onLikeFavClick = { showLikeFavStats = true },
@@ -547,12 +556,11 @@ fun ProfileScreen(
 
     // 获赞与收藏统计弹窗
     if (showLikeFavStats) {
-        val u = user
-        if (u != null) {
+        if (user != null) {
             LikeFavStatsDialog(
-                noteCount = u.noteCount ?: 0,
-                likeCount = u.totalLikeCount ?: 0,
-                favCount = u.totalFavCount ?: 0,
+                noteCount = user.noteCount ?: 0,
+                likeCount = user.totalLikeCount ?: 0,
+                favCount = user.totalFavCount ?: 0,
                 onDismiss = { showLikeFavStats = false },
             )
         }

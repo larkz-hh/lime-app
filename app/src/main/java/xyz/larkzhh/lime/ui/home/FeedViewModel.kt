@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.data.local.TokenStorage
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
@@ -29,10 +30,17 @@ class FeedViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
     private val eventBus: NoteEventBus,
     networkMonitor: NetworkMonitor,
+    tokenStorage: TokenStorage,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FeedUiState())
     val uiState: StateFlow<FeedUiState> = _uiState.asStateFlow()
+
+    /// 当前登录用户 id
+    val currentUserId: StateFlow<Long?> = tokenStorage.currentUserIdFlow
+
+    /// 是否已登录
+    val isLoggedIn: StateFlow<Boolean> = tokenStorage.isLoggedInFlow
 
     /// 发现页信息流
     val discoverFeed: Flow<PagingData<FeedItem>> =

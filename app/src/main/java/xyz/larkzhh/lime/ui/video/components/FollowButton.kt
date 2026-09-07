@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.labelRes
+import xyz.larkzhh.lime.navigation.LoginGate
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 /// 关注按钮
@@ -45,7 +46,10 @@ fun FollowButton(
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() },
-                onClick = onClick,
+                onClick = {
+                    // 关注登录拦截
+                    if (!LoginGate.onRequireLogin(null)) onClick()
+                },
             )
             .padding(horizontal = 16.dp, vertical = 3.dp),
         contentAlignment = Alignment.Center,

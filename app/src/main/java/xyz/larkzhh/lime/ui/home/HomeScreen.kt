@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -59,14 +60,13 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.FeedItem
+import xyz.larkzhh.lime.navigation.LoginGate
 import xyz.larkzhh.lime.navigation.Screen
 import xyz.larkzhh.lime.openVideo
 import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.components.FeedSkeleton
 import xyz.larkzhh.lime.ui.components.PagingWaterfallFeed
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 private const val PRELOAD_COUNT = 4
 
@@ -75,6 +75,11 @@ private const val TAB_FOLLOW = 0// 关注
 private const val TAB_DISCOVER = 1// 发现
 /// 进入首页默认选中
 private const val DEFAULT_TAB_INDEX = TAB_DISCOVER
+
+/// 首页关注 tab 登录拦截
+private object HomeTabGate {
+    var requestFollowAfterLogin = false
+}
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
@@ -87,17 +92,37 @@ fun HomeScreen(navController: NavHostController) {
         pageCount = { tabs.size },
     )
     val coroutineScope = rememberCoroutineScope()
+    val homeViewModel: FeedViewModel = hiltViewModel()
+    val isLoggedIn by homeViewModel.isLoggedIn.collectAsState()
+
+    // 关注 tab 登录拦截
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn && HomeTabGate.requestFollowAfterLogin) {
+            HomeTabGate.requestFollowAfterLogin = false
+            coroutineScope.launch { pagerState.animateScrollToPage(TAB_FOLLOW) }
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         HomeTopBar(
             tabs = tabs,
             selectedIndex = pagerState.currentPage,
             onChatClick = {
-                navController.navigate(Screen.AiChat.createRoute(Screen.AiChat.LATEST_CONVERSATION))
+                // AI 对话登录拦截
+                val target = Screen.AiChat.createRoute(Screen.AiChat.LATEST_CONVERSATION)
+                if (!LoginGate.onRequireLogin(target)) {
+                    navController.navigate(target)
+                }
             },
             onSearchClick = { navController.navigate(Screen.Search.BASE_ROUTE) },
             onTabSelected = { index ->
-                coroutineScope.launch { pagerState.animateScrollToPage(index) }
+                if (index == TAB_FOLLOW && !isLoggedIn) {
+                    // 关注 tab 拦截
+                    HomeTabGate.requestFollowAfterLogin = true
+                    LoginGate.onRequireLogin(null)
+                } else {
+                    coroutineScope.launch { pagerState.animateScrollToPage(index) }
+                }
             },
         )
         HorizontalPager(
@@ -105,7 +130,19 @@ fun HomeScreen(navController: NavHostController) {
             modifier = Modifier.fillMaxSize(),
         ) { page ->
             when (page) {
-                TAB_FOLLOW -> FollowTab(navController)
+                TAB_FOLLOW -> {
+                    // 关注内容登录拦截
+                    if (isLoggedIn) {
+                        FollowTab(navController)
+                    } else {
+                        FollowLoginPrompt(
+                            onLogin = {
+                                HomeTabGate.requestFollowAfterLogin = true
+                                LoginGate.onRequireLogin(null)
+                            }
+                        )
+                    }
+                }
                 TAB_DISCOVER -> DiscoverTab(navController)
             }
         }
@@ -186,6 +223,33 @@ private fun HomeTopBar(
     }
 }
 
+/// 关注 tab 未登录占位
+@Composable
+private fun FollowLoginPrompt(onLogin: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = stringResource(R.string.home_follow_login_hint),
+                color = LimeGray,
+                fontSize = 14.sp,
+            )
+            Spacer(Modifier.height(12.dp))
+            TextButton(onClick = onLogin) {
+                Text(
+                    text = stringResource(R.string.auth_login),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+    }
+}
+
 /// 关注页
 @Composable
 private fun FollowTab(navController: NavHostController) {
@@ -221,6 +285,16 @@ private fun HomeFeedPage(
     val pagingItems = feed.collectAsLazyPagingItems()
     val refreshState = pagingItems.loadState.refresh
 
+    // 登录成功后刷新
+    val currentUserId by viewModel.currentUserId.collectAsState()
+    LaunchedEffect(currentUserId) {
+        if (currentUserId != null && pagingItems.itemCount == 0 &&
+            pagingItems.loadState.refresh is LoadState.Error
+        ) {
+            pagingItems.refresh()
+        }
+    }
+
     // 弱网预加载
     LaunchedEffect(gridState) {
         val imageLoader = SingletonImageLoader.get(context)
@@ -245,7 +319,7 @@ private fun HomeFeedPage(
             is LoadState.Error if pagingItems.itemCount == 0 -> {
                 ErrorState(
                     message = refreshState.error.message,
-                    onRetry = { pagingItems.retry() },
+                    onRetry = { pagingItems.refresh() },
                     modifier = Modifier.align(Alignment.Center),
                 )
             }
