@@ -40,12 +40,9 @@ android {
     }
 }
 
-// This is the configuration block for the Baseline Profile plugin.
-// 使用连接的物理真机生成（vivo V2415A / API 36 ≥ 33 满足要求）。
-// 如需改用模拟器：把下一行取消注释，并设 useConnectedDevices = false。
 baselineProfile {
-    // managedDevices += "pixel6Api34"
-    useConnectedDevices = true
+    managedDevices += "pixel6Api34"
+    useConnectedDevices = false
 }
 
 dependencies {
