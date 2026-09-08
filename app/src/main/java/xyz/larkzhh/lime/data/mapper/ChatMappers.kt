@@ -1,8 +1,7 @@
 package xyz.larkzhh.lime.data.mapper
 
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.Json
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import xyz.larkzhh.lime.data.local.ai.ConversationEntity
 import xyz.larkzhh.lime.data.local.ai.MessageEntity
 import xyz.larkzhh.lime.data.network.model.ChatMessageDto
@@ -18,7 +17,7 @@ import java.time.ZoneId
 /**
  * AI 聊天数据层映射
  */
-internal val chatJson = Json { ignoreUnknownKeys = true }
+private val chatGson = Gson()
 
 /// 会话
 
@@ -91,12 +90,13 @@ internal fun ChatMessage.toEntity(): MessageEntity = MessageEntity(
 )
 
 internal fun List<String>.toJson(): String =
-    chatJson.encodeToString(ListSerializer(String.serializer()), this)
+    chatGson.toJson(this)
 
 internal fun String?.fromJson(): List<String> =
     this?.let {
-        runCatching { chatJson.decodeFromString(ListSerializer(String.serializer()), it) }
-            .getOrDefault(emptyList())
+        runCatching {
+            chatGson.fromJson<List<String>>(it, object : TypeToken<List<String>>() {}.type)
+        }.getOrDefault(emptyList())
     } ?: emptyList()
 
 internal fun String?.toEpochMillis(): Long? = this?.let {

@@ -6,12 +6,21 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
-    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.baselineprofile)
 }
 
 // ABI 裁剪开关：./gradlew assembleRelease -PslimAbi=true
 val slimAbi = providers.gradleProperty("slimAbi").map { it.toBoolean() }.getOrElse(false)
+
+// 后端地址注入
+val localBuildProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) load(f.inputStream())
+}
+val apiBaseUrl: String =
+    (localBuildProps.getProperty("BASE_URL")?.trim()?.takeIf { it.isNotBlank() }
+        ?: "http://192.168.124.31:8080/")
+        .let { if (it.endsWith("/")) it else "$it/" }
 
 // release 正式签名
 val keystoreProps = Properties().apply {
@@ -36,6 +45,8 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
 
         if (slimAbi) {
             ndk { abiFilters += listOf("arm64-v8a") }
@@ -73,6 +84,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -167,9 +179,6 @@ dependencies {
 
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
-
-    // Serialization JSON runtime
-    implementation(libs.kotlinx.serialization.json)
 
     // Image Crop
     implementation(libs.ucrop)

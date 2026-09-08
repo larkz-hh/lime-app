@@ -11,6 +11,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import xyz.larkzhh.lime.BuildConfig
 import xyz.larkzhh.lime.data.network.AuthInterceptor
 import xyz.larkzhh.lime.data.network.RetryInterceptor
 import xyz.larkzhh.lime.data.network.ai.AiApi
@@ -34,8 +35,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "http://192.168.124.31:8080/"
-
     /// HTTP 磁盘缓存容量
     private const val HTTP_CACHE_SIZE = 50L * 1024 * 1024
 
@@ -43,7 +42,7 @@ object NetworkModule {
 
     @Provides
     @Named("base_url")
-    fun provideBaseUrl(): String = BASE_URL
+    fun provideBaseUrl(): String = BuildConfig.API_BASE_URL
 
     @Provides
     @Singleton
@@ -85,7 +84,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit =
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BuildConfig.API_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
