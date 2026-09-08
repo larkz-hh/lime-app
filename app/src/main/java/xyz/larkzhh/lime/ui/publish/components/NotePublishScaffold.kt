@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.ui.publish.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,16 +44,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteAction
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimeWhite
+import xyz.larkzhh.lime.util.system.findActivity
 import xyz.larkzhh.lime.util.showToast
 
 /**
@@ -79,29 +81,59 @@ fun NotePublishScaffold(
     onAiAssist: () -> Unit,
     onAiAction: (AiWriteAction) -> Unit,
     hasImages: Boolean,
+    isEdit: Boolean = false,// 编辑模式
+    onDraftSaved: (() -> Unit)? = null,
     topContent: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
+    val savedEditToast = stringResource(R.string.publish_saved_edit)
+    val draftSavedToast = stringResource(R.string.publish_draft_saved)
     var showDraftDialog by remember { mutableStateOf(false) }
     val aiEnabled = (content.isNotBlank() || hasImages) && !isPublishing// 有图或有正文、未发布中
 
-    // 发布成功后返回首页
+    // 编辑模式返回直接回到发起页
+    val goBack: () -> Unit = {
+        if (isEdit) {
+            val popped = navController.popBackStack(Screen.Publish.route, inclusive = true)
+            if (!popped) navController.popBackStack()
+        } else {
+            navController.popBackStack()
+        }
+    }
+    BackHandler(enabled = isEdit, onBack = goBack)
+
+    // 发布或编辑成功后直接回首页
     LaunchedEffect(isSuccess) {
         if (isSuccess) {
             onClearSuccess()
-            navController.navigate(Screen.Home.route) {
-                popUpTo(Screen.Home.route) { inclusive = false }
+            if (isEdit) {
+                savedEditToast.showToast(context)
+            }
+            try {
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.Home.route) { inclusive = false }
+                }
+            } catch (e: IllegalArgumentException) {
+                (context.findActivity())?.finish()
             }
         }
     }
 
-    // 存草稿成功后 Toast 并返回首页
+    // 存草稿成功后 Toast 并返回
     LaunchedEffect(isDraftSuccess) {
         if (isDraftSuccess) {
             onClearDraftSuccess()
-            "存草稿成功".showToast(context)
-            navController.navigate(Screen.Home.route) {
-                popUpTo(Screen.Home.route) { inclusive = false }
+            draftSavedToast.showToast(context)
+            if (onDraftSaved != null) {
+                onDraftSaved()
+            } else {
+                try {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                    }
+                } catch (e: IllegalArgumentException) {
+                    context.findActivity()?.finish()
+                }
             }
         }
     }
@@ -109,7 +141,9 @@ fun NotePublishScaffold(
     // 存草稿确认弹窗
     if (showDraftDialog) {
         LimeAlertDialog(
-            title = "确认保存笔记至草稿箱吗？",
+            title = stringResource(R.string.publish_confirm_draft_title),
+            firstButtonText = stringResource(R.string.cancel),
+            secondButtonText = stringResource(R.string.publish_action_draft),
             onFirstButtonClick = { showDraftDialog = false },
             onSecondButtonClick = {
                 showDraftDialog = false
@@ -132,8 +166,8 @@ fun NotePublishScaffold(
                 .padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+            IconButton(onClick = goBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
             }
             Text(
                 text = topBarTitle,
@@ -141,15 +175,15 @@ fun NotePublishScaffold(
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
             )
-            // AI 帮写入口：有图或正文非空、且非发布中时可用
+            // AI 帮写入口，有图或正文非空、且非发布中时可用
             IconButton(
                 onClick = onAiAssist,
                 enabled = aiEnabled,
             ) {
                 Icon(
                     painterResource(R.drawable.ic_ai),
-                    contentDescription = "AI 帮写",
-                    tint = if (aiEnabled) LimePrimary
+                    contentDescription = stringResource(R.string.publish_ai_write),
+                    tint = if (aiEnabled) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
                     modifier = Modifier.size(20.dp),
                 )
@@ -170,7 +204,7 @@ fun NotePublishScaffold(
                 onValueChange = onTitleChange,
                 placeholder = {
                     Text(
-                        "添加标题",
+                        stringResource(R.string.publish_add_title_hint),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.32f),
                     )
@@ -192,7 +226,7 @@ fun NotePublishScaffold(
                 onValueChange = onContentChange,
                 placeholder = {
                     Text(
-                        "添加正文",
+                        stringResource(R.string.publish_add_content_hint),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.24f),
                     )
                 },
@@ -220,11 +254,11 @@ fun NotePublishScaffold(
             Icon(
                 painterResource(R.drawable.ic_ai),
                 contentDescription = null,
-                tint = LimePrimary,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(16.dp),
             )
             Text(
-                text = "AI 帮写",
+                text = stringResource(R.string.publish_ai_write),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -238,7 +272,7 @@ fun NotePublishScaffold(
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                 ) {
                     Text(
-                        text = action.label,
+                        text = stringResource(action.labelRes),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                         color = if (aiEnabled) MaterialTheme.colorScheme.onSurface
@@ -282,22 +316,22 @@ fun NotePublishScaffold(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = LimeWhite,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     disabledContainerColor = Color.White.copy(alpha = 0.6f),
                     disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
                 ),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
             ) {
-                Text("存草稿", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.publish_action_draft), fontWeight = FontWeight.SemiBold)
             }
-            // 发布笔记
+            // 发布、保存修改
             Button(
                 onClick = onPublish,
                 enabled = !isPublishing,
                 modifier = Modifier.weight(2f),
                 shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = LimePrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             ) {
                 if (isPublishing) {
                     CircularProgressIndicator(
@@ -306,7 +340,7 @@ fun NotePublishScaffold(
                         color = Color.White,
                     )
                 } else {
-                    Text("发布笔记", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.publish_action_publish), fontWeight = FontWeight.SemiBold)
                 }
             }
         }

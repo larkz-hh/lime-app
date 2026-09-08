@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,7 +19,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import xyz.larkzhh.lime.data.network.model.FeedItem
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /**
  * 支持选择的笔记卡片
@@ -59,7 +59,7 @@ fun SelectableNoteCard(
                     .padding(top = 8.dp, end = 8.dp)
                     .size(22.dp)
                     .clip(CircleShape)
-                    .background(if (isSelected) LimePrimary else Color.White.copy(alpha = 0.75f))
+                    .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.75f))
                     .then(
                         if (!isSelected) Modifier.border(1.5.dp, Color.White, CircleShape)
                         else Modifier

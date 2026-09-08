@@ -43,11 +43,12 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.HotSearchItem
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 历史记录收起时最多展示行数
 private const val HISTORY_COLLAPSED_ROWS = 2
@@ -86,7 +87,7 @@ fun SearchHomeContent(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "历史记录",
+                    text = stringResource(R.string.search_history_title),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -95,13 +96,13 @@ fun SearchHomeContent(
                 if (editing) {
                     // 编辑模式
                     Text(
-                        text = "全部删除",
+                        text = stringResource(R.string.search_delete_all),
                         fontSize = 14.sp,
                         color = LimeGray,
                         modifier = Modifier.clickable { showClearDialog = true },
                     )
                     Text(
-                        text = "完成",
+                        text = stringResource(R.string.search_done),
                         fontSize = 14.sp,
                         color = LimeGray,
                         modifier = Modifier
@@ -111,7 +112,7 @@ fun SearchHomeContent(
                 } else {
                     Icon(
                         imageVector = Icons.Outlined.Delete,
-                        contentDescription = "管理历史",
+                        contentDescription = stringResource(R.string.search_manage_history),
                         tint = LimeGray,
                         modifier = Modifier
                             .size(20.dp)
@@ -131,7 +132,7 @@ fun SearchHomeContent(
         if (hotWords.isNotEmpty()) {
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "热搜",
+                text = stringResource(R.string.search_hot_words),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -143,7 +144,9 @@ fun SearchHomeContent(
 
     if (showClearDialog) {
         LimeAlertDialog(
-            title = "确认清空全部搜索历史吗？",
+            title = stringResource(R.string.search_clear_history_title),
+            firstButtonText = stringResource(R.string.cancel),
+            secondButtonText = stringResource(R.string.search_ok),
             onFirstButtonClick = { showClearDialog = false },
             onSecondButtonClick = {
                 showClearDialog = false
@@ -178,7 +181,7 @@ private fun HistoryFlow(
         // 行数限制里的词条子集
         val visibleKeywords = remember(history, expanded, editing, containerWidthPx) {
             if (editing) return@remember history// 编辑模式下全部渲染
-            if (containerWidthPx <= 0) return@remember emptyList<String>()
+            if (containerWidthPx <= 0) return@remember emptyList()
             val containerW = containerWidthPx.toFloat()
             val halfW = containerW / 2f
             // 词条芯片渲染宽度
@@ -231,7 +234,7 @@ private fun HistoryFlow(
                         onClick = { if (!editing) onKeywordClick(keyword) },
                         shape = RoundedCornerShape(8.dp),
                         color = MaterialTheme.colorScheme.surface,
-                        border = BorderStroke(1.dp, LimeLightGray),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f)),
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -251,7 +254,7 @@ private fun HistoryFlow(
                             if (editing) {
                                 Icon(
                                     imageVector = Icons.Filled.Close,
-                                    contentDescription = "删除",
+                                    contentDescription = stringResource(R.string.delete),
                                     tint = LimeGray,
                                     modifier = Modifier
                                         .padding(start = 4.dp)
@@ -268,12 +271,13 @@ private fun HistoryFlow(
                         onClick = { expanded = !expanded },
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surface,
-                        border = BorderStroke(1.dp, LimeLightGray),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f)),
                     ) {
                         Icon(
                             imageVector = if (expanded) Icons.Outlined.KeyboardArrowUp
                             else Icons.Outlined.KeyboardArrowDown,
-                            contentDescription = if (expanded) "收起" else "展开",
+                            contentDescription = if (expanded) stringResource(R.string.search_collapse)
+                            else stringResource(R.string.search_expand),
                             tint = LimeGray,
                             modifier = Modifier
                                 .size(32.dp)
@@ -308,7 +312,7 @@ private fun HotSearchList(
                         Text(
                             text = rank.toString(),
                             fontSize = 14.sp,
-                            color = if (rank <= 3) LimePrimary else LimeGray,
+                            color = if (rank <= 3) MaterialTheme.colorScheme.primary else LimeGray,
                             modifier = Modifier.widthIn(min = 24.dp),
                         )
                         Text(

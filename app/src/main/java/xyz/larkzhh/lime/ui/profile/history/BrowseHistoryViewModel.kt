@@ -2,16 +2,21 @@ package xyz.larkzhh.lime.ui.profile.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.network.model.HistoryFeedItem
 import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.NoteRepository
+import xyz.larkzhh.lime.domain.repository.UserRepository
+import xyz.larkzhh.lime.util.cache.JsonListCache
 import javax.inject.Inject
 
 data class BrowseHistoryUiState(
@@ -35,16 +40,21 @@ data class BrowseHistoryUiState(
 class BrowseHistoryViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
     private val eventBus: NoteEventBus,
+    userRepository: UserRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BrowseHistoryUiState(isLoading = true))
     val uiState: StateFlow<BrowseHistoryUiState> = _uiState.asStateFlow()
 
+    private var userId: Long? = null
     private var cursor: Long? = null
 
     init {
-        loadHistory()
         observeNoteEvents()
+        viewModelScope.launch {
+            userId = userRepository.userFlow.filterNotNull().first().id
+            loadHistory()
+        }
     }
 
     /// 观察详情页点赞变更，同步列表状态
@@ -74,12 +84,30 @@ class BrowseHistoryViewModel @Inject constructor(
 
     /// 加载历史
     fun loadHistory() {
+        val uid = userId ?: return
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null, items = emptyList(), hasMore = true) }
             cursor = null
+            val cached = JsonListCache.read<HistoryFeedItem>(
+                cacheKey(uid),
+                object : TypeToken<List<HistoryFeedItem>>() {}.type,
+            )
+            _uiState.update { state ->
+                if (cached.isNullOrEmpty()) {
+                    state.copy(isLoading = true, error = null, items = emptyList(), hasMore = true)
+                } else {
+                    state.copy(
+                        isLoading = false,
+                        error = null,
+                        items = cached,
+                        likedIds = cached.filter { it.liked }.map { it.id }.toSet(),
+                        hasMore = false,
+                    )
+                }
+            }
             noteRepository.getHistory(cursor = null).fold(
                 onSuccess = { response ->
                     cursor = response.nextCursor
+                    JsonListCache.save(cacheKey(uid), response.items)
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -89,12 +117,16 @@ class BrowseHistoryViewModel @Inject constructor(
                         )
                     }
                 },
-                onFailure = { e ->
-                    _uiState.update { it.copy(isLoading = false, error = e.message) }
+                onFailure = {
+                    _uiState.update { state ->
+                        if (state.items.isEmpty()) state.copy(isLoading = false, error = it.message)
+                        else state
+                    }
                 },
             )
         }
     }
+    private fun cacheKey(userId: Long) = "browse_history_v1_$userId"
 
     fun loadMore() {
         val state = _uiState.value

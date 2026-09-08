@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -38,8 +39,8 @@ fun LimeSwitch(
     onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    checkedTrackColor: Color = Color(0xFF34C759),
-    uncheckedTrackColor: Color = Color(0xFFE9E9EB),
+    checkedTrackColor: Color = MaterialTheme.colorScheme.primary,
+    uncheckedTrackColor: Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f),
     thumbColor: Color = Color.White,
 ) {
     val trackWidth = 42.dp

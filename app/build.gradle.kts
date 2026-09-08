@@ -1,11 +1,37 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.baselineprofile)
 }
+
+// ABI 裁剪开关：./gradlew assembleRelease -PslimAbi=true
+val slimAbi = providers.gradleProperty("slimAbi").map { it.toBoolean() }.getOrElse(false)
+
+// 后端地址注入
+val localBuildProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) load(f.inputStream())
+}
+val apiBaseUrl: String =
+    (localBuildProps.getProperty("BASE_URL")?.trim()?.takeIf { it.isNotBlank() }
+        ?: "http://192.168.124.31:8080/")
+        .let { if (it.endsWith("/")) it else "$it/" }
+
+// release 正式签名
+val keystoreProps = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) load(f.inputStream())
+}
+
+fun keystoreProp(name: String): String? =
+    keystoreProps.getProperty(name)?.trim()?.takeIf { it.isNotBlank() && !it.contains("改成") }
+
+val releaseSigningReady = listOf("storeFile", "storePassword", "keyAlias").all { keystoreProp(it) != null }
 
 android {
     namespace = "xyz.larkzhh.lime"
@@ -16,14 +42,39 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+
+        if (slimAbi) {
+            ndk { abiFilters += listOf("arm64-v8a") }
+        }
+    }
+
+    signingConfigs {
+        if (releaseSigningReady) {
+            create("release") {
+                storeFile = file(keystoreProp("storeFile")!!)
+                storePassword = keystoreProp("storePassword")
+                keyAlias = keystoreProp("keyAlias")
+                // PKCS12：key 密码必须与 store 密码一致
+                keyPassword = keystoreProp("storePassword")
+            }
+        }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            signingConfig = if (releaseSigningReady) {
+                signingConfigs.getByName("release")
+            } else {
+                logger.warn("keystore.properties 未配置完整，release 将使用 debug 签名")
+                signingConfigs.getByName("debug")
+            }
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -33,6 +84,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -57,9 +109,11 @@ dependencies {
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.profileinstaller)
 
     // DI
     implementation(libs.hilt.android)
+    "baselineProfile"(project(":baselineprofile"))
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
@@ -98,6 +152,9 @@ dependencies {
     implementation(libs.mlkit.translate)
     implementation(libs.mlkit.barcode.scanning)
 
+    // QRCode generate
+    implementation(libs.zxing.core)
+
     // CameraX
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
@@ -106,6 +163,9 @@ dependencies {
 
     // Lottie Compose
     implementation(libs.lottie.compose)
+
+    // exyte 动画底部导航
+    implementation(libs.exyte.animated.navigation.bar)
 
     // Media3 ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
@@ -119,9 +179,6 @@ dependencies {
 
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
-
-    // Serialization JSON runtime
-    implementation(libs.kotlinx.serialization.json)
 
     // Image Crop
     implementation(libs.ucrop)
@@ -140,13 +197,19 @@ dependencies {
     implementation(libs.markdown.renderer.coil3)
 
     // Splash Screen
-    implementation(libs.androidx.core.splashscreen)
+//    implementation(libs.androidx.core.splashscreen)
 
     // Widget
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
     implementation(libs.androidx.glance.appwidget.preview)
     implementation(libs.androidx.glance.preview)
+
+    // 腾讯云 IM
+    implementation(libs.tencent.imsdk.plus)
+
+    // 桌面角标（厂商聚合）
+    implementation(libs.shortcut.badger)
 
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

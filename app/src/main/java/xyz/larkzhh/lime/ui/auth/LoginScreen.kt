@@ -50,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -57,6 +58,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,17 +80,21 @@ fun LoginScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 expandedHeight = 56.dp,
                 windowInsets = TopAppBarDefaults.windowInsets,
                 // windowInsets = WindowInsets(0),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
             )
         },
     ) { innerPadding ->
@@ -129,7 +135,7 @@ fun LoginScreen(
             )
 
             Text(
-                text = "记录生活的每一刻",
+                text = stringResource(R.string.auth_slogan),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary,
             )
@@ -144,12 +150,12 @@ fun LoginScreen(
                 Tab(
                     selected = !state.isCodeMode,
                     onClick = { viewModel.onLoginModeChange(false) },
-                    text = { Text("密码登录") },
+                    text = { Text(stringResource(R.string.auth_password_login)) },
                 )
                 Tab(
                     selected = state.isCodeMode,
                     onClick = { viewModel.onLoginModeChange(true) },
-                    text = { Text("验证码登录") },
+                    text = { Text(stringResource(R.string.auth_code_login)) },
                 )
             }
 
@@ -160,8 +166,8 @@ fun LoginScreen(
                 value = state.email,
                 onValueChange = viewModel::onLoginEmailChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("邮箱") },
-                leadingIcon = { Icon(Icons.Filled.Email, contentDescription = "邮箱") },
+                label = { Text(stringResource(R.string.auth_email)) },
+                leadingIcon = { Icon(Icons.Filled.Email, contentDescription = stringResource(R.string.auth_email)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
@@ -181,13 +187,13 @@ fun LoginScreen(
                     value = state.password,
                     onValueChange = viewModel::onLoginPasswordChange,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("密码") },
-                    leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = "密码") },
+                    label = { Text(stringResource(R.string.auth_password)) },
+                    leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = stringResource(R.string.auth_password)) },
                     trailingIcon = {
                         IconButton(onClick = viewModel::onLoginPasswordVisibilityToggle) {
                             Icon(
                                 imageVector = if (state.passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                contentDescription = if (state.passwordVisible) "隐藏密码" else "显示密码",
+                                contentDescription = if (state.passwordVisible) stringResource(R.string.auth_password_hide) else stringResource(R.string.auth_password_show),
                             )
                         }
                     },
@@ -215,7 +221,7 @@ fun LoginScreen(
                         value = state.code,
                         onValueChange = viewModel::onLoginCodeChange,
                         modifier = Modifier.weight(1f),
-                        label = { Text("验证码") },
+                        label = { Text(stringResource(R.string.auth_code)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,
@@ -247,7 +253,7 @@ fun LoginScreen(
                                 "${state.sendCodeCountdown}s",
                                 style = MaterialTheme.typography.bodySmall,
                             )
-                            else -> Text("获取验证码", style = MaterialTheme.typography.bodySmall)
+                            else -> Text(stringResource(R.string.auth_send_code), style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
@@ -285,7 +291,7 @@ fun LoginScreen(
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 } else {
-                    Text("登录", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.auth_login), style = MaterialTheme.typography.titleMedium)
                 }
             }
 
@@ -297,12 +303,12 @@ fun LoginScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "还没有账号？",
+                    text = stringResource(R.string.auth_no_account),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
                 )
                 TextButton(onClick = onNavigateToRegister) {
-                    Text("立即注册", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.auth_register_now), fontWeight = FontWeight.SemiBold)
                 }
             }
 

@@ -5,7 +5,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -53,22 +52,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.UserSearchItem
+import xyz.larkzhh.lime.domain.model.FollowActionState
+import xyz.larkzhh.lime.domain.model.FollowRelation
+import xyz.larkzhh.lime.domain.model.toFollowActionState
+import xyz.larkzhh.lime.ui.components.FollowButton
 import xyz.larkzhh.lime.ui.components.NoteCard
+import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.search.viewmodel.NoteSort
+import xyz.larkzhh.lime.ui.search.viewmodel.SearchNoteType
 import xyz.larkzhh.lime.ui.search.viewmodel.SearchTimeRange
 import xyz.larkzhh.lime.ui.search.viewmodel.SearchUiState
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
-import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 @Composable
@@ -79,17 +82,24 @@ fun SearchResultContent(
     onNoteClick: (Long) -> Unit,
     onSortChange: (NoteSort) -> Unit,
     onTimeRangeChange: (SearchTimeRange) -> Unit,
+    onNoteTypeChange: (SearchNoteType) -> Unit,
     onResetFilter: () -> Unit,
     onUserTabEnter: () -> Unit,
     onLoadMoreUsers: () -> Unit,
     onUserClick: (Long) -> Unit,
+    followRelations: Map<Long, FollowRelation> = emptyMap(),
+    onFollowUser: (Long) -> Unit = {},
+    onUnfollowUser: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    val tabs = listOf("全部", "用户")
+    val tabs = listOf(
+        stringResource(R.string.search_tab_all),
+        stringResource(R.string.search_tab_users),
+    )
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var filterExpanded by rememberSaveable { mutableStateOf(false) }
+    var pendingUnfollowUser by remember { mutableStateOf<UserSearchItem?>(null) }
 
-    // 切换到用户tab或在此更换关键词
     LaunchedEffect(selectedTab, uiState.query) {
         if (selectedTab == 1) onUserTabEnter()
     }
@@ -133,7 +143,7 @@ fun SearchResultContent(
                             Icon(
                                 imageVector = if (filterExpanded) Icons.Outlined.KeyboardArrowUp
                                               else Icons.Outlined.KeyboardArrowDown,
-                                contentDescription = "筛选",
+                                contentDescription = stringResource(R.string.search_filter),
                                 tint = if (selected) MaterialTheme.colorScheme.onBackground else LimeGray,
                                 modifier = Modifier.size(16.dp),
                             )
@@ -144,12 +154,12 @@ fun SearchResultContent(
                         modifier = Modifier
                             .width(20.dp)
                             .height(2.dp)
-                            .background(if (selected) LimePrimary else Color.Transparent),
+                            .background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent),
                     )
                 }
             }
         }
-        HorizontalDivider(thickness = 0.5.dp, color = LimeLightGray)
+        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
 
         // 内容区
         Box(modifier = Modifier.fillMaxSize()) {
@@ -166,6 +176,9 @@ fun SearchResultContent(
                     uiState = uiState,
                     onLoadMore = onLoadMoreUsers,
                     onUserClick = onUserClick,
+                    followRelations = followRelations,
+                    onFollowUser = onFollowUser,
+                    onUnfollowClick = { pendingUnfollowUser = it },
                 )
             }
 
@@ -174,6 +187,7 @@ fun SearchResultContent(
                 uiState = uiState,
                 onSortChange = onSortChange,
                 onTimeRangeChange = onTimeRangeChange,
+                onNoteTypeChange = onNoteTypeChange,
                 onReset = {
                     onResetFilter()
                     filterExpanded = false
@@ -181,6 +195,17 @@ fun SearchResultContent(
                 onCollapse = { filterExpanded = false },
             )
         }
+    }
+
+    // 取消关注确认弹窗
+    pendingUnfollowUser?.let { user ->
+        UnfollowConfirmDialog(
+            onCancel = { pendingUnfollowUser = null },
+            onConfirm = {
+                onUnfollowUser(user.id)
+                pendingUnfollowUser = null
+            },
+        )
     }
 }
 
@@ -191,6 +216,7 @@ private fun BoxScope.FilterOverlay(
     uiState: SearchUiState,
     onSortChange: (NoteSort) -> Unit,
     onTimeRangeChange: (SearchTimeRange) -> Unit,
+    onNoteTypeChange: (SearchNoteType) -> Unit,
     onReset: () -> Unit,
     onCollapse: () -> Unit,
 ) {
@@ -220,8 +246,10 @@ private fun BoxScope.FilterOverlay(
         SearchFilterPanel(
             sort = uiState.sort,
             timeRange = uiState.timeRange,
+            noteType = uiState.noteType,
             onSortChange = onSortChange,
             onTimeRangeChange = onTimeRangeChange,
+            onNoteTypeChange = onNoteTypeChange,
             onReset = onReset,
             onCollapse = onCollapse,
         )
@@ -239,7 +267,7 @@ private fun NoteResultList(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LimeLightGray),
+            .background(MaterialTheme.colorScheme.surfaceVariant),
     ) {
         when {
             uiState.isResultLoading -> {
@@ -247,21 +275,21 @@ private fun NoteResultList(
                     modifier = Modifier
                         .size(32.dp)
                         .align(Alignment.Center),
-                    color = LimePrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = LimeWhite,
                     strokeWidth = 2.dp,
                 )
             }
             uiState.resultError != null && uiState.resultItems.isEmpty() -> {
                 Text(
-                    text = uiState.resultError ?: "加载失败",
+                    text = uiState.resultError,
                     modifier = Modifier.align(Alignment.Center),
                     color = LimeGray,
                 )
             }
             uiState.resultItems.isEmpty() -> {
                 Text(
-                    text = "暂无相关笔记",
+                    text = stringResource(R.string.search_empty_notes),
                     modifier = Modifier.align(Alignment.Center),
                     color = LimeGray,
                 )
@@ -291,6 +319,9 @@ private fun UserResultList(
     uiState: SearchUiState,
     onLoadMore: () -> Unit,
     onUserClick: (Long) -> Unit,
+    followRelations: Map<Long, FollowRelation> = emptyMap(),
+    onFollowUser: (Long) -> Unit = {},
+    onUnfollowClick: (UserSearchItem) -> Unit = {},
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         when {
@@ -299,21 +330,21 @@ private fun UserResultList(
                     modifier = Modifier
                         .size(32.dp)
                         .align(Alignment.Center),
-                    color = LimePrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = LimeWhite,
                     strokeWidth = 2.dp,
                 )
             }
             uiState.userError != null && uiState.userItems.isEmpty() -> {
                 Text(
-                    text = uiState.userError ?: "加载失败",
+                    text = uiState.userError,
                     modifier = Modifier.align(Alignment.Center),
                     color = LimeGray,
                 )
             }
             uiState.userItems.isEmpty() -> {
                 Text(
-                    text = "暂无相关用户",
+                    text = stringResource(R.string.search_empty_users),
                     modifier = Modifier.align(Alignment.Center),
                     color = LimeGray,
                 )
@@ -336,10 +367,18 @@ private fun UserResultList(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     items(uiState.userItems, key = { it.id }) { user ->
-                        UserResultCard(user = user, onClick = { onUserClick(user.id) })
+                        UserResultCard(
+                            user = user,
+                            onClick = { onUserClick(user.id) },
+                            followState = if (user.isMe) null
+                                          else followRelations[user.id]?.toFollowActionState()
+                                              ?: FollowActionState.Follow,
+                            onFollowClick = { onFollowUser(user.id) },
+                            onUnfollowClick = { onUnfollowClick(user) },
+                        )
                         HorizontalDivider(
                             thickness = 0.5.dp,
-                            color = LimeLightGray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
                             modifier = Modifier.padding(start = 80.dp),// 16+52+12
                         )
                     }
@@ -353,7 +392,7 @@ private fun UserResultList(
                             ) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(20.dp),
-                                    color = LimePrimary,
+                                    color = MaterialTheme.colorScheme.primary,
                                     trackColor = LimeWhite,
                                     strokeWidth = 2.dp,
                                 )
@@ -371,6 +410,9 @@ private fun UserResultList(
 private fun UserResultCard(
     user: UserSearchItem,
     onClick: () -> Unit,
+    followState: FollowActionState? = null,
+    onFollowClick: () -> Unit = {},
+    onUnfollowClick: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -392,13 +434,13 @@ private fun UserResultCard(
                 )
             } else {
                 Box(
-                    modifier = avatarModifier.background(LimePrimaryPale),
+                    modifier = avatarModifier.background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = user.nickname.take(1),
                         fontSize = 20.sp,
-                        color = LimePrimary,
+                        color = LimeGray,
                     )
                 }
             }
@@ -416,14 +458,14 @@ private fun UserResultCard(
                 )
                 // 粉丝数
                 Text(
-                    text = "粉丝 0",
+                    text = stringResource(R.string.search_followers, user.followerCount ?: 0L),
                     fontSize = 12.sp,
                     lineHeight = 14.sp,
                     color = LimeGray,
                     modifier = Modifier.padding(top = 1.dp),
                 )
                 Text(
-                    text = "LimeID：${user.handle}",
+                    text = stringResource(R.string.search_lime_id, user.handle),
                     fontSize = 12.sp,
                     lineHeight = 14.sp,
                     color = LimeGray,
@@ -432,32 +474,23 @@ private fun UserResultCard(
                     modifier = Modifier.padding(top = 1.dp),
                 )
             }
-            // 关注按钮，本人不显示
-            if (!user.isMe) {
-                Surface(
-                    onClick = { /* TODO */ },
-                    shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(1.dp, LimePrimary),
-                ) {
-                    Text(
-                        text = "关注",
-                        fontSize = 13.sp,
-                        color = LimePrimary,
-                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 6.dp),
-                    )
-                }
+            // 关注按钮
+            if (followState != null) {
+                FollowButton(
+                    state = followState,
+                    onClick = if (followState != FollowActionState.Follow) onUnfollowClick else onFollowClick,
+                )
             }
         }
         // 本人标记
         if (user.isMe) {
             Surface(
                 shape = RoundedCornerShape(4.dp),
-                color = LimeLightGray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
                 modifier = Modifier.padding(start = 64.dp, top = 3.dp),// 52+12
             ) {
                 Text(
-                    text = "我自己",
+                    text = stringResource(R.string.search_self_badge),
                     fontSize = 10.sp,
                     lineHeight = 10.sp,
                     color = LimeGray,
@@ -474,8 +507,10 @@ private fun UserResultCard(
 private fun SearchFilterPanel(
     sort: NoteSort,
     timeRange: SearchTimeRange,
+    noteType: SearchNoteType,
     onSortChange: (NoteSort) -> Unit,
     onTimeRangeChange: (SearchTimeRange) -> Unit,
+    onNoteTypeChange: (SearchNoteType) -> Unit,
     onReset: () -> Unit,
     onCollapse: () -> Unit,
 ) {
@@ -483,7 +518,7 @@ private fun SearchFilterPanel(
         Column(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "排序依据",
+                    text = stringResource(R.string.search_sort_by),
                     fontSize = 14.sp,
                     color = LimeGray,
                 )
@@ -494,7 +529,7 @@ private fun SearchFilterPanel(
                 ) {
                     NoteSort.entries.forEach { option ->
                         FilterChip(
-                            text = option.label,
+                            text = stringResource(option.labelRes),
                             selected = sort == option,
                             onClick = { onSortChange(option) },
                         )
@@ -502,7 +537,7 @@ private fun SearchFilterPanel(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "发布时间",
+                    text = stringResource(R.string.search_publish_time),
                     fontSize = 14.sp,
                     color = LimeGray,
                 )
@@ -513,14 +548,33 @@ private fun SearchFilterPanel(
                 ) {
                     SearchTimeRange.entries.forEach { option ->
                         FilterChip(
-                            text = option.label,
+                            text = stringResource(option.labelRes),
                             selected = timeRange == option,
                             onClick = { onTimeRangeChange(option) },
                         )
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = stringResource(R.string.search_filter_type),
+                    fontSize = 14.sp,
+                    color = LimeGray,
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    SearchNoteType.entries.forEach { option ->
+                        FilterChip(
+                            text = stringResource(option.labelRes),
+                            selected = noteType == option,
+                            onClick = { onNoteTypeChange(option) },
+                        )
+                    }
+                }
             }
-            HorizontalDivider(thickness = 0.5.dp, color = LimeLightGray)
+            HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
             // 重置、收起
             Row(
                 modifier = Modifier
@@ -543,13 +597,13 @@ private fun SearchFilterPanel(
                         modifier = Modifier.size(16.dp),
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "重置", fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
+                    Text(text = stringResource(R.string.search_filter_reset), fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
                 }
                 Box(
                     modifier = Modifier
                         .width(0.5.dp)
                         .height(20.dp)
-                        .background(LimeLightGray),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                 )
                 Row(
                     modifier = Modifier
@@ -566,7 +620,7 @@ private fun SearchFilterPanel(
                         modifier = Modifier.size(16.dp),
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "收起", fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
+                    Text(text = stringResource(R.string.search_collapse), fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
                 }
             }
         }
@@ -582,12 +636,16 @@ private fun FilterChip(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(6.dp),
-        color = if (selected) LimePrimaryPale else LimeLightGray,
+        color = if (selected) {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
     ) {
         Text(
             text = text,
             fontSize = 13.sp,
-            color = if (selected) LimePrimary else LimeDark,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
         )
     }

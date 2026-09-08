@@ -47,6 +47,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -59,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.DanmakuData
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.showToast
@@ -111,6 +113,7 @@ fun DanmakuOverlay(
 
     val context = LocalContext.current
     val textMeasurer = rememberTextMeasurer()
+    val copiedToast = stringResource(R.string.copied)
 
     // 逐帧读取播放进度
     var nowMs by remember { mutableLongStateOf(0L) }
@@ -208,7 +211,7 @@ fun DanmakuOverlay(
                     arrowCenterX = (centerX - bubbleX),
                     onCopy = {
                         d.content.copyToClipboard(context)
-                        "已复制".showToast(context)
+                        copiedToast.showToast(context)
                         onDismissBubble()
                     },
                     onDelete = {
@@ -247,9 +250,9 @@ private fun DanmakuBubble(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            BubbleAction(icon = Icons.Outlined.ContentCopy, label = "复制", onClick = onCopy)
+            BubbleAction(icon = Icons.Outlined.ContentCopy, label = stringResource(R.string.chat_copy), onClick = onCopy)
             if (canDelete) {
-                BubbleAction(icon = Icons.Outlined.Delete, label = "删除", onClick = onDelete)
+                BubbleAction(icon = Icons.Outlined.Delete, label = stringResource(R.string.delete), onClick = onDelete)
             }
         }
     }

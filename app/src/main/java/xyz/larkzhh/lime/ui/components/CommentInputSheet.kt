@@ -61,6 +61,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextRange
@@ -68,12 +69,11 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.VoiceRecord
 import xyz.larkzhh.lime.ui.detail.components.EmojiPanel
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.util.showToast
 
 /**
@@ -93,7 +93,7 @@ import xyz.larkzhh.lime.util.showToast
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CommentInputSheet(
-    hint: String = "说点什么…",
+    hint: String? = null,
     isSubmitting: Boolean = false,
     selectedImages: List<Uri> = emptyList(),
     pendingVoice: VoiceRecord? = null,
@@ -105,6 +105,8 @@ fun CommentInputSheet(
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
+    val imageVoiceMutexToast = stringResource(R.string.comment_image_voice_mutex)
+    val voiceOnlyToast = stringResource(R.string.comment_voice_single)
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
@@ -193,17 +195,17 @@ fun CommentInputSheet(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 40.dp, max = 144.dp)
-                            .background(LimeLightGray, RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
                             .padding(horizontal = 12.dp, vertical = 10.dp)
                             .focusRequester(focusRequester),
                         textStyle = MaterialTheme.typography.bodyMedium.copy(
-                            color = LimeDark,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 15.sp,
                         ),
-                        cursorBrush = SolidColor(LimePrimary),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         decorationBox = { inner ->
                             if (textValue.text.isEmpty()) {
-                                Text(text = hint, color = LimeGray, fontSize = 15.sp)
+                                Text(text = hint ?: stringResource(R.string.comment_input_hint), color = LimeGray, fontSize = 15.sp)
                             }
                             inner()
                         },
@@ -256,7 +258,7 @@ fun CommentInputSheet(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Filled.Close,
-                                        contentDescription = "删除图片",
+                                        contentDescription = stringResource(R.string.comment_delete_image),
                                         tint = Color.White,
                                         modifier = Modifier.size(12.dp),
                                     )
@@ -270,13 +272,13 @@ fun CommentInputSheet(
                                     modifier = Modifier
                                         .size(56.dp)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(LimeLightGray)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant)
                                         .clickable { onImagePickRequest() },
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Icon(
                                         imageVector = Icons.Filled.Add,
-                                        contentDescription = "添加图片",
+                                        contentDescription = stringResource(R.string.comment_add_image),
                                         tint = LimeGray,
                                         modifier = Modifier.size(28.dp),
                                     )
@@ -309,7 +311,7 @@ fun CommentInputSheet(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
-                                contentDescription = "删除语音",
+                                contentDescription = stringResource(R.string.comment_delete_voice),
                                 tint = Color.White,
                                 modifier = Modifier.size(12.dp),
                             )
@@ -317,7 +319,7 @@ fun CommentInputSheet(
                     }
                 }
 
-                HorizontalDivider(modifier = Modifier.padding(top = 8.dp), color = LimeLightGray)
+                HorizontalDivider(modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
 
                 Row(
                     modifier = Modifier
@@ -328,32 +330,32 @@ fun CommentInputSheet(
                     // 麦克风，与图片互斥
                     IconButton(onClick = {
                         if (selectedImages.isNotEmpty()) {
-                            "图片和语音不能同时添加".showToast(context)
+                            imageVoiceMutexToast.showToast(context)
                         } else if (pendingVoice != null) {
-                            "只能添加一条语音".showToast(context)
+                            voiceOnlyToast.showToast(context)
                         } else {
                             onVoiceRecordRequest(sheetTotalHeightDp)
                         }
                     }) {
                         Icon(
                             Icons.Outlined.Mic,
-                            contentDescription = "录音",
-                            tint = if (pendingVoice != null) LimePrimary else LimeGray,
+                            contentDescription = stringResource(R.string.comment_record_voice),
+                            tint = if (pendingVoice != null) MaterialTheme.colorScheme.primary else LimeGray,
                             modifier = Modifier.size(22.dp),
                         )
                     }
                     // 相册，与语音互斥
                     IconButton(onClick = {
                         if (pendingVoice != null) {
-                            "图片和语音不能同时添加".showToast(context)
+                            imageVoiceMutexToast.showToast(context)
                         } else {
                             onImagePickRequest()
                         }
                     }) {
-                        Icon(Icons.Outlined.Image, contentDescription = "相册", tint = LimeGray, modifier = Modifier.size(22.dp))
+                        Icon(Icons.Outlined.Image, contentDescription = stringResource(R.string.comment_album), tint = LimeGray, modifier = Modifier.size(22.dp))
                     }
                     IconButton(onClick = { }) {
-                        Icon(Icons.Outlined.CameraAlt, contentDescription = "拍照", tint = LimeGray, modifier = Modifier.size(22.dp))
+                        Icon(Icons.Outlined.CameraAlt, contentDescription = stringResource(R.string.comment_camera), tint = LimeGray, modifier = Modifier.size(22.dp))
                     }
                     IconButton(onClick = {
                         if (showEmojiPanel) {
@@ -367,8 +369,8 @@ fun CommentInputSheet(
                     }) {
                         Icon(
                             imageVector = if (showEmojiPanel) Icons.Outlined.Keyboard else Icons.Outlined.EmojiEmotions,
-                            contentDescription = if (showEmojiPanel) "键盘" else "表情",
-                            tint = if (showEmojiPanel) LimePrimary else LimeGray,
+                            contentDescription = if (showEmojiPanel) stringResource(R.string.comment_keyboard) else stringResource(R.string.comment_emoji),
+                            tint = if (showEmojiPanel) MaterialTheme.colorScheme.primary else LimeGray,
                             modifier = Modifier.size(22.dp),
                         )
                     }
@@ -380,14 +382,14 @@ fun CommentInputSheet(
                     if (isSubmitting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(22.dp),
-                            color = LimePrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             strokeWidth = 2.dp,
                         )
                     } else {
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (canSend) LimePrimary else LimeLightGray)
+                                .background(if (canSend) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                                 .clickable(enabled = canSend) {
                                     onSubmit(textValue.text)
                                     textValue = TextFieldValue()
@@ -396,7 +398,7 @@ fun CommentInputSheet(
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
-                                text = "发送",
+                                text = stringResource(R.string.comment_send),
                                 fontSize = 13.sp,
                                 color = if (canSend) Color.White else LimeGray,
                             )

@@ -11,6 +11,7 @@ import okhttp3.Response
 import xyz.larkzhh.lime.data.local.TokenStorage
 import xyz.larkzhh.lime.data.network.model.ApiResponse
 import xyz.larkzhh.lime.data.network.model.TokenData
+import xyz.larkzhh.lime.domain.ForceLogoutBus
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -20,6 +21,7 @@ import javax.inject.Singleton
  *  - 每次请求前自动携带 Access Token
  *  - Access Token 过期时自动用 Refresh Token 换取新 Token
  *  - Refresh Token 也失效时清除本地凭证
+ *  - 凭证被服务端判定失效时，发出强制下线事件
  */
 @Singleton
 class AuthInterceptor @Inject constructor(
@@ -28,19 +30,22 @@ class AuthInterceptor @Inject constructor(
 ) : Interceptor {
     private val refreshClient by lazy { OkHttpClient() }
     private val gson = Gson()
+    private var lastRefreshRevoked = false
 
     override fun intercept(chain: Interceptor.Chain): Response {
         // 发请求前检查，过期则先刷新
         if (!tokenStorage.isAccessTokenValid() && !tokenStorage.refreshToken.isNullOrEmpty()) {
-            refresh()
+            if (!refresh()) maybeEmitForceLogout()
         }
 
         val response = chain.proceed(addAuthHeader(chain.request()))
-   
+
         // 服务器返回 401/403，再刷新一次
         if (response.code in listOf(401, 403) && !tokenStorage.refreshToken.isNullOrEmpty()) {
             response.close()// 关闭旧响应
-            return if (refresh()) {
+            val refreshed = refresh()
+            if (!refreshed) maybeEmitForceLogout()
+            return if (refreshed) {
                 chain.proceed(addAuthHeader(chain.request()))
             } else {
                 chain.proceed(chain.request()) // refresh 也失败，带空 token 发出
@@ -49,6 +54,12 @@ class AuthInterceptor @Inject constructor(
 
         return response
     }
+
+    /// 通知 UI 强制下线，网络问题等排除
+    private fun maybeEmitForceLogout() {
+        if (lastRefreshRevoked) ForceLogoutBus.emit()
+    }
+
     /// 添加 token
     private fun addAuthHeader(request: Request): Request {
         val token = tokenStorage.accessToken ?: return request
@@ -63,6 +74,7 @@ class AuthInterceptor @Inject constructor(
         // 双重检查
         if (tokenStorage.isAccessTokenValid()) return true
 
+        lastRefreshRevoked = false
         val refreshToken = tokenStorage.refreshToken ?: return false
 
         val body = """{"refreshToken":"$refreshToken"}"""
@@ -83,11 +95,16 @@ class AuthInterceptor @Inject constructor(
                     tokenStorage.saveTokens(data.accessToken, data.refreshToken, data.expiresIn)
                     true
                 } else {
+                    lastRefreshRevoked = true
+                    tokenStorage.clearTokens()
                     false
                 }
             } else {
                 // 刷新令牌失效，清除凭证
-                if (response.code == 401) tokenStorage.clearTokens()
+                if (response.code == 401 || response.code == 403) {
+                    lastRefreshRevoked = true
+                    tokenStorage.clearTokens()
+                }
                 false
             }
         } catch (e: Exception) {

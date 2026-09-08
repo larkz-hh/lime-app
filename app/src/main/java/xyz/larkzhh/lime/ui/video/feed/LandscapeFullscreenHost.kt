@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,9 +67,9 @@ import xyz.larkzhh.lime.ui.video.components.formatSpeed
 import xyz.larkzhh.lime.ui.video.components.formatTime
 import xyz.larkzhh.lime.ui.video.player.VideoPage
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
-import xyz.larkzhh.lime.util.LockLandscapeImmersive
-import xyz.larkzhh.lime.util.rememberBrightnessController
-import xyz.larkzhh.lime.util.rememberVolumeController
+import xyz.larkzhh.lime.util.system.LockLandscapeImmersive
+import xyz.larkzhh.lime.util.system.rememberBrightnessController
+import xyz.larkzhh.lime.util.system.rememberVolumeController
 import xyz.larkzhh.lime.util.showToast
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -85,7 +86,11 @@ fun LandscapeFullscreenHost(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val danmakuUiState by danmakuViewModel.uiState.collectAsState()
+    val isUnmetered by viewModel.isUnmetered.collectAsState()
     val context = LocalContext.current
+    val danmakuOffToast = stringResource(R.string.video_danmaku_off)
+    val danmakuOnToast = stringResource(R.string.video_danmaku_on)
+    val speedBoostToast = stringResource(R.string.video_speed_boost)
 
     // 锁横屏沉浸式
     LockLandscapeImmersive(active = true)
@@ -134,7 +139,7 @@ fun LandscapeFullscreenHost(
         VerticalPager(
             state = pagerState,
             userScrollEnabled = !scrubbing,
-            beyondViewportPageCount = 1,
+            beyondViewportPageCount = if (isUnmetered) 1 else 0,
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black),
@@ -206,7 +211,7 @@ fun LandscapeFullscreenHost(
                                 val released = withTimeoutOrNull(longPressMs.milliseconds) { tryAwaitRelease() }
                                 if (released == null) {
                                     pressBoost = true
-                                    "倍速中".showToast(context)
+                                    speedBoostToast.showToast(context)
                                     tryAwaitRelease()// 等待松手
                                     pressBoost = false
                                 }
@@ -285,7 +290,7 @@ fun LandscapeFullscreenHost(
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "退出全屏",
+                                contentDescription = stringResource(R.string.video_exit_fullscreen),
                                 tint = Color.White,
                                 modifier = Modifier
                                     .size(40.dp)
@@ -327,7 +332,7 @@ fun LandscapeFullscreenHost(
                         ) {
                             Icon(
                                 imageVector = if (userPaused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
-                                contentDescription = if (userPaused) "播放" else "暂停",
+                                contentDescription = if (userPaused) stringResource(R.string.pip_play) else stringResource(R.string.pip_pause),
                                 tint = Color.White.copy(alpha = 0.5f),
                                 modifier = Modifier.size(40.dp),
                             )
@@ -336,7 +341,7 @@ fun LandscapeFullscreenHost(
                         // 左侧亮度
                         SideAdjustButton(
                             icon = painterResource(R.drawable.ic_brightness),
-                            desc = "亮度",
+                            desc = stringResource(R.string.video_brightness),
                             modifier = Modifier
                                 .align(Alignment.CenterStart)
                                 .displayCutoutPadding()
@@ -350,7 +355,7 @@ fun LandscapeFullscreenHost(
                         // 右侧音量
                         SideAdjustButton(
                             icon = rememberVectorPainter(Icons.AutoMirrored.Filled.VolumeUp),
-                            desc = "音量",
+                            desc = stringResource(R.string.video_volume),
                             modifier = Modifier
                                 .align(Alignment.CenterEnd)
                                 .displayCutoutPadding()
@@ -399,7 +404,7 @@ fun LandscapeFullscreenHost(
                                 onToggleDanmaku = {
                                     val wasEnabled = danmakuUiState.enabled
                                     danmakuViewModel.toggleEnabled()
-                                    if (wasEnabled) "弹幕已关闭".showToast(context) else "弹幕已开启".showToast(context)
+                                    if (wasEnabled) danmakuOffToast.showToast(context) else danmakuOnToast.showToast(context)
                                 },
                                 onDanmakuBoxClick = { danmakuViewModel.openInput() },
                                 onSpeedClick = {
@@ -434,7 +439,7 @@ fun LandscapeFullscreenHost(
                 onToggleOff = {
                     danmakuViewModel.toggleEnabled()
                     danmakuViewModel.closeInput()
-                    "弹幕已关闭".showToast(context)
+                    danmakuOffToast.showToast(context)
                 },
                 onSend = { text ->
                     val item = current ?: return@DanmakuInputSheet
@@ -515,7 +520,7 @@ private fun LandscapeActionBar(
                         inactiveColor = Color.White,
                     )
                     Text(
-                        text = if (likeCount > 0) likeCount.toString() else "点赞",
+                        text = if (likeCount > 0) likeCount.toString() else stringResource(R.string.video_like),
                         fontSize = 12.sp,
                         color = Color.White,
                     )
@@ -538,7 +543,7 @@ private fun LandscapeActionBar(
                         inactiveColor = Color.White,
                     )
                     Text(
-                        text = if (favCount > 0) favCount.toString() else "收藏",
+                        text = if (favCount > 0) favCount.toString() else stringResource(R.string.video_favorite),
                         fontSize = 12.sp,
                         color = Color.White,
                     )
@@ -547,7 +552,7 @@ private fun LandscapeActionBar(
             Spacer(Modifier.weight(1f))
             // 倍速入口
             Text(
-                text = if (currentSpeed == 1f) "倍速" else formatSpeed(currentSpeed),
+                text = if (currentSpeed == 1f) stringResource(R.string.video_speed) else formatSpeed(currentSpeed),
                 color = Color.White,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
@@ -574,7 +579,7 @@ private fun LandscapeActionBar(
             // 弹幕开关键
             Icon(
                 painter = painterResource(R.drawable.ic_barrage),
-                contentDescription = if (danmakuEnabled) "关闭弹幕" else "开启弹幕",
+                contentDescription = if (danmakuEnabled) stringResource(R.string.video_danmaku_disable) else stringResource(R.string.video_danmaku_enable),
                 tint = if (danmakuEnabled) Color.White else Color.White.copy(alpha = 0.4f),
                 modifier = Modifier
                     .size(22.dp)
@@ -596,7 +601,7 @@ private fun LandscapeActionBar(
                         ),
                     contentAlignment = Alignment.CenterStart,
                 ) {
-                    Text(text = "点我发弹幕", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
+                    Text(text = stringResource(R.string.video_danmaku_send_prompt), color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
                 }
             }
         }

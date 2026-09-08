@@ -1,7 +1,10 @@
 package xyz.larkzhh.lime.ui.profile
 
+import android.app.Activity
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -12,10 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScope
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -28,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,30 +51,42 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import com.yalantis.ucrop.UCrop
+import java.io.File
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
-import xyz.larkzhh.lime.navigation.AuthorProfileSession
-import xyz.larkzhh.lime.navigation.ProfileLayoutStore
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.navigation.state.AuthorProfileSession
+import xyz.larkzhh.lime.ui.auth.LoginGate
+import xyz.larkzhh.lime.navigation.state.ProfileLayoutStore
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.video.feed.PersonalVideoPayload
 import xyz.larkzhh.lime.ui.video.feed.VideoFeedSessionStore
-import xyz.larkzhh.lime.navigation.SwipeBackScaffold
-import xyz.larkzhh.lime.ui.components.NoteCard
-import xyz.larkzhh.lime.ui.components.WaterfallFeed
+import xyz.larkzhh.lime.navigation.component.SwipeBackScaffold
+import xyz.larkzhh.lime.data.network.model.FeedItem
+import xyz.larkzhh.lime.domain.model.FollowActionState
+import xyz.larkzhh.lime.domain.model.toFollowActionState
+import xyz.larkzhh.lime.ui.components.ErrorState
+import xyz.larkzhh.lime.ui.components.PagingWaterfallFeed
+import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
+import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
+import xyz.larkzhh.lime.ui.profile.components.LikeFavStatsDialog
 import xyz.larkzhh.lime.ui.profile.components.ProfileHeader
 import xyz.larkzhh.lime.ui.profile.components.ProfileTabRow
 import xyz.larkzhh.lime.ui.profile.components.ProfileTopBar
-import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesUiState
+import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileLikeState
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesViewModel
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileViewModel
-import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
+import xyz.larkzhh.lime.ui.im.viewmodel.ImViewModel
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -84,14 +95,17 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import xyz.larkzhh.lime.openVideo
-import xyz.larkzhh.lime.util.extractGradientColor
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import xyz.larkzhh.lime.ui.openVideo
+import xyz.larkzhh.lime.util.media.extractGradientColor
+import xyz.larkzhh.lime.util.showToast
 
 /// 主页 Tab 类型
-private enum class ProfileTab(val label: String) {
-    Notes("笔记"),
-    Likes("点赞"),
-    Favorites("收藏"),
+private enum class ProfileTab(@StringRes val labelRes: Int) {
+    Notes(R.string.profile_tab_notes),
+    Likes(R.string.profile_tab_likes),
+    Favorites(R.string.profile_tab_favorites),
 }
 
 @Composable
@@ -100,18 +114,30 @@ fun ProfileScreen(
     userId: Long? = null,// null为底部导航我的
     viewModel: ProfileViewModel = hiltViewModel(),
     notesViewModel: ProfileNotesViewModel = hiltViewModel(),
+    imViewModel: ImViewModel = hiltViewModel(),
     session: AuthorProfileSession? = null,// 非空为笔记作者用户页面
     onOpenDrawer: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isSelf by viewModel.isSelf.collectAsState()
+    val imState by imViewModel.state.collectAsState()
     val user = (uiState as? ProfileUiState.Success)?.user
+    val relations by viewModel.relations.collectAsState()
+    val followError by viewModel.followError.collectAsState()
+    val followState = user?.let { relations[it.id]?.toFollowActionState() } ?: FollowActionState.Follow
+    val targetUserId = user?.id
     val uploadError by viewModel.uploadError.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val mutualFollowRequiredText = stringResource(R.string.profile_mutual_follow_required)
+    var showUnfollowConfirm by remember { mutableStateOf(false) }
+    var showLikeFavStats by remember { mutableStateOf(false) }
+    var avatarPreviewUrl by remember { mutableStateOf<String?>(null) }// 他人头像全屏预览
 
-    val notesUiState by notesViewModel.notesState.collectAsState()
-    val likesUiState by notesViewModel.likesState.collectAsState()
-    val favoritesUiState by notesViewModel.favoritesState.collectAsState()
+    val likeState by notesViewModel.likeState.collectAsState()
+    val notesPagingItems = notesViewModel.notesPager.collectAsLazyPagingItems()
+    val likesPagingItems = notesViewModel.likesPager.collectAsLazyPagingItems()
+    val favoritesPagingItems = notesViewModel.favoritesPager.collectAsLazyPagingItems()
 
     /// 本人三个tab，他人按隐私过滤
     val tabKinds = remember(user, isSelf) {
@@ -127,7 +153,7 @@ fun ProfileScreen(
             } ?: emptyList()
         }
     }
-    val tabs = remember(tabKinds) { tabKinds.map { it.label } }
+    val tabs = remember(tabKinds) { tabKinds.map { it.labelRes } }.map { stringResource(it) }
     // 应用会话记录
     val pagerState = rememberPagerState(initialPage = session?.currentPage ?: 0) { tabs.size }
     val coroutineScope = rememberCoroutineScope()
@@ -137,25 +163,56 @@ fun ProfileScreen(
         }
     }
 
-    // 切到点赞/收藏 Tab 时懒加载
-    LaunchedEffect(pagerState.currentPage, tabKinds) {
-        when (tabKinds.getOrNull(pagerState.currentPage)) {
-            ProfileTab.Likes -> notesViewModel.loadLikesLazy()
-            ProfileTab.Favorites -> notesViewModel.loadFavoritesLazy()
-            else -> Unit
+    /// 接收头像裁剪结果后上传
+    val avatarCropLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            UCrop.getOutput(result.data!!)?.let { viewModel.uploadAvatar(it) }
         }
     }
 
-    /// 选择图片上传头像
+    /// 选图后跳转头像裁剪页
+    val avatarCropTitle = stringResource(R.string.edit_avatar_crop_title)
     val avatarPickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
-    ) { uri -> if (uri != null) viewModel.uploadAvatar(uri) }
+    ) { uri ->
+        if (uri != null) {
+            val dest = Uri.fromFile(File(context.cacheDir, "avatar_crop_tmp.jpg"))
+            val intent = UCrop.of(uri, dest)
+                .withOptions(UCrop.Options().apply {
+                    setToolbarTitle(avatarCropTitle)
+                    setCompressionQuality(90)
+                    setCircleDimmedLayer(true)// 圆形遮罩
+                    setToolbarColor(0xFFFFFFFF.toInt())
+                    setStatusBarColor(0xFF1A1A1A.toInt())
+                    setActiveControlsWidgetColor(0xFF4A9B6F.toInt())
+                })
+                .withAspectRatio(1f, 1f)
+                .getIntent(context)
+            avatarCropLauncher.launch(intent)
+        }
+    }
 
     /// 错误弹窗提示
     LaunchedEffect(uploadError) {
         uploadError?.let { error ->
             snackbarHostState.showSnackbar(error)
             viewModel.clearUploadError()
+        }
+    }
+
+    LaunchedEffect(followError) {
+        followError?.let { error ->
+            snackbarHostState.showSnackbar(error)
+            viewModel.clearFollowError()
+        }
+    }
+
+    LaunchedEffect(imState.errorMessage) {
+        imState.errorMessage?.let { error ->
+            error.showToast(context)
+            imViewModel.clearError()
         }
     }
 
@@ -221,16 +278,17 @@ fun ProfileScreen(
     }
 
     // 背景图主色提取
-    val context = LocalContext.current
     val backgroundUrl = (uiState as? ProfileUiState.Success)?.user?.backgroundImage
     // 主色存进会话
     var dominantColor by remember {
         mutableStateOf(session?.backgroundDominantRgb?.let { Color(it) } ?: Color.Black)
     }
     LaunchedEffect(backgroundUrl) {
-        val rgb = backgroundUrl?.let { extractGradientColor(context, it) }
+        val source = backgroundUrl
+            ?: "android.resource://${context.packageName}/${R.drawable.bg}"
+        val rgb = extractGradientColor(context, source)
         dominantColor = if (rgb != null) Color(rgb) else Color.Black
-        if (rgb != null) session?.backgroundDominantRgb = rgb
+        if (rgb != null && backgroundUrl != null) session?.backgroundDominantRgb = rgb
     }
     val gradientEndColor = dominantColor.copy(alpha = 0.95f)
 
@@ -275,15 +333,15 @@ fun ProfileScreen(
     ) { padding ->
         val currentTab = tabKinds.getOrNull(pagerState.currentPage) ?: ProfileTab.Notes
         val currentIsRefreshing = when (currentTab) {
-            ProfileTab.Notes -> notesUiState.isRefreshing
-            ProfileTab.Likes -> likesUiState.isRefreshing
-            ProfileTab.Favorites -> favoritesUiState.isRefreshing
+            ProfileTab.Notes -> notesPagingItems.loadState.refresh is LoadState.Loading
+            ProfileTab.Likes -> likesPagingItems.loadState.refresh is LoadState.Loading
+            ProfileTab.Favorites -> favoritesPagingItems.loadState.refresh is LoadState.Loading
         }
         // 根据tab页选择刷新方法
         val onRefresh: () -> Unit = when (currentTab) {
-            ProfileTab.Notes -> notesViewModel::refreshNotes
-            ProfileTab.Likes -> notesViewModel::refreshLikes
-            ProfileTab.Favorites -> notesViewModel::refreshFavorites
+            ProfileTab.Notes -> notesPagingItems::refresh
+            ProfileTab.Likes -> likesPagingItems::refresh
+            ProfileTab.Favorites -> favoritesPagingItems::refresh
         }
         val refreshState = rememberPullToRefreshState()
         PullToRefreshBox(
@@ -295,8 +353,8 @@ fun ProfileScreen(
                 PullToRefreshDefaults.Indicator(
                     state = refreshState,
                     isRefreshing = currentIsRefreshing,
-                    containerColor = LimeWhite,
-                    color = LimePrimary,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.align(Alignment.TopCenter),
                 )
             },
@@ -304,7 +362,7 @@ fun ProfileScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(LimeLightGray)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .nestedScroll(nestedScrollConnection)
         ) {
             val overlapPx = with(density) { 24.dp.toPx() }
@@ -334,27 +392,27 @@ fun ProfileScreen(
                 ) { page ->
                     when (tabKinds.getOrNull(page)) {
                         ProfileTab.Notes -> TabPage(
-                            uiState = notesUiState,
+                            pagingItems = notesPagingItems,
+                            likeState = likeState,
                             contentPaddingTop = relativeContentPaddingTop,
                             navController = navController,
                             onLikeToggle = notesViewModel::toggleLike,
-                            onLoadMore = notesViewModel::loadMoreNotes,
                             state = notesScrollState,
                         )
                         ProfileTab.Likes -> TabPage(
-                            uiState = likesUiState,
+                            pagingItems = likesPagingItems,
+                            likeState = likeState,
                             contentPaddingTop = relativeContentPaddingTop,
                             navController = navController,
                             onLikeToggle = notesViewModel::toggleLike,
-                            onLoadMore = notesViewModel::loadMoreLikes,
                             state = likesScrollState,
                         )
                         ProfileTab.Favorites -> TabPage(
-                            uiState = favoritesUiState,
+                            pagingItems = favoritesPagingItems,
+                            likeState = likeState,
                             contentPaddingTop = relativeContentPaddingTop,
                             navController = navController,
                             onLikeToggle = notesViewModel::toggleLike,
-                            onLoadMore = notesViewModel::loadMoreFavorites,
                             state = favoritesScrollState,
                         )
                         null -> Unit
@@ -369,7 +427,7 @@ fun ProfileScreen(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(28.dp),
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         trackColor = LimeWhite,
                         strokeWidth = 2.dp,
                     )
@@ -386,9 +444,54 @@ fun ProfileScreen(
                 isSelf = isSelf,
                 gradientEndColor = gradientEndColor,
                 onEditAvatar = { avatarPickerLauncher.launch("image/*") },
+                onAvatarClick = { user?.avatar?.let { avatarPreviewUrl = it } },
                 onBrowseHistory = { navController.navigate(Screen.BrowseHistory.route) },
-                onFollowClick = { /* TODO: */ },
-                onMessageClick = { /* TODO: */ },
+                onGroupChat = { navController.navigate(Screen.GroupList.route) },
+                onFollowClick = {
+                    // 关注他人登录拦截
+                    if (!LoginGate.onRequireLogin(null)) {
+                        if (followState == FollowActionState.Follow) {
+                            viewModel.follow()
+                        } else {
+                            showUnfollowConfirm = true
+                        }
+                    }
+                },
+                onMessageClick = {
+                    // 私信录拦截
+                    if (!LoginGate.onRequireLogin(null)) {
+                        targetUserId?.let { target ->
+                            if (followState != FollowActionState.Mutual) {
+                                mutualFollowRequiredText.showToast(context)
+                            } else {
+                                imViewModel.openConversation(target) { conversationId ->
+                                    navController.navigate(Screen.ImChat.createRoute(conversationId)) {
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                onFollowingClick = {
+                    targetUserId?.let { target ->
+                        // 关注、粉丝列表登录拦截
+                        val route = Screen.FollowList.createRoute(target, Screen.FollowList.TAB_FOLLOWING)
+                        if (!LoginGate.onRequireLogin(route)) {
+                            navController.navigate(route)
+                        }
+                    }
+                },
+                onFollowersClick = {
+                    targetUserId?.let { target ->
+                        val route = Screen.FollowList.createRoute(target, Screen.FollowList.TAB_FOLLOWERS)
+                        if (!LoginGate.onRequireLogin(route)) {
+                            navController.navigate(route)
+                        }
+                    }
+                },
+                onLikeFavClick = { showLikeFavStats = true },
+                followState = followState,
             )
 
             // Tab 栏
@@ -445,107 +548,121 @@ fun ProfileScreen(
         }
         }
     }
+
+    if (showUnfollowConfirm) {
+        UnfollowConfirmDialog(
+            onCancel = { showUnfollowConfirm = false },
+            onConfirm = {
+                viewModel.unfollow()
+                showUnfollowConfirm = false
+            },
+        )
+    }
+
+    // 获赞与收藏统计弹窗
+    if (showLikeFavStats) {
+        if (user != null) {
+            LikeFavStatsDialog(
+                noteCount = user.noteCount ?: 0,
+                likeCount = user.totalLikeCount ?: 0,
+                favCount = user.totalFavCount ?: 0,
+                onDismiss = { showLikeFavStats = false },
+            )
+        }
+    }
+
+    // 他人头像全屏预览
+    val avatarPreview = avatarPreviewUrl
+    if (avatarPreview != null) {
+        Dialog(
+            onDismissRequest = { avatarPreviewUrl = null },
+            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+        ) {
+            ImagePreviewOverlay(
+                images = listOf(avatarPreview),
+                initialIndex = 0,
+                onDismiss = { avatarPreviewUrl = null },
+            )
+        }
+    }
     }
 }
 
 /// Tab 页面
 @Composable
 private fun TabPage(
-    uiState: ProfileNotesUiState,
+    pagingItems: LazyPagingItems<FeedItem>,
+    likeState: ProfileLikeState,
     contentPaddingTop: Dp,
     navController: NavHostController,
-    onLikeToggle: (Long) -> Unit,
-    onLoadMore: () -> Unit,
+    onLikeToggle: (FeedItem, Boolean, Int) -> Unit,
     state: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
 ) {
-    WaterfallFeed(
-        modifier = Modifier.fillMaxSize().background(LimeLightGray),
-        state = state,
-        isLoadingMore = uiState.isLoadingMore,
-        onLoadMore = onLoadMore,
-        contentPadding = PaddingValues(start = 5.dp, end = 5.dp, top = contentPaddingTop, bottom = 8.dp),
-    ) {
-        tabContent(
-            uiState = uiState,
-            navController = navController,
-            onLikeToggle = onLikeToggle,
-        )
-    }
-}
+    val context = LocalContext.current
+    val refreshState = pagingItems.loadState.refresh
+    val stateModifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)
 
-/// 列表渲染逻辑
-private fun LazyStaggeredGridScope.tabContent(
-    uiState: ProfileNotesUiState,
-    navController: NavHostController,
-    onLikeToggle: (Long) -> Unit,
-) {
-    when {
-        uiState.isLoading -> {
-            item(span = StaggeredGridItemSpan.FullLine) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 32.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(28.dp),
-                        color = LimePrimary,
-                        trackColor = LimeWhite,
-                        strokeWidth = 2.dp,
-                    )
-                }
-            }
-        }
-        uiState.error != null && uiState.items.isEmpty() -> {
-            item(span = StaggeredGridItemSpan.FullLine) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 32.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = uiState.error,
-                        color = LimeGray,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-        }
-        else -> {
-            items(uiState.items, key = { it.id }) { item ->
-                val context = LocalContext.current
-                NoteCard(
-                    item = item,
-                    liked = item.id in uiState.likedIds,
-                    onLikeToggle = { onLikeToggle(item.id) },
-                    onClick = {
-                        // 视频笔记进竖屏视频页（个人列表来源），图文进详情
-                        if (item.noteType == 2) {
-                            // 预取的个人列表走进程内存储传递
-                            VideoFeedSessionStore.put(
-                                item.id,
-                                PersonalVideoPayload(
-                                    items = uiState.items,
-                                    startIndex = uiState.items.indexOfFirst { it.id == item.id }.coerceAtLeast(0),
-                                ),
-                            )
-                            if (navController.graph.findNode(Screen.VideoFeed.ROUTE) != null) {
-                                navController.navigate(
-                                    Screen.VideoFeed.createRoute(item.id, Screen.VideoFeed.SOURCE_PERSONAL),
-                                )
-                            } else {
-                                context.openVideo(item.id, Screen.VideoFeed.SOURCE_PERSONAL)
-                            }
-                        } else {
-                            navController.navigate(
-                                Screen.Detail.createRoute(item.id.toString())
-                            )
-                        }
-                    },
+    when (refreshState) {
+        // 无缓存首屏加载
+        is LoadState.Loading if pagingItems.itemCount == 0 -> {
+            Box(
+                modifier = stateModifier.padding(top = contentPaddingTop),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(28.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = LimeWhite,
+                    strokeWidth = 2.dp,
                 )
             }
+        }
+        // 无缓存且加载失败
+        is LoadState.Error if pagingItems.itemCount == 0 -> {
+            Box(
+                modifier = stateModifier.padding(top = contentPaddingTop),
+                contentAlignment = Alignment.Center,
+            ) {
+                ErrorState(
+                    message = refreshState.error.message,
+                    onRetry = { pagingItems.retry() },
+                )
+            }
+        }
+        // 有内容
+        else -> {
+            PagingWaterfallFeed(
+                pagingItems = pagingItems,
+                likeStates = likeState.likeStates,
+                likeCounts = likeState.likeCounts,
+                onLikeToggle = onLikeToggle,
+                onItemClick = { item ->
+                    // 视频笔记进竖屏视频页，图文进详情
+                    if (item.noteType == 2) {
+                        val snapshot = pagingItems.itemSnapshotList.items
+                        VideoFeedSessionStore.put(
+                            item.id,
+                            PersonalVideoPayload(
+                                items = snapshot,
+                                startIndex = snapshot.indexOfFirst { it.id == item.id }.coerceAtLeast(0),
+                            ),
+                        )
+                        if (navController.graph.findNode(Screen.VideoFeed.ROUTE) != null) {
+                            navController.navigate(
+                                Screen.VideoFeed.createRoute(item.id, Screen.VideoFeed.SOURCE_PERSONAL),
+                            )
+                        } else {
+                            context.openVideo(item.id, Screen.VideoFeed.SOURCE_PERSONAL)
+                        }
+                    } else {
+                        navController.navigate(
+                            Screen.Detail.createRoute(item.id.toString())
+                        )
+                    }
+                },
+                state = state,
+                contentPadding = PaddingValues(start = 5.dp, end = 5.dp, top = contentPaddingTop, bottom = 8.dp),
+            )
         }
     }
 }

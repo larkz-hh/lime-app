@@ -23,37 +23,38 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import xyz.larkzhh.lime.ui.theme.LimePrimary
+import xyz.larkzhh.lime.R
 
 private val EMOJI_GROUPS = listOf(
-    "表情" to listOf(
+    R.string.emoji_smiley to listOf(
         "😀","😁","😂","🤣","😅","😊","🙂","😉","😍","🥰",
         "😘","😋","😎","🤩","😏","🤔","🤨","😐","😑","😒",
         "😔","😟","😢","😭","😤","😠","😡","🤬","😈","👿",
         "😱","😨","😰","😓","🤗","🥺","😞","😣","😖","🙃",
         "👀","👁️","💀","👻","🤡","😺","😸","😹","😻","🙄",
     ),
-    "手势" to listOf(
+    R.string.emoji_gestures to listOf(
         "👍","👎","👌","✌️","🤞","🤟","🤘","🤙","☝️","🙏",
         "✊","👊","💪","👋","🤝","👏","🙌","🤲","🤜","🤛",
         "👈","👉","👆","👇","✋","🤚","🖐️","🖖","💅","🤳",
     ),
-    "爱心" to listOf(
+    R.string.emoji_hearts to listOf(
         "❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔",
         "❣️","💕","💞","💓","💗","💖","💘","💝","♥️","💟",
     ),
-    "庆祝" to listOf(
+    R.string.emoji_celebration to listOf(
         "🎉","🎊","🎈","🎁","🏆","🥇","🎀","🎗️","🔥","✨",
         "💫","⭐","🌟","💥","🌈","🌸","🌺","🍀","🎆","🎇",
     ),
-    "动物" to listOf(
+    R.string.emoji_animals to listOf(
         "🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯",
         "🦁","🐮","🐷","🐸","🐵","🙈","🙉","🙊","🐔","🐧",
         "🦆","🦅","🦉","🦇","🐺","🐴","🦄","🐝","🦋","🐞",
     ),
-    "食物" to listOf(
+    R.string.emoji_food to listOf(
         "🍎","🍊","🍋","🍇","🍓","🫐","🍒","🍑","🥭","🍍",
         "🥥","🍅","🥑","🌽","🥕","🍕","🍔","🌮","🍜","🍱",
         "🍣","🍦","🍩","🎂","🍫","🧋","🍺","🥂","☕","🧃",
@@ -72,18 +73,18 @@ fun EmojiPanel(
             selectedTabIndex = selectedGroup,
             edgePadding = 8.dp,
             containerColor = MaterialTheme.colorScheme.background,
-            contentColor = LimePrimary,
+            contentColor = MaterialTheme.colorScheme.primary,
             divider = {},
         ) {
-            EMOJI_GROUPS.forEachIndexed { index, (name, _) ->
+            EMOJI_GROUPS.forEachIndexed { index, (nameRes, _) ->
                 Tab(
                     selected = selectedGroup == index,
                     onClick = { selectedGroup = index },
                     text = {
                         Text(
-                            text = name,
+                            text = stringResource(nameRes),
                             fontSize = 13.sp,
-                            color = if (selectedGroup == index) LimePrimary
+                            color = if (selectedGroup == index) MaterialTheme.colorScheme.primary
                                     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         )
                     },

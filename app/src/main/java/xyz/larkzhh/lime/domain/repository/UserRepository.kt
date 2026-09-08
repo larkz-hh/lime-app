@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.domain.repository
 
+import android.net.Uri
 import kotlinx.coroutines.flow.StateFlow
 import xyz.larkzhh.lime.data.network.model.UserData
 
@@ -19,9 +20,42 @@ interface UserRepository {
     /// 获取指定用户的公开资料
     suspend fun getUserById(userId: Long): Result<UserData>
 
+    /// 获取指定用户的公开资料
+    suspend fun getUserByHandle(handle: String): Result<UserData>
+
+    /// 获取指定用户的公开资料
+    suspend fun getUserByUid(uid: String): Result<UserData>
+
     /// 同步读取指定用户已缓存的资料
     fun getCachedUserById(userId: Long): UserData?
 
+    /// 上传头像，本地缓存
+    suspend fun uploadAvatar(uri: Uri): Result<UserData>
+
+    /// 互关好友列表
+    suspend fun getMutualFriends(): Result<List<UserData>>
+
+    /// 上传群头像
+    suspend fun uploadGroupAvatar(uri: Uri): Result<String>
+
+    /// 上传背景图，本地缓存
+    suspend fun uploadBackground(uri: Uri): Result<UserData>
+
+    /// 更新个人资料，本地缓存
+    suspend fun updateProfile(
+        nickname: String?,
+        bio: String?,
+        gender: Int,
+        birthday: String?,
+        region: String?,
+    ): Result<UserData>
+
+    /// 设置点赞、收藏列表隐私
+    suspend fun updatePrivacy(likePrivate: Boolean, favPrivate: Boolean): Result<UserData>
+
     /// 注销时清除本地缓存
     fun clearUser()
+
+    /// 退出登录，清空当前登录态
+    fun clearActiveSession()
 }

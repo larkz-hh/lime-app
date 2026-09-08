@@ -24,6 +24,8 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.EmojiEmotions
+import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,17 +40,16 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.model.ChatNote
-import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
-private val InputPillColor = LimeWhite
 private val SendColor = Color(0xFF111111)
 private val SendDisabledColor = Color(0xFFBBBBBB)
 
@@ -65,14 +66,18 @@ fun ChatInputBar(
     note: ChatNote? = null,
     sending: Boolean = false,
     canSend: Boolean = true,
-    placeholder: String = "尽管问，带图也行",
+    placeholder: String = "",
     onAddClick: () -> Unit = {},
     onRemoveImage: (uri: String) -> Unit = {},
     onRetryImage: (uri: String) -> Unit = {},
     onRemoveNote: () -> Unit = {},
     onSend: () -> Unit = {},
     onStop: () -> Unit = {},
+    showEmojiToggle: Boolean = false,
+    emojiActive: Boolean = false,
+    onEmojiClick: () -> Unit = {},
 ) {
+    val effectivePlaceholder = placeholder.ifBlank { stringResource(R.string.chat_ask_hint) }
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -112,8 +117,8 @@ fun ChatInputBar(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .shadow(6.dp, RoundedCornerShape(28.dp), spotColor = Color.Black.copy(alpha = 0.12f))
                 .clip(RoundedCornerShape(28.dp))
-                .background(InputPillColor)
-                .border(1.dp, Color.Black.copy(alpha = 0.05f), RoundedCornerShape(28.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), RoundedCornerShape(28.dp))
                 .padding(horizontal = 8.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -122,13 +127,13 @@ fun ChatInputBar(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(LimeLightGray)
+                    .background(MaterialTheme.colorScheme.surface)
                     .clickable(onClick = onAddClick),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     Icons.Outlined.Add,
-                    contentDescription = "添加",
+                    contentDescription = stringResource(R.string.chat_add),
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.size(24.dp),
                 )
@@ -152,15 +157,34 @@ fun ChatInputBar(
                     ),
                     maxLines = 6,
                     decorationBox = { innerTextField ->
-                        Box {
-                            if (text.isEmpty()) {
-                                Text(
-                                    text = placeholder,
-                                    color = LimeGray,
-                                    fontSize = 16.sp,
-                                )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                if (text.isEmpty()) {
+                                    Text(
+                                        text = effectivePlaceholder,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 16.sp,
+                                    )
+                                }
+                                innerTextField()
                             }
-                            innerTextField()
+                            if (showEmojiToggle) {
+                                IconButton(
+                                    onClick = onEmojiClick,
+                                    modifier = Modifier.size(36.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = if (emojiActive) Icons.Outlined.Keyboard else Icons.Outlined.EmojiEmotions,
+                                        contentDescription = if (emojiActive) {
+                                            stringResource(R.string.chat_keyboard)
+                                        } else {
+                                            stringResource(R.string.chat_emoji)
+                                        },
+                                        tint = if (emojiActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(24.dp),
+                                    )
+                                }
+                            }
                         }
                     },
                 )
@@ -187,14 +211,14 @@ fun ChatInputBar(
                 if (sending) {
                     Icon(
                         Icons.Filled.Stop,
-                        contentDescription = "停止生成",
+                        contentDescription = stringResource(R.string.chat_stop_generating),
                         tint = LimeWhite,
                         modifier = Modifier.size(18.dp),
                     )
                 } else {
                     Icon(
                         Icons.Filled.ArrowUpward,
-                        contentDescription = "发送",
+                        contentDescription = stringResource(R.string.chat_send),
                         tint = LimeWhite,
                         modifier = Modifier.size(20.dp),
                     )
@@ -252,7 +276,7 @@ private fun PendingImageThumb(
         ) {
             Icon(
                 Icons.Outlined.Close,
-                contentDescription = "移除图片",
+                contentDescription = stringResource(R.string.chat_remove_image),
                 tint = LimeWhite,
                 modifier = Modifier.size(12.dp),
             )
@@ -270,7 +294,7 @@ private fun NotePreviewChip(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(LimeLightGray)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(start = 6.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -284,7 +308,7 @@ private fun NotePreviewChip(
         )
         Spacer(Modifier.width(6.dp))
         Text(
-            text = note.title?.ifBlank { "引用笔记" } ?: "引用笔记",
+            text = note.title?.ifBlank { stringResource(R.string.chat_referenced_note) } ?: stringResource(R.string.chat_referenced_note),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onBackground,
             maxLines = 1,
@@ -294,8 +318,8 @@ private fun NotePreviewChip(
         IconButton(onClick = onRemove, modifier = Modifier.size(22.dp)) {
             Icon(
                 Icons.Outlined.Close,
-                contentDescription = "移除笔记",
-                tint = LimeGray,
+                contentDescription = stringResource(R.string.chat_remove_note),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(14.dp),
             )
         }

@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import okhttp3.OkHttpClient
-import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.ai.AiApi
 import xyz.larkzhh.lime.data.network.collectSse
 import xyz.larkzhh.lime.data.network.model.AiTranslateRequest
 import xyz.larkzhh.lime.data.network.model.AiWriteAssistRequest
@@ -18,7 +18,7 @@ import javax.inject.Singleton
 
 @Singleton
 class AiRepositoryImpl @Inject constructor(
-    private val apiService: ApiService,
+    private val apiService: AiApi,
     @Named("sse") private val sseClient: OkHttpClient,
     @Named("base_url") private val baseUrl: String,
 ) : AiRepository {

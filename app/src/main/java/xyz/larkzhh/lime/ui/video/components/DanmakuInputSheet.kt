@@ -40,15 +40,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 弹幕颜色选择
 private val DANMAKU_COLORS = listOf(
@@ -111,7 +109,7 @@ fun DanmakuInputSheet(
                 // 弹幕开关
                 Icon(
                     painter = painterResource(R.drawable.ic_barrage),
-                    contentDescription = "关闭弹幕",
+                    contentDescription = stringResource(R.string.video_danmaku_disable),
                     tint = Color.Black,
                     modifier = Modifier
                         .size(24.dp)
@@ -131,17 +129,17 @@ fun DanmakuInputSheet(
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 40.dp, max = 120.dp)
-                        .background(LimeLightGray, RoundedCornerShape(20.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(20.dp))
                         .padding(horizontal = 14.dp, vertical = 10.dp)
                         .focusRequester(focusRequester),
                     textStyle = MaterialTheme.typography.bodyMedium.copy(
-                        color = LimeDark,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 15.sp,
                     ),
-                    cursorBrush = SolidColor(LimePrimary),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     decorationBox = { inner ->
                         if (text.isEmpty()) {
-                            Text(text = "发个弹幕呗… (∠・ω< )⌒☆", color = LimeGray, fontSize = 12.sp)
+                            Text(text = stringResource(R.string.video_danmaku_input_hint), color = LimeGray, fontSize = 12.sp)
                         }
                         inner()
                     },
@@ -152,7 +150,7 @@ fun DanmakuInputSheet(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .background(if (canSend) LimePrimary else LimeLightGray)
+                        .background(if (canSend) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                         .clickable(enabled = canSend) {
                             onSend(text.trim())
                             text = ""
@@ -161,7 +159,7 @@ fun DanmakuInputSheet(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "发送",
+                        text = stringResource(R.string.chat_send),
                         fontSize = 13.sp,
                         color = if (canSend) Color.White else LimeGray,
                     )
@@ -219,7 +217,7 @@ private fun ColorPalette(
                                     .background(parseDanmakuColor(hex))
                                     .border(
                                         width = if (selected) 2.dp else 1.dp,
-                                        color = if (selected) LimePrimary else LimeGray.copy(alpha = 0.5f),
+                                        color = if (selected) MaterialTheme.colorScheme.primary else LimeGray.copy(alpha = 0.5f),
                                         shape = CircleShape,
                                     )
                                     .clickable(

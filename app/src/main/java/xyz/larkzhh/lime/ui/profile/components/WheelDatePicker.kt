@@ -36,13 +36,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 import java.time.YearMonth
 import kotlin.math.abs
-import xyz.larkzhh.lime.ui.theme.LimePrimary
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 private val ITEM_H = 52.dp  // 每个选项项的高度
@@ -90,7 +91,7 @@ fun WheelDatePicker(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = LimeWhite,
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
         Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 32.dp)) {
 
@@ -101,24 +102,32 @@ fun WheelDatePicker(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 TextButton(onClick = onDismiss) {
-                    Text("取消", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(R.string.cancel),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
                 }
                 Text(
-                    text = "选择你的生日",
+                    text = stringResource(R.string.date_picker_birthday_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium,
                 )
                 TextButton(onClick = {
                     onConfirm("%04d-%02d-%02d".format(year, displayMonth, displayDay))
                 }) {
-                    Text("保存", color = LimePrimary, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                    Text(
+                        stringResource(R.string.save),
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                    )
                 }
             }
 
             // 滚轮白色圆角卡片
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(0.dp),
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -127,7 +136,10 @@ fun WheelDatePicker(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     // 年份滚轮
-                    val years = remember { (1900..today.year).map { "${it}年" } }// 转成字符串列表
+                    val yearFormat = stringResource(R.string.date_format_year)
+                    val monthFormat = stringResource(R.string.date_format_month)
+                    val dayFormat = stringResource(R.string.date_format_day)
+                    val years = remember(yearFormat) { (1900..today.year).map { yearFormat.replace("%1\$d", it.toString()) } }
                     WheelColumn(
                         items = years,
                         startIndex = (year - 1900).coerceIn(0, years.lastIndex),
@@ -136,7 +148,7 @@ fun WheelDatePicker(
                     )
                     // 月份滚轮，今年限制到当月
                     key(maxMonth) {
-                        val months = remember(maxMonth) { (1..maxMonth).map { "%02d月".format(it) } }
+                        val months = remember(maxMonth, monthFormat) { (1..maxMonth).map { monthFormat.replace("%1\$d", "%02d".format(it)) } }
                         WheelColumn(
                             items = months,
                             startIndex = (displayMonth - 1).coerceIn(0, months.lastIndex),
@@ -146,7 +158,7 @@ fun WheelDatePicker(
                     }
                     // 日期滚轮，随年或月变化重置
                     key(year, month) {
-                        val days = remember(maxDay) { (1..maxDay).map { "%02d日".format(it) } }
+                        val days = remember(maxDay, dayFormat) { (1..maxDay).map { dayFormat.replace("%1\$d", "%02d".format(it)) } }
                         WheelColumn(
                             items = days,
                             startIndex = (displayDay - 1).coerceIn(0, days.lastIndex),

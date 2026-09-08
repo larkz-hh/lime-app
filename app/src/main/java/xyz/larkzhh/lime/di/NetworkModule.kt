@@ -1,15 +1,29 @@
 package xyz.larkzhh.lime.di
 
+import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.BuildConfig
 import xyz.larkzhh.lime.data.network.AuthInterceptor
+import xyz.larkzhh.lime.data.network.RetryInterceptor
+import xyz.larkzhh.lime.data.network.ai.AiApi
+import xyz.larkzhh.lime.data.network.auth.AuthApi
+import xyz.larkzhh.lime.data.network.comment.CommentApi
+import xyz.larkzhh.lime.data.network.danmaku.DanmakuApi
+import xyz.larkzhh.lime.data.network.im.ImApi
+import xyz.larkzhh.lime.data.network.notification.NotificationApi
+import xyz.larkzhh.lime.data.network.note.NoteApi
+import xyz.larkzhh.lime.data.network.search.SearchApi
+import xyz.larkzhh.lime.data.network.user.UserApi
+import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
@@ -21,21 +35,30 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "http://192.168.124.31:8080/"
+    /// HTTP 磁盘缓存容量
+    private const val HTTP_CACHE_SIZE = 50L * 1024 * 1024
+
+    private const val CONNECT_TIMEOUT_SECONDS = 10L
 
     @Provides
     @Named("base_url")
-    fun provideBaseUrl(): String = BASE_URL
+    fun provideBaseUrl(): String = BuildConfig.API_BASE_URL
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient =
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
+        @ApplicationContext context: Context,
+    ): OkHttpClient =
         OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
+            .addInterceptor(RetryInterceptor())// 幂等请求弱网自动重试
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.HEADERS
             })
-            .connectTimeout(30, TimeUnit.SECONDS)
+            .cache(Cache(File(context.cacheDir, "http_cache"), HTTP_CACHE_SIZE))// HTTP 磁盘缓存
+            .retryOnConnectionFailure(true)
+            .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(300, TimeUnit.SECONDS)
             .callTimeout(0, TimeUnit.SECONDS)// 不限制整体调用时长
@@ -51,7 +74,7 @@ object NetworkModule {
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.HEADERS
             })
-            .connectTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(120, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .callTimeout(0, TimeUnit.SECONDS)
@@ -61,13 +84,53 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit =
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BuildConfig.API_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
     @Provides
     @Singleton
-    fun provideApiService(retrofit: Retrofit): ApiService =
-        retrofit.create(ApiService::class.java)
+    fun provideAuthApi(retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideUserApi(retrofit: Retrofit): UserApi =
+        retrofit.create(UserApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideNoteApi(retrofit: Retrofit): NoteApi =
+        retrofit.create(NoteApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCommentApi(retrofit: Retrofit): CommentApi =
+        retrofit.create(CommentApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideDanmakuApi(retrofit: Retrofit): DanmakuApi =
+        retrofit.create(DanmakuApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSearchApi(retrofit: Retrofit): SearchApi =
+        retrofit.create(SearchApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAiApi(retrofit: Retrofit): AiApi =
+        retrofit.create(AiApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideImApi(retrofit: Retrofit): ImApi =
+        retrofit.create(ImApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideNotificationApi(retrofit: Retrofit): NotificationApi =
+        retrofit.create(NotificationApi::class.java)
 }

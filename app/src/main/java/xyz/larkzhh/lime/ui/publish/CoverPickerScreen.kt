@@ -4,7 +4,6 @@ import android.view.TextureView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
-import androidx.annotation.OptIn
 import androidx.compose.animation.core.animate
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -52,6 +51,7 @@ import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,11 +65,11 @@ import androidx.navigation.NavHostController
 import coil3.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.publish.components.AlbumSquare
 import xyz.larkzhh.lime.ui.publish.components.FrameScrubTrack
 import xyz.larkzhh.lime.ui.publish.viewmodel.CropTransform
 import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 预览层最大放大倍数
 private const val MAX_COVER_SCALE = 8f
@@ -77,7 +77,7 @@ private const val MAX_COVER_SCALE = 8f
 /// 越界最大溢出
 private const val RUBBER_LIMIT = 0.05f
 
-@OptIn(UnstableApi::class)
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun CoverPickerScreen(
     navController: NavHostController,
@@ -149,7 +149,7 @@ fun CoverPickerScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "选择封面",
+                text = stringResource(R.string.cover_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White,
@@ -239,13 +239,13 @@ fun CoverPickerScreen(
                     .padding(vertical = 12.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("退出", color = Color.White, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.cover_exit), color = Color.White, fontWeight = FontWeight.SemiBold)
             }
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(LimePrimary)
+                    .background(MaterialTheme.colorScheme.primary)
                     .clickable {
                         viewModel.commitCover()
                         navController.popBackStack()
@@ -253,7 +253,7 @@ fun CoverPickerScreen(
                     .padding(vertical = 12.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("完成", color = Color.White, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.cover_done), color = Color.White, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -278,7 +278,7 @@ private fun AlbumCropOverlay(
     ) { m ->
         Image(
             painter = painter,
-            contentDescription = "封面预览",
+            contentDescription = stringResource(R.string.cover_preview),
             contentScale = ContentScale.Crop,
             modifier = m,
         )
@@ -351,7 +351,7 @@ private fun CoverCropOverlay(
 
         // 双指提示
         Text(
-            text = "使用双指进行缩放",
+            text = stringResource(R.string.cover_pinch_hint),
             color = Color.White.copy(alpha = 0.85f),
             fontSize = 13.sp,
             modifier = Modifier

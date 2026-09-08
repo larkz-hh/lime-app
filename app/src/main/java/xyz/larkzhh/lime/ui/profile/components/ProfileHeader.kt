@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.ui.profile.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,14 +37,18 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.UserData
+import xyz.larkzhh.lime.domain.model.FollowActionState
+import xyz.larkzhh.lime.domain.model.labelRes
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
-import xyz.larkzhh.lime.ui.theme.LimePrimaryLight
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import java.time.LocalDate
@@ -54,10 +59,16 @@ fun ProfileHeader(
     isSelf: Boolean,
     onEditAvatar: () -> Unit,
     modifier: Modifier = Modifier,
+    onAvatarClick: (() -> Unit)? = null, // 他人头像点击：进入全屏预览
     gradientEndColor: Color = Color.Black.copy(alpha = 0.9f),
     onBrowseHistory: () -> Unit = {},
+    onGroupChat: () -> Unit = {},
     onFollowClick: () -> Unit = {},
     onMessageClick: () -> Unit = {},
+    onFollowingClick: () -> Unit = {},
+    onFollowersClick: () -> Unit = {},
+    onLikeFavClick: () -> Unit = {},
+    followState: FollowActionState = FollowActionState.Follow,
 ) {
     val user = (uiState as? ProfileUiState.Success)?.user
     val backgroundUrl = user?.backgroundImage
@@ -93,14 +104,15 @@ fun ProfileHeader(
                 BlurMask(gradientEndColor)
             }
         } else {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(LimePrimaryLight, LimePrimaryPale)
-                        )
-                    )
+            // 无背景图时本地默认背景
+            Image(
+                painter = painterResource(R.drawable.bg),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                colorFilter = ColorFilter.colorMatrix(
+                    ColorMatrix().apply { setToScale(0.52f, 0.52f, 0.52f, 1f) }
+                ),
             )
             BlurMask(gradientEndColor)
         }
@@ -114,7 +126,12 @@ fun ProfileHeader(
 
             /// 头像与昵称
             Row(verticalAlignment = Alignment.CenterVertically) {
-                AvatarSection(user = user, editable = isSelf, onClick = onEditAvatar)
+                AvatarSection(
+                    user = user,
+                    editable = isSelf,
+                    onClick = onEditAvatar,
+                    onAvatarClick = onAvatarClick,
+                )
                 Spacer(Modifier.width(16.dp))
                 UserInfoSection(user = user)
             }
@@ -123,18 +140,30 @@ fun ProfileHeader(
 
             // 关注/粉丝/获赞与收藏
             Row(horizontalArrangement = Arrangement.Start) {
-                StatItem(count = "0", label = "关注")
+                StatItem(
+                    count = (user?.followingCount ?: 0).toString(),
+                    label = stringResource(R.string.profile_following),
+                    onClick = onFollowingClick,
+                )
                 Spacer(Modifier.width(28.dp))
-                StatItem(count = "0", label = "粉丝")
+                StatItem(
+                    count = (user?.followerCount ?: 0).toString(),
+                    label = stringResource(R.string.profile_followers),
+                    onClick = onFollowersClick,
+                )
                 Spacer(Modifier.width(28.dp))
-                StatItem(count = "0", label = "获赞与收藏")
+                StatItem(
+                    count = ((user?.totalLikeCount ?: 0) + (user?.totalFavCount ?: 0)).toString(),
+                    label = stringResource(R.string.profile_likes_favs),
+                    onClick = onLikeFavClick,
+                )
             }
 
             Spacer(Modifier.height(14.dp))
 
             // 个人简介
             Text(
-                text = user?.bio?.takeIf { it.isNotBlank() } ?: "这个人是懒猪猪，还没有填写简介~",
+                text = user?.bio?.takeIf { it.isNotBlank() } ?: stringResource(R.string.profile_bio_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 //color = if (user?.bio?.isNotBlank() == true) LimeDark else LimeGray,
                 color = LimeWhite,
@@ -149,7 +178,7 @@ fun ProfileHeader(
                 2 -> "♀" to Color(0xFFE91E8C)
                 else -> null
             }
-            val ageText = age?.let { "${it}岁" }
+            val ageText = age?.let { stringResource(R.string.profile_age_years, it) }
             val showAgeGenderChip = ageText != null || genderIcon != null
             if (showAgeGenderChip || user?.region?.isNotBlank() == true) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -168,18 +197,18 @@ fun ProfileHeader(
                 Row(modifier = Modifier.fillMaxWidth()) {
                     QuickCard(
                         icon = Icons.Default.History,
-                        label = "浏览记录",
-                        subtitle = "看过的笔记",
+                        label = stringResource(R.string.profile_browse_history),
+                        subtitle = stringResource(R.string.profile_browse_history_desc),
                         modifier = Modifier.weight(1f),
                         onClick = onBrowseHistory,
                     )
                     Spacer(Modifier.width(12.dp))
                     QuickCard(
                         icon = Icons.Default.Groups,
-                        label = "群聊",
-                        subtitle = "查看详情",
+                        label = stringResource(R.string.profile_group_chat),
+                        subtitle = stringResource(R.string.profile_group_chat_desc),
                         modifier = Modifier.weight(1f),
-                        onClick = { /* TODO */ },
+                        onClick = onGroupChat,
                     )
                 }
             } else {
@@ -189,13 +218,13 @@ fun ProfileHeader(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     ActionButton(
-                        text = "关注",
-                        filled = true,
+                        text = stringResource(followState.labelRes),
+                        filled = followState == FollowActionState.Follow,
                         modifier = Modifier.weight(1f),
                         onClick = onFollowClick,
                     )
                     ActionButton(
-                        text = "发私信",
+                        text = stringResource(R.string.profile_send_message),
                         filled = false,
                         modifier = Modifier.weight(1f),
                         onClick = onMessageClick,
@@ -210,19 +239,30 @@ fun ProfileHeader(
 
 /// 头像区域
 @Composable
-private fun AvatarSection(user: UserData?, editable: Boolean, onClick: () -> Unit) {
+private fun AvatarSection(
+    user: UserData?,
+    editable: Boolean,
+    onClick: () -> Unit,
+    onAvatarClick: (() -> Unit)? = null,
+) {
+    // 自己：点击进入裁剪/编辑（原有行为）；他人且有头像：点击进入全屏预览
+    val clickModifier = when {
+        editable -> Modifier.clickable(onClick = onClick)
+        onAvatarClick != null && user?.avatar != null -> Modifier.clickable(onClick = onAvatarClick)
+        else -> Modifier
+    }
     Box(
         modifier = Modifier
             .size(76.dp)
             .clip(CircleShape)
-            .background(Color(0xFFD4EAE0))
-            .then(if (editable) Modifier.clickable(onClick = onClick) else Modifier),
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .then(clickModifier),
         contentAlignment = Alignment.Center,
     ) {
         if (user?.avatar != null) {
             AsyncImage(
                 model = user.avatar,
-                contentDescription = "头像",
+                contentDescription = stringResource(R.string.profile_avatar),
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
             )
@@ -238,7 +278,7 @@ private fun AvatarSection(user: UserData?, editable: Boolean, onClick: () -> Uni
                     modifier = Modifier.size(26.dp),
                 )
                 Text(
-                    text = "上传头像",
+                    text = stringResource(R.string.profile_upload_avatar),
                     style = MaterialTheme.typography.labelSmall,
                     color = LimeGray,
                 )
@@ -248,7 +288,7 @@ private fun AvatarSection(user: UserData?, editable: Boolean, onClick: () -> Uni
             Text(
                 text = user?.nickname?.take(1) ?: "?",
                 style = MaterialTheme.typography.titleLarge,
-                color = LimePrimary,
+                color = LimeGray,
             )
         }
     }
@@ -259,7 +299,7 @@ private fun AvatarSection(user: UserData?, editable: Boolean, onClick: () -> Uni
 private fun UserInfoSection(user: UserData?) {
     Column {
         Text(
-            text = user?.nickname ?: "未设置昵称",
+            text = user?.nickname ?: stringResource(R.string.profile_nickname_unset),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = LimeWhite,
@@ -278,8 +318,11 @@ private fun UserInfoSection(user: UserData?) {
 
 /// 数字标签
 @Composable
-private fun StatItem(count: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun StatItem(count: String, label: String, onClick: (() -> Unit)? = null) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
+    ) {
         Text(
             text = count,
             style = MaterialTheme.typography.titleMedium,
@@ -361,17 +404,21 @@ private fun QuickCard(
                 modifier = Modifier.size(22.dp),
             )
             Spacer(Modifier.width(8.dp))
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = LimeWhite,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.labelSmall,
                     color = LimeGray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -390,7 +437,7 @@ private fun ActionButton(
         modifier = modifier
             .clip(RoundedCornerShape(22.dp))
             .then(
-                if (filled) Modifier.background(LimePrimary)
+                if (filled) Modifier.background(MaterialTheme.colorScheme.primary)
                 else Modifier.background(Color.White.copy(alpha = 0.3f))
             )
             .clickable(onClick = onClick)

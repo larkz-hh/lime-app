@@ -7,7 +7,7 @@ import com.google.mlkit.nl.translate.TranslatorOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import xyz.larkzhh.lime.util.LruCache
+import xyz.larkzhh.lime.util.cache.LruCache
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -16,8 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,8 +32,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,16 +41,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.FeedItem
+import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 @Composable
 fun NotePickerPage(
@@ -62,9 +65,16 @@ fun NotePickerPage(
 ) {
     var selected by remember { mutableStateOf<FeedItem?>(null) }
     var tab by remember { mutableStateOf(NotePickerTab.FAVORITES) }
-    val states by viewModel.states.collectAsState()
 
-    LaunchedEffect(tab) { viewModel.load(tab) }
+    val favoritesItems = viewModel.favoritesPager.collectAsLazyPagingItems()
+    val likesItems = viewModel.likesPager.collectAsLazyPagingItems()
+    val publishedItems = viewModel.publishedPager.collectAsLazyPagingItems()
+    val pagingItems = when (tab) {
+        NotePickerTab.FAVORITES -> favoritesItems
+        NotePickerTab.LIKES -> likesItems
+        NotePickerTab.PUBLISHED -> publishedItems
+    }
+    val refreshState = pagingItems.loadState.refresh
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -80,12 +90,12 @@ fun NotePickerPage(
                     IconButton(onClick = onDismiss) {
                         Icon(
                             Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = "返回",
+                            contentDescription = stringResource(R.string.back),
                             tint = MaterialTheme.colorScheme.onBackground,
                         )
                     }
                     Text(
-                        text = "选择笔记",
+                        text = stringResource(R.string.note_picker_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.weight(1f),
@@ -95,8 +105,8 @@ fun NotePickerPage(
                         enabled = selected != null,
                     ) {
                         Text(
-                            text = "选择笔记",
-                            color = if (selected != null) LimePrimary else LimeGray,
+                            text = stringResource(R.string.note_picker_confirm),
+                            color = if (selected != null) MaterialTheme.colorScheme.primary else LimeGray,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 14.sp,
                         )
@@ -115,8 +125,8 @@ fun NotePickerPage(
                                 .padding(horizontal = 14.dp, vertical = 10.dp),
                         ) {
                             Text(
-                                text = t.label,
-                                color = if (isSel) LimePrimary else LimeGray,
+                                text = stringResource(t.labelRes),
+                                color = if (isSel) MaterialTheme.colorScheme.primary else LimeGray,
                                 fontWeight = if (isSel) FontWeight.SemiBold else FontWeight.Normal,
                                 fontSize = 14.sp,
                             )
@@ -126,7 +136,6 @@ fun NotePickerPage(
                 HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
 
                 // 网格
-                val state = states[tab] ?: NotePickerTabState()
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3),
                     modifier = Modifier.fillMaxSize(),
@@ -134,41 +143,104 @@ fun NotePickerPage(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    items(state.items, key = { it.id }) { item ->
-                        PickerNoteCard(
-                            item = item,
-                            isSelected = selected?.id == item.id,
-                            onClick = {
-                                selected = if (selected?.id == item.id) null else item
-                            },
-                        )
-                    }
-                    if (state.hasMore) {
-                        item(key = "load_more") {
-                            LaunchedEffect(Unit) { viewModel.loadMore(tab) }
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 10.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    strokeWidth = 2.dp,
-                                    color = LimePrimary,
+                    when (refreshState) {
+                        // 首屏加载中
+                        is LoadState.Loading if pagingItems.itemCount == 0 -> {
+                            item(key = "initial_loading", span = { GridItemSpan(maxLineSpan) }) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 40.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(22.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                            }
+                        }
+                        // 首屏加载失败
+                        is LoadState.Error if pagingItems.itemCount == 0 -> {
+                            item(key = "initial_error", span = { GridItemSpan(maxLineSpan) }) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 40.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    ErrorState(
+                                        message = refreshState.error.message,
+                                        onRetry = { pagingItems.retry() },
+                                    )
+                                }
+                            }
+                        }
+
+                        else -> {
+                            items(
+                                count = pagingItems.itemCount,
+                                key = pagingItems.itemKey { it.id },
+                            ) { index ->
+                                val item = pagingItems[index] ?: return@items
+                                PickerNoteCard(
+                                    item = item,
+                                    isSelected = selected?.id == item.id,
+                                    onClick = {
+                                        selected = if (selected?.id == item.id) null else item
+                                    },
                                 )
+                            }
+
+                            // 触底加载更多
+                            when (val append = pagingItems.loadState.append) {
+                                is LoadState.Loading -> item(key = "load_more") {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(18.dp),
+                                            strokeWidth = 2.dp,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                }
+
+                                is LoadState.Error -> item(key = "load_more_error") {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Text(
+                                            text = append.error.message ?: stringResource(R.string.load_failed_retry),
+                                            color = LimeGray,
+                                            fontSize = 12.sp,
+                                            modifier = Modifier.clickable { pagingItems.retry() },
+                                        )
+                                    }
+                                }
+
+                                else -> Unit
                             }
                         }
                     }
                 }
-                if (state.items.isEmpty() && !state.isLoading) {
+
+                // 空态：仅当「确实加载完且没有数据」时才显示（失败走上面的 error 分支）
+                if (pagingItems.itemCount == 0 && pagingItems.loadState.refresh is LoadState.NotLoading) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 40.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("暂无图文笔记", color = LimeGray, fontSize = 13.sp)
+                        Text(stringResource(R.string.note_picker_empty), color = LimeGray, fontSize = 13.sp)
                     }
                 }
             }
@@ -198,11 +270,11 @@ private fun PickerNoteCard(
                     .fillMaxWidth()
                     .aspectRatio(0.75f)
                     .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                    .background(LimeLightGray),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentScale = ContentScale.Crop,
             )
             Text(
-                text = item.title?.ifBlank { "无标题" } ?: "无标题",
+                text = item.title?.ifBlank { stringResource(R.string.untitled) } ?: stringResource(R.string.untitled),
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
@@ -217,7 +289,7 @@ private fun PickerNoteCard(
                 .padding(6.dp)
                 .size(20.dp)
                 .clip(CircleShape)
-                .background(if (isSelected) LimePrimary else Color.White.copy(alpha = 0.8f))
+                .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.8f))
                 .then(
                     if (!isSelected) Modifier.border(1.5.dp, Color.White, CircleShape)
                     else Modifier

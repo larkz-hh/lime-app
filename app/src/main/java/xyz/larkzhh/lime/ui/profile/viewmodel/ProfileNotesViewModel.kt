@@ -3,12 +3,17 @@ package xyz.larkzhh.lime.ui.profile.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.network.model.FeedItem
@@ -18,20 +23,16 @@ import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
 import javax.inject.Inject
 
-data class ProfileNotesUiState(
-    val items: List<FeedItem> = emptyList(),
-    val likedIds: Set<Long> = emptySet(),
-    val isLoading: Boolean = false,
-    val isLoadingMore: Boolean = false,
-    val isRefreshing: Boolean = false,
-    val hasMore: Boolean = true,
-    val error: String? = null,
+data class ProfileLikeState(
+    val likeStates: Map<Long, Boolean> = emptyMap(),
+    val likeCounts: Map<Long, Int> = emptyMap(),
 )
 
 /**
  * 个人主页内容 ViewModel，
  * 统一管理笔记、点赞、收藏三个 tab 的列表数据和操作
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ProfileNotesViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -40,61 +41,43 @@ class ProfileNotesViewModel @Inject constructor(
     private val eventBus: NoteEventBus,
 ) : ViewModel() {
 
-    private val _notesState = MutableStateFlow(ProfileNotesUiState(isLoading = true))
-    val notesState: StateFlow<ProfileNotesUiState> = _notesState.asStateFlow()
-
-    private val _likesState = MutableStateFlow(ProfileNotesUiState())
-    val likesState: StateFlow<ProfileNotesUiState> = _likesState.asStateFlow()
-
-    private val _favoritesState = MutableStateFlow(ProfileNotesUiState())
-    val favoritesState: StateFlow<ProfileNotesUiState> = _favoritesState.asStateFlow()
-
-    private var notesCursor: Long? = null
-    private var likesCursor: Long? = null
-    private var favoritesCursor: Long? = null
-    private var userId: Long? = null
+    private val _likeState = MutableStateFlow(ProfileLikeState())
+    val likeState: StateFlow<ProfileLikeState> = _likeState.asStateFlow()
 
     /// 提取路由参数中的目标用户id
     private val requestedUserId: Long? = savedStateHandle["userId"]
 
+    /// 解析后的目标用户id
+    private val userIdFlow = MutableStateFlow<Long?>(null)
+
+    val notesPager: Flow<PagingData<FeedItem>> = userIdFlow.filterNotNull().flatMapLatest { uid ->
+        noteRepository.userNotesPager(uid)
+    }.cachedIn(viewModelScope)
+
+    val likesPager: Flow<PagingData<FeedItem>> = userIdFlow.filterNotNull().flatMapLatest { uid ->
+        noteRepository.userLikesPager(uid)
+    }.cachedIn(viewModelScope)
+
+    val favoritesPager: Flow<PagingData<FeedItem>> = userIdFlow.filterNotNull().flatMapLatest { uid ->
+        noteRepository.userFavoritesPager(uid)
+    }.cachedIn(viewModelScope)
+
     init {
-        val cached = requestedUserId?.let { noteRepository.getCachedUserNotes(it) }
-        if (cached != null) {
-            notesCursor = cached.nextCursor
-            _notesState.value = ProfileNotesUiState(
-                items = cached.items,
-                likedIds = cached.items.filter { it.liked }.map { it.id }.toSet(),
-                hasMore = cached.hasMore,
-                isLoading = false,
-            )
-        }
         viewModelScope.launch {
-            userId = requestedUserId ?: userRepository.userFlow.filterNotNull().first().id
-            loadNotes(silent = cached != null)
+            userIdFlow.value = requestedUserId ?: userRepository.userFlow.filterNotNull().first().id
         }
         observeNoteEvents()
     }
 
-    /// 观察同步详情页的点赞变更，三个列表同步
     private fun observeNoteEvents() {
         viewModelScope.launch {
             eventBus.events.collect { event ->
                 when (event) {
-                    is NoteEvent.LikeChanged -> {
-                        val sync: (ProfileNotesUiState) -> ProfileNotesUiState = { state ->
-                            state.copy(
-                                items = state.items.map { item ->
-                                    if (item.id == event.noteId)
-                                        item.copy(liked = event.liked, likeCount = event.likeCount)
-                                    else item
-                                },
-                                likedIds = if (event.liked) state.likedIds + event.noteId
-                                           else state.likedIds - event.noteId,
-                            )
-                        }
-                        _notesState.update(sync)
-                        _likesState.update(sync)
-                        _favoritesState.update(sync)
+                    is NoteEvent.LikeChanged -> _likeState.update {
+                        it.copy(
+                            likeStates = it.likeStates + (event.noteId to event.liked),
+                            likeCounts = it.likeCounts + (event.noteId to event.likeCount),
+                        )
                     }
                     is NoteEvent.FavoriteChanged -> Unit
                     is NoteEvent.CommentCountChanged -> Unit
@@ -103,235 +86,29 @@ class ProfileNotesViewModel @Inject constructor(
         }
     }
 
-    /**
-     * 笔记 tab
-     */
-
-    private fun loadNotes(silent: Boolean = false) {
-        val uid = userId ?: return
+    /// 点赞、取消点赞
+    fun toggleLike(item: FeedItem, currentLiked: Boolean, currentCount: Int) {
+        val nextLiked = !currentLiked
+        val nextCount = if (currentLiked) currentCount - 1 else currentCount + 1
+        _likeState.update {
+            it.copy(
+                likeStates = it.likeStates + (item.id to nextLiked),
+                likeCounts = it.likeCounts + (item.id to nextCount),
+            )
+        }
         viewModelScope.launch {
-            // 非静默刷新时加载
-            if (!silent) {
-                _notesState.update { it.copy(isLoading = true, error = null, items = emptyList(), hasMore = true) }
+            val result = if (currentLiked) noteRepository.unlikeNote(item.id)
+                          else noteRepository.likeNote(item.id)
+            result.onSuccess {
+                eventBus.emit(NoteEvent.LikeChanged(item.id, nextLiked, nextCount))
             }
-            notesCursor = null
-            noteRepository.getUserNotes(userId = uid, cursor = null).fold(
-                onSuccess = { response ->
-                    notesCursor = response.nextCursor
-                    _notesState.update {
-                        it.copy(
-                            isLoading = false,
-                            isRefreshing = false,
-                            items = response.items,
-                            likedIds = response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
-                            hasMore = response.hasMore,
-                        )
-                    }
-                },
-                onFailure = { e ->
-                    _notesState.update { it.copy(isLoading = false, isRefreshing = false, error = e.message) }
-                },
-            )
-        }
-    }
-
-    fun refreshNotes() {
-        if (_notesState.value.isRefreshing) return
-        _notesState.update { it.copy(isRefreshing = true) }
-        loadNotes()
-    }
-
-    fun loadMoreNotes() {
-        val uid = userId ?: return
-        val state = _notesState.value
-        if (state.isLoadingMore || !state.hasMore || state.isLoading) return
-        viewModelScope.launch {
-            _notesState.update { it.copy(isLoadingMore = true) }
-            noteRepository.getUserNotes(userId = uid, cursor = notesCursor).fold(
-                onSuccess = { response ->
-                    notesCursor = response.nextCursor
-                    _notesState.update {
-                        it.copy(
-                            isLoadingMore = false,
-                            items = it.items + response.items,
-                            likedIds = it.likedIds + response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
-                            hasMore = response.hasMore,
-                        )
-                    }
-                },
-                onFailure = { e ->
-                    _notesState.update { it.copy(isLoadingMore = false, error = e.message) }
-                },
-            )
-        }
-    }
-
-    /**
-     * 点赞 tab
-     */
-
-    /// 点赞 tab 懒加载
-    fun loadLikesLazy() {
-        if (_likesState.value.items.isNotEmpty() || _likesState.value.isLoading) return
-        loadLikes()
-    }
-
-    fun refreshLikes() {
-        if (_likesState.value.isRefreshing) return
-        _likesState.update { it.copy(isRefreshing = true) }
-        loadLikes()
-    }
-
-    private fun loadLikes() {
-        val uid = userId ?: return
-        viewModelScope.launch {
-            _likesState.update { it.copy(isLoading = true, error = null, items = emptyList(), hasMore = true) }
-            likesCursor = null
-            noteRepository.getUserLikes(userId = uid, cursor = null).fold(
-                onSuccess = { response ->
-                    likesCursor = response.nextCursor
-                    _likesState.update {
-                        it.copy(
-                            isLoading = false,
-                            isRefreshing = false,
-                            items = response.items,
-                            likedIds = response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
-                            hasMore = response.hasMore,
-                        )
-                    }
-                },
-                onFailure = { e ->
-                    _likesState.update { it.copy(isLoading = false, isRefreshing = false, error = e.message) }
-                },
-            )
-        }
-    }
-
-    fun loadMoreLikes() {
-        val uid = userId ?: return
-        val state = _likesState.value
-        if (state.isLoadingMore || !state.hasMore || state.isLoading) return
-        viewModelScope.launch {
-            _likesState.update { it.copy(isLoadingMore = true) }
-            noteRepository.getUserLikes(userId = uid, cursor = likesCursor).fold(
-                onSuccess = { response ->
-                    likesCursor = response.nextCursor
-                    _likesState.update {
-                        it.copy(
-                            isLoadingMore = false,
-                            items = it.items + response.items,
-                            likedIds = it.likedIds + response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
-                            hasMore = response.hasMore,
-                        )
-                    }
-                },
-                onFailure = { e ->
-                    _likesState.update { it.copy(isLoadingMore = false, error = e.message) }
-                },
-            )
-        }
-    }
-
-    /**
-     * 收藏 tab
-     */
-
-    /// 懒加载收藏 tab
-    fun loadFavoritesLazy() {
-        if (_favoritesState.value.items.isNotEmpty() || _favoritesState.value.isLoading) return
-        loadFavorites()
-    }
-
-    fun refreshFavorites() {
-        if (_favoritesState.value.isRefreshing) return
-        _favoritesState.update { it.copy(isRefreshing = true) }
-        loadFavorites()
-    }
-
-    private fun loadFavorites() {
-        val uid = userId ?: return
-        viewModelScope.launch {
-            _favoritesState.update { it.copy(isLoading = true, error = null, items = emptyList(), hasMore = true) }
-            favoritesCursor = null
-            noteRepository.getUserFavorites(userId = uid, cursor = null).fold(
-                onSuccess = { response ->
-                    favoritesCursor = response.nextCursor
-                    _favoritesState.update {
-                        it.copy(
-                            isLoading = false,
-                            isRefreshing = false,
-                            items = response.items,
-                            likedIds = response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
-                            hasMore = response.hasMore,
-                        )
-                    }
-                },
-                onFailure = { e ->
-                    _favoritesState.update { it.copy(isLoading = false, isRefreshing = false, error = e.message) }
-                },
-            )
-        }
-    }
-
-    fun loadMoreFavorites() {
-        val uid = userId ?: return
-        val state = _favoritesState.value
-        if (state.isLoadingMore || !state.hasMore || state.isLoading) return
-        viewModelScope.launch {
-            _favoritesState.update { it.copy(isLoadingMore = true) }
-            noteRepository.getUserFavorites(userId = uid, cursor = favoritesCursor).fold(
-                onSuccess = { response ->
-                    favoritesCursor = response.nextCursor
-                    _favoritesState.update {
-                        it.copy(
-                            isLoadingMore = false,
-                            items = it.items + response.items,
-                            likedIds = it.likedIds + response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
-                            hasMore = response.hasMore,
-                        )
-                    }
-                },
-                onFailure = { e ->
-                    _favoritesState.update { it.copy(isLoadingMore = false, error = e.message) }
-                },
-            )
-        }
-    }
-
-
-    /// 点赞/取消点赞，三个列表同步
-    fun toggleLike(noteId: Long) {
-        val liked = noteId in _notesState.value.likedIds ||
-                    noteId in _likesState.value.likedIds ||
-                    noteId in _favoritesState.value.likedIds
-        val delta = if (liked) -1 else 1
-        /// 乐观更新
-        val apply: (ProfileNotesUiState) -> ProfileNotesUiState = { state ->
-            state.copy(
-                likedIds = if (liked) state.likedIds - noteId else state.likedIds + noteId,
-                items = state.items.map { item ->
-                    if (item.id == noteId) item.copy(likeCount = item.likeCount + delta) else item
-                },
-            )
-        }
-        _notesState.update(apply)
-        _likesState.update(apply)
-        _favoritesState.update(apply)
-        viewModelScope.launch {
-            val result = if (liked) noteRepository.unlikeNote(noteId) else noteRepository.likeNote(noteId)
             result.onFailure {
-                /// 请求失败时回滚
-                val revert: (ProfileNotesUiState) -> ProfileNotesUiState = { state ->
-                    state.copy(
-                        likedIds = if (liked) state.likedIds + noteId else state.likedIds - noteId,
-                        items = state.items.map { item ->
-                            if (item.id == noteId) item.copy(likeCount = item.likeCount - delta) else item
-                        },
+                _likeState.update {
+                    it.copy(
+                        likeStates = it.likeStates + (item.id to currentLiked),
+                        likeCounts = it.likeCounts + (item.id to currentCount),
                     )
                 }
-                _notesState.update(revert)
-                _likesState.update(revert)
-                _favoritesState.update(revert)
             }
         }
     }

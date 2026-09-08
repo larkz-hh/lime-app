@@ -26,14 +26,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.components.BottomActionSheet
 import xyz.larkzhh.lime.ui.components.SheetAction
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.util.saveImageToGallery
+import xyz.larkzhh.lime.util.media.saveImageToGallery
 import xyz.larkzhh.lime.util.showToast
 
 /// 全屏图片预览浮层
@@ -50,6 +52,8 @@ fun ImagePreviewOverlay(
     var showSheet by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val savedToAlbumText = stringResource(R.string.image_preview_saved_to_album)
+    val saveFailedText = stringResource(R.string.image_preview_save_failed)
 
     Box(
         modifier = Modifier
@@ -81,7 +85,7 @@ fun ImagePreviewOverlay(
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = "关闭预览",
+                contentDescription = stringResource(R.string.image_preview_close),
                 tint = Color.White,
                 modifier = Modifier.size(24.dp),
             )
@@ -108,18 +112,18 @@ fun ImagePreviewOverlay(
             onDismiss = { showSheet = false },
             actions = listOf(
                 SheetAction(
-                    label = "保存图片",
+                    label = stringResource(R.string.image_preview_save_image),
                     onClick = {
                         val url = images[pagerState.currentPage]
                         scope.launch {
                             val ok = saveImageToGallery(context, url)
-                            val text = if (ok) "已保存到相册" else "保存失败"
+                            val text = if (ok) savedToAlbumText else saveFailedText
                             text.showToast(context)
                         }
                     },
                 ),
                 SheetAction(
-                    label = "取消",
+                    label = stringResource(R.string.cancel),
                     textColor = LimeGray,
                     onClick = {},
                 ),

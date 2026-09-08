@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,17 +29,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
-import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
+
+/// 封面最大高度
+internal val MaxCoverHeight = 280.dp
 
 /**
  * 信息流笔记卡片组件
@@ -80,31 +85,25 @@ fun NoteCard(
             // 封面图
             Box {
                 if (item.coverImage != null) {
-                    AsyncImage(
+                    SubcomposeAsyncImage(
                         model = item.coverImage,
                         contentDescription = item.title,
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(imageRatio)
+                            .heightIn(max = MaxCoverHeight)
                             .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
                         contentScale = ContentScale.Crop,
+                        loading = {
+                            ShimmerBox(
+                                modifier = Modifier.fillMaxSize(),
+                                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+                            )
+                        },
+                        error = { CoverPlaceholder(imageRatio, item.title) },
                     )
                 } else {
-                    // 无封面占位
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(imageRatio)
-                            .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                            .background(LimeLightGray),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = item.title?.take(4) ?: "图文",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = LimeGray,
-                        )
-                    }
+                    CoverPlaceholder(imageRatio, item.title)// 无封面占位
                 }
                 // 浏览数角标
                 if (item.viewCount != null) {
@@ -118,7 +117,7 @@ fun NoteCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.RemoveRedEye,
-                            contentDescription = "浏览人数",
+                            contentDescription = stringResource(R.string.view_count),
                             tint = Color.White,
                             modifier = Modifier.size(10.dp),
                         )
@@ -163,13 +162,13 @@ fun NoteCard(
                             modifier = Modifier
                                 .size(18.dp)
                                 .clip(CircleShape)
-                                .background(LimePrimaryPale),
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
                                 text = item.author.nickname.take(1),// 提取作者昵称的第一个字
                                 fontSize = 8.sp,
-                                color = LimePrimary,
+                                color = LimeGray,
                             )
                         }
                     }
@@ -195,6 +194,26 @@ fun NoteCard(
                 }
             }
         }
+    }
+}
+
+/// 无封面、加载失败时占位块
+@Composable
+private fun CoverPlaceholder(ratio: Float, title: String?) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(ratio)
+            .heightIn(max = MaxCoverHeight)
+            .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = title?.take(4) ?: stringResource(R.string.note_type_image_text),
+            style = MaterialTheme.typography.bodySmall,
+            color = LimeGray,
+        )
     }
 }
 

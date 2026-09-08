@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,7 +30,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeTheme
 
@@ -54,15 +54,17 @@ fun WaterfallFeed(
     verticalItemSpacing: Dp = 4.dp,
     horizontalItemSpacing: Dp = 4.dp,
     isLoadingMore: Boolean = false,
+    loadMoreError: String? = null,
     onLoadMore: () -> Unit = {},
+    onRetryLoadMore: () -> Unit = {},
     content: LazyStaggeredGridScope.() -> Unit,
 ) {
     // 距离末尾4条时触发加载更多
-    val shouldLoadMore by remember(state) {
+    val shouldLoadMore by remember(state, loadMoreError) {
         derivedStateOf {
             val lastVisible = state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val total = state.layoutInfo.totalItemsCount
-            total > 0 && lastVisible >= total - 4
+            total > 0 && lastVisible >= total - 4 && loadMoreError == null
         }
     }
     LaunchedEffect(shouldLoadMore) {
@@ -89,10 +91,15 @@ fun WaterfallFeed(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 2.dp,
                     )
                 }
+            }
+        }
+        if (loadMoreError != null && !isLoadingMore) {
+            item(span = StaggeredGridItemSpan.FullLine) {
+                LoadMoreErrorItem(message = loadMoreError, onRetry = onRetryLoadMore)
             }
         }
     }
@@ -111,7 +118,7 @@ private fun WaterfallFeedPreview() {
                         .fillMaxWidth()
                         .height((120 + index * 30).dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(LimePrimaryPale),
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text("Card $index")
@@ -135,7 +142,7 @@ private fun WaterfallFeedLoadingPreview() {
                         .fillMaxWidth()
                         .height(150.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(LimePrimaryPale),
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text("Card $index")

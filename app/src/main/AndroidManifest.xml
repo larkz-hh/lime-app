@@ -8,7 +8,26 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- vivo 桌面角标 -->
+    <uses-permission android:name="com.vivo.notification.permission.BADGE_ICON" />
+
+    <!-- 桌面角标 ===== -->
+    <uses-permission android:name="com.sec.android.provider.badge.permission.READ" />
+    <uses-permission android:name="com.sec.android.provider.badge.permission.WRITE" />
+    <uses-permission android:name="com.htc.launcher.permission.READ_SETTINGS" />
+    <uses-permission android:name="com.htc.launcher.permission.UPDATE_SHORTCUT" />
+    <uses-permission android:name="com.sonyericsson.home.permission.BROADCAST_BADGE" />
+    <uses-permission android:name="com.sonymobile.home.permission.PROVIDER_INSERT_BADGE" />
+    <uses-permission android:name="com.anddoes.launcher.permission.UPDATE_COUNT" />
+    <uses-permission android:name="com.majeur.launcher.permission.UPDATE_BADGE" />
+    <uses-permission android:name="com.huawei.android.launcher.permission.CHANGE_BADGE" />
+    <uses-permission android:name="com.huawei.android.launcher.permission.READ_SETTINGS" />
+    <uses-permission android:name="com.huawei.android.launcher.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="com.hihonor.android.launcher.permission.CHANGE_BADGE" />
+    <uses-permission android:name="com.hihonor.android.launcher.permission.READ_SETTINGS" />
+    <uses-permission android:name="com.hihonor.android.launcher.permission.WRITE_SETTINGS" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -23,6 +42,7 @@
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:name=".LimeApplication"
@@ -37,12 +57,16 @@
         android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.Lime">
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
             android:theme="@style/Theme.Lime"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Lime.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -54,7 +78,7 @@
                 android:resource="@xml/shortcuts" />
         </activity>
         <activity
-            android:name=".VideoActivity"
+            android:name=".ui.VideoActivity"
             android:exported="false"
             android:supportsPictureInPicture="true"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
@@ -65,6 +89,16 @@
             android:theme="@style/Theme.UCrop.Fullscreen"
             tools:ignore="LockedOrientationActivity"
             />
+        <!-- 应用内更新安装：通过 FileProvider 暴露下载的 APK -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
         <!-- 媒体按钮接收器 -->
         <receiver
             android:name="androidx.media3.session.MediaButtonReceiver"
@@ -75,17 +109,23 @@
         </receiver>
         <!-- PiP 小窗自定义按钮的广播接收器 -->
         <receiver
-            android:name=".PipMediaActionReceiver"
+            android:name=".ui.PipMediaActionReceiver"
             android:exported="false" />
-        <!-- 后台播放服务 -->
+        <!-- 后台播放服务-->
         <service
             android:name=".ui.video.player.PlaybackService"
             android:exported="true"
-            android:foregroundServiceType="mediaPlayback">
+            android:foregroundServiceType="mediaPlayback"
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+        <!-- 消息保活前台服务 -->
+        <service
+            android:name=".data.notification.NotificationService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
         <!-- 桌面搜索栏组件 -->
         <receiver
             android:name=".ui.widget.SearchWidgetReceiver"

@@ -24,7 +24,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /**
  * 通用自定义 AlertDialog 弹窗。
@@ -48,15 +47,17 @@ fun LimeAlertDialog(
     text: String? = null,
     firstButtonText: String = "取消",
     secondButtonText: String = "确定",
-    secondButtonColor: Color = LimePrimary,
+    secondButtonColor: Color? = null,
 ) {
+    // null 跟随当前主题主色
+    val resolvedSecondColor = secondButtonColor ?: MaterialTheme.colorScheme.primary
     BasicAlertDialog(onDismissRequest = onDismissRequest) {
         LimeAlertDialogContent(
             title = title,
             text = text,
             firstButtonText = firstButtonText,
             secondButtonText = secondButtonText,
-            secondButtonColor = secondButtonColor,
+            secondButtonColor = resolvedSecondColor,
             onFirstButtonClick = onFirstButtonClick,
             onSecondButtonClick = onSecondButtonClick,
         )
@@ -93,7 +94,7 @@ private fun LimeAlertDialogContent(
                     text = text,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Start,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 20.dp, end = 20.dp, bottom = 18.dp),
@@ -132,7 +133,7 @@ private fun LimeAlertDialogPreview() {
             text = null,
             firstButtonText = "取消",
             secondButtonText = "确定",
-            secondButtonColor = LimePrimary,
+            secondButtonColor = MaterialTheme.colorScheme.primary,
             onFirstButtonClick = {},
             onSecondButtonClick = {},
         )

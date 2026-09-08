@@ -39,6 +39,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 
@@ -79,7 +81,7 @@ fun SearchTopBar(
         IconButton(onClick = onBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "返回",
+                contentDescription = stringResource(R.string.back),
                 tint = MaterialTheme.colorScheme.onBackground,
             )
         }
@@ -89,7 +91,7 @@ fun SearchTopBar(
                 .weight(1f)
                 .height(36.dp)
                 .clip(RoundedCornerShape(18.dp))
-                .background(LimeLightGray)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -114,7 +116,7 @@ fun SearchTopBar(
                     Box(contentAlignment = Alignment.CenterStart) {
                         if (textFieldValue.text.isEmpty()) {
                             Text(
-                                text = "搜索笔记和用户",
+                                text = stringResource(R.string.search_placeholder),
                                 color = LimeGray,
                                 fontSize = 15.sp,
                             )
@@ -127,7 +129,7 @@ fun SearchTopBar(
             if (textFieldValue.text.isNotEmpty()) {
                 Icon(
                     imageVector = Icons.Filled.Close,
-                    contentDescription = "清空",
+                    contentDescription = stringResource(R.string.search_clear),
                     tint = MaterialTheme.colorScheme.surface,
                     modifier = Modifier
                         .size(16.dp)
@@ -140,7 +142,7 @@ fun SearchTopBar(
         }
         // 搜索按钮
         Text(
-            text = "搜索",
+            text = stringResource(R.string.search_action),
             fontSize = 15.sp,
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier

@@ -9,12 +9,12 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import xyz.larkzhh.lime.data.network.ApiService
 import xyz.larkzhh.lime.domain.NoteEventBus
+import xyz.larkzhh.lime.domain.repository.FollowRepository
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
-import xyz.larkzhh.lime.navigation.AuthorProfileSession
-import xyz.larkzhh.lime.navigation.AuthorProfileStore
+import xyz.larkzhh.lime.navigation.state.AuthorProfileSession
+import xyz.larkzhh.lime.navigation.state.AuthorProfileStore
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileNotesViewModel
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileViewModel
 import javax.inject.Inject
@@ -25,11 +25,11 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class AuthorSessionHost @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val userRepository: UserRepository,
-    private val apiService: ApiService,
     private val noteRepository: NoteRepository,
     private val noteEventBus: NoteEventBus,
-    @param:ApplicationContext private val appContext: Context,
+    private val followRepository: FollowRepository,
 ) : ViewModel() {
     private val childStore = ViewModelStore()// ViewModel存储容器
     private var authorId: Long? = null
@@ -42,10 +42,10 @@ class AuthorSessionHost @Inject constructor(
         val factory = viewModelFactory {
             initializer {
                 ProfileViewModel(
+                    context = context,
                     savedStateHandle = SavedStateHandle(mapOf("userId" to authorId)),
                     userRepository = userRepository,
-                    apiService = apiService,
-                    context = appContext,
+                    followRepository = followRepository,
                 )
             }
             initializer {

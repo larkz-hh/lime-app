@@ -30,10 +30,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 管理模式底部操作栏
 @Composable
@@ -70,7 +71,7 @@ fun HistoryManageBar(
                     modifier = Modifier
                         .size(22.dp)
                         .clip(CircleShape)
-                        .background(if (allSelected) LimePrimary else Color.Transparent)
+                        .background(if (allSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
                         .border(
                             width = 1.5.dp,
                             color = if (allSelected) Color.Transparent else LimeGray,
@@ -88,13 +89,13 @@ fun HistoryManageBar(
                     }
                 }
                 Spacer(Modifier.width(6.dp))
-                Text(text = "全选", style = MaterialTheme.typography.bodyMedium)
+                Text(text = stringResource(R.string.profile_select_all), style = MaterialTheme.typography.bodyMedium)
             }
 
             // 已选数量提示
             if (selectedCount > 0) {
                 Text(
-                    text = "已选${selectedCount}篇笔记",
+                    text = stringResource(R.string.profile_selected_notes_count, selectedCount),
                     style = MaterialTheme.typography.bodySmall,
                     color = LimeGray,
                 )
@@ -108,7 +109,7 @@ fun HistoryManageBar(
                 enabled = selectedCount > 0 && !isDeleting,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFFF4444),
-                    disabledContainerColor = LimeLightGray,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     disabledContentColor = LimeGray,
                 ),
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
@@ -120,7 +121,7 @@ fun HistoryManageBar(
                         strokeWidth = 2.dp,
                     )
                 } else {
-                    Text("删除")
+                    Text(stringResource(R.string.profile_delete))
                 }
             }
         }

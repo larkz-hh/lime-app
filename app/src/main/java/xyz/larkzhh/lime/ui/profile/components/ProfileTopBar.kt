@@ -33,13 +33,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
@@ -72,8 +73,10 @@ fun ProfileTopBar(
                 .padding(horizontal = 4.dp)
                 .height(52.dp),
         ) {
-            val leadingLabel =
-                if (leadingIcon == Icons.AutoMirrored.Filled.ArrowBack) "返回" else "菜单"
+            val leadingLabelRes =
+                if (leadingIcon == Icons.AutoMirrored.Filled.ArrowBack) R.string.back
+                else R.string.profile_menu
+            val leadingLabel = stringResource(leadingLabelRes)
             IconButton(
                 onClick = onLeadingClick,
                 modifier = Modifier.align(Alignment.CenterStart),
@@ -91,7 +94,7 @@ fun ProfileTopBar(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(LimePrimaryPale),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center,
                 ) {
                     if (user?.avatar != null) {
@@ -105,7 +108,7 @@ fun ProfileTopBar(
                         Text(
                             text = user?.nickname?.take(1) ?: "",
                             style = MaterialTheme.typography.labelMedium,
-                            color = LimePrimary,
+                            color = LimeGray,
                         )
                     }
                 }
@@ -138,14 +141,18 @@ fun ProfileTopBar(
                             modifier = Modifier.size(14.dp),
                         )
                         Text(
-                            text = "编辑主页",
+                            text = stringResource(R.string.profile_edit_profile),
                             style = MaterialTheme.typography.labelMedium,
                             color = LimePrimaryPale,
                         )
                     }
                     Spacer(Modifier.width(4.dp))
                     IconButton(onClick = onQrScanClick) {
-                        Icon(Icons.Default.QrCodeScanner, contentDescription = "扫一扫", tint = LimeWhite)
+                        Icon(
+                            Icons.Default.QrCodeScanner,
+                            contentDescription = stringResource(R.string.profile_qr_scan),
+                            tint = LimeWhite,
+                        )
                     }
                 }
             }

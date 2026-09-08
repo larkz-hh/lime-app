@@ -42,3 +42,10 @@ data class RegisterRequest(
 data class RefreshTokenRequest(
     val refreshToken: String,
 )
+
+/// 修改密码
+data class ChangePasswordRequest(
+    val oldPassword: String? = null,
+    val code: String? = null,
+    val newPassword: String,
+)

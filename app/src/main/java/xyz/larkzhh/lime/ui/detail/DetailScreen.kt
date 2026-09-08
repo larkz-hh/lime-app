@@ -21,6 +21,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import xyz.larkzhh.lime.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Reply
@@ -40,6 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,16 +58,24 @@ import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.domain.model.ChatNote
-import xyz.larkzhh.lime.navigation.Screen
-import xyz.larkzhh.lime.navigation.SwipeBackScaffold
-import xyz.larkzhh.lime.navigation.navigateToUserProfile
-import xyz.larkzhh.lime.navigation.PendingChatStore
+import xyz.larkzhh.lime.domain.model.FollowActionState
+import xyz.larkzhh.lime.domain.model.toFollowActionState
+import xyz.larkzhh.lime.ui.auth.LoginGate
+import xyz.larkzhh.lime.navigation.state.PendingNoteEdit
+import xyz.larkzhh.lime.navigation.route.Screen
+import xyz.larkzhh.lime.navigation.component.SwipeBackScaffold
+import xyz.larkzhh.lime.navigation.route.navigateToUserProfile
+import xyz.larkzhh.lime.navigation.state.PendingChatStore
 import xyz.larkzhh.lime.ui.components.CommentInputSheet
+import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet
 import xyz.larkzhh.lime.ui.components.GroupedSheetAction
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
+import xyz.larkzhh.lime.ui.components.LoadMoreErrorItem
+import xyz.larkzhh.lime.ui.components.NoteManageSheet
 import xyz.larkzhh.lime.ui.components.SelectableText
 import xyz.larkzhh.lime.ui.components.SelectionAction
+import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.components.VoiceRecordSheet
 import xyz.larkzhh.lime.ui.detail.components.AuthorBar
 import xyz.larkzhh.lime.ui.detail.comment.components.CommentCard
@@ -82,13 +92,16 @@ import xyz.larkzhh.lime.ui.detail.translate.FullTextUiState
 import xyz.larkzhh.lime.ui.detail.translate.TranslateResultSheet
 import xyz.larkzhh.lime.ui.detail.translate.TranslateViewModel
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import xyz.larkzhh.lime.util.copyToClipboard
-import xyz.larkzhh.lime.util.formatRelativeTime
+import xyz.larkzhh.lime.util.text.formatRelativeTime
+import xyz.larkzhh.lime.util.generateGradientQrBitmap
+import xyz.larkzhh.lime.util.limeNoteQrContent
+import xyz.larkzhh.lime.util.media.saveBitmapToGallery
 import xyz.larkzhh.lime.util.showToast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // 长按目标
 private sealed interface LongPressTarget {
@@ -116,13 +129,20 @@ fun DetailScreen(
     val commentUiState by commentViewModel.uiState.collectAsState()
     val translateUiState by translateViewModel.uiState.collectAsState()
     val fullTextUiState by translateViewModel.fullText.collectAsState()
+    val relations by viewModel.relations.collectAsState()
 
     // 评论图片预览本地状态
     var commentPreviewImages by remember { mutableStateOf<List<String>>(emptyList()) }
     var commentPreviewIndex by remember { mutableStateOf<Int?>(null) }
     var longPressTarget by remember { mutableStateOf<LongPressTarget?>(null) }
     var pendingDeleteAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var showUnfollowConfirm by remember { mutableStateOf(false) }
+    var showNoteManage by remember { mutableStateOf(false) }
+    var showDeleteNoteConfirm by remember { mutableStateOf(false) }
+    var showQrSaveConfirm by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val t = detailTexts()
 
     LaunchedEffect(noteId) {
         val id = noteId.toLongOrNull() ?: return@LaunchedEffect
@@ -143,10 +163,13 @@ fun DetailScreen(
 
     val authorId = uiState.note?.author?.id
     val selfUserId = commentViewModel.currentUserId
+    // 作者关注状态
+    val authorFollowState = authorId?.let { id ->
+        if (id == selfUserId) null else relations[id]?.toFollowActionState() ?: FollowActionState.Follow
+    }
     val sessionHost: AuthorSessionHost = hiltViewModel()
     val authorSession = authorId?.let { id -> remember(id) { sessionHost.ensure(id) } }// 绑定作者主页会话
-    // 作者主页正是详情页的上一页，关闭左滑前进预览
-    val prevEntry = navController.previousBackStackEntry
+    val prevEntry = navController.previousBackStackEntry// 作者主页为详情页的上一页，关闭左滑前进预览
     val authorAlreadyInStack = authorId != null && when (prevEntry?.destination?.route) {
         Screen.Profile.route -> selfUserId != null && authorId == selfUserId
         Screen.UserProfile.ROUTE -> prevEntry.arguments?.getLong("userId") == authorId
@@ -182,25 +205,25 @@ fun DetailScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             when {
-                uiState.isLoading -> {
+                uiState.isLoading && uiState.note == null -> {
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth(),
                         contentAlignment = Alignment.Center,
                     ) {
-                        CircularProgressIndicator(color = LimePrimary)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
 
-                uiState.error != null -> {
+                uiState.error != null && uiState.note == null -> {
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth(),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(text = uiState.error ?: "加载失败", color = LimeGray, fontSize = 14.sp)
+                        ErrorState(message = uiState.error, onRetry = viewModel::retry)
                     }
                 }
 
@@ -211,6 +234,15 @@ fun DetailScreen(
                         onAuthorClick = {
                             navController.navigateToUserProfile(uiState.note!!.author.id, selfUserId)
                         },
+                        followState = authorFollowState,
+                        onFollowClick = {
+                            if (authorFollowState == FollowActionState.Follow) {
+                                viewModel.followAuthor()
+                            } else {
+                                showUnfollowConfirm = true
+                            }
+                        },
+                        onShareClick = { showQrSaveConfirm = true },
                     )
                     NoteContent(
                         note = uiState.note!!,
@@ -218,9 +250,12 @@ fun DetailScreen(
                         modifier = Modifier.weight(1f),
                         onImageClick = viewModel::showImagePreview,
                         onSortChange = commentViewModel::setSort,
+                        onRetryComments = commentViewModel::retryComments,
                         onLoadMoreComments = { commentViewModel.loadComments() },
                         onCommentLike = commentViewModel::toggleCommentLike,
-                        onReply = { commentViewModel.openInputSheet(it) },
+                        onReply = { replyId ->
+                            if (!LoginGate.onRequireLogin(null)) commentViewModel.openInputSheet(replyId)
+                        },
                         onLoadMoreReplies = commentViewModel::loadMoreReplies,
                         onReplyLike = commentViewModel::toggleReplyLike,
                         onCommentImageClick = { images, index ->
@@ -230,23 +265,29 @@ fun DetailScreen(
                         onCommentLongPress = { longPressTarget = LongPressTarget.Comment(it) },
                         onCommentReplyLongPress = { commentId, reply -> longPressTarget = LongPressTarget.Reply(commentId, reply) },
                         currentUserAvatar = commentViewModel.currentUserAvatar,
-                        onCommentBoxClick = { commentViewModel.openInputSheet(null) },
+                        onCommentBoxClick = {
+                            if (!LoginGate.onRequireLogin(null)) commentViewModel.openInputSheet(null)
+                        },
                         onVoiceClick = {
-                            commentViewModel.openInputSheet(null)
-                            if (commentUiState.pendingImages.isNotEmpty()) {
-                                "图片和语音不能同时添加".showToast(context)
-                            } else if (commentUiState.pendingVoice != null) {
-                                "只能添加一条语音".showToast(context)
-                            } else {
-                                commentViewModel.openVoiceSheet()
+                            if (!LoginGate.onRequireLogin(null)) {
+                                commentViewModel.openInputSheet(null)
+                                if (commentUiState.pendingImages.isNotEmpty()) {
+                                    t.imageVoiceMutexToast.showToast(context)
+                                } else if (commentUiState.pendingVoice != null) {
+                                    t.voiceOnlyToast.showToast(context)
+                                } else {
+                                    commentViewModel.openVoiceSheet()
+                                }
                             }
                         },
                         onAlbumClick = {
-                            commentViewModel.openInputSheet(null)
-                            if (commentUiState.pendingVoice != null) {
-                                "图片和语音不能同时添加".showToast(context)
-                            } else {
-                                navController.navigate(Screen.CommentPhotoPicker.route)
+                            if (!LoginGate.onRequireLogin(null)) {
+                                commentViewModel.openInputSheet(null)
+                                if (commentUiState.pendingVoice != null) {
+                                    t.imageVoiceMutexToast.showToast(context)
+                                } else {
+                                    navController.navigate(Screen.CommentPhotoPicker.route)
+                                }
                             }
                         },
                         onAuthorClick = { userId ->
@@ -257,11 +298,13 @@ fun DetailScreen(
                             navController.navigate(Screen.Search.createRoute(text))
                         },
                         onAskAi = { text ->
-                            val n = uiState.note
-                            PendingChatStore.askAiNote =
-                                n?.let { ChatNote(it.id, it.title, it.images.firstOrNull()?.url) }
-                            PendingChatStore.askAiText = text
-                            navController.navigate(Screen.AiChat.createRoute(Screen.AiChat.NEW_CONVERSATION))
+                            if (!LoginGate.onRequireLogin(null)) {
+                                val n = uiState.note
+                                PendingChatStore.askAiNote =
+                                    n?.let { ChatNote(it.id, it.title, it.images.firstOrNull()?.url) }
+                                PendingChatStore.askAiText = text
+                                navController.navigate(Screen.AiChat.createRoute(Screen.AiChat.NEW_CONVERSATION))
+                            }
                         },
                         fullText = fullTextUiState,
                         onToggleFullText = {
@@ -277,7 +320,11 @@ fun DetailScreen(
                         ),
                         onToggleLike = viewModel::toggleLike,
                         onToggleFavorite = viewModel::toggleFavorite,
-                        onCommentClick = { commentViewModel.openInputSheet(null) },
+                        onCommentClick = {
+                            if (!LoginGate.onRequireLogin(null)) commentViewModel.openInputSheet(null)
+                        },
+                        isAuthor = selfUserId != null && uiState.note!!.author.id == selfUserId,
+                        onManageClick = { showNoteManage = true },
                     )
                 }
             }
@@ -317,7 +364,9 @@ fun DetailScreen(
         // 评论输入框
         var voiceSheetHeightDp by remember { mutableIntStateOf(0) }
         if (commentUiState.showInputSheet) {
-            val hint = commentUiState.replyTarget?.let { "回复 @${it.replyToNickname}" } ?: "说点什么…"
+            val hint = commentUiState.replyTarget?.let { target ->
+                stringResource(R.string.comment_reply_to_hint, target.replyToNickname)
+            } ?: stringResource(R.string.comment_input_hint)
             CommentInputSheet(
                 hint = hint,
                 isSubmitting = commentUiState.isSubmitting,
@@ -355,12 +404,12 @@ fun DetailScreen(
                 onBackgroundDownload = {
                     translateViewModel.scheduleBackgroundDownload()
                     translateViewModel.dismiss()
-                    "已加入后台下载，完成后即可离线翻译".showToast(context)
+                    t.bgDownloadAddedToast.showToast(context)
                 },
                 onSwitchDirection = translateViewModel::switchDirection,
                 onCopy = { text ->
                     text.copyToClipboard(context)
-                    "已复制".showToast(context)
+                    t.copiedToast.showToast(context)
                 },
             )
         }
@@ -409,21 +458,21 @@ fun DetailScreen(
                 val m = menu ?: return@buildList
                 add(listOf(
                     GroupedSheetAction(
-                        label = "回复",
+                        label = t.replyMenuLabel,
                         icon = Icons.AutoMirrored.Outlined.Reply,
                         onClick = { commentViewModel.openInputSheet(m.replyTarget) },
                     ),
                     GroupedSheetAction(
-                        label = "复制",
+                        label = t.copyMenuLabel,
                         icon = Icons.Outlined.ContentCopy,
                         iconSize = 20.dp,
                         onClick = {
                             m.copyText?.copyToClipboard(context)
-                            "已复制".showToast(context)
+                            t.copiedToast.showToast(context)
                         },
                     ),
                     GroupedSheetAction(
-                        label = "翻译",
+                        label = t.translateMenuLabel,
                         icon = Icons.Outlined.Translate,
                         iconSize = 20.dp,
                         onClick = {
@@ -434,7 +483,7 @@ fun DetailScreen(
                 if (m.canDelete) {
                     add(listOf(
                         GroupedSheetAction(
-                            label = "删除",
+                            label = t.deleteMenuLabel,
                             icon = Icons.Outlined.Delete,
                             textColor = Color(0xFFFF3B30),
                             onClick = m.onDelete,
@@ -447,12 +496,94 @@ fun DetailScreen(
         // 删除确认对话框
         if (pendingDeleteAction != null) {
             LimeAlertDialog(
-                title = "确认删除这条评论吗？",
+                title = stringResource(R.string.comment_delete_confirm_title),
+                firstButtonText = stringResource(R.string.cancel),
+                secondButtonText = stringResource(R.string.delete),
+                secondButtonColor = Color(0xFFFF3B30),
                 onDismissRequest = { pendingDeleteAction = null },
                 onFirstButtonClick = { pendingDeleteAction = null },
                 onSecondButtonClick = {
                     pendingDeleteAction?.invoke()
                     pendingDeleteAction = null
+                },
+            )
+        }
+
+        // 笔记管理菜单
+        NoteManageSheet(
+            visible = showNoteManage,
+            onDismiss = { showNoteManage = false },
+            onEdit = {
+                uiState.note?.let { note ->
+                    PendingNoteEdit.noteId = note.id
+                    PendingNoteEdit.isVideo = false
+                    navController.navigate(Screen.NotePublish.route)
+                }
+            },
+            onDelete = {
+                showDeleteNoteConfirm = true
+            },
+        )
+
+        // 删除笔记确认
+        if (showDeleteNoteConfirm) {
+            LimeAlertDialog(
+                title = stringResource(R.string.detail_note_delete_confirm_title),
+                firstButtonText = stringResource(R.string.cancel),
+                secondButtonText = stringResource(R.string.delete),
+                secondButtonColor = Color(0xFFFF3B30),
+                onDismissRequest = { showDeleteNoteConfirm = false },
+                onFirstButtonClick = { showDeleteNoteConfirm = false },
+                onSecondButtonClick = {
+                    showDeleteNoteConfirm = false
+                    viewModel.deleteCurrentNote { ok ->
+                        if (ok) {
+                            t.noteDeletedToast.showToast(context)
+                            navController.popBackStack()
+                        } else {
+                            t.deleteFailedToast.showToast(context)
+                        }
+                    }
+                },
+            )
+        }
+
+        // 生成笔记二维码
+        if (showQrSaveConfirm) {
+            LimeAlertDialog(
+                title = stringResource(R.string.detail_save_qr_title),
+                text = stringResource(R.string.detail_save_qr_message),
+                firstButtonText = stringResource(R.string.cancel),
+                secondButtonText = stringResource(R.string.save),
+                onDismissRequest = { showQrSaveConfirm = false },
+                onFirstButtonClick = { showQrSaveConfirm = false },
+                onSecondButtonClick = {
+                    showQrSaveConfirm = false
+                    uiState.note?.let { note ->
+                        scope.launch {
+                            val qr = withContext(Dispatchers.IO) {
+                                generateGradientQrBitmap(limeNoteQrContent(note.id))
+                            }
+                            if (qr != null) {
+                                val ok = saveBitmapToGallery(context, qr, "lime_note_${note.id}.jpg")
+                                if (ok) t.qrSavedToast.showToast(context)
+                                else t.saveFailedToast.showToast(context)
+                            } else {
+                                t.qrGenFailedToast.showToast(context)
+                            }
+                        }
+                    }
+                },
+            )
+        }
+
+        // 取消关注确认对话框
+        if (showUnfollowConfirm) {
+            UnfollowConfirmDialog(
+                onCancel = { showUnfollowConfirm = false },
+                onConfirm = {
+                    viewModel.unfollowAuthor()
+                    showUnfollowConfirm = false
                 },
             )
         }
@@ -466,6 +597,7 @@ private fun NoteContent(
     commentUiState: CommentUiState,
     onImageClick: (Int) -> Unit,
     onSortChange: (CommentSort) -> Unit,
+    onRetryComments: () -> Unit,
     onLoadMoreComments: () -> Unit,
     onCommentLike: (Long) -> Unit,
     onReply: (ReplyTarget) -> Unit,
@@ -488,15 +620,32 @@ private fun NoteContent(
 ) {
     val context = LocalContext.current
     val chatActionPainter = painterResource(R.drawable.ic_chat)
-    val selectionActions = remember(context, onTranslate, onSearch, onAskAi) {
+    // 本地化文案（长按菜单与 Toast 使用）
+    val copyActionText = stringResource(R.string.chat_copy)
+    val searchActionText = stringResource(R.string.home_search_cd)
+    val translateActionText = stringResource(R.string.drawer_translate)
+    val askAiActionText = stringResource(R.string.shortcut_ai)
+    val copiedToastText = stringResource(R.string.detail_copied)
+    val translateFailedToast = stringResource(R.string.detail_translate_failed)
+    val selectionActions = remember(
+        context,
+        copyActionText,
+        searchActionText,
+        translateActionText,
+        askAiActionText,
+        copiedToastText,
+        onTranslate,
+        onSearch,
+        onAskAi,
+    ) {
         listOf(
             SelectionAction(
-                "复制",
+                copyActionText,
                 Icons.Outlined.ContentCopy
-            ) { it.copyToClipboard(context); "已复制".showToast(context) },
-            SelectionAction("搜索", Icons.Outlined.Search) { onSearch(it) },
-            SelectionAction("翻译", Icons.Outlined.Translate) { onTranslate(it) },
-            SelectionAction("问AI", painter = chatActionPainter) { onAskAi(it) },
+            ) { it.copyToClipboard(context); copiedToastText.showToast(context) },
+            SelectionAction(searchActionText, Icons.Outlined.Search) { onSearch(it) },
+            SelectionAction(translateActionText, Icons.Outlined.Translate) { onTranslate(it) },
+            SelectionAction(askAiActionText, painter = chatActionPainter) { onAskAi(it) },
         )
     }
 
@@ -508,7 +657,7 @@ private fun NoteContent(
     // 翻译失败提示
     LaunchedEffect(fullText.error) {
         if (fullText.error) {
-            "翻译失败，请检查网络后重试".showToast(context)
+            translateFailedToast.showToast(context)
         }
     }
 
@@ -534,7 +683,7 @@ private fun NoteContent(
                     actions = selectionActions,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = LimeDark,
+                        color = MaterialTheme.colorScheme.onSurface,
                     ),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 )
@@ -549,7 +698,7 @@ private fun NoteContent(
                     text = displayContent,
                     actions = selectionActions,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = LimeDark,
+                        color = MaterialTheme.colorScheme.onSurface,
                         lineHeight = 22.sp,
                     ),
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -574,7 +723,7 @@ private fun NoteContent(
                 if (fullText.translating) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(14.dp),
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 2.dp,
                     )
                 } else {
@@ -592,19 +741,19 @@ private fun NoteContent(
                         Icon(
                             imageVector = Icons.Outlined.Translate,
                             contentDescription = null,
-                            tint = LimePrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(13.dp),
                         )
                         Text(
-                            text = if (fullText.translated) "查看原文" else "一键翻译",
-                            color = LimePrimary,
+                            text = if (fullText.translated) stringResource(R.string.detail_view_original) else stringResource(R.string.detail_translate_full),
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 12.sp,
                         )
                     }
                 }
             }
         }
-        item { HorizontalDivider(color = LimeLightGray, thickness = 1.dp) }
+        item { HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f), thickness = 1.dp) }
 
         // 评论区标题栏
         item {
@@ -625,8 +774,22 @@ private fun NoteContent(
             )
         }
 
+        // 评论加载失败重试
+        if (commentUiState.error != null && commentUiState.comments.isEmpty() && !commentUiState.isLoading) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    ErrorState(message = commentUiState.error, onRetry = onRetryComments)
+                }
+            }
+        }
+
         // 无评论空态
-        if (!commentUiState.isLoading && commentUiState.comments.isEmpty()) {
+        if (!commentUiState.isLoading && commentUiState.error == null && commentUiState.comments.isEmpty()) {
             item {
                 Column(
                     modifier = Modifier
@@ -640,7 +803,7 @@ private fun NoteContent(
                         modifier = Modifier.size(180.dp),
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "这是一片荒草地", fontSize = 13.sp, color = LimeGray)
+                    Text(text = stringResource(R.string.comment_empty_hint), fontSize = 13.sp, color = LimeGray)
                 }
             }
         }
@@ -662,7 +825,7 @@ private fun NoteContent(
                 onReplyLongPress = { reply -> onCommentReplyLongPress(comment.id, reply) },
                 onAuthorClick = onAuthorClick,
             )
-            HorizontalDivider(color = LimeLightGray, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
         }
 
         // 加载更多
@@ -674,8 +837,15 @@ private fun NoteContent(
                         .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = LimePrimary, strokeWidth = 2.dp)
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 2.dp)
                 }
+            }
+        }
+
+        // 加载更多评论失败重试
+        if (commentUiState.error != null && commentUiState.comments.isNotEmpty() && !commentUiState.isLoadingMore) {
+            item {
+                LoadMoreErrorItem(message = commentUiState.error, onRetry = onRetryComments)
             }
         }
 
@@ -688,7 +858,7 @@ private fun NoteContent(
                         .padding(vertical = 20.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "- 到底了 -", fontSize = 12.sp, color = LimeGray)
+                    Text(text = stringResource(R.string.detail_end_of_list), fontSize = 12.sp, color = LimeGray)
                 }
             }
         }

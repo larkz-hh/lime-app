@@ -18,8 +18,11 @@ import xyz.larkzhh.lime.data.network.model.VideoOrientation
 import xyz.larkzhh.lime.data.network.model.orientationEnum
 import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
+import xyz.larkzhh.lime.domain.model.FollowRelation
+import xyz.larkzhh.lime.domain.repository.FollowRepository
 import xyz.larkzhh.lime.domain.repository.NoteRepository
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.route.Screen
+import xyz.larkzhh.lime.util.system.NetworkMonitor
 import javax.inject.Inject
 
 /// 视频页模型
@@ -90,10 +93,19 @@ private fun FeedItem.toVideoItemOrNull(): VideoItem? {
 class VideoFeedViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
     private val eventBus: NoteEventBus,
+    private val followRepository: FollowRepository,
+    networkMonitor: NetworkMonitor,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val mmkv by lazy { MMKV.defaultMMKV() }
+
+    private val reportedViewIds = mutableSetOf<Long>() // 本会话内已上报浏览的视频 id
+
+    val isUnmetered: StateFlow<Boolean> = networkMonitor.isUnmetered
+
+    /// 共享关注关系
+    val relations = followRepository.relations
 
     // 后台继续播放偏好
     private val _uiState = MutableStateFlow(
@@ -133,6 +145,7 @@ class VideoFeedViewModel @Inject constructor(
                     )
                 }
                 hydrateAround(start)
+                reportCurrentViewOnce()
                 return
             }
         }
@@ -159,6 +172,7 @@ class VideoFeedViewModel @Inject constructor(
                         )
                     }
                     hydrateAround(start)
+                    reportCurrentViewOnce()
                 },
                 onFailure = { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
@@ -217,6 +231,7 @@ class VideoFeedViewModel @Inject constructor(
                         )
                     }
                     hydrateAround(start)
+                    reportCurrentViewOnce()
                 },
                 onFailure = { e ->
                     _uiState.update { it.copy(isRefreshing = false, error = e.message) }
@@ -225,12 +240,33 @@ class VideoFeedViewModel @Inject constructor(
         }
     }
 
+    /// 写入共享关注关系
+    fun seedFollowRelation(author: FeedAuthor) {
+        followRepository.updateRelation(
+            author.id,
+            FollowRelation(author.isFollowing ?: false, author.isFollowedBack ?: false),
+        )
+    }
+
+    /// 关注作者
+    fun followAuthor() {
+        val authorId = _uiState.value.items.getOrNull(_uiState.value.currentIndex)?.author?.id ?: return
+        viewModelScope.launch { followRepository.follow(authorId) }
+    }
+
+    /// 取消关注作者
+    fun unfollowAuthor() {
+        val authorId = _uiState.value.items.getOrNull(_uiState.value.currentIndex)?.author?.id ?: return
+        viewModelScope.launch { followRepository.unfollow(authorId) }
+    }
+
     /// 切页
     fun onPageSettled(index: Int) {
         _uiState.update { it.copy(currentIndex = index) }
         val state = _uiState.value
         if (index >= state.items.size - 2) loadMore()
         hydrateAround(index)
+        reportCurrentViewOnce()// 进入该视频上报一次浏览
     }
 
     /// 对当前页未补水的前后项拉取笔记详情
@@ -251,6 +287,26 @@ class VideoFeedViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    /// 上报一次浏览
+    private fun reportViewOnce(id: Long) {
+        if (id <= 0L || !reportedViewIds.add(id)) return
+        viewModelScope.launch {
+            noteRepository.getNoteDetail(id).onFailure {}
+        }
+    }
+
+    /// 竖屏流当前播放页
+    private fun reportCurrentViewOnce() {
+        val state = _uiState.value
+        state.items.getOrNull(state.currentIndex)?.id?.let(::reportViewOnce)
+    }
+
+    /// 横屏流当前播放页
+    private fun reportLandscapeCurrentViewOnce() {
+        val state = _uiState.value
+        state.landscapeItems.getOrNull(state.landscapeIndex)?.id?.let(::reportViewOnce)
     }
 
     private fun VideoItem.mergeDetail(id: Long, detail: NoteDetailData): VideoItem {
@@ -426,6 +482,7 @@ class VideoFeedViewModel @Inject constructor(
         if (source is FeedSource.Recommendation && index >= state.landscapeItems.size - 2) {
             loadMoreLandscape()
         }
+        reportLandscapeCurrentViewOnce()
     }
 
     private fun loadMoreLandscape() {
@@ -537,6 +594,37 @@ class VideoFeedViewModel @Inject constructor(
     /// 设置弹幕不透明度
     fun setDanmakuOpacity(opacity: Float) =
         _uiState.update { it.copy(danmakuOpacity = opacity.coerceIn(0.2f, 1f)) }
+
+    /// 删除当前视频
+    fun deleteCurrent(onResult: (Boolean) -> Unit) {
+        val idx = _uiState.value.currentIndex
+        val item = _uiState.value.items.getOrNull(idx) ?: run {
+            onResult(false)
+            return
+        }
+        viewModelScope.launch {
+            noteRepository.deleteNote(item.id)
+                .onSuccess {
+                    _uiState.update { state ->
+                        val items = state.items.filterNot { it.id == item.id }
+                        val landscapeItems = state.landscapeItems.filterNot { it.id == item.id }
+                        val target = if (items.isEmpty()) 0 else minOf(idx, items.lastIndex)
+                        state.copy(
+                            items = items,
+                            landscapeItems = landscapeItems,
+                            currentIndex = target,
+                            pendingScrollTarget = target,
+                            hasMore = if (items.isEmpty()) false else state.hasMore,
+                        )
+                    }
+                    onResult(true)
+                    if (_uiState.value.items.isEmpty() && source is FeedSource.Recommendation) {
+                        loadRecommendationFirst()// 队列空后重新拉最新
+                    }
+                }
+                .onFailure { onResult(false) }
+        }
+    }
 
     companion object {
         private const val KEY_BACKGROUND_AUDIO = "video.background_audio"

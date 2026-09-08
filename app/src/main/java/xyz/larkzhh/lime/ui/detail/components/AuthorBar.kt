@@ -14,18 +14,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -33,9 +33,9 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
-import xyz.larkzhh.lime.ui.theme.LimeDark
+import xyz.larkzhh.lime.domain.model.FollowActionState
+import xyz.larkzhh.lime.ui.components.FollowButton
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 
 /// 顶部栏
 @Composable
@@ -43,6 +43,9 @@ fun AuthorBar(
     note: NoteDetailData,
     onBack: () -> Unit,
     onAuthorClick: () -> Unit,
+    followState: FollowActionState? = null,
+    onFollowClick: () -> Unit = {},
+    onShareClick: () -> Unit = {},
 ) {
     Row(
         modifier = Modifier
@@ -54,8 +57,8 @@ fun AuthorBar(
         IconButton(onClick = onBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "返回",
-                tint = LimeDark,
+                contentDescription = stringResource(R.string.back),
+                tint = MaterialTheme.colorScheme.onSurface,
             )
         }
 
@@ -78,7 +81,7 @@ fun AuthorBar(
                 modifier = Modifier
                     .size(38.dp)
                     .clip(CircleShape)
-                    .background(LimeLightGray),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
             )
 
             Spacer(modifier = Modifier.width(10.dp))
@@ -88,7 +91,7 @@ fun AuthorBar(
                 text = note.author.nickname,
                 fontWeight = FontWeight.Medium,
                 fontSize = 15.sp,
-                color = LimeDark,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
@@ -98,26 +101,19 @@ fun AuthorBar(
         Spacer(modifier = Modifier.width(8.dp))
 
         // 关注按钮
-        Surface(
-            shape = RoundedCornerShape(50),
-            color = Color.Transparent,
-            onClick = {},
-        ) {
-            Text(
-                text = "关注",
-                color = LimePrimary,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+        if (followState != null) {
+            FollowButton(
+                state = followState,
+                onClick = onFollowClick,
             )
         }
 
         // 分享按钮
-        IconButton(onClick = {}) {
+        IconButton(onClick = onShareClick) {
             Icon(
                 painter = painterResource(R.drawable.ic_share),
-                contentDescription = "分享",
-                tint = LimeDark,
+                contentDescription = stringResource(R.string.video_share),
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(20.dp),
             )
         }

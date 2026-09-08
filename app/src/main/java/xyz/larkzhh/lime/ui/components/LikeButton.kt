@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.LottieAnimation
@@ -25,6 +26,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.ui.auth.LoginGate
 import xyz.larkzhh.lime.ui.theme.LimeGray
 
 /**
@@ -68,8 +70,11 @@ fun LikeButton(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() },
             ) {
-                if (!liked) isAnimating = true
-                onToggle()
+                // 点赞登录拦截
+                if (!LoginGate.onRequireLogin(null)) {
+                    if (!liked) isAnimating = true
+                    onToggle()
+                }
             },
         contentAlignment = Alignment.Center,
     ) {
@@ -85,14 +90,14 @@ fun LikeButton(
             if (liked) {
                 Icon(
                     imageVector = Icons.Filled.Favorite,
-                    contentDescription = "取消点赞",
+                    contentDescription = stringResource(R.string.unlike),
                     modifier = Modifier.size(iconSize),
                     tint = Color.Red,
                 )
             } else {
                 Icon(
                     painter = painterResource(R.drawable.ic_heart_outline),
-                    contentDescription = "点赞",
+                    contentDescription = stringResource(R.string.like),
                     modifier = Modifier.size(iconSize),
                     tint = inactiveColor,
                 )

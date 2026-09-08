@@ -34,18 +34,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import xyz.larkzhh.lime.ui.theme.LimeDark
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
-import xyz.larkzhh.lime.util.TranslateModelInfo
-import xyz.larkzhh.lime.util.languageDisplayName
+import xyz.larkzhh.lime.ui.translate.TranslateModelInfo
+import xyz.larkzhh.lime.util.text.languageDisplayName
 
 /**
  * 选词翻译的译文弹窗
@@ -67,8 +65,7 @@ fun TranslateResultSheet(
     onSwitchDirection: () -> Unit,
     onCopy: (String) -> Unit,
 ) {
-    val context = LocalContext.current
-    val packSizeLabel = remember { TranslateModelInfo.downloadSizeLabel(context) }
+    val packSizeLabel = TranslateModelInfo.downloadSizeLabel()
     val maxSheetHeight = with(LocalDensity.current) {
         (LocalWindowInfo.current.containerSize.height * 0.6f).toDp()
     }
@@ -93,10 +90,10 @@ fun TranslateResultSheet(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "翻译",
+                        text = stringResource(R.string.translate_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = LimeDark,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     // 语言方向标签
                     Row(
@@ -117,7 +114,7 @@ fun TranslateResultSheet(
                         )
                         Icon(
                             imageVector = Icons.Outlined.SwapHoriz,
-                            contentDescription = "切换方向",
+                            contentDescription = stringResource(R.string.translate_switch_direction),
                             tint = LimeGray,
                             modifier = Modifier.size(13.dp),
                         )
@@ -126,13 +123,13 @@ fun TranslateResultSheet(
                 IconButton(onClick = onDismiss) {
                     Icon(
                         imageVector = Icons.Outlined.Close,
-                        contentDescription = "关闭",
+                        contentDescription = stringResource(R.string.translate_close),
                         tint = LimeGray,
                         modifier = Modifier.size(20.dp),
                     )
                 }
             }
-            HorizontalDivider(color = LimeLightGray)
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
 
             // 原文、结果
             Column(
@@ -148,11 +145,13 @@ fun TranslateResultSheet(
                     ),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 )
-                HorizontalDivider(color = LimeLightGray, thickness = 0.5.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f), thickness = 0.5.dp)
 
                 when (state.phase) {
-                    TranslatePhase.Downloading -> StatusRow("正在联网下载中英离线语言包 $packSizeLabel…")
-                    TranslatePhase.Translating -> StatusRow("翻译中…")
+                    TranslatePhase.Downloading -> StatusRow(
+                        stringResource(R.string.translate_downloading_pack, packSizeLabel)
+                    )
+                    TranslatePhase.Translating -> StatusRow(stringResource(R.string.translate_translating))
                     TranslatePhase.Error -> ErrorBlock(state.error, onRetry, onBackgroundDownload)
                     TranslatePhase.Done -> ResultBlock(state.result, onCopy)
                 }
@@ -174,7 +173,7 @@ private fun StatusRow(text: String) {
     ) {
         CircularProgressIndicator(
             modifier = Modifier.size(18.dp),
-            color = LimePrimary,
+            color = MaterialTheme.colorScheme.primary,
             strokeWidth = 2.dp,
         )
         Text(text = text, fontSize = 13.sp, color = LimeGray)
@@ -189,7 +188,7 @@ private fun ErrorBlock(
     onBackgroundDownload: () -> Unit,
 ) {
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-        Text(text = message ?: "翻译失败，请稍后重试", fontSize = 13.sp, color = LimeGray)
+        Text(text = message ?: stringResource(R.string.translate_error_default), fontSize = 13.sp, color = LimeGray)
         Spacer(modifier = Modifier.height(12.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -198,22 +197,22 @@ private fun ErrorBlock(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(LimeLightGray)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable { onBackgroundDownload() }
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(text = "后台下载", fontSize = 13.sp, color = LimeDark)
+                Text(text = stringResource(R.string.translate_background_download), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
             }
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(LimePrimary)
+                    .background(MaterialTheme.colorScheme.primary)
                     .clickable { onRetry() }
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(text = "重试", fontSize = 13.sp, color = Color.White)
+                Text(text = stringResource(R.string.translate_retry), fontSize = 13.sp, color = Color.White)
             }
         }
     }
@@ -225,26 +224,26 @@ private fun ResultBlock(result: String, onCopy: (String) -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
         if (result.isBlank()) {
             Text(
-                text = "(っ °Д °;)っ 可惜，译文被偷走了",
+                text = stringResource(R.string.translate_result_missing),
                 fontSize = 13.sp,
                 color = LimeGray,
             )
         } else {
             Text(
                 text = result,
-                style = MaterialTheme.typography.bodyMedium.copy(color = LimeDark, lineHeight = 22.sp),
+                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface, lineHeight = 22.sp),
             )
             Spacer(modifier = Modifier.height(12.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(LimePrimary)
+                        .background(MaterialTheme.colorScheme.primary)
                         .clickable { onCopy(result) }
                         .padding(horizontal = 16.dp, vertical = 6.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(text = "复制译文", fontSize = 13.sp, color = Color.White)
+                    Text(text = stringResource(R.string.translate_copy_result), fontSize = 13.sp, color = Color.White)
                 }
             }
         }

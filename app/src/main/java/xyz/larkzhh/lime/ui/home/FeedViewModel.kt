@@ -2,64 +2,69 @@ package xyz.larkzhh.lime.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.data.local.TokenStorage
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
 import xyz.larkzhh.lime.domain.repository.NoteRepository
+import xyz.larkzhh.lime.util.system.NetworkMonitor
 import javax.inject.Inject
 
 data class FeedUiState(
-    val items: List<FeedItem> = emptyList(),
-    val likedIds: Set<Long> = emptySet(),
-    val isLoading: Boolean = false,// 首次加载
-    val isRefreshing: Boolean = false,// 下拉刷新
-    val isLoadingMore: Boolean = false,
-    val hasMore: Boolean = true,
-    val error: String? = null,
+    val likeStates: Map<Long, Boolean> = emptyMap(),
+    val likeCounts: Map<Long, Int> = emptyMap(),
+    val isOffline: Boolean = false,
 )
 
-/**
- * 信息流页面的 ViewModel。
- * 负责管理页面的 UI 状态、处理首次加载以及分页加载更多的业务逻辑。
- */
 @HiltViewModel
 class FeedViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
     private val eventBus: NoteEventBus,
+    networkMonitor: NetworkMonitor,
+    tokenStorage: TokenStorage,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(FeedUiState(isLoading = true))
+    private val _uiState = MutableStateFlow(FeedUiState())
     val uiState: StateFlow<FeedUiState> = _uiState.asStateFlow()
 
-    private var cursor: Long? = null// 分页游标
+    /// 当前登录用户 id
+    val currentUserId: StateFlow<Long?> = tokenStorage.currentUserIdFlow
+
+    /// 是否已登录
+    val isLoggedIn: StateFlow<Boolean> = tokenStorage.isLoggedInFlow
+
+    /// 发现页信息流
+    val discoverFeed: Flow<PagingData<FeedItem>> =
+        noteRepository.discoverFeedPager().cachedIn(viewModelScope)
+
+    /// 关注页信息流
+    val followingFeed: Flow<PagingData<FeedItem>> =
+        noteRepository.followingFeedPager().cachedIn(viewModelScope)
 
     init {
-        loadFeed()
         observeNoteEvents()
+        observeNetwork(networkMonitor)
     }
-    /// 观察、收集事件，更新点赞数量与状态
+
+    /// 同步其它页面的点赞变更
     private fun observeNoteEvents() {
         viewModelScope.launch {
             eventBus.events.collect { event ->
                 when (event) {
-                    is NoteEvent.LikeChanged -> {
-                        _uiState.update { state ->
-                            state.copy(
-                                items = state.items.map { item ->
-                                    if (item.id == event.noteId)
-                                        item.copy(liked = event.liked, likeCount = event.likeCount)
-                                    else item
-                                },
-                                likedIds = if (event.liked) state.likedIds + event.noteId
-                                           else state.likedIds - event.noteId,
-                            )
-                        }
+                    is NoteEvent.LikeChanged -> _uiState.update {
+                        it.copy(
+                            likeStates = it.likeStates + (event.noteId to event.liked),
+                            likeCounts = it.likeCounts + (event.noteId to event.likeCount),
+                        )
                     }
                     is NoteEvent.FavoriteChanged -> Unit
                     is NoteEvent.CommentCountChanged -> Unit
@@ -68,102 +73,38 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    private fun loadFeed() {
+    private fun observeNetwork(networkMonitor: NetworkMonitor) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null, items = emptyList(), hasMore = true) }
-            cursor = null
-            noteRepository.getFeed(cursor = null).fold(
-                onSuccess = { response ->
-                    cursor = response.nextCursor
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            items = response.items,
-                            likedIds = response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
-                            hasMore = response.hasMore,
-                        )
-                    }
-                },
-                onFailure = { e ->
-                    _uiState.update { it.copy(isLoading = false, error = e.message) }
-                },
-            )
-        }
-    }
-
-    /// 下拉刷新，重新加载，不清空列表
-    fun refresh() {
-        val state = _uiState.value
-        if (state.isRefreshing || state.isLoading) return
-        viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true, error = null) }
-            cursor = null
-            noteRepository.getFeed(cursor = null).fold(
-                onSuccess = { response ->
-                    cursor = response.nextCursor
-                    _uiState.update {
-                        it.copy(
-                            isRefreshing = false,
-                            items = response.items,
-                            likedIds = response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
-                            hasMore = response.hasMore,
-                        )
-                    }
-                },
-                onFailure = { e ->
-                    _uiState.update { it.copy(isRefreshing = false, error = e.message) }
-                },
-            )
-        }
-    }
-
-    fun toggleLike(noteId: Long) {
-        val liked = noteId in _uiState.value.likedIds
-        val delta = if (liked) -1 else 1
-        _uiState.update {
-            it.copy(
-                likedIds = if (liked) it.likedIds - noteId else it.likedIds + noteId,
-                items = it.items.map { item ->
-                    if (item.id == noteId) item.copy(likeCount = item.likeCount + delta) else item
-                },
-            )
-        }
-        viewModelScope.launch {
-            val result = if (liked) noteRepository.unlikeNote(noteId) else noteRepository.likeNote(noteId)
-            result.onFailure {
-                _uiState.update {
-                    it.copy(
-                        likedIds = if (liked) it.likedIds + noteId else it.likedIds - noteId,
-                        items = it.items.map { item ->
-                            if (item.id == noteId) item.copy(likeCount = item.likeCount - delta) else item
-                        },
-                    )
-                }
+            networkMonitor.isOnline.collect { online ->
+                _uiState.update { it.copy(isOffline = !online) }
             }
         }
     }
 
-    fun loadMore() {
-        val state = _uiState.value
-        if (state.isLoadingMore || !state.hasMore || state.isLoading) return
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingMore = true) }
-            noteRepository.getFeed(cursor = cursor).fold(
-                onSuccess = { response ->
-                    cursor = response.nextCursor
-                    _uiState.update {
-                        it.copy(
-                            isLoadingMore = false,
-                            items = it.items + response.items,
-                            likedIds = it.likedIds + response.items.filter { item -> item.liked }.map { item -> item.id }.toSet(),
-                            hasMore = response.hasMore,
-                        )
-                    }
-                },
-                onFailure = { e ->
-                    _uiState.update { it.copy(isLoadingMore = false, error = e.message) }
-                },
+    // 点赞、取消点赞
+    fun toggleLike(item: FeedItem, currentLiked: Boolean, currentCount: Int) {
+        val nextLiked = !currentLiked
+        val nextCount = if (currentLiked) currentCount - 1 else currentCount + 1
+        _uiState.update {
+            it.copy(
+                likeStates = it.likeStates + (item.id to nextLiked),
+                likeCounts = it.likeCounts + (item.id to nextCount),
             )
+        }
+        viewModelScope.launch {
+            val result = if (currentLiked) noteRepository.unlikeNote(item.id)
+                          else noteRepository.likeNote(item.id)
+            result.onSuccess {
+                eventBus.emit(NoteEvent.LikeChanged(item.id, nextLiked, nextCount))
+            }
+            result.onFailure {
+                _uiState.update {
+                    it.copy(
+                        likeStates = it.likeStates + (item.id to currentLiked),
+                        likeCounts = it.likeCounts + (item.id to currentCount),
+                    )
+                }
+            }
         }
     }
 }

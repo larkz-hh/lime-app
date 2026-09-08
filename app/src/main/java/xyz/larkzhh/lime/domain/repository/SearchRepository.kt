@@ -14,6 +14,7 @@ interface SearchRepository {
         keyword: String,
         sort: String = "composite",
         within: String = "all",
+        type: String = "all",
         cursor: String? = null,
         size: Int = 10,
     ): Result<NoteSearchResponse>

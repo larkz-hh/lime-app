@@ -7,6 +7,8 @@
     <string name="pip_play">播放</string>
     <!-- 后台播放通知渠道 -->
     <string name="playback_channel_name">正在播放</string>
+    <!-- 消息保活前台服务 -->
+    <string name="notification_service_running">正在接收互动与私信通知</string>
     <!-- 长按图标快捷入口 -->
     <string name="shortcut_search">搜索</string>
     <string name="shortcut_ai">问AI</string>
@@ -14,4 +16,751 @@
     <!-- 桌面小组件 -->
     <string name="widget_search_name">Lime 搜索</string>
     <string name="widget_search_description">搜索框 + 今日热搜</string>
+
+    <!-- ===== 通用 ===== -->
+    <string name="back">返回</string>
+    <string name="cancel">取消</string>
+
+    <!-- 底部导航 -->
+    <string name="nav_home">首页</string>
+    <string name="nav_video">视频</string>
+    <string name="nav_message">消息</string>
+    <string name="nav_profile">我</string>
+    <string name="nav_publish_desc">发布</string>
+
+    <!-- 我的页抽屉 -->
+    <string name="drawer_translate">翻译</string>
+    <string name="drawer_drafts">草稿箱</string>
+    <string name="drawer_account_privacy">账号与隐私</string>
+    <string name="drawer_general">通用</string>
+    <string name="drawer_about">关于</string>
+
+    <!-- 通用设置页 -->
+    <string name="settings_title">通用</string>
+    <string name="settings_section_notify">通知</string>
+    <string name="settings_notify_reminders">通知提醒</string>
+    <string name="settings_splash_animation">启动动画</string>
+    <string name="exit_again_hint">再按一次退出程序</string>
+    <string name="settings_section_storage">存储</string>
+    <string name="settings_clear_cache">清空缓存</string>
+    <string name="settings_clear_cache_confirm_title">确定清除应用缓存吗？</string>
+    <string name="settings_clear">清空</string>
+    <string name="settings_cache_cleared">缓存已清理（剩余 %1$s）</string>
+    <string name="settings_language">语言</string>
+    <string name="settings_theme">主题</string>
+    <string name="theme_green">青柠绿</string>
+    <string name="theme_red">小红书红</string>
+    <string name="theme_orange">活力橙</string>
+    <string name="theme_blue">克莱因蓝</string>
+    <string name="theme_purple">经典紫</string>
+    <string name="theme_confirm_title">保存主题设置？</string>
+    <string name="theme_confirm_text">切换后界面会立即以新主题显示</string>
+    <string name="theme_switched">主题已切换</string>
+    <string name="font_option_system">系统默认</string>
+    <string name="font_settings_title">字体设置</string>
+    <string name="settings_font">字体</string>
+    <string name="font_confirm_title">保存字体设置？</string>
+    <string name="font_confirm_text">切换后界面会立即以新字体显示</string>
+    <string name="font_switched">字体已切换</string>
+    <string name="settings_section_display">显示</string>
+    <string name="settings_dark_mode">深色模式</string>
+    <string name="dark_mode_option_system">跟随系统</string>
+    <string name="dark_mode_option_dark">深色</string>
+    <string name="dark_mode_confirm_title">保存深色模式设置？</string>
+    <string name="dark_mode_confirm_text">切换后界面会立即应用新的外观模式</string>
+    <string name="dark_mode_switched">深色模式已切换</string>
+    <string name="lang_system">跟随系统</string>
+    <string name="lang_switched">语言已切换</string>
+    <string name="save">保存</string>
+    <string name="language_confirm_title">保存语言设置？</string>
+    <string name="language_confirm_text">切换后界面会立即以新语言显示</string>
+
+    <!-- 关于页 -->
+    <string name="about_title">关于</string>
+    <string name="about_app_icon">应用图标</string>
+    <string name="about_check_update">检查更新</string>
+    <string name="about_latest">已是最新版本</string>
+    <string name="about_check_failed">检查失败，请检查网络或仓库配置</string>
+    <string name="about_new_version_found">发现新版本 %1$s</string>
+    <string name="about_update_prompt">是否立即下载更新？</string>
+    <string name="about_update_later">暂不更新</string>
+    <string name="about_update_now">立即更新</string>
+    <string name="about_repo">项目仓库</string>
+    <string name="about_author_github">作者 GitHub</string>
+    <string name="about_qq_email">QQ 邮箱</string>
+    <string name="about_homepage">网址</string>
+    <string name="about_email_copied">邮箱已复制</string>
+    <string name="about_open_url_failed">无法打开链接</string>
+    <string name="about_install_permission_needed">需要先允许安装未知来源应用</string>
+    <string name="about_download_start_failed">下载启动失败，请重试</string>
+
+    <!-- 表情面板分组 -->
+    <string name="emoji_smiley">表情</string>
+    <string name="emoji_gestures">手势</string>
+    <string name="emoji_hearts">爱心</string>
+    <string name="emoji_celebration">庆祝</string>
+    <string name="emoji_animals">动物</string>
+    <string name="emoji_food">食物</string>
+
+    <!-- 首页 -->
+    <string name="home_tab_follow">关注</string>
+    <string name="home_tab_discover">发现</string>
+    <string name="home_chat_cd">聊天</string>
+    <string name="home_search_cd">搜索</string>
+    <string name="home_empty_following">关注的人还没有发布笔记</string>
+    <string name="home_follow_login_hint">登录后查看关注内容</string>
+    <string name="home_refresh_action">刷新看看</string>
+
+    <!-- 强制下线弹窗 -->
+    <string name="force_logout_title">下线提醒</string>
+    <string name="force_logout_message">您的账号已在其他设备登录，请重新登录</string>
+    <string name="force_logout_login_again">重新登录</string>
+
+    <!-- 取消关注确认 -->
+    <string name="unfollow_title">不再关注 TA？</string>
+    <string name="unfollow_confirm">不再关注</string>
+
+    <!-- 消息/通知 -->
+    <string name="delete">删除</string>
+    <string name="msg_entry_likes">赞和收藏</string>
+    <string name="msg_entry_follows">新增关注</string>
+    <string name="msg_entry_comments">评论和@</string>
+    <string name="msg_more">更多</string>
+    <string name="msg_create_group">创建群聊</string>
+    <string name="msg_add_friend">添加好友</string>
+    <string name="msg_scan">扫一扫</string>
+    <string name="msg_empty">暂无私信</string>
+    <string name="msg_start_chat">开始聊天吧</string>
+    <string name="msg_delete_conversation">删除会话</string>
+    <string name="msg_delete_group_hint">是否移除群聊，移除后会清空聊天记录。</string>
+    <string name="msg_delete_conversation_hint">是否删除会话，删除会清空聊天记录。</string>
+    <string name="notif_title_likes">收到的赞和收藏</string>
+    <string name="notif_title_follows">新增关注</string>
+    <string name="notif_title_comments">收到的评论与回复</string>
+    <string name="notif_load_failed">加载失败</string>
+    <string name="notif_empty">暂时没有新消息~</string>
+    <string name="notif_action_like_note">赞了你的笔记</string>
+    <string name="notif_action_favorite_note">收藏了你的笔记</string>
+    <string name="notif_action_like_comment">赞了你的评论</string>
+    <string name="notif_action_follow">开始关注你了</string>
+    <string name="notif_action_comment_note">评论了你的笔记</string>
+    <string name="notif_action_reply_comment">回复了你的评论</string>
+
+    <!-- 我的页 -->
+    <string name="profile_tab_notes">笔记</string>
+    <string name="profile_tab_likes">点赞</string>
+    <string name="profile_tab_favorites">收藏</string>
+    <string name="profile_mutual_follow_required">需互相关注后才能私信</string>
+    <string name="profile_following">关注</string>
+    <string name="profile_followers">粉丝</string>
+    <string name="profile_likes_favs">获赞与收藏</string>
+    <string name="profile_bio_empty">这个人是懒猪猪，还没有填写简介~</string>
+    <string name="profile_age_years">%1$d岁</string>
+    <string name="profile_browse_history">浏览记录</string>
+    <string name="profile_browse_history_desc">看过的笔记</string>
+    <string name="profile_group_chat">群聊</string>
+    <string name="profile_group_chat_desc">查看详情</string>
+    <string name="profile_send_message">发私信</string>
+    <string name="profile_avatar">头像</string>
+    <string name="profile_upload_avatar">上传头像</string>
+    <string name="profile_nickname_unset">未设置昵称</string>
+    <string name="profile_menu">菜单</string>
+    <string name="profile_edit_profile">编辑主页</string>
+    <string name="profile_qr_scan">扫一扫</string>
+    <string name="profile_stat_notes">当前发布笔记数</string>
+    <string name="profile_stat_likes">当前获得点赞数</string>
+    <string name="profile_stat_favs">当前获得收藏数</string>
+    <string name="profile_got_it">我知道了</string>
+    <string name="profile_select_all">全选</string>
+    <string name="profile_selected_notes_count">已选%1$d篇笔记</string>
+    <string name="profile_delete">删除</string>
+
+    <!-- 关注按钮 -->
+    <string name="follow_action_follow">关注</string>
+    <string name="follow_action_following">已关注</string>
+    <string name="follow_action_mutual">互相关注</string>
+
+    <!-- 状态组件 -->
+    <string name="error_load_failed">加载失败</string>
+    <string name="retry">点击重试</string>
+
+    <!-- 草稿箱 -->
+    <string name="draft_box_title">草稿箱</string>
+    <string name="draft_manage">管理</string>
+    <string name="draft_done">完成</string>
+    <string name="draft_selected_title">已选%1$d</string>
+    <string name="draft_selected_count">已选 %1$d 项</string>
+    <string name="draft_empty">还没有草稿</string>
+    <string name="draft_delete_failed">删除失败：%1$s</string>
+    <string name="draft_deleting">删除中…</string>
+    <string name="draft_cover_placeholder">草稿</string>
+    <string name="draft_unnamed">未命名草稿</string>
+    <string name="draft_selected">已选</string>
+
+    <!-- 账号与隐私 -->
+    <string name="account_section_account">账号</string>
+    <string name="account_section_security">账号安全</string>
+    <string name="account_section_privacy">隐私</string>
+    <string name="account_login_email">登录邮箱</string>
+    <string name="account_email_unavailable">未获取到账号邮箱</string>
+    <string name="account_change_password">修改密码</string>
+    <string name="account_like_list_title">点赞列表</string>
+    <string name="account_like_list_desc">开启后，其他人无法查看你点赞的笔记</string>
+    <string name="account_fav_list_title">收藏列表</string>
+    <string name="account_fav_list_desc">开启后，其他人无法查看你收藏的笔记</string>
+    <string name="account_change_password_note">• 修改密码需验证身份（原密码或邮箱验证码），成功后需重新登录</string>
+    <string name="account_logout">退出登录</string>
+    <string name="account_logout_confirm_title">确认退出登录吗？</string>
+    <string name="account_verify_old_password">原密码验证</string>
+    <string name="account_verify_email_code">邮箱验证码</string>
+    <string name="account_current_password">当前密码</string>
+    <string name="account_code_email_hint">验证码将发送至绑定邮箱 %1$s</string>
+    <string name="account_code_email_unavailable">暂未获取到账号邮箱，请改用原密码验证</string>
+    <string name="account_verification_code">验证码</string>
+    <string name="account_send_code">获取验证码</string>
+    <string name="account_new_password">新密码</string>
+    <string name="account_confirm_new_password">确认新密码</string>
+    <string name="account_password_rule">新密码需为 6-32 位，且同时包含字母和数字</string>
+    <string name="account_change_password_submit">确认修改</string>
+    <string name="account_password_changed_title">修改成功</string>
+    <string name="account_password_changed_message">密码已修改，请使用新密码重新登录</string>
+    <string name="account_ok">确定</string>
+    <string name="account_password_hide">隐藏密码</string>
+    <string name="account_password_show">显示密码</string>
+    <string name="account_privacy_save_failed">设置失败，请重试</string>
+    <string name="account_code_send_no_email">无法获取账号邮箱，请改用原密码验证</string>
+    <string name="account_code_send_failed">验证码发送失败</string>
+    <string name="account_enter_current_password">请输入当前密码</string>
+    <string name="account_enter_email_code">请输入邮箱验证码</string>
+    <string name="account_password_same_as_current">新密码不能与当前密码相同</string>
+    <string name="account_password_mismatch">两次输入的新密码不一致</string>
+    <string name="account_change_password_failed">修改失败，请重试</string>
+
+    <!-- 编辑资料 -->
+    <string name="edit_title">编辑资料</string>
+    <string name="edit_name">名字</string>
+    <string name="edit_nickname_title">修改名字</string>
+    <string name="edit_background">背景图</string>
+    <string name="edit_background_preview">背景图预览</string>
+    <string name="edit_bg_crop_title">截取背景图</string>
+    <string name="edit_avatar_crop_title">截取头像</string>
+    <string name="edit_bio">简介</string>
+    <string name="edit_bio_title">编辑简介</string>
+    <string name="edit_bio_placeholder">填写简介</string>
+    <string name="edit_gender">性别</string>
+    <string name="edit_gender_title">选择性别</string>
+    <string name="edit_gender_male">男</string>
+    <string name="edit_gender_female">女</string>
+    <string name="edit_not_set">未设置</string>
+    <string name="edit_birthday">生日</string>
+    <string name="edit_region">地区</string>
+    <string name="edit_region_title">填写地区</string>
+    <string name="edit_ok">确定</string>
+    <string name="edit_load_failed">加载失败</string>
+    <string name="edit_avatar_upload_failed">头像上传失败：%1$s</string>
+    <string name="edit_bg_upload_failed">背景图上传失败：%1$s</string>
+    <string name="edit_network_error">网络错误</string>
+    <string name="edit_save_failed">保存失败</string>
+
+    <!-- 浏览历史 -->
+    <string name="history_done">完成</string>
+    <string name="history_manage">管理</string>
+    <string name="history_load_failed">加载失败</string>
+    <string name="history_empty">还没有浏览记录</string>
+    <string name="history_today">今天</string>
+    <string name="history_yesterday">昨天</string>
+    <string name="history_this_week">一周内</string>
+    <string name="history_earlier">更早</string>
+
+    <!-- 日期选择 -->
+    <string name="date_picker_birthday_title">选择你的生日</string>
+    <string name="date_format_year">%1$d年</string>
+    <string name="date_format_month">%1$d月</string>
+    <string name="date_format_day">%1$d日</string>
+
+    <!-- 个人中心提示 -->
+    <string name="profile_load_failed">加载失败</string>
+    <string name="profile_network_error">网络错误</string>
+    <string name="profile_avatar_upload_failed">头像上传失败：%1$s</string>
+    <string name="profile_follow_failed">关注失败：%1$s</string>
+    <string name="profile_unfollow_failed">取消关注失败：%1$s</string>
+
+    <!-- 登录/注册 -->
+    <string name="auth_slogan">记录生活的每一刻</string>
+    <string name="auth_login">登录</string>
+    <string name="auth_register">注册</string>
+    <string name="auth_email">邮箱</string>
+    <string name="auth_password">密码</string>
+    <string name="auth_code">验证码</string>
+    <string name="auth_email_code">邮箱验证码</string>
+    <string name="auth_phone">手机号</string>
+    <string name="auth_phone_optional">手机号（可选）</string>
+    <string name="auth_password_hide">隐藏密码</string>
+    <string name="auth_password_show">显示密码</string>
+    <string name="auth_send_code">获取验证码</string>
+    <string name="auth_password_login">密码登录</string>
+    <string name="auth_code_login">验证码登录</string>
+    <string name="auth_create_account">创建账号</string>
+    <string name="auth_register_welcome">欢迎加入 Lime</string>
+    <string name="auth_register_subtitle">填写以下信息完成注册</string>
+    <string name="auth_password_placeholder">6-32 位，含字母和数字</string>
+    <string name="auth_has_account">已有账号？</string>
+    <string name="auth_go_login">去登录</string>
+    <string name="auth_no_account">还没有账号？</string>
+    <string name="auth_register_now">立即注册</string>
+    <string name="auth_error_invalid_email">请输入有效的邮箱地址</string>
+    <string name="auth_error_send_failed">发送失败</string>
+    <string name="auth_error_login_failed">登录失败</string>
+    <string name="auth_error_register_failed">注册失败</string>
+    <string name="auth_error_password_required">请输入密码</string>
+    <string name="auth_error_code_required">请输入验证码</string>
+    <string name="auth_error_password_length">密码需为 6-32 个字符</string>
+    <string name="auth_error_password_complexity">密码必须同时包含字母和数字</string>
+    <string name="auth_error_email_code_required">请输入邮箱验证码</string>
+    <string name="auth_error_phone_invalid">手机号格式不正确</string>
+
+    <!-- 扫码 -->
+    <string name="qr_title">扫描二维码</string>
+    <string name="qr_album">相册</string>
+    <string name="qr_permission_required">需要相机权限才能扫描二维码</string>
+    <string name="qr_user_not_found">未找到该用户</string>
+    <string name="qr_image_read_failed">无法读取图片</string>
+    <string name="qr_none_detected">未识别到二维码</string>
+    <string name="qr_scan_failed">识别失败，请重试</string>
+
+    <!-- IM 聊天 -->
+    <string name="chat_private_title">私信</string>
+    <string name="chat_clear_history_title">清空聊天记录</string>
+    <string name="chat_clear_history_message">确定要清空与对方的历史消息吗？此操作不可恢复。</string>
+    <string name="chat_clear_action">清空</string>
+    <string name="chat_input_hint">发消息…</string>
+    <string name="chat_image_message_desc">图片消息</string>
+    <string name="chat_image_loading">图片加载中…</string>
+    <string name="chat_revoked_self">你撤回了一条消息</string>
+    <string name="chat_revoked_other">对方撤回了一条消息</string>
+    <string name="chat_copy">复制</string>
+    <string name="chat_revoke">撤回</string>
+
+    <!-- 群组 -->
+    <string name="group_manage_title">群管理</string>
+    <string name="group_list_tab_created">我创建的</string>
+    <string name="group_list_tab_joined">我加入的</string>
+    <string name="group_list_empty_created">还没有创建群聊</string>
+    <string name="group_list_empty_joined">还没有加入群聊</string>
+    <string name="group_member_count">%1$d人</string>
+    <string name="group_name">群名称</string>
+    <string name="group_name_hint">请输入群名称</string>
+    <string name="group_manage_intro">群简介</string>
+    <string name="group_manage_intro_hint">介绍一下这个群</string>
+    <string name="group_create_intro">群介绍</string>
+    <string name="group_create_intro_hint">简单说说你想在群内讨论的话题、以及希望哪些人加入群聊</string>
+    <string name="group_create_action">创建</string>
+    <string name="group_avatar_change_hint">点击更换头像</string>
+    <string name="group_invite_friends">邀请好友入群</string>
+    <string name="group_invite">邀请</string>
+    <string name="group_invite_sent">已发送邀请</string>
+    <string name="group_pick_friends_title">选择互关好友</string>
+    <string name="group_no_mutual_friends">暂无互关好友，先去互相关注吧</string>
+    <string name="group_dismiss_group">解散群聊</string>
+    <string name="group_dismiss">解散</string>
+    <string name="group_dismiss_message">解散后所有成员将被移出，且不可恢复。</string>
+    <string name="group_quit_group">退出群聊</string>
+    <string name="group_quit">退出</string>
+    <string name="group_quit_message">退出后你将不再接收该群消息。</string>
+    <string name="group_save_failed">保存失败</string>
+    <string name="group_save_success">群资料已保存</string>
+    <string name="group_avatar_save_failed">头像保存失败</string>
+    <string name="group_avatar_upload_failed">头像上传失败</string>
+    <string name="group_invite_failed">邀请失败</string>
+    <string name="group_dismiss_failed">解散失败</string>
+    <string name="group_quit_failed">退出失败</string>
+    <string name="group_create_failed">创建失败</string>
+
+    <!-- 关注列表 -->
+    <string name="follow_tab_following">关注</string>
+    <string name="follow_tab_followers">粉丝</string>
+    <string name="follow_empty_following">还没有关注的人~</string>
+    <string name="follow_empty_followers">还没有粉丝~</string>
+    <string name="follow_bio_empty">还没有简介</string>
+
+    <!-- 添加好友 -->
+    <string name="friend_add_friend">添加好友</string>
+    <string name="friend_loading">正在加载…</string>
+    <string name="friend_my_qr">我的二维码</string>
+    <string name="friend_qr_failed">二维码生成失败</string>
+    <string name="friend_lime_id_copied">已复制 Lime ID</string>
+    <string name="friend_copy_lime_id">复制 Lime ID</string>
+    <string name="friend_save_qr_hint">保存二维码，让好友扫一扫添加你</string>
+    <string name="friend_scan">扫一扫</string>
+    <string name="friend_save_qr">保存二维码</string>
+    <string name="friend_qr_not_ready">二维码尚未生成</string>
+    <string name="friend_saved_to_album">已保存到相册</string>
+    <string name="friend_save_failed">保存失败</string>
+    <string name="friend_lime_id">Lime ID</string>
+
+    <!-- 搜索 -->
+    <string name="search_history_title">历史记录</string>
+    <string name="search_delete_all">全部删除</string>
+    <string name="search_done">完成</string>
+    <string name="search_manage_history">管理历史</string>
+    <string name="search_hot_words">热搜</string>
+    <string name="search_clear_history_title">确认清空全部搜索历史吗？</string>
+    <string name="search_expand">展开</string>
+    <string name="search_collapse">收起</string>
+    <string name="search_tab_all">全部</string>
+    <string name="search_tab_users">用户</string>
+    <string name="search_filter">筛选</string>
+    <string name="search_load_failed">加载失败</string>
+    <string name="search_empty_notes">暂无相关笔记</string>
+    <string name="search_empty_users">暂无相关用户</string>
+    <string name="search_followers">粉丝 %1$d</string>
+    <string name="search_self_badge">我自己</string>
+    <string name="search_sort_by">排序依据</string>
+    <string name="search_publish_time">发布时间</string>
+    <string name="search_filter_reset">重置</string>
+    <string name="search_ok">确定</string>
+    <string name="search_sort_composite">综合</string>
+    <string name="search_sort_latest">最新</string>
+    <string name="search_sort_most_liked">最多点赞</string>
+    <string name="search_sort_most_commented">最多评论</string>
+    <string name="search_sort_most_favored">最多收藏</string>
+    <string name="search_time_all">不限</string>
+    <string name="search_time_day">一天内</string>
+    <string name="search_time_week">一周内</string>
+    <string name="search_time_half_year">半年内</string>
+    <string name="search_filter_type">笔记类型</string>
+    <string name="search_type_all">全部</string>
+    <string name="search_type_image">图文</string>
+    <string name="search_type_video">视频</string>
+    <string name="search_lime_id">Lime ID</string>
+
+    <!-- 翻译设置 -->
+    <string name="translate_settings_title">翻译设置</string>
+    <string name="translate_offline_pack">离线包</string>
+    <string name="translate_pack_name">中英互译语言包</string>
+    <string name="translate_mode_section">翻译方式</string>
+    <string name="translate_pack_tips">• 语言包下载后即可离线翻译\n• 第一次需要联网下载\n• 语言包由 Google 提供</string>
+    <string name="translate_delete_pack_confirm_title">删除中英语言包？\n删除后再次翻译需重新下载</string>
+    <string name="translate_checking">检查中…</string>
+    <string name="translate_downloading">下载中…</string>
+    <string name="translate_download">下载</string>
+    <string name="translate_download_failed">下载失败</string>
+    <string name="translate_retry">重试</string>
+    <string name="translate_downloaded">已下载</string>
+    <string name="translate_mode_auto">自动</string>
+    <string name="translate_mode_offline">离线</string>
+
+    <!-- 聊天组件 -->
+    <string name="chat_send_failed_retry">发送失败，点击重发</string>
+    <string name="chat_stopped">已停止</string>
+    <string name="chat_select_text">选取文字</string>
+    <string name="chat_regenerate">重新生成</string>
+    <string name="chat_speak">朗读</string>
+    <string name="chat_stop_speak">停止朗读</string>
+    <string name="chat_quote_note">引用笔记</string>
+    <string name="chat_scroll_to_bottom">回到底部</string>
+    <string name="chat_time_format_same_year">M月d日 HH:mm</string>
+    <string name="chat_time_format_other_year">yyyy年M月d日 HH:mm</string>
+    <string name="chat_take_photo">拍照</string>
+    <string name="chat_album">相册</string>
+    <string name="chat_attach_note">笔记</string>
+    <string name="chat_web_search">联网搜索</string>
+    <string name="chat_web_search_auto">自动</string>
+    <string name="chat_web_search_off">关闭</string>
+
+    <!-- 语音 -->
+    <string name="voice_close">关闭</string>
+    <string name="voice_record">录音</string>
+    <string name="voice_release_cancel">松开取消</string>
+    <string name="voice_release_send">%1$d\" · 松手保存</string>
+    <string name="voice_hold_to_record">按住麦克风开始录音</string>
+
+    <!-- 笔记管理 -->
+    <string name="note_manage_title">设置</string>
+    <string name="note_manage_close">关闭</string>
+    <string name="note_manage_edit">编辑</string>
+
+    <!-- 视频 -->
+    <string name="video_feed_empty">暂无视频</string>
+    <string name="video_notify_settings_hint">请在设置中开启通知</string>
+    <string name="video_reply">回复</string>
+    <string name="video_reply_mention">回复 @%1$s</string>
+    <string name="video_comment_hint">说点什么…</string>
+    <string name="video_delete_comment_confirm">确认删除这条评论吗？</string>
+    <string name="video_danmaku_off">弹幕已关闭</string>
+    <string name="video_danmaku_on">弹幕已开启</string>
+    <string name="video_speed_changed">已切换 %1$.1f倍速</string>
+    <string name="video_autoplay_off">自动连播已关闭</string>
+    <string name="video_autoplay_on">自动连播已开启</string>
+    <string name="video_background_playback_off">后台播放已关闭</string>
+    <string name="video_background_playback_on">后台播放已开启</string>
+    <string name="video_saving">开始保存…</string>
+    <string name="video_delete_note_confirm">确认删除这条视频笔记吗？删除后不可恢复</string>
+    <string name="video_note_deleted">视频笔记已删除</string>
+    <string name="video_delete_note_failed">删除失败，请重试</string>
+    <string name="video_pip">小窗播放</string>
+    <string name="video_share">分享</string>
+    <string name="video_send_danmaku">发弹幕</string>
+    <string name="video_fullscreen">全屏观看</string>
+    <string name="copied">已复制</string>
+    <string name="translate_bg_download_toast">已加入后台下载，完成后即可离线翻译</string>
+
+    <!-- 聊天输入栏 -->
+    <string name="chat_ask_hint">尽管问，带图也行</string>
+    <string name="chat_add">添加</string>
+    <string name="chat_keyboard">键盘</string>
+    <string name="chat_emoji">表情</string>
+    <string name="chat_stop_generating">停止生成</string>
+    <string name="chat_send">发送</string>
+    <string name="chat_remove_image">移除图片</string>
+    <string name="chat_referenced_note">引用笔记</string>
+    <string name="chat_remove_note">移除笔记</string>
+
+    <!-- 扫码遮罩 -->
+    <string name="qr_torch_off">关闭手电筒</string>
+    <string name="qr_torch_on">打开手电筒</string>
+    <string name="qr_torch_tap_off">轻触关闭</string>
+    <string name="qr_torch_tap_on">轻触照亮</string>
+    <string name="qr_align_prompt">请将二维码对准扫码框中心</string>
+
+    <!-- IM -->
+    <string name="im_revoke_failed">撤回失败</string>
+    <string name="im_delete_failed">删除失败</string>
+    <string name="im_clear_failed">清空失败</string>
+    <string name="im_login_failed">IM 登录失败</string>
+    <string name="im_send_failed">发送失败</string>
+    <string name="im_open_conversation_failed">无法打开私信</string>
+
+    <!-- 相册选择 -->
+    <string name="picker_title_select">选择</string>
+    <string name="picker_title_replace_video">更换视频</string>
+    <string name="picker_title_select_photo">选择照片</string>
+    <string name="picker_close">关闭</string>
+    <string name="picker_selected">已选</string>
+    <string name="picker_selected_count">已选 %1$d/9</string>
+    <string name="picker_tab_photo">照片</string>
+    <string name="picker_tab_video">视频</string>
+    <string name="picker_permission_required">需要相册访问权限才能选择</string>
+    <string name="picker_permission_required_photo">需要相册访问权限才能选择照片</string>
+    <string name="picker_permission_grant">授予权限</string>
+    <string name="picker_video_constraint">视频需为 mp4，且不超过 200MB、10 分钟</string>
+    <string name="picker_done">完成</string>
+    <string name="picker_done_count">完成(%1$d)</string>
+    <string name="picker_next">下一步</string>
+    <string name="picker_next_count">下一步(%1$d)</string>
+
+    <!-- 封面选择 -->
+    <string name="cover_title">选择封面</string>
+    <string name="cover_preview">封面预览</string>
+    <string name="cover_exit">退出</string>
+    <string name="cover_done">完成</string>
+    <string name="cover_pinch_hint">使用双指进行缩放</string>
+
+    <!-- AI 帮写 -->
+    <string name="ai_write_title">AI 帮写</string>
+    <string name="ai_write_close">关闭</string>
+    <string name="ai_write_action_caption">看图写文案</string>
+    <string name="ai_write_action_title">起标题</string>
+    <string name="ai_write_action_polish">润色</string>
+    <string name="ai_write_action_continue">续写</string>
+    <string name="ai_write_action_condense">精简</string>
+    <string name="ai_write_uploading_images">正在上传图片…</string>
+    <string name="ai_write_generating">正在生成…</string>
+    <string name="ai_write_status_uploading">正在上传图片，可随时停止</string>
+    <string name="ai_write_status_generating">生成中，可随时停止</string>
+    <string name="ai_write_status_pick_title">点选一个标题填入标题栏</string>
+    <string name="ai_write_status_fill_body">文案将填入正文</string>
+    <string name="ai_write_status_continue_append">续写内容将追加到正文末尾</string>
+    <string name="ai_write_status_summary">共 %1$d 字 · 替换正文将覆盖当前内容</string>
+    <string name="ai_write_stop">停止</string>
+    <string name="ai_write_stop_generating">停止生成</string>
+    <string name="ai_write_regenerate">重新生成</string>
+    <string name="ai_write_copy">复制</string>
+    <string name="ai_write_copied">已复制</string>
+    <string name="ai_write_append_to_body">追加到正文</string>
+    <string name="ai_write_fill_body">填入正文</string>
+    <string name="ai_write_replace_body">替换正文</string>
+    <string name="ai_write_hint_caption_need_image">请先添加图片，才能看图写文案</string>
+    <string name="ai_write_hint_title_need_input">输入一点内容或添加图片后，再让 AI 起标题呗</string>
+    <string name="ai_write_min_text_polish">拜托，正文至少 %1$d 个字，才能润色</string>
+    <string name="ai_write_min_text_continue">拜托，正文至少 %1$d 个字，才能续写</string>
+    <string name="ai_write_min_text_condense">拜托，正文至少 %1$d 个字，才能精简</string>
+    <string name="ai_write_error_upload_failed">图片上传失败，请重试</string>
+    <string name="ai_write_uploading_progress">正在上传图片 %1$d/%2$d…</string>
+
+    <!-- 翻译结果 -->
+    <string name="translate_title">翻译</string>
+    <string name="translate_close">关闭</string>
+    <string name="translate_switch_direction">切换方向</string>
+    <string name="translate_downloading_pack">正在联网下载中英离线语言包 %1$s…</string>
+    <string name="translate_translating">翻译中…</string>
+    <string name="translate_error_default">翻译失败，请稍后重试</string>
+    <string name="translate_error_network">翻译失败：请检查网络后重试</string>
+    <string name="translate_background_download">后台下载</string>
+    <string name="translate_result_missing">(っ °Д °;)っ 可惜，译文被偷走了</string>
+    <string name="translate_copy_result">复制译文</string>
+
+    <!-- 图片预览 -->
+    <string name="image_preview_close">关闭预览</string>
+    <string name="image_preview_save_image">保存图片</string>
+    <string name="image_preview_saved_to_album">已保存到相册</string>
+    <string name="image_preview_save_failed">保存失败</string>
+
+    <!-- 发布弹层 -->
+    <string name="publish_from_album">从相册选择</string>
+    <string name="publish_camera">相机</string>
+    <string name="publish_take_photo">拍摄</string>
+
+    <!-- 发布 -->
+    <string name="publish_title_new_note">发布笔记</string>
+    <string name="publish_title_edit_note">编辑笔记</string>
+    <string name="publish_title_new_video">发布视频笔记</string>
+    <string name="publish_title_edit_video">编辑视频笔记</string>
+    <string name="publish_add_title_hint">添加标题</string>
+    <string name="publish_add_content_hint">添加正文</string>
+    <string name="publish_action_draft">存草稿</string>
+    <string name="publish_action_publish">发布笔记</string>
+    <string name="publish_confirm_draft_title">确认保存笔记至草稿箱吗？</string>
+    <string name="publish_saved_edit">已保存修改</string>
+    <string name="publish_draft_saved">存草稿成功</string>
+    <string name="publish_uploading_images">正在上传图片 %1$d/%2$d...</string>
+    <string name="publish_uploading_phase">正在%1$s...</string>
+    <string name="publish_phase_upload_video">上传视频</string>
+    <string name="publish_phase_upload_cover">上传封面</string>
+    <string name="publish_cover_cd">封面</string>
+    <string name="publish_cover_pick">选封面</string>
+    <string name="publish_cover_change">更改封面</string>
+    <string name="publish_change_video">更换视频</string>
+    <string name="publish_add_image">添加图片</string>
+    <string name="publish_ai_write">AI 帮写</string>
+    <string name="publish_error_no_image">请至少添加一张图片</string>
+    <string name="publish_error_need_content">标题和正文至少填写一项</string>
+    <string name="publish_error_load_note">加载笔记失败</string>
+    <string name="publish_error_not_video">该笔记不是视频笔记</string>
+    <string name="publish_error_no_video">请先选择视频</string>
+    <string name="publish_error_draft">存草稿失败，请重试</string>
+    <string name="publish_error_save">保存失败，请重试</string>
+    <string name="publish_error_publish">发布失败，请重试</string>
+
+    <!-- 详情 -->
+    <string name="detail_copied">已复制</string>
+    <string name="detail_note_delete_confirm_title">确认永久删除作品？\n删除后不可恢复</string>
+    <string name="detail_note_deleted">笔记已删除</string>
+    <string name="detail_delete_failed">删除失败，请重试</string>
+    <string name="detail_save_qr_title">保存笔记二维码</string>
+    <string name="detail_save_qr_message">将生成这篇笔记的二维码保存到相册，好友扫一扫即可打开笔记。</string>
+    <string name="detail_qr_saved">二维码已保存到相册</string>
+    <string name="detail_save_failed">保存失败，请重试</string>
+    <string name="detail_qr_generate_failed">二维码生成失败</string>
+    <string name="detail_translate_bg_download">已加入后台下载，完成后即可离线翻译</string>
+    <string name="detail_translate_failed">翻译失败，请检查网络后重试</string>
+    <string name="detail_view_original">查看原文</string>
+    <string name="detail_translate_full">一键翻译</string>
+    <string name="detail_end_of_list">- 到底了 -</string>
+
+    <!-- 评论 -->
+    <string name="comment_input_hint">说点什么…</string>
+    <string name="comment_reply_to_hint">回复 @%1$s</string>
+    <string name="comment_reply_action">回复</string>
+    <string name="comment_reply_prefix">"回复 "</string>
+    <string name="comment_image_voice_mutex">图片和语音不能同时添加</string>
+    <string name="comment_voice_single">只能添加一条语音</string>
+    <string name="comment_delete_image">删除图片</string>
+    <string name="comment_add_image">添加图片</string>
+    <string name="comment_delete_voice">删除语音</string>
+    <string name="comment_record_voice">录音</string>
+    <string name="comment_album">相册</string>
+    <string name="comment_camera">拍照</string>
+    <string name="comment_keyboard">键盘</string>
+    <string name="comment_emoji">表情</string>
+    <string name="comment_send">发送</string>
+    <string name="comment_delete_confirm_title">确认删除这条评论吗？</string>
+    <string name="comment_expand_more">展开更多回复</string>
+    <string name="comment_expand_replies_count">展开%1$d条回复</string>
+    <string name="comment_image_count">共%1$d张</string>
+    <string name="comment_author_badge">作者</string>
+    <string name="comment_empty_hint">这是一片荒草地</string>
+
+    <!-- AI 聊天 -->
+    <string name="ai_new_chat">新对话</string>
+    <string name="ai_new_conversation_cd">新建会话</string>
+    <string name="ai_open_history_cd">打开历史会话</string>
+    <string name="ai_clear_conversation">清空对话</string>
+    <string name="ai_delete_conversation_title">删除会话</string>
+    <string name="ai_delete_conversation_message">「%1$s」将被删除，且不可恢复。</string>
+    <string name="ai_clear_conversation_message">将清空该会话的全部消息，且不可恢复。</string>
+    <string name="ai_delete_message_title">删除消息</string>
+    <string name="ai_delete_message_message">将删除这条消息及其关联的提问/回复，且不可恢复。</string>
+    <string name="ai_cleared">已清空</string>
+    <string name="ai_conversation_deleted">会话已删除</string>
+    <string name="ai_copied">已复制</string>
+    <string name="ai_camera_file_failed">无法创建拍照文件</string>
+    <string name="ai_offline_banner">当前无网络，显示缓存消息</string>
+    <string name="ai_select_text_title">选择文本</string>
+    <string name="ai_history_title">对话记录</string>
+    <string name="ai_no_history">暂无历史对话</string>
+    <string name="ai_load_failed_retry">加载失败，点击重试</string>
+    <string name="ai_default_model">默认模型</string>
+    <string name="ai_image_chat_title">图片对话</string>
+    <string name="ai_delete_failed">删除失败，请重试</string>
+    <string name="ai_clear_failed">清空失败，请重试</string>
+    <string name="ai_offline_cannot_send">当前无网络，无法发送</string>
+    <string name="ai_image_upload_failed">有图片上传失败，请点击重试或移除</string>
+    <string name="ai_offline_cannot_resend">当前无网络，无法重发</string>
+    <string name="ai_offline_cannot_regenerate">当前无网络，无法重新生成</string>
+
+    <!-- 视频面板 -->
+    <string name="video_save_to_album">保存到相册</string>
+    <string name="video_clear_screen_playback">清屏播放</string>
+    <string name="video_auto_play_next">自动连播</string>
+    <string name="video_background_playback">后台继续播放</string>
+    <string name="video_danmaku">弹幕</string>
+    <string name="video_speed">倍速</string>
+    <string name="video_danmaku_opacity">弹幕不透明度</string>
+    <string name="video_like">点赞</string>
+    <string name="video_comment">评论</string>
+    <string name="video_favorite">收藏</string>
+    <string name="video_more">更多</string>
+    <string name="video_danmaku_disable">关闭弹幕</string>
+    <string name="video_danmaku_enable">开启弹幕</string>
+    <string name="video_danmaku_input_hint">发个弹幕呗… (∠・ω&lt; )⌒☆</string>
+    <string name="video_danmaku_send_prompt">点我发弹幕</string>
+    <string name="video_exit_fullscreen">退出全屏</string>
+    <string name="video_brightness">亮度</string>
+    <string name="video_volume">音量</string>
+    <string name="video_speed_boost">倍速中</string>
+    <string name="video_danmaku_send_failed">弹幕发送失败</string>
+
+    <!-- 通用小组件 -->
+    <string name="like">点赞</string>
+    <string name="unlike">取消点赞</string>
+    <string name="favorite">收藏</string>
+    <string name="unfavorite">取消收藏</string>
+    <string name="comment">评论</string>
+    <string name="view_count">浏览人数</string>
+    <string name="note_type_image_text">图文</string>
+    <string name="note_manage_entry">编辑设置 ></string>
+    <string name="comment_count">共%1$d条评论</string>
+    <string name="sort">排序</string>
+    <string name="sort_by_hot">按热度</string>
+    <string name="sort_by_time">按时间</string>
+    <string name="note_picker_title">选择笔记</string>
+    <string name="note_picker_confirm">选择笔记</string>
+    <string name="note_picker_tab_favorites">收藏</string>
+    <string name="note_picker_tab_likes">点赞</string>
+    <string name="note_picker_tab_published">发布</string>
+    <string name="load_failed_retry">加载失败，点击重试</string>
+    <string name="note_picker_empty">暂无图文笔记</string>
+    <string name="untitled">无标题</string>
+    <string name="album_cover">相册封面</string>
+    <string name="remove_album_cover">取消相册封面</string>
+
+    <!-- 补充 -->
+    <string name="search_placeholder">搜索笔记和用户</string>
+    <string name="search_clear">清空</string>
+    <string name="search_action">搜索</string>
+    <string name="updater_notify_title">Lime 更新</string>
+    <string name="updater_notify_desc">正在下载新版本…</string>
+    <string name="comment_load_failed">评论加载失败，请重试</string>
+    <string name="search_fill_suggestion">补全</string>
 </resources>

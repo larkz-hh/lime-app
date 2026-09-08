@@ -1,6 +1,6 @@
 package xyz.larkzhh.lime.data.repository
 
-import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.data.network.search.SearchApi
 import xyz.larkzhh.lime.data.network.model.HotSearchItem
 import xyz.larkzhh.lime.data.network.model.NoteSearchResponse
 import xyz.larkzhh.lime.data.network.model.SearchReportRequest
@@ -11,7 +11,7 @@ import javax.inject.Singleton
 
 @Singleton
 class SearchRepositoryImpl @Inject constructor(
-    private val apiService: ApiService,
+    private val apiService: SearchApi,
 ) : SearchRepository {
 
     /// 搜索笔记
@@ -19,6 +19,7 @@ class SearchRepositoryImpl @Inject constructor(
         keyword: String,
         sort: String,
         within: String,
+        type: String,
         cursor: String?,
         size: Int,
     ): Result<NoteSearchResponse> = runCatching {
@@ -26,6 +27,7 @@ class SearchRepositoryImpl @Inject constructor(
             keyword = keyword,
             sort = sort,
             within = within,
+            type = type,
             cursor = cursor,
             size = size,
         )

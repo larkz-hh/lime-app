@@ -2,7 +2,15 @@ package xyz.larkzhh.lime.data.repository
 
 import android.content.Context
 import android.net.Uri
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
+import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -10,55 +18,47 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.BufferedSink
 import okio.source
-import xyz.larkzhh.lime.data.network.ApiService
-import xyz.larkzhh.lime.data.network.model.DeleteHistoryRequest
+import xyz.larkzhh.lime.data.local.feed.FeedLocalDataSource
+import xyz.larkzhh.lime.data.local.note.NoteCacheLocalDataSource
+import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.data.network.model.FeedResponse
 import xyz.larkzhh.lime.data.network.model.HistoryResponse
 import xyz.larkzhh.lime.data.network.model.ImageSize
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
-import xyz.larkzhh.lime.data.network.model.NoteImageRequest
-import xyz.larkzhh.lime.data.network.model.PublishNoteRequest
-import xyz.larkzhh.lime.data.network.model.PublishVideoNoteRequest
-import xyz.larkzhh.lime.data.network.model.VideoRequest
+import xyz.larkzhh.lime.data.network.note.NoteRemoteDataSource
 import xyz.larkzhh.lime.domain.repository.NoteRepository
-import xyz.larkzhh.lime.util.LruCache
+import xyz.larkzhh.lime.util.media.ImageCompressor
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * 笔记数据仓库实现
+ */
 @Singleton
 class NoteRepositoryImpl @Inject constructor(
-    private val apiService: ApiService,
     @param:ApplicationContext private val context: Context,
+    private val feedLocalDataSource: FeedLocalDataSource,
+    private val noteCacheLocalDataSource: NoteCacheLocalDataSource,
+    private val noteRemoteDataSource: NoteRemoteDataSource,
 ) : NoteRepository {
 
-    private val userNotesFirstPageCache = LruCache<Long, FeedResponse>(maxSize = 50)
+    private val gson = Gson()
 
     /// 上传笔记图片
-    override suspend fun uploadImage(uri: Uri): Result<String> = runCatching {
-        val bytes = context.contentResolver.openInputStream(uri)?.readBytes()
-            ?: error("无法读取图片文件")
-        val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
-        val ext = when (mimeType) {
-            "image/png" -> "png"
-            "image/webp" -> "webp"
-            "image/gif" -> "gif"
-            else -> "jpg"
-        }
-        val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
-        val part = MultipartBody.Part.createFormData("file", "upload.$ext", requestBody)
-        val response = apiService.uploadNoteImage(part)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data.url
+    override suspend fun uploadImage(uri: Uri): Result<String> {
+        val image = runCatching { ImageCompressor.compress(context, uri) }
+            .getOrElse { return Result.failure(it) }
+        val requestBody = image.bytes.toRequestBody(image.mimeType.toMediaTypeOrNull())
+        val part = MultipartBody.Part.createFormData("file", "upload.${image.ext}", requestBody)
+        return noteRemoteDataSource.uploadNoteImage(part)
     }
 
     /// 上传笔记视频，流式写入
-    override suspend fun uploadVideo(uri: Uri): Result<String> = runCatching {
+    override suspend fun uploadVideo(uri: Uri): Result<String> {
         val mimeType = context.contentResolver.getType(uri) ?: "video/mp4"
         val requestBody = uri.asStreamingRequestBody(mimeType.toMediaTypeOrNull())
         val part = MultipartBody.Part.createFormData("file", "upload.mp4", requestBody)
-        val response = apiService.uploadNoteVideo(part)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data.url
+        return noteRemoteDataSource.uploadNoteVideo(part)
     }
 
     /// 将内容 uri 包装为流式 RequestBody
@@ -77,12 +77,73 @@ class NoteRepositoryImpl @Inject constructor(
             }// 流式写入
         }
 
-    /// 获取信息流
-    override suspend fun getFeed(cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
-        val response = apiService.getFeed(cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
-    }
+    /// 发现页信息流
+    override fun discoverFeedPager(): Flow<PagingData<FeedItem>> =
+        feedPager(FEED_KEY_DISCOVER) { cursor -> noteRemoteDataSource.getFeed(cursor, FEED_PAGE_SIZE) }
+
+    /// 关注动态信息流
+    override fun followingFeedPager(): Flow<PagingData<FeedItem>> =
+        feedPager(FEED_KEY_FOLLOWING) { cursor ->
+            noteRemoteDataSource.getFollowingFeed(cursor, FEED_PAGE_SIZE)
+        }
+
+    /// 获取指定用户已发布的笔记列表
+    override fun userNotesPager(userId: Long, noteType: Int?): Flow<PagingData<FeedItem>> =
+        feedPager(userFeedKey(userId, "notes", noteType)) { cursor ->
+            noteRemoteDataSource.getUserNotes(userId, cursor, FEED_PAGE_SIZE).filterNotes(noteType)
+        }
+
+    /// 拉取页用户笔记
+    override suspend fun fetchUserNotes(
+        userId: Long,
+        cursor: Long?,
+        size: Int,
+        status: String,
+    ): Result<FeedResponse> =
+        noteRemoteDataSource.getUserNotes(userId, cursor, size, status)
+
+    /// 获取指定用户的点赞笔记列表
+    override fun userLikesPager(userId: Long, noteType: Int?): Flow<PagingData<FeedItem>> =
+        feedPager(userFeedKey(userId, "likes", noteType)) { cursor ->
+            noteRemoteDataSource.getUserLikes(userId, cursor, FEED_PAGE_SIZE).filterNotes(noteType)
+        }
+
+    /// 获取指定用户的点赞笔记列表
+    override fun userFavoritesPager(userId: Long, noteType: Int?): Flow<PagingData<FeedItem>> =
+        feedPager(userFeedKey(userId, "favorites", noteType)) { cursor ->
+            noteRemoteDataSource.getUserFavorites(userId, cursor, FEED_PAGE_SIZE).filterNotes(noteType)
+        }
+
+    /// 生成用户列表缓存键
+    private fun userFeedKey(userId: Long, kind: String, noteType: Int?) =
+        "user:$userId:$kind" + (noteType?.let { ":$it" } ?: "")
+
+    /// 按笔记种类过滤一页结果
+    private fun Result<FeedResponse>.filterNotes(noteType: Int?): Result<FeedResponse> =
+        if (noteType == null) this
+        else map { it.copy(items = it.items.filter { item -> item.noteType == noteType }) }
+
+    /// 游标信息流构造
+    @OptIn(ExperimentalPagingApi::class)
+    private fun feedPager(
+        feedKey: String,
+        fetch: suspend (cursor: Long?) -> Result<FeedResponse>,
+    ): Flow<PagingData<FeedItem>> =
+        Pager(
+            config = PagingConfig(
+                pageSize = FEED_PAGE_SIZE,
+                initialLoadSize = FEED_PAGE_SIZE * 2,
+                enablePlaceholders = false,
+            ),
+            remoteMediator = FeedRemoteMediator(
+                feedKey = feedKey,
+                local = feedLocalDataSource,
+                fetch = fetch,
+            ),
+            pagingSourceFactory = { feedLocalDataSource.pagingSource(feedKey) },
+        ).flow.map { pagingData ->
+            pagingData.map { gson.fromJson(it.json, FeedItem::class.java) }
+        }
 
     /// 获取视频信息流
     override suspend fun getVideoFeed(
@@ -90,91 +151,42 @@ class NoteRepositoryImpl @Inject constructor(
         seedNoteId: Long?,
         orientation: String?,
         size: Int,
-    ): Result<FeedResponse> = runCatching {
-        val response = apiService.getVideoFeed(
-            cursor = cursor,
-            seedNoteId = seedNoteId,
-            orientation = orientation,
-            size = size,
-        )
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
-    }
-
-    /// 获取指定用户已发布的笔记列表
-    override suspend fun getUserNotes(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
-        val response = apiService.getUserNotes(userId = userId, cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        if (cursor == null) userNotesFirstPageCache[userId] = response.data// 仅缓存首页
-        response.data
-    }
-
-    /// 同步读取指定用户缓存的笔记首页
-    override fun getCachedUserNotes(userId: Long): FeedResponse? = userNotesFirstPageCache[userId]
-
-    /// 获取指定用户的点赞笔记列表
-    override suspend fun getUserLikes(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
-        val response = apiService.getUserLikes(userId = userId, cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
-    }
-
-    /// 获取指定用户的收藏笔记列表
-    override suspend fun getUserFavorites(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
-        val response = apiService.getUserFavorites(userId = userId, cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
-    }
+    ): Result<FeedResponse> =
+        noteRemoteDataSource.getVideoFeed(cursor, seedNoteId, orientation, size)
 
     /// 点赞笔记
-    override suspend fun likeNote(id: Long): Result<Unit> = runCatching {
-        val response = apiService.likeNote(id)
-        check(response.code == 200) { response.message }
-    }
+    override suspend fun likeNote(id: Long): Result<Unit> = noteRemoteDataSource.likeNote(id)
 
     /// 取消点赞笔记
-    override suspend fun unlikeNote(id: Long): Result<Unit> = runCatching {
-        val response = apiService.unlikeNote(id)
-        check(response.code == 200) { response.message }
-    }
+    override suspend fun unlikeNote(id: Long): Result<Unit> = noteRemoteDataSource.unlikeNote(id)
 
     /// 收藏笔记
-    override suspend fun favoriteNote(id: Long): Result<Unit> = runCatching {
-        val response = apiService.favoriteNote(id)
-        check(response.code == 200) { response.message }
-    }
+    override suspend fun favoriteNote(id: Long): Result<Unit> = noteRemoteDataSource.favoriteNote(id)
 
     /// 取消收藏笔记
-    override suspend fun unfavoriteNote(id: Long): Result<Unit> = runCatching {
-        val response = apiService.unfavoriteNote(id)
-        check(response.code == 200) { response.message }
-    }
+    override suspend fun unfavoriteNote(id: Long): Result<Unit> = noteRemoteDataSource.unfavoriteNote(id)
 
     /// 获取笔记详情
-    override suspend fun getNoteDetail(id: Long, noView: Boolean): Result<NoteDetailData> = runCatching {
-        val response = apiService.getNoteDetail(id, noView = noView)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+    override suspend fun getNoteDetail(id: Long, noView: Boolean): Result<NoteDetailData> {
+        val result = noteRemoteDataSource.getNoteDetail(id, noView)
+        result.getOrNull()?.let { note -> noteCacheLocalDataSource.saveNoteDetail(id, note) }
+        return result
     }
+
+    /// 读取本地缓存的笔记详情
+    override suspend fun getCachedNoteDetail(id: Long): NoteDetailData? =
+        noteCacheLocalDataSource.getNoteDetail(id)
 
     /// 获取浏览历史
-    override suspend fun getHistory(cursor: Long?, size: Int): Result<HistoryResponse> = runCatching {
-        val response = apiService.getHistory(cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
-    }
+    override suspend fun getHistory(cursor: Long?, size: Int): Result<HistoryResponse> =
+        noteRemoteDataSource.getHistory(cursor, size)
 
     /// 删除浏览历史条目
-    override suspend fun deleteHistory(ids: List<Long>): Result<Unit> = runCatching {
-        val response = apiService.deleteHistory(DeleteHistoryRequest(noteIds = ids))
-        check(response.code == 200) { response.message }
-    }
+    override suspend fun deleteHistory(ids: List<Long>): Result<Unit> =
+        noteRemoteDataSource.deleteHistory(ids)
 
     /// 清空全部浏览历史
-    override suspend fun deleteHistoryAll(): Result<Unit> = runCatching {
-        val response = apiService.deleteHistoryAll()
-        check(response.code == 200) { response.message }
-    }
+    override suspend fun deleteHistoryAll(): Result<Unit> = noteRemoteDataSource.deleteHistoryAll()
 
     /// 发布笔记
     override suspend fun publishNote(
@@ -183,24 +195,82 @@ class NoteRepositoryImpl @Inject constructor(
         imageUrls: List<String>,
         coverSize: ImageSize?,
         status: Int,
-    ): Result<Unit> = runCatching {
-        val images = imageUrls.mapIndexed { index, url ->
-            val isCover = index == 0
-            NoteImageRequest(
-                url = url,
-                sortOrder = index,
-                width = if (isCover) coverSize?.width else null,
-                height = if (isCover) coverSize?.height else null,
-            )
-        }
-        val request = PublishNoteRequest(
-            title = title?.ifBlank { null },
-            content = content?.ifBlank { null },
-            images = images,
-            status = status,
+    ): Result<Unit> =
+        noteRemoteDataSource.publishNote(title, content, imageUrls, coverSize, status)
+
+    /// 编辑图文笔记
+    override suspend fun updateNote(
+        id: Long,
+        title: String?,
+        content: String?,
+        imageUrls: List<String>,
+        coverSize: ImageSize?,
+        status: Int,
+    ): Result<Unit> {
+        val result = noteRemoteDataSource.updateNote(id, title, content, imageUrls, coverSize, status)
+        if (result.isSuccess) refreshNoteCachesAfterEdit(id)// 同步本地缓存快照
+        return result
+    }
+
+    /// 编辑视频笔记
+    override suspend fun updateVideoNote(
+        id: Long,
+        title: String?,
+        content: String?,
+        videoUrl: String,
+        durationMs: Long,
+        width: Int,
+        height: Int,
+        coverUrl: String?,
+        coverWidth: Int?,
+        coverHeight: Int?,
+        status: Int,
+    ): Result<Unit> {
+        val result = noteRemoteDataSource.updateVideoNote(
+            id, title, content, videoUrl, durationMs, width, height,
+            coverUrl, coverWidth, coverHeight, status,
         )
-        val response = apiService.publishNote(request)
-        check(response.code == 200) { response.message }
+        if (result.isSuccess) refreshNoteCachesAfterEdit(id)// 同步本地缓存快照
+        return result
+    }
+
+    /// 编辑保存成功后刷新本地缓存
+    private suspend fun refreshNoteCachesAfterEdit(id: Long) {
+        val detail = getNoteDetail(id, noView = true).getOrNull() ?: return
+        runCatching {
+            val cached = feedLocalDataSource.getNoteItems(id)
+            if (cached.isEmpty()) return@runCatching
+            val old = runCatching {
+                gson.fromJson(cached.first().json, FeedItem::class.java)
+            }.getOrNull()
+            val cover = detail.images.firstOrNull()
+            val feed = FeedItem(
+                id = detail.id,
+                title = detail.title,
+                coverImage = if (detail.noteType == 2) detail.video?.coverUrl else cover?.url,
+                coverWidth = cover?.width?.takeIf { it > 0 } ?: old?.coverWidth,
+                coverHeight = cover?.height?.takeIf { it > 0 } ?: old?.coverHeight,
+                likeCount = detail.likeCount,
+                liked = detail.liked,
+                author = detail.author,
+                viewCount = old?.viewCount,
+                noteType = detail.noteType,
+                video = detail.video,
+            )
+            feedLocalDataSource.updateNoteItem(id, gson.toJson(feed))
+        }
+    }
+
+    /// 删除笔记
+    override suspend fun deleteNote(id: Long): Result<Unit> {
+        val result = noteRemoteDataSource.deleteNote(id)
+        result.onSuccess {
+            runCatching {
+                noteCacheLocalDataSource.deleteNoteCache(id)
+                feedLocalDataSource.deleteByNoteId(id)
+            }
+        }
+        return result
     }
 
     /// 发布视频笔记
@@ -215,22 +285,15 @@ class NoteRepositoryImpl @Inject constructor(
         coverWidth: Int?,
         coverHeight: Int?,
         status: Int,
-    ): Result<Unit> = runCatching {
-        val request = PublishVideoNoteRequest(
-            title = title?.ifBlank { null },
-            content = content?.ifBlank { null },
-            video = VideoRequest(
-                url = videoUrl,
-                durationMs = durationMs,
-                width = width,
-                height = height,
-                coverUrl = coverUrl,
-                coverWidth = coverWidth,
-                coverHeight = coverHeight,
-            ),
-            status = status,
+    ): Result<Unit> =
+        noteRemoteDataSource.publishVideoNote(
+            title, content, videoUrl, durationMs, width, height,
+            coverUrl, coverWidth, coverHeight, status,
         )
-        val response = apiService.publishVideoNote(request)
-        check(response.code == 200) { response.message }
+
+    private companion object {
+        const val FEED_PAGE_SIZE = 10
+        const val FEED_KEY_DISCOVER = "discover"
+        const val FEED_KEY_FOLLOWING = "following"
     }
 }

@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,10 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import xyz.larkzhh.lime.ui.theme.LimePrimary
+import xyz.larkzhh.lime.R
 
 /// 相册入口
 @Composable
@@ -51,7 +53,7 @@ fun AlbumSquare(
         if (albumUri != null) {
             AsyncImage(
                 model = albumUri,
-                contentDescription = "相册封面",
+                contentDescription = stringResource(R.string.album_cover),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
             )
@@ -59,7 +61,7 @@ fun AlbumSquare(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(LimePrimary.copy(alpha = 0.18f))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
                 )
             }
             // 清掉相册图回截帧
@@ -75,7 +77,7 @@ fun AlbumSquare(
             ) {
                 Icon(
                     Icons.Filled.Close,
-                    contentDescription = "取消相册封面",
+                    contentDescription = stringResource(R.string.remove_album_cover),
                     tint = Color.White,
                     modifier = Modifier.size(11.dp),
                 )
@@ -91,7 +93,7 @@ fun AlbumSquare(
                         .size(18.dp),
                 )
                 Text(
-                    "相册",
+                    stringResource(R.string.chat_album),
                     fontSize = 10.sp,
                     color = Color.White.copy(alpha = 0.6f),
                 )

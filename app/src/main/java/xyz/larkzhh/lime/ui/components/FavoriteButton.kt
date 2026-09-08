@@ -11,9 +11,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.ui.auth.LoginGate
 import xyz.larkzhh.lime.ui.theme.LimeGray
 
 /**
@@ -39,13 +41,16 @@ fun FavoriteButton(
         modifier = modifier.clickable(
             indication = null,
             interactionSource = remember { MutableInteractionSource() },
-            onClick = onToggle,
+            onClick = {
+                // 收藏登录拦截
+                if (!LoginGate.onRequireLogin(null)) onToggle()
+            },
         ),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             painter = painterResource(if (favorited) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
-            contentDescription = if (favorited) "取消收藏" else "收藏",
+            contentDescription = if (favorited) stringResource(R.string.unfavorite) else stringResource(R.string.favorite),
             tint = if (favorited) activeColor else inactiveColor,
             modifier = Modifier.size(iconSize),
         )

@@ -24,13 +24,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.ui.components.FavoriteButton
 import xyz.larkzhh.lime.ui.components.LikeButton
-import xyz.larkzhh.lime.ui.theme.LimeDark
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 
@@ -40,15 +41,19 @@ fun NoteBottomBar(
     onToggleLike: () -> Unit,
     onToggleFavorite: () -> Unit,
     onCommentClick: () -> Unit,
+    isAuthor: Boolean = false,
+    onManageClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.background,
-    contentColor: Color = LimeDark,
-    inputBackground: Color = LimeLightGray,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    inputBackground: Color = MaterialTheme.colorScheme.surfaceVariant,
     elevated: Boolean = true,
     compact: Boolean = false,
 ) {
     val rowVertical = if (compact) 6.dp else 10.dp
     val inputVertical = if (compact) 6.dp else 10.dp
+    val inputClick: () -> Unit =
+        if (isAuthor) (onManageClick ?: onCommentClick) else onCommentClick
     Surface(
         modifier = modifier,
         shadowElevation = if (elevated) 8.dp else 0.dp,
@@ -62,21 +67,42 @@ fun NoteBottomBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            // 评论输入框
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(50))
-                    .background(inputBackground)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() },
-                        onClick = onCommentClick,
+            // 评论输入框或编辑设置
+            if (isAuthor) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = inputClick,
+                        )
+                        .padding(horizontal = 4.dp, vertical = rowVertical),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    Text(
+                        text = stringResource(R.string.note_manage_entry),
+                        color = contentColor,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
                     )
-                    .padding(horizontal = 14.dp, vertical = inputVertical),
-                contentAlignment = Alignment.CenterStart,
-            ) {
-                Text(text = "说点什么…", color = LimeGray, fontSize = 13.sp)
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(50))
+                        .background(inputBackground)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = inputClick,
+                        )
+                        .padding(horizontal = 14.dp, vertical = inputVertical),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    Text(text = stringResource(R.string.video_comment_hint), color = LimeGray, fontSize = 13.sp)
+                }
             }
 
             // 点赞
@@ -96,7 +122,7 @@ fun NoteBottomBar(
                         inactiveColor = contentColor,
                     )
                     Text(
-                        text = if (note.likeCount > 0) note.likeCount.toString() else "点赞",
+                        text = if (note.likeCount > 0) note.likeCount.toString() else stringResource(R.string.like),
                         fontSize = 12.sp,
                         color = contentColor,
                         maxLines = 1,
@@ -121,7 +147,7 @@ fun NoteBottomBar(
                         inactiveColor = contentColor,
                     )
                     Text(
-                        text = if (note.favCount > 0) note.favCount.toString() else "收藏",
+                        text = if (note.favCount > 0) note.favCount.toString() else stringResource(R.string.favorite),
                         fontSize = 12.sp,
                         color = contentColor,
                         maxLines = 1,
@@ -141,13 +167,13 @@ fun NoteBottomBar(
                     IconButton(onClick = onCommentClick, modifier = Modifier.size(32.dp)) {
                         Icon(
                             painter = painterResource(R.drawable.ic_chat),
-                            contentDescription = "评论",
+                            contentDescription = stringResource(R.string.comment),
                             tint = contentColor,
                             modifier = Modifier.size(22.dp),
                         )
                     }
                     Text(
-                        text = if (note.commentCount > 0) note.commentCount.toString() else "评论",
+                        text = if (note.commentCount > 0) note.commentCount.toString() else stringResource(R.string.comment),
                         fontSize = 12.sp,
                         color = contentColor,
                         maxLines = 1,

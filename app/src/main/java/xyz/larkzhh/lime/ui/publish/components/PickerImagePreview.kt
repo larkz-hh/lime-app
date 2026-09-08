@@ -27,10 +27,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.publish.viewmodel.LocalImage
 
 /// 相册图片全屏预览浮层
@@ -79,7 +81,7 @@ fun PickerImagePreview(
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "返回",
+                    contentDescription = stringResource(R.string.back),
                     tint = Color.White,
                 )
             }
@@ -131,7 +133,7 @@ internal fun SelectionCircle(
             } else {
                 Icon(
                     Icons.Filled.Check,
-                    contentDescription = "已选",
+                    contentDescription = stringResource(R.string.picker_selected),
                     tint = Color.White,
                     modifier = Modifier.size(16.dp),
                 )

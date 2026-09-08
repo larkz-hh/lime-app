@@ -1,9 +1,11 @@
 package xyz.larkzhh.lime.ui.auth.viewmodel
 
+import android.content.Context
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +13,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.repository.AuthRepository
+import xyz.larkzhh.lime.domain.repository.UserRepository
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -49,7 +53,9 @@ data class RegisterUiState(
  */
 @HiltViewModel
 class AuthViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val authRepository: AuthRepository,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow(LoginUiState())
@@ -87,7 +93,7 @@ class AuthViewModel @Inject constructor(
     fun sendLoginCode() {
         val email = _loginState.value.email
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _loginState.update { it.copy(errorMessage = "请输入有效的邮箱地址") }
+            _loginState.update { it.copy(errorMessage = context.getString(R.string.auth_error_invalid_email)) }
             return
         }
         viewModelScope.launch {
@@ -96,7 +102,7 @@ class AuthViewModel @Inject constructor(
                 authRepository.sendCode(email).getOrThrow()
                 startLoginCountdown()
             } catch (e: Exception) {
-                _loginState.update { it.copy(errorMessage = e.message ?: "发送失败") }
+                _loginState.update { it.copy(errorMessage = e.message ?: context.getString(R.string.auth_error_send_failed)) }
             } finally {
                 _loginState.update { it.copy(isSendingCode = false) }
             }
@@ -134,7 +140,7 @@ class AuthViewModel @Inject constructor(
                 }
                 _loginState.update { it.copy(isLoading = false, isSuccess = true) }
             } catch (e: Exception) {
-                _loginState.update { it.copy(isLoading = false, errorMessage = e.message ?: "登录失败") }
+                _loginState.update { it.copy(isLoading = false, errorMessage = e.message ?: context.getString(R.string.auth_error_login_failed)) }
             }
         }
     }
@@ -165,7 +171,7 @@ class AuthViewModel @Inject constructor(
     fun sendRegisterCode() {
         val email = _registerState.value.email
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _registerState.update { it.copy(errorMessage = "请输入有效的邮箱地址") }
+            _registerState.update { it.copy(errorMessage = context.getString(R.string.auth_error_invalid_email)) }
             return
         }
         viewModelScope.launch {
@@ -174,7 +180,7 @@ class AuthViewModel @Inject constructor(
                 authRepository.sendCode(email).getOrThrow()
                 startRegisterCountdown()
             } catch (e: Exception) {
-                _registerState.update { it.copy(errorMessage = e.message ?: "发送失败") }
+                _registerState.update { it.copy(errorMessage = e.message ?: context.getString(R.string.auth_error_send_failed)) }
             } finally {
                 _registerState.update { it.copy(isSendingCode = false) }
             }
@@ -208,7 +214,7 @@ class AuthViewModel @Inject constructor(
                 authRepository.register(s.email, s.password, s.code, phone).getOrThrow()
                 _registerState.update { it.copy(isLoading = false, isSuccess = true) }
             } catch (e: Exception) {
-                _registerState.update { it.copy(isLoading = false, errorMessage = e.message ?: "注册失败") }
+                _registerState.update { it.copy(isLoading = false, errorMessage = e.message ?: context.getString(R.string.auth_error_register_failed)) }
             }
         }
     }
@@ -220,6 +226,7 @@ class AuthViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             authRepository.logout()
+            userRepository.clearActiveSession()
             _loginState.value = LoginUiState()
             _registerState.value = RegisterUiState()
         }
@@ -229,8 +236,8 @@ class AuthViewModel @Inject constructor(
      * 校验登录表单（密码模式）
      */
     private fun validateLoginWithPassword(email: String, password: String): String? {
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return "请输入有效的邮箱地址"
-        if (password.isBlank()) return "请输入密码"
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return context.getString(R.string.auth_error_invalid_email)
+        if (password.isBlank()) return context.getString(R.string.auth_error_password_required)
         return null
     }
 
@@ -238,8 +245,8 @@ class AuthViewModel @Inject constructor(
      * 校验登录表单（验证码模式）
      */
     private fun validateLoginWithCode(email: String, code: String): String? {
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return "请输入有效的邮箱地址"
-        if (code.isBlank()) return "请输入验证码"
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return context.getString(R.string.auth_error_invalid_email)
+        if (code.isBlank()) return context.getString(R.string.auth_error_code_required)
         return null
     }
 
@@ -252,11 +259,11 @@ class AuthViewModel @Inject constructor(
      * @return 失败返回错误提示，通过返回 null
      */
     private fun validateRegister(email: String, password: String, code: String, phone: String): String? {
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return "请输入有效的邮箱地址"
-        if (password.length !in 6..32) return "密码需为 6-32 个字符"
-        if (!password.any { it.isLetter() } || !password.any { it.isDigit() }) return "密码必须同时包含字母和数字"
-        if (code.isBlank()) return "请输入邮箱验证码"
-        if (phone.isNotEmpty() && !Regex("^1\\d{10}$").matches(phone)) return "手机号格式不正确"
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return context.getString(R.string.auth_error_invalid_email)
+        if (password.length !in 6..32) return context.getString(R.string.auth_error_password_length)
+        if (!password.any { it.isLetter() } || !password.any { it.isDigit() }) return context.getString(R.string.auth_error_password_complexity)
+        if (code.isBlank()) return context.getString(R.string.auth_error_email_code_required)
+        if (phone.isNotEmpty() && !Regex("^1\\d{10}$").matches(phone)) return context.getString(R.string.auth_error_phone_invalid)
         return null
     }
 }

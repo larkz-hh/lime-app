@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.FlashlightOff
 import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,9 +38,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import xyz.larkzhh.lime.ui.theme.LimePrimary
+import xyz.larkzhh.lime.R
 
 @Composable
 fun ScanOverlay(camera: Camera? = null) {
@@ -62,6 +64,7 @@ fun ScanOverlay(camera: Camera? = null) {
         val boxSizeDp = screenWidthDp * 0.65f
         val boxTopDp = (screenHeightDp - boxSizeDp) / 2f
         val boxBottomDp = boxTopDp + boxSizeDp
+        val scanBarColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)// 组合作用域取值
 
         Canvas(modifier = Modifier.fillMaxSize()) {
             // 计算取景框的位置与大小
@@ -103,7 +106,7 @@ fun ScanOverlay(camera: Camera? = null) {
             // 绘制扫描横杆
             val barY = scanRect.top + scanRect.height * scanY// 计算扫描杆y轴
             drawLine(
-                color = LimePrimary.copy(alpha = 0.85f),
+                color = scanBarColor,
                 start = Offset(scanRect.left + 8.dp.toPx(), barY),
                 end = Offset(scanRect.right - 8.dp.toPx(), barY),
                 strokeWidth = 2.dp.toPx(),
@@ -131,13 +134,21 @@ fun ScanOverlay(camera: Camera? = null) {
                 ) {
                     Icon(
                         imageVector = if (torchOn) Icons.Filled.FlashlightOff else Icons.Filled.FlashlightOn,
-                        contentDescription = if (torchOn) "关闭手电筒" else "打开手电筒",
+                        contentDescription = if (torchOn) {
+                            stringResource(R.string.qr_torch_off)
+                        } else {
+                            stringResource(R.string.qr_torch_on)
+                        },
                         tint = Color.White,
                         modifier = Modifier.size(24.dp),
                     )
                 }
                 Text(
-                    text = if (torchOn) "轻触关闭" else "轻触照亮",
+                    text = if (torchOn) {
+                        stringResource(R.string.qr_torch_tap_off)
+                    } else {
+                        stringResource(R.string.qr_torch_tap_on)
+                    },
                     color = Color.White,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 4.dp),
@@ -147,7 +158,7 @@ fun ScanOverlay(camera: Camera? = null) {
 
         // 提示文字
         Text(
-            text = "请将二维码对准扫码框中心",
+            text = stringResource(R.string.qr_align_prompt),
             color = Color.White.copy(alpha = 0.8f),
             fontSize = 14.sp,
             modifier = Modifier

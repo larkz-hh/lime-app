@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -45,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,6 +52,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,17 +73,21 @@ fun RegisterScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("创建账号") },
+                title = { Text(stringResource(R.string.auth_create_account)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateToLogin) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 expandedHeight = 56.dp,
                 windowInsets = TopAppBarDefaults.windowInsets,
                 //windowInsets = WindowInsets(0.dp),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
             )
         },
     ) { innerPadding ->
@@ -98,12 +103,12 @@ fun RegisterScreen(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text = "欢迎加入 Lime",
+                text = stringResource(R.string.auth_register_welcome),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "填写以下信息完成注册",
+                text = stringResource(R.string.auth_register_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(top = 4.dp),
@@ -116,8 +121,8 @@ fun RegisterScreen(
                 value = state.email,
                 onValueChange = viewModel::onRegisterEmailChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("邮箱") },
-                leadingIcon = { Icon(Icons.Filled.Email, contentDescription = "邮箱") },
+                label = { Text(stringResource(R.string.auth_email)) },
+                leadingIcon = { Icon(Icons.Filled.Email, contentDescription = stringResource(R.string.auth_email)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
@@ -134,14 +139,14 @@ fun RegisterScreen(
                 value = state.password,
                 onValueChange = viewModel::onRegisterPasswordChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("密码") },
-                placeholder = { Text("6-32 位，含字母和数字") },
-                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = "密码") },
+                label = { Text(stringResource(R.string.auth_password)) },
+                placeholder = { Text(stringResource(R.string.auth_password_placeholder)) },
+                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = stringResource(R.string.auth_password)) },
                 trailingIcon = {
                     IconButton(onClick = viewModel::onRegisterPasswordVisibilityToggle) {
                         Icon(
                             imageVector = if (state.passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                            contentDescription = if (state.passwordVisible) "隐藏密码" else "显示密码",
+                            contentDescription = if (state.passwordVisible) stringResource(R.string.auth_password_hide) else stringResource(R.string.auth_password_show),
                         )
                     }
                 },
@@ -166,7 +171,7 @@ fun RegisterScreen(
                     value = state.code,
                     onValueChange = viewModel::onRegisterCodeChange,
                     modifier = Modifier.weight(1f),
-                    label = { Text("邮箱验证码") },
+                    label = { Text(stringResource(R.string.auth_email_code)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Number,
@@ -193,7 +198,7 @@ fun RegisterScreen(
                             "${state.sendCodeCountdown}s",
                             style = MaterialTheme.typography.bodySmall,
                         )
-                        else -> Text("获取验证码", style = MaterialTheme.typography.bodySmall)
+                        else -> Text(stringResource(R.string.auth_send_code), style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -205,8 +210,8 @@ fun RegisterScreen(
                 value = state.phone,
                 onValueChange = viewModel::onRegisterPhoneChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("手机号（可选）") },
-                leadingIcon = { Icon(Icons.Filled.Phone, contentDescription = "手机号") },
+                label = { Text(stringResource(R.string.auth_phone_optional)) },
+                leadingIcon = { Icon(Icons.Filled.Phone, contentDescription = stringResource(R.string.auth_phone)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Phone,
@@ -253,7 +258,7 @@ fun RegisterScreen(
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 } else {
-                    Text("注册", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.auth_register), style = MaterialTheme.typography.titleMedium)
                 }
             }
 
@@ -265,12 +270,12 @@ fun RegisterScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "已有账号？",
+                    text = stringResource(R.string.auth_has_account),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
                 )
                 TextButton(onClick = onNavigateToLogin) {
-                    Text("去登录", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.auth_go_login), fontWeight = FontWeight.SemiBold)
                 }
             }
 

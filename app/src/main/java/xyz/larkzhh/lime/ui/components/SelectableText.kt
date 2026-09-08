@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,9 +37,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
@@ -55,7 +56,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -89,14 +89,17 @@ fun SelectableText(
     actions: List<SelectionAction>,
     modifier: Modifier = Modifier,
     style: TextStyle = LocalTextStyle.current,
-    highlightColor: Color = LimePrimary.copy(alpha = 0.3f),
-    handleColor: Color = LimePrimary,
+    highlightColor: Color? = null,
+    handleColor: Color? = null,
     toolbarColor: Color = Color(0xFF2C2C2E),
     toolbarContentColor: Color = Color.White,
 ) {
+    // null 跟随当前主题主色
+    val resolvedHighlight = highlightColor ?: MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+    val resolvedHandle = handleColor ?: MaterialTheme.colorScheme.primary
     val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current// 获取当前屏幕密度
-    val windowWidth = with(density) { LocalConfiguration.current.screenWidthDp.dp.roundToPx() }
+    val windowWidth = LocalWindowInfo.current.containerSize.width
     val gapPx = with(density) { 8.dp.roundToPx() }
     val radiusPx = with(density) { HandleRadius.roundToPx() }
     val toolbarHeightPx = with(density) { (ToolbarHeight + ToolbarVerticalPadding * 2).roundToPx() }
@@ -106,12 +109,12 @@ fun SelectableText(
     var origin by remember { mutableStateOf(Offset.Zero) }// Text 组件在窗口中的绝对坐标原点
     var selection by remember(text) { mutableStateOf<TextRange?>(null) }// 当前选中的文本范围
 
-    val display = remember(text, selection, highlightColor) {
+    val display = remember(text, selection, resolvedHighlight) {
         val range = selection ?: return@remember AnnotatedString(text)
         buildAnnotatedString {
             append(text.substring(0, range.start))
             // 开启高亮样式块
-            withStyle(SpanStyle(background = highlightColor)) {
+            withStyle(SpanStyle(background = resolvedHighlight)) {
                 append(text.substring(range.start, range.end))
             }
             append(text.substring(range.end))
@@ -268,7 +271,7 @@ fun SelectableText(
 
                     // 选区左端拖杆，吸附首字符左上角
                     SelectionHandle(
-                        color = handleColor,
+                        color = resolvedHandle,
                         center = IntOffset(leftHandleX, leftHandleY - bandTop),
                         onDragStart = {
                             isDragging = true
@@ -284,7 +287,7 @@ fun SelectableText(
 
                     // 选区右端拖杆，吸附末字符右下角
                     SelectionHandle(
-                        color = handleColor,
+                        color = resolvedHandle,
                         center = IntOffset(rightHandleX, rightHandleY - bandTop),
                         onDragStart = {
                             isDragging = true

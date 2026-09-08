@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.ui.profile.history
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,17 +28,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.toFeedItem
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.components.SelectableNoteCard
 import xyz.larkzhh.lime.ui.components.WaterfallFeed
 import xyz.larkzhh.lime.ui.profile.components.HistoryManageBar
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimePrimary
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,14 +65,14 @@ fun BrowseHistoryScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "浏览记录",
+                        text = stringResource(R.string.profile_browse_history),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
@@ -80,7 +82,10 @@ fun BrowseHistoryScreen(
                             else viewModel.enterManageMode()
                         }
                     ) {
-                        Text(if (uiState.isManaging) "完成" else "管理")
+                        Text(
+                            if (uiState.isManaging) stringResource(R.string.history_done)
+                            else stringResource(R.string.history_manage)
+                        )
                     }
                 },
             )
@@ -108,7 +113,7 @@ fun BrowseHistoryScreen(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(28.dp),
-                        color = LimePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 2.dp,
                     )
                 }
@@ -121,7 +126,7 @@ fun BrowseHistoryScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = uiState.error ?: "加载失败",
+                        text = uiState.error ?: stringResource(R.string.history_load_failed),
                         color = LimeGray,
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -136,7 +141,7 @@ fun BrowseHistoryScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "还没有浏览记录",
+                        text = stringResource(R.string.history_empty),
                         color = LimeGray,
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -151,15 +156,15 @@ fun BrowseHistoryScreen(
                     contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
                 ) {
                     // 按浏览时间分组，插入日期分组头
-                    var lastGroup: String? = null
+                    var lastGroupRes: Int? = null
                     for (historyItem in uiState.items) {
-                        val group = computeDateGroup(historyItem.viewTime)// 更新记录
-                        if (group != lastGroup) {
-                            lastGroup = group
+                        val groupRes = computeDateGroupRes(historyItem.viewTime)
+                        if (groupRes != lastGroupRes) {
+                            lastGroupRes = groupRes
                             // 插入一个日期标题头
-                            item(key = "header_$group", span = StaggeredGridItemSpan.FullLine) {
+                            item(key = "header_$groupRes", span = StaggeredGridItemSpan.FullLine) {
                                 Text(
-                                    text = group,
+                                    text = stringResource(groupRes),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Medium,
                                     modifier = Modifier.padding(
@@ -193,16 +198,17 @@ fun BrowseHistoryScreen(
     }
 }
 
-/// 根据浏览时间字符串计算分组标签
-private fun computeDateGroup(viewTime: String): String = try {
+/// 根据浏览时间字符串计算分组标签资源
+@StringRes
+private fun computeDateGroupRes(viewTime: String): Int = try {
     val itemDate = LocalDate.parse(viewTime.take(10))
     val today = LocalDate.now()
     when {
-        itemDate == today -> "今天"
-        itemDate == today.minusDays(1) -> "昨天"
-        itemDate >= today.minusDays(7) -> "一周内"
-        else -> "更早"
+        itemDate == today -> R.string.history_today
+        itemDate == today.minusDays(1) -> R.string.history_yesterday
+        itemDate >= today.minusDays(7) -> R.string.history_this_week
+        else -> R.string.history_earlier
     }
 } catch (e: Exception) {
-    "更早"
+    R.string.history_earlier
 }

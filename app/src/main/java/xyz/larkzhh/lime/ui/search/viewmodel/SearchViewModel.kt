@@ -1,6 +1,7 @@
 package xyz.larkzhh.lime.ui.search.viewmodel
 
 import android.content.Context
+import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,17 +13,21 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.local.SearchHistoryStorage
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.data.network.model.HotSearchItem
 import xyz.larkzhh.lime.data.network.model.UserSearchItem
 import xyz.larkzhh.lime.domain.NoteEvent
 import xyz.larkzhh.lime.domain.NoteEventBus
+import xyz.larkzhh.lime.domain.model.FollowRelation
+import xyz.larkzhh.lime.domain.repository.FollowRepository
 import xyz.larkzhh.lime.domain.repository.NoteRepository
 import xyz.larkzhh.lime.domain.repository.SearchRepository
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.widget.SearchWidget
 import xyz.larkzhh.lime.ui.widget.WidgetHotCache
 import javax.inject.Inject
@@ -32,20 +37,27 @@ import kotlin.time.Duration.Companion.milliseconds
 enum class SearchMode { Idle, Suggest, Result }
 
 /// 笔记排序依据
-enum class NoteSort(val label: String, val apiValue: String) {
-    Composite("综合", "composite"),
-    Latest("最新", "latest"),
-    MostLiked("最多点赞", "likes"),
-    MostCommented("最多评论", "comments"),
-    MostFavored("最多收藏", "favs"),
+enum class NoteSort(@StringRes val labelRes: Int, val apiValue: String) {
+    Composite(R.string.search_sort_composite, "composite"),
+    Latest(R.string.search_sort_latest, "latest"),
+    MostLiked(R.string.search_sort_most_liked, "likes"),
+    MostCommented(R.string.search_sort_most_commented, "comments"),
+    MostFavored(R.string.search_sort_most_favored, "favs"),
 }
 
 /// 发布时间筛选
-enum class SearchTimeRange(val label: String, val apiValue: String) {
-    All("不限", "all"),
-    Day("一天内", "day"),
-    Week("一周内", "week"),
-    HalfYear("半年内", "halfYear"),
+enum class SearchTimeRange(@StringRes val labelRes: Int, val apiValue: String) {
+    All(R.string.search_time_all, "all"),
+    Day(R.string.search_time_day, "day"),
+    Week(R.string.search_time_week, "week"),
+    HalfYear(R.string.search_time_half_year, "halfYear"),
+}
+
+/// 笔记类型筛选
+enum class SearchNoteType(@StringRes val labelRes: Int, val apiValue: String) {
+    All(R.string.search_type_all, "all"),
+    Image(R.string.search_type_image, "image"),
+    Video(R.string.search_type_video, "video"),
 }
 
 data class SearchUiState(
@@ -70,6 +82,7 @@ data class SearchUiState(
     // 筛选
     val sort: NoteSort = NoteSort.Composite,
     val timeRange: SearchTimeRange = SearchTimeRange.All,
+    val noteType: SearchNoteType = SearchNoteType.All,
 )
 
 /**
@@ -84,12 +97,16 @@ class SearchViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
     private val historyStorage: SearchHistoryStorage,
     private val eventBus: NoteEventBus,
+    private val followRepository: FollowRepository,
     @ApplicationContext private val appContext: Context,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState(history = historyStorage.load()))
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
+
+    /// 共享关注关系
+    val relations: StateFlow<Map<Long, FollowRelation>> = followRepository.relations
     private val suggestQuery = MutableStateFlow("")// 联想去抖动的输入流
     private var resultCursor: String? = null// 笔记结果分页游标
     private var userCursor: String? = null// 用户结果分页游标
@@ -97,6 +114,7 @@ class SearchViewModel @Inject constructor(
 
     init {
         loadHotSearches()
+        observeModeReturnToHome()
         observeSuggestQuery()
         observeNoteEvents()
         // 详情页进入
@@ -116,6 +134,19 @@ class SearchViewModel @Inject constructor(
                 _uiState.update { it.copy(hotWords = hotWords) }
                 WidgetHotCache.write(hotWords)
                 runCatching { SearchWidget().updateAll(appContext) }
+            }
+        }
+    }
+
+    /// 结果页返回搜索主页时刷新热搜
+    private fun observeModeReturnToHome() {
+        viewModelScope.launch {
+            var prev: SearchMode? = null
+            _uiState.map { it.mode }.collect { mode ->
+                if (prev == SearchMode.Result && mode == SearchMode.Idle) {
+                    loadHotSearches()
+                }
+                prev = mode
             }
         }
     }
@@ -225,9 +256,22 @@ class SearchViewModel @Inject constructor(
         if (_uiState.value.mode == SearchMode.Result) loadFirstPage()
     }
 
+    /// 切换笔记类型，重置分页并重新搜索
+    fun onNoteTypeChange(noteType: SearchNoteType) {
+        if (_uiState.value.noteType == noteType) return
+        _uiState.update { it.copy(noteType = noteType) }
+        if (_uiState.value.mode == SearchMode.Result) loadFirstPage()
+    }
+
     /// 重置筛选条件并重新搜索
     fun resetFilter() {
-        _uiState.update { it.copy(sort = NoteSort.Composite, timeRange = SearchTimeRange.All) }
+        _uiState.update {
+            it.copy(
+                sort = NoteSort.Composite,
+                timeRange = SearchTimeRange.All,
+                noteType = SearchNoteType.All,
+            )
+        }
         if (_uiState.value.mode == SearchMode.Result) loadFirstPage()
     }
 
@@ -255,6 +299,7 @@ class SearchViewModel @Inject constructor(
                 keyword = state.query,
                 sort = state.sort.apiValue,
                 within = state.timeRange.apiValue,
+                type = state.noteType.apiValue,
                 cursor = null,
             ).fold(
                 onSuccess = { response ->
@@ -285,6 +330,7 @@ class SearchViewModel @Inject constructor(
                 keyword = state.query,
                 sort = state.sort.apiValue,
                 within = state.timeRange.apiValue,
+                type = state.noteType.apiValue,
                 cursor = resultCursor,
             ).fold(
                 onSuccess = { response ->
@@ -331,6 +377,7 @@ class SearchViewModel @Inject constructor(
                             userHasMore = response.hasMore,
                         )
                     }
+                    seedRelations(response.items)
                 },
                 onFailure = { e ->
                     loadedUserQuery = null
@@ -356,10 +403,57 @@ class SearchViewModel @Inject constructor(
                             userHasMore = response.hasMore,
                         )
                     }
+                    seedRelations(response.items)
                 },
                 onFailure = { e ->
                     _uiState.update { it.copy(isUserLoadingMore = false, userError = e.message) }
                 },
+            )
+        }
+    }
+
+    /// 关注用户
+    fun followUser(userId: Long) {
+        updateFollowerCount(userId, 1)
+        viewModelScope.launch {
+            followRepository.follow(userId).onFailure { updateFollowerCount(userId, -1) }
+        }
+    }
+
+    /// 取消关注
+    fun unfollowUser(userId: Long) {
+        updateFollowerCount(userId, -1)
+        viewModelScope.launch {
+            followRepository.unfollow(userId).onFailure { updateFollowerCount(userId, 1) }
+        }
+    }
+
+    /// 更新搜索结果粉丝数
+    private fun updateFollowerCount(userId: Long, delta: Int) {
+        _uiState.update { state ->
+            if (state.userItems.none { it.id == userId && !it.isMe }) return@update state
+            state.copy(
+                userItems = state.userItems.map {
+                    if (it.id == userId && !it.isMe) {
+                        it.copy(followerCount = ((it.followerCount ?: 0L) + delta).coerceAtLeast(0L))
+                    } else {
+                        it
+                    }
+                },
+            )
+        }
+    }
+
+    /// 写入共享关注关系
+    private fun seedRelations(items: List<UserSearchItem>) {
+        items.forEach { item ->
+            if (item.isMe) return@forEach
+            followRepository.updateRelation(
+                item.id,
+                FollowRelation(
+                    following = item.isFollowing ?: false,
+                    followedBack = item.isFollowedBack ?: false,
+                ),
             )
         }
     }

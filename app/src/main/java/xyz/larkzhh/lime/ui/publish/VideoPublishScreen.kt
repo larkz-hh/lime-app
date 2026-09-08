@@ -2,7 +2,10 @@ package xyz.larkzhh.lime.ui.publish
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,10 +16,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.Autorenew
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,8 +34,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
@@ -37,7 +45,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.video.videoFrameMillis
-import xyz.larkzhh.lime.navigation.Screen
+import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.navigation.state.PendingNoteEdit
+import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteSheet
 import xyz.larkzhh.lime.ui.publish.ai.AiWriteViewModel
 import xyz.larkzhh.lime.ui.publish.components.NotePublishScaffold
@@ -50,6 +60,7 @@ import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
 fun VideoPublishScreen(
     navController: NavHostController,
     viewModel: VideoPublishViewModel,
+    onDraftSaved: (() -> Unit)? = null,
 ) {
     val pickerState by viewModel.pickerState.collectAsState()
     val publishState by viewModel.publishState.collectAsState()
@@ -58,6 +69,17 @@ fun VideoPublishScreen(
 
     val videoUri = pickerState.selectedVideo?.uri
     val hasCover = publishState.cover !is CoverSource.None
+    val isEdit = publishState.editingNoteId != null
+
+    // 编辑入口
+    LaunchedEffect(Unit) {
+        val id = PendingNoteEdit.noteId ?: return@LaunchedEffect
+        if (PendingNoteEdit.isVideo) {
+            PendingNoteEdit.noteId = null
+            PendingNoteEdit.isVideo = false
+            viewModel.startEditVideo(id)
+        }
+    }
 
     // 视频预览
     var showPreview by remember { mutableStateOf(false) }
@@ -70,16 +92,28 @@ fun VideoPublishScreen(
     val ratio = if (isLandscape) 4f / 3f else 3f / 4f
     val previewWidth = previewHeight * ratio
 
+    if (publishState.isLoadingEdit) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
     NotePublishScaffold(
         navController = navController,
-        topBarTitle = "发布视频笔记",
+        topBarTitle = if (isEdit) stringResource(R.string.publish_title_edit_video) else stringResource(R.string.publish_title_new_video),
         title = publishState.title,
         content = publishState.content,
         onTitleChange = viewModel::onTitleChange,
         onContentChange = viewModel::onContentChange,
         isPublishing = publishState.isPublishing,
         error = publishState.error,
-        progressText = publishState.uploadPhase?.let { "正在$it..." },
+        progressText = publishState.uploadPhase?.let { stringResource(R.string.publish_uploading_phase, it) },
         isSuccess = publishState.isSuccess,
         isDraftSuccess = publishState.isDraftSuccess,
         onClearSuccess = viewModel::clearSuccess,
@@ -92,69 +126,102 @@ fun VideoPublishScreen(
             showAiSheet = true
         },
         hasImages = false,
+        isEdit = isEdit,
+        onDraftSaved = onDraftSaved,
     ) {
         // 顶部封面预览
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-                .height(previewHeight)
-                .width(previewWidth)
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
-                .clickable(enabled = videoUri != null) { showPreview = true },
-        ) {
-            // 封面来源
-            val coverModel: Any? = when (val cover = publishState.cover) {
-                is CoverSource.Album -> cover.croppedUri ?: cover.uri
-                is CoverSource.Frame -> cover.croppedUri ?: videoUri?.let {
-                    ImageRequest.Builder(context).data(it).videoFrameMillis(cover.timeMs).build()
-                }
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Box(
+                modifier = Modifier
+                    .height(previewHeight)
+                    .width(previewWidth)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+                    .clickable(enabled = videoUri != null) { showPreview = true },
+            ) {
+                // 封面来源
+                val coverModel: Any? = when (val cover = publishState.cover) {
+                    is CoverSource.Album -> cover.croppedUri ?: cover.uri
+                    is CoverSource.Frame -> cover.croppedUri ?: videoUri?.let {
+                        ImageRequest.Builder(context).data(it).videoFrameMillis(cover.timeMs).build()
+                    }
 
-                CoverSource.None -> videoUri?.let {
-                    ImageRequest.Builder(context).data(it).videoFrameMillis(DEFAULT_COVER_FRAME_MS)
-                        .build()
+                    is CoverSource.Remote -> cover.url// 编辑沿用原远程封面
+                    CoverSource.None -> videoUri?.let {
+                        ImageRequest.Builder(context).data(it).videoFrameMillis(DEFAULT_COVER_FRAME_MS)
+                            .build()
+                    }
+                }
+                if (coverModel != null) {
+                    AsyncImage(
+                        model = coverModel,
+                        contentDescription = stringResource(R.string.publish_cover_cd),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+                // 播放角标
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.4f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Filled.PlayArrow,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+                // 选封面、更改封面
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.45f))
+                        .clickable { navController.navigate(Screen.CoverPicker.route) }
+                        .padding(vertical = 6.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = if (hasCover) stringResource(R.string.publish_cover_change) else stringResource(R.string.publish_cover_pick),
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                    )
                 }
             }
-            if (coverModel != null) {
-                AsyncImage(
-                    model = coverModel,
-                    contentDescription = "封面",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-            // 播放角标
+            // 更换视频标签
             Box(
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.4f)),
-                contentAlignment = Alignment.Center,
+                    .padding(top = 8.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
+                    .clickable(enabled = !publishState.isPublishing) {
+                        navController.navigate(Screen.PhotoPicker.createRoute(replace = true))
+                    }
+                    .padding(horizontal = 12.dp, vertical = 5.dp),
             ) {
-                Icon(
-                    Icons.Filled.PlayArrow,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(22.dp),
-                )
-            }
-            // 选封面、更改封面
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.45f))
-                    .clickable { navController.navigate(Screen.CoverPicker.route) }
-                    .padding(vertical = 6.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = if (hasCover) "更改封面" else "选封面",
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Medium,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        Icons.Outlined.Autorenew,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.publish_change_video),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }
@@ -163,7 +230,7 @@ fun VideoPublishScreen(
     if (showAiSheet) {
         AiWriteSheet(
             content = publishState.content,
-            imageUris = emptyList(),
+            images = emptyList(),
             onApplyContent = viewModel::onContentChange,
             onApplyTitle = viewModel::onTitleChange,
             onDismiss = { showAiSheet = false },

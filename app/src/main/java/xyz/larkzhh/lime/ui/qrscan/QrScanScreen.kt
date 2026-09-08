@@ -27,15 +27,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -43,19 +46,32 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
-import xyz.larkzhh.lime.navigation.Screen
+import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.navigation.route.Screen
+import xyz.larkzhh.lime.ui.openVideo
 import xyz.larkzhh.lime.ui.qrscan.components.CameraPreview
 import xyz.larkzhh.lime.ui.qrscan.components.ScanOverlay
+import xyz.larkzhh.lime.util.parseLimeNoteQr
+import xyz.larkzhh.lime.util.parseLimeUserQr
+import xyz.larkzhh.lime.util.parseLimeVideoQr
 import xyz.larkzhh.lime.util.showToast
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun QrScanScreen(navController: NavHostController) {
     val context = LocalContext.current
+    val qrViewModel: QrScanViewModel = hiltViewModel()
+    val scope = rememberCoroutineScope()
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
     val scanner = remember { BarcodeScanning.getClient() }
     var isAlbumScanning by remember { mutableStateOf(false) }
     var camera by remember { mutableStateOf<Camera?>(null) }
+
+    val userNotFoundText = stringResource(R.string.qr_user_not_found)
+    val imageReadFailedText = stringResource(R.string.qr_image_read_failed)
+    val noQrDetectedText = stringResource(R.string.qr_none_detected)
+    val scanFailedText = stringResource(R.string.qr_scan_failed)
 
     DisposableEffect(Unit) {
         onDispose {
@@ -71,17 +87,39 @@ fun QrScanScreen(navController: NavHostController) {
     }
 
     fun handleResult(raw: String) {
+        parseLimeUserQr(raw)?.let { identifier ->
+            scope.launch {
+                val userId = qrViewModel.resolveUserId(identifier)
+                if (userId != null) {
+                    navController.popBackStack()
+                    navController.navigate(Screen.UserProfile.createRoute(userId))
+                } else {
+                    userNotFoundText.showToast(context)
+                }
+            }
+            return
+        }
+        parseLimeVideoQr(raw)?.let { noteId ->
+            navController.popBackStack()
+            noteId.toLongOrNull()?.let { id ->
+                if (navController.graph.findNode(Screen.VideoFeed.ROUTE) != null) {
+                    navController.navigate(
+                        Screen.VideoFeed.createRoute(id, Screen.VideoFeed.SOURCE_RECOMMENDATION)
+                    )
+                } else {
+                    context.openVideo(id, Screen.VideoFeed.SOURCE_RECOMMENDATION)
+                }
+            }
+            return
+        }
         navController.popBackStack()
+        parseLimeNoteQr(raw)?.let { noteId ->
+            if (noteId.isNotBlank()) navController.navigate(Screen.Detail.createRoute(noteId))
+            return
+        }
         val uri = runCatching { raw.toUri() }.getOrNull()
-        when {
-            uri?.scheme == "lime" && uri.host == "note" -> {
-                val noteId = uri.pathSegments.firstOrNull().orEmpty()
-                if (noteId.isNotBlank()) navController.navigate(Screen.Detail.createRoute(noteId))
-            }
-            uri?.scheme == "lime" && uri.host == "user" -> {
-                Toast.makeText(context, "施工中", Toast.LENGTH_SHORT).show()
-            }
-            uri?.scheme == "http" || uri?.scheme == "https" -> {
+        when (uri?.scheme) {
+            "http", "https" -> {
                 runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
             }
             else -> raw.showToast(context, Toast.LENGTH_LONG)
@@ -95,7 +133,7 @@ fun QrScanScreen(navController: NavHostController) {
         val image: InputImage = try {
             InputImage.fromFilePath(context, imageUri)
         } catch (e: Exception) {
-            "无法读取图片".showToast(context)
+            imageReadFailedText.showToast(context)
             return@rememberLauncherForActivityResult
         }
         isAlbumScanning = true
@@ -104,11 +142,11 @@ fun QrScanScreen(navController: NavHostController) {
                 isAlbumScanning = false
                 val raw = barcodes.firstOrNull { it.format == Barcode.FORMAT_QR_CODE }?.rawValue
                 if (!raw.isNullOrBlank()) handleResult(raw)
-                else "未识别到二维码".showToast(context)
+                else noQrDetectedText.showToast(context)
             }
             .addOnFailureListener {
                 isAlbumScanning = false
-                "识别失败，请重试".showToast(context)
+                scanFailedText.showToast(context)
             }
     }
 
@@ -122,7 +160,7 @@ fun QrScanScreen(navController: NavHostController) {
             ScanOverlay(camera = camera)
         } else {
             Text(
-                text = "需要相机权限才能扫描二维码",
+                text = stringResource(R.string.qr_permission_required),
                 color = Color.White,
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
@@ -154,12 +192,12 @@ fun QrScanScreen(navController: NavHostController) {
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "返回",
+                    contentDescription = stringResource(R.string.back),
                     tint = Color.White,
                 )
             }
             Text(
-                text = "扫描二维码",
+                text = stringResource(R.string.qr_title),
                 color = Color.White,
                 fontSize = 18.sp,
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 12.dp),
@@ -185,13 +223,13 @@ fun QrScanScreen(navController: NavHostController) {
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Photo,
-                    contentDescription = "相册",
+                    contentDescription = stringResource(R.string.qr_album),
                     tint = Color.White,
                     modifier = Modifier.size(28.dp),
                 )
             }
             Text(
-                text = "相册",
+                text = stringResource(R.string.qr_album),
                 color = Color.White,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 8.dp),

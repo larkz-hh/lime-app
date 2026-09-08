@@ -5,6 +5,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,6 +34,7 @@ fun VideoSideActionBar(
     onToggleLike: () -> Unit,
     onToggleFavorite: () -> Unit,
     onCommentClick: () -> Unit,
+    onManage: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     iconSize: Dp = 34.dp,
     animationSize: Dp = 44.dp,
@@ -44,7 +48,7 @@ fun VideoSideActionBar(
         SideActionItem(
             onClick = onToggleLike,
             count = likeCount,
-            label = "点赞",
+            label = stringResource(R.string.video_like),
         ) {
             LikeButton(
                 liked = liked,
@@ -57,11 +61,11 @@ fun VideoSideActionBar(
         SideActionItem(
             onClick = onCommentClick,
             count = commentCount,
-            label = "评论",
+            label = stringResource(R.string.video_comment),
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_chat),
-                contentDescription = "评论",
+                contentDescription = stringResource(R.string.video_comment),
                 tint = Color.White,
                 modifier = Modifier.size(iconSize),
             )
@@ -69,7 +73,7 @@ fun VideoSideActionBar(
         SideActionItem(
             onClick = onToggleFavorite,
             count = favCount,
-            label = "收藏",
+            label = stringResource(R.string.video_favorite),
         ) {
             FavoriteButton(
                 favorited = favorited,
@@ -78,6 +82,21 @@ fun VideoSideActionBar(
                 iconSize = iconSize,
                 inactiveColor = Color.White,
             )
+        }
+        // 管理入口
+        if (onManage != null) {
+            SideActionItem(
+                onClick = onManage,
+                count = 0,
+                label = stringResource(R.string.video_more),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.MoreHoriz,
+                    contentDescription = stringResource(R.string.video_more),
+                    tint = Color.White,
+                    modifier = Modifier.size(iconSize),
+                )
+            }
         }
     }
 }

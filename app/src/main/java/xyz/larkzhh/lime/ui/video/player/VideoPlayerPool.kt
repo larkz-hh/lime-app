@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.ForwardingPlayer
@@ -43,13 +44,15 @@ import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import javax.inject.Inject
 import javax.inject.Singleton
-import xyz.larkzhh.lime.VideoActivity
+import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.ui.VideoActivity
 
 private const val PIP_SEEK_STEP_MS = 15_000L// 小窗跳转步长
 
@@ -60,6 +63,7 @@ private const val PIP_SEEK_STEP_MS = 15_000L// 小窗跳转步长
 @Singleton
 class VideoPlayerManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
+    private val videoCache: VideoCache,
 ) {
     private val maxPlayers = 4
 
@@ -82,14 +86,17 @@ class VideoPlayerManager @Inject constructor(
 
     // 创建与复用播放器
     fun getOrCreate(id: Long, mediaItem: MediaItem): ExoPlayer =
-        cache[id] ?: ExoPlayer.Builder(context).build().also { p ->
-            p.setMediaItem(mediaItem)
-            p.repeatMode = Player.REPEAT_MODE_ONE
-            p.setSeekBackIncrementMs(PIP_SEEK_STEP_MS)
-            p.setSeekForwardIncrementMs(PIP_SEEK_STEP_MS)
-            p.prepare()
-            cache[id] = p
-        }
+        cache[id] ?: ExoPlayer.Builder(context)
+            .setMediaSourceFactory(DefaultMediaSourceFactory(videoCache.dataSourceFactory))
+            .build()
+            .also { p ->
+                p.setMediaItem(mediaItem)
+                p.repeatMode = Player.REPEAT_MODE_ONE
+                p.setSeekBackIncrementMs(PIP_SEEK_STEP_MS)
+                p.setSeekForwardIncrementMs(PIP_SEEK_STEP_MS)
+                p.prepare()
+                cache[id] = p
+            }
 
     /// 读取指定视频当前播放进度
     fun currentPositionOf(id: Long): Long = cache[id]?.currentPosition ?: 0L
@@ -131,8 +138,7 @@ class VideoPlayerManager @Inject constructor(
             }
         }
 
-    /// 应用前后台切换：前台停掉播放服务（通知随之消失），
-    /// 后台仅在"视频仍在播放"时才启动服务挂通知（已切走页面/已暂停都不挂）
+    /// 监听并处理应用前后台切换
     fun onAppForegroundChanged(foreground: Boolean) {
         appInForeground = foreground
         if (foreground) {
@@ -355,7 +361,7 @@ fun VideoPage(
             ) {
                 Icon(
                     Icons.Filled.PlayArrow,
-                    contentDescription = "播放",
+                    contentDescription = stringResource(R.string.pip_play),
                     tint = Color.White,
                     modifier = Modifier.size(40.dp),
                 )

@@ -64,6 +64,8 @@ data class FeedAuthor(
     val id: Long,
     val nickname: String,
     val avatar: String?,
+    val isFollowing: Boolean? = null,
+    val isFollowedBack: Boolean? = null,
 )
 
 /// 视频笔记的视频信息响应
@@ -105,7 +107,7 @@ data class FeedItem(
     val id: Long,
     val title: String?,
     val coverImage: String?,
-    val coverWidth: Int? = null,// 封面宽（瀑布流卡片按比例布局用）
+    val coverWidth: Int? = null,// 封面宽
     val coverHeight: Int? = null,// 封面高
     val likeCount: Int,
     val liked: Boolean,

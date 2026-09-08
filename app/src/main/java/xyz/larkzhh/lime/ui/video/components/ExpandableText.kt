@@ -11,12 +11,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
+import xyz.larkzhh.lime.R
 
 /// 可展开正文
 @Composable
@@ -55,7 +57,7 @@ fun ExpandableText(
         // 展开、收起
         if (expanded) {
             Text(
-                text = "收起",
+                text = stringResource(R.string.search_collapse),
                 color = textColor.copy(alpha = 0.6f),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
@@ -66,7 +68,7 @@ fun ExpandableText(
             )
         } else if (hasOverflow) {
             Text(
-                text = "展开",
+                text = stringResource(R.string.search_expand),
                 color = textColor.copy(alpha = 0.6f),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,

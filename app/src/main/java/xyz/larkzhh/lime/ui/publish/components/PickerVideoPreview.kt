@@ -2,7 +2,6 @@ package xyz.larkzhh.lime.ui.publish.components
 
 import android.view.TextureView
 import androidx.activity.compose.BackHandler
-import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -38,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,13 +47,14 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.delay
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.publish.viewmodel.LocalVideo
 import xyz.larkzhh.lime.ui.video.components.ScrubBar
 import xyz.larkzhh.lime.ui.video.components.formatTime
 import kotlin.time.Duration.Companion.milliseconds
 
 /// 视频全屏预览浮层
-@OptIn(UnstableApi::class)
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun PickerVideoPreview(
     videos: List<LocalVideo>,
@@ -99,7 +100,7 @@ fun PickerVideoPreview(
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "返回",
+                contentDescription = stringResource(R.string.back),
                 tint = Color.White,
                 modifier = Modifier
                     .align(Alignment.CenterStart)
@@ -123,7 +124,7 @@ fun PickerVideoPreview(
 }
 
 /// 单页视频
-@OptIn(UnstableApi::class)
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 private fun VideoPage(
     video: LocalVideo,
@@ -211,7 +212,7 @@ private fun VideoPage(
             ) {
                 Icon(
                     Icons.Filled.PlayArrow,
-                    contentDescription = "播放",
+                    contentDescription = stringResource(R.string.pip_play),
                     tint = Color.White,
                     modifier = Modifier.size(40.dp),
                 )

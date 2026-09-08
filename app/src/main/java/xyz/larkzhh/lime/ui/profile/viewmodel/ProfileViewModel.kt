@@ -12,11 +12,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import xyz.larkzhh.lime.data.network.ApiService
+import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.UserData
+import xyz.larkzhh.lime.domain.model.FollowRelation
+import xyz.larkzhh.lime.domain.repository.FollowRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
 import javax.inject.Inject
 
@@ -32,10 +31,10 @@ sealed class ProfileUiState {
  */
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle,
     private val userRepository: UserRepository,
-    private val apiService: ApiService,
-    @param:ApplicationContext private val context: Context,
+    private val followRepository: FollowRepository,
 ) : ViewModel() {
 
     /// 提取路由参数中的目标用户id
@@ -47,7 +46,7 @@ class ProfileViewModel @Inject constructor(
     )
     val isSelf: StateFlow<Boolean> = _isSelf.asStateFlow()
 
-    private val _uiState = MutableStateFlow<ProfileUiState>(
+    private val _uiState = MutableStateFlow(
         if (requestedUserId == null)
             userRepository.userFlow.value?.let { ProfileUiState.Success(it) } ?: ProfileUiState.Loading
         else
@@ -58,6 +57,12 @@ class ProfileViewModel @Inject constructor(
 
     private val _uploadError = MutableStateFlow<String?>(null)// 头像上传错误
     val uploadError: StateFlow<String?> = _uploadError.asStateFlow()
+
+    private val _followError = MutableStateFlow<String?>(null)// 关注操作错误
+    val followError: StateFlow<String?> = _followError.asStateFlow()
+
+    /// 共享关注关系
+    val relations = followRepository.relations
 
     init {
         if (requestedUserId == null) {
@@ -82,7 +87,7 @@ class ProfileViewModel @Inject constructor(
             userRepository.refreshUser().onFailure { e ->
                 if (e is CancellationException) return@onFailure
                 if (_uiState.value !is ProfileUiState.Success) {
-                    _uiState.value = ProfileUiState.Error(e.message ?: "加载失败")
+                    _uiState.value = ProfileUiState.Error(e.message ?: context.getString(R.string.profile_load_failed))
                 }
             }
         }
@@ -96,49 +101,88 @@ class ProfileViewModel @Inject constructor(
             }
             userRepository.getUserById(userId).onSuccess { user ->
                 _uiState.value = ProfileUiState.Success(user)
+                seedRelation(user)
             }.onFailure { e ->
                 if (e is CancellationException) return@onFailure
                 if (_uiState.value !is ProfileUiState.Success) {
-                    _uiState.value = ProfileUiState.Error(e.message ?: "加载失败")
+                    _uiState.value = ProfileUiState.Error(e.message ?: context.getString(R.string.profile_load_failed))
                 }
             }
         }
     }
 
-    /// 上传用户头像。
+    /// 上传用户头像
     fun uploadAvatar(uri: Uri) {
         viewModelScope.launch {
-            try {
-                val part = uriToMultipart(uri, "file")
-                val response = apiService.uploadAvatar(part)
-                if (response.code == 200 && response.data != null) {
-                    userRepository.updateUser(response.data)
-                } else {
-                    _uploadError.value = "头像上传失败（${response.code}）：${response.message}"
+            userRepository.uploadAvatar(uri)
+                .onFailure { e ->
+                    if (e is CancellationException) return@onFailure
+                    val reason = e.message ?: context.getString(R.string.profile_network_error)
+                    _uploadError.value = context.getString(R.string.profile_avatar_upload_failed, reason)
                 }
-            } catch (e: Exception) {
-                _uploadError.value = "头像上传失败：${e.message ?: "网络错误"}"
-            }
         }
     }
 
     fun clearUploadError() { _uploadError.value = null }
 
-    ///  将本地图片的 Uri 转换为 Retrofit 支持的 MultipartBody.Part 对象
-    /// 读取图片字节流，识别 MIME 类型并生成对应的文件名。
-    private fun uriToMultipart(uri: Uri, partName: String): MultipartBody.Part {
-        val bytes = context.contentResolver.openInputStream(uri)?.readBytes()
-            ?: throw IllegalArgumentException("无法读取图片")
-        // 从 ContentResolver 取 MIME 类型
-        val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
-        // 文件后缀名批评
-        val ext = when (mimeType) {
-            "image/png" -> "png"
-            "image/webp" -> "webp"
-            "image/gif" -> "gif"
-            else -> "jpg"
+    fun clearFollowError() { _followError.value = null }
+
+    /// 关注当前查看的用户
+    fun follow() {
+        val user = (_uiState.value as? ProfileUiState.Success)?.user ?: return
+        val selfId = userRepository.userFlow.value?.id
+        if (selfId == null || user.id == selfId) return
+        viewModelScope.launch {
+            followRepository.follow(user.id)
+                .onSuccess {
+                    updateFollowState(user.id, following = true)
+                    loadUserById(user.id)
+                }
+                .onFailure { e ->
+                    if (e is CancellationException) return@onFailure
+                    val reason = e.message ?: context.getString(R.string.profile_network_error)
+                    _followError.value = context.getString(R.string.profile_follow_failed, reason)
+                }
         }
-        val body = bytes.toRequestBody(mimeType.toMediaType())// 将字节流和 MIME 类型打包为 RequestBody
-        return MultipartBody.Part.createFormData(partName, "upload.$ext", body)
+    }
+
+    /// 取消关注当前查看的用户
+    fun unfollow() {
+        val user = (_uiState.value as? ProfileUiState.Success)?.user ?: return
+        val selfId = userRepository.userFlow.value?.id
+        if (selfId == null || user.id == selfId) return
+        viewModelScope.launch {
+            followRepository.unfollow(user.id)
+                .onSuccess {
+                    updateFollowState(user.id, following = false)
+                    loadUserById(user.id)
+                }
+                .onFailure { e ->
+                    if (e is CancellationException) return@onFailure
+                    val reason = e.message ?: context.getString(R.string.profile_network_error)
+                    _followError.value = context.getString(R.string.profile_unfollow_failed, reason)
+                }
+        }
+    }
+
+    /// 乐观更新粉丝数与关注状态
+    private fun updateFollowState(userId: Long, following: Boolean) {
+        val current = (_uiState.value as? ProfileUiState.Success)?.user ?: return
+        if (current.id != userId) return
+        val followerCount = current.followerCount?.let { if (following) it + 1 else it - 1 }
+        _uiState.value = ProfileUiState.Success(
+            current.copy(isFollowing = following, followerCount = followerCount)
+        )
+    }
+
+    /// 写入共享关系
+    private fun seedRelation(user: UserData) {
+        val selfId = userRepository.userFlow.value?.id
+        if (selfId != null && user.id != selfId) {
+            followRepository.updateRelation(
+                user.id,
+                FollowRelation(user.isFollowing ?: false, user.isFollowedBack ?: false),
+            )
+        }
     }
 }
