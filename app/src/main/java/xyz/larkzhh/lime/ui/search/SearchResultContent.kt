@@ -434,7 +434,7 @@ private fun UserResultCard(
                 )
             } else {
                 Box(
-                    modifier = avatarModifier.background(MaterialTheme.colorScheme.secondaryContainer),
+                    modifier = avatarModifier.background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(

@@ -355,6 +355,11 @@ fun ChatScreen(
                             senderName = if (state.isGroup && !msg.isSelf) {
                                 memberProfile?.nickname ?: msg.senderId.removePrefix("lime_")
                             } else null,
+                            avatarFallback = when {
+                                msg.isSelf -> "我"
+                                state.isGroup -> memberProfile?.nickname ?: msg.senderId.removePrefix("lime_")
+                                else -> state.peerNickname
+                            },
                             onAvatarClick = {
                                 val target = when {
                                     msg.isSelf -> state.selfUserId
@@ -396,23 +401,37 @@ fun ChatScreen(
     }
 }
 
-/// 头像
+/// 头像：有图显示图片，无图显示昵称首字占位
 @Composable
 private fun AvatarView(
     avatar: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    fallbackText: String? = null,
 ) {
-    AsyncImage(
-        model = avatar,
-        contentDescription = stringResource(R.string.profile_avatar),
-        contentScale = ContentScale.Crop,
+    Box(
         modifier = modifier
             .size(36.dp)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onClick),
-    )
+        contentAlignment = Alignment.Center,
+    ) {
+        if (!avatar.isNullOrBlank()) {
+            AsyncImage(
+                model = avatar,
+                contentDescription = stringResource(R.string.profile_avatar),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            Text(
+                text = fallbackText?.take(1) ?: "?",
+                style = MaterialTheme.typography.titleMedium,
+                color = LimeGray,
+            )
+        }
+    }
 }
 
 
@@ -421,6 +440,7 @@ internal fun MessageBubble(
     message: ImMessage,
     avatar: String?,
     senderName: String? = null,
+    avatarFallback: String? = null,
     onAvatarClick: () -> Unit,
     onCopy: () -> Unit,
     onRevoke: () -> Unit,
@@ -482,7 +502,7 @@ internal fun MessageBubble(
                             modifier = Modifier.padding(bottom = 2.dp),
                         )
                     }
-                    AvatarView(avatar, onAvatarClick)
+                    AvatarView(avatar, onAvatarClick, fallbackText = senderName ?: avatarFallback)
                 }
             }
             when {
@@ -535,7 +555,7 @@ internal fun MessageBubble(
                 }
             }
             if (message.isSelf) {
-                AvatarView(avatar, onAvatarClick, Modifier.padding(start = 6.dp))
+                AvatarView(avatar, onAvatarClick, Modifier.padding(start = 6.dp), fallbackText = avatarFallback ?: "我")
             }
         }
 

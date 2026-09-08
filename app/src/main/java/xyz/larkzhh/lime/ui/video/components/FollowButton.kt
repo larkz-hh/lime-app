@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.labelRes
 import xyz.larkzhh.lime.ui.auth.LoginGate
-import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 /// 关注按钮
 @Composable
@@ -31,15 +30,16 @@ fun FollowButton(
     state: FollowActionState,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    outlineColor: Color = LimeWhite,
+    outlineColor: Color? = null,
 ) {
     val followed = state != FollowActionState.Follow
+    val outline = outlineColor ?: MaterialTheme.colorScheme.outline
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(50))
             .then(
                 if (followed) Modifier.border(
-                    BorderStroke(1.dp, outlineColor.copy(alpha = 0.6f)),
+                    BorderStroke(1.dp, outline.copy(alpha = 0.6f)),
                     RoundedCornerShape(50),
                 ) else Modifier.background(MaterialTheme.colorScheme.primary)
             )
@@ -56,7 +56,7 @@ fun FollowButton(
     ) {
         Text(
             text = stringResource(state.labelRes),
-            color = if (followed) outlineColor else LimeWhite,
+            color = if (followed) outline else MaterialTheme.colorScheme.onPrimary,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
         )

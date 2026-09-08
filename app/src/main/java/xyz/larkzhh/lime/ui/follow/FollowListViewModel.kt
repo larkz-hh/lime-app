@@ -13,6 +13,7 @@ import xyz.larkzhh.lime.data.network.model.FollowListItem
 import xyz.larkzhh.lime.data.network.model.FollowListResponse
 import xyz.larkzhh.lime.domain.model.FollowRelation
 import xyz.larkzhh.lime.domain.repository.FollowRepository
+import xyz.larkzhh.lime.domain.repository.UserRepository
 import xyz.larkzhh.lime.navigation.route.Screen
 import javax.inject.Inject
 
@@ -50,6 +51,7 @@ data class FollowListUiState(
 class FollowListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val followRepository: FollowRepository,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     private val userId: Long = savedStateHandle.get<Long>("userId") ?: 0L
@@ -63,6 +65,9 @@ class FollowListViewModel @Inject constructor(
 
     /// 共享的关注关系
     val relations: StateFlow<Map<Long, FollowRelation>> = followRepository.relations
+
+    /// 当前登录用户 id
+    val currentUserId: Long? get() = userRepository.userFlow.value?.id
 
     private val cursors = mutableMapOf<FollowTab, String?>()
 
@@ -134,11 +139,13 @@ class FollowListViewModel @Inject constructor(
 
     /// 关注
     fun follow(item: FollowListItem) {
+        if (item.id == currentUserId) return// 不能关注自己
         viewModelScope.launch { followRepository.follow(item.id) }
     }
 
     /// 取关
     fun unfollow(item: FollowListItem) {
+        if (item.id == currentUserId) return// 不能取关自己
         viewModelScope.launch { followRepository.unfollow(item.id) }
     }
 
@@ -164,7 +171,10 @@ class FollowListViewModel @Inject constructor(
 
     /// 写入共享关注关系
     private fun seedRelations(tab: FollowTab, items: List<FollowListItem>) {
+        val selfId = currentUserId
         items.forEach { item ->
+            // 跳过自己
+            if (selfId != null && item.id == selfId) return@forEach
             val relation = if (tab == FollowTab.Following) {
                 FollowRelation(
                     following = item.isFollowing ?: true,

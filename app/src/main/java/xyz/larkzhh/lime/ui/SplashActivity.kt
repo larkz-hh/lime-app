@@ -72,7 +72,7 @@ private fun SplashContent() {
         val comp = composition ?: return@LaunchedEffect
         val fullMs = comp.duration.coerceAtLeast(16f)
         // 完播
-        val playMs = (fullMs * 0.5f).toInt().coerceAtLeast(16)
+        val playMs = (fullMs * 0.2f).toInt().coerceAtLeast(16)
         animate(
             initialValue = 0f,
             targetValue = 1f,

@@ -16,6 +16,7 @@ import xyz.larkzhh.lime.domain.model.NotificationType
 import xyz.larkzhh.lime.domain.model.typeParam
 import xyz.larkzhh.lime.domain.repository.FollowRepository
 import xyz.larkzhh.lime.domain.repository.NotificationRepository
+import xyz.larkzhh.lime.domain.repository.UserRepository
 import xyz.larkzhh.lime.navigation.route.Screen
 import javax.inject.Inject
 
@@ -35,6 +36,7 @@ class NotificationListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: NotificationRepository,
     private val followRepository: FollowRepository,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     val category: NotificationCategory = NotificationCategory.fromRouteKey(
@@ -49,6 +51,9 @@ class NotificationListViewModel @Inject constructor(
     val items: StateFlow<List<NotificationData>> = _items.asStateFlow()
 
     val relations = followRepository.relations
+
+    /// 当前登录用户 id
+    val currentUserId: Long? get() = userRepository.userFlow.value?.id
 
     private var cursor: Long? = null
 
@@ -113,18 +118,24 @@ class NotificationListViewModel @Inject constructor(
 
     /// 关注
     fun follow(userId: Long) {
+        if (userId == currentUserId) return
         viewModelScope.launch { followRepository.follow(userId) }
     }
 
     /// 取消关注
     fun unfollow(userId: Long) {
+        if (userId == currentUserId) return
         viewModelScope.launch { followRepository.unfollow(userId) }
     }
 
     /// 初始关注关系
     private fun seedFollowRelations(items: List<NotificationData>) {
+        val selfId = currentUserId
         items
-            .filter { it.type == NotificationType.Follow.code && it.senderId != null }
+            .filter {
+                it.type == NotificationType.Follow.code &&
+                    it.senderId != null && it.senderId != selfId
+            }
             .forEach { item ->
                 val id = item.senderId ?: return@forEach
                 if (relations.value[id] == null) {

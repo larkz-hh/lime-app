@@ -238,9 +238,23 @@ class ImChatViewModel @Inject constructor(
             .distinct()
             .toList()
         if (ids.isEmpty()) return
-        val profiles = runCatching { imRepository.getUserInfos(ids) }.getOrDefault(emptyMap())
-        if (profiles.isNotEmpty()) {
-            _state.update { it.copy(memberProfiles = it.memberProfiles + profiles) }
+        var merged = runCatching { imRepository.getUserInfos(ids) }.getOrDefault(emptyMap())
+        // IM 资料缺失或昵称为空的发送者：用业务端用户昵称/头像兜底（与单聊同源）
+        val unresolved = ids.filter { sid ->
+            val p = merged[sid]
+            p == null || p.nickname.isNullOrBlank()
+        }
+        if (unresolved.isNotEmpty()) {
+            for (sid in unresolved) {
+                val uid = sid.removePrefix("lime_").toLongOrNull() ?: continue
+                val user = userRepository.getCachedUserById(uid)
+                    ?: userRepository.getUserById(uid).getOrNull()
+                    ?: continue
+                merged = merged + (sid to ImUserProfile(user.nickname, user.avatar))
+            }
+        }
+        if (merged.isNotEmpty()) {
+            _state.update { it.copy(memberProfiles = it.memberProfiles + merged) }
         }
     }
 

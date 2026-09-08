@@ -59,6 +59,7 @@ fun ProfileHeader(
     isSelf: Boolean,
     onEditAvatar: () -> Unit,
     modifier: Modifier = Modifier,
+    onAvatarClick: (() -> Unit)? = null, // 他人头像点击：进入全屏预览
     gradientEndColor: Color = Color.Black.copy(alpha = 0.9f),
     onBrowseHistory: () -> Unit = {},
     onGroupChat: () -> Unit = {},
@@ -125,7 +126,12 @@ fun ProfileHeader(
 
             /// 头像与昵称
             Row(verticalAlignment = Alignment.CenterVertically) {
-                AvatarSection(user = user, editable = isSelf, onClick = onEditAvatar)
+                AvatarSection(
+                    user = user,
+                    editable = isSelf,
+                    onClick = onEditAvatar,
+                    onAvatarClick = onAvatarClick,
+                )
                 Spacer(Modifier.width(16.dp))
                 UserInfoSection(user = user)
             }
@@ -233,13 +239,24 @@ fun ProfileHeader(
 
 /// 头像区域
 @Composable
-private fun AvatarSection(user: UserData?, editable: Boolean, onClick: () -> Unit) {
+private fun AvatarSection(
+    user: UserData?,
+    editable: Boolean,
+    onClick: () -> Unit,
+    onAvatarClick: (() -> Unit)? = null,
+) {
+    // 自己：点击进入裁剪/编辑（原有行为）；他人且有头像：点击进入全屏预览
+    val clickModifier = when {
+        editable -> Modifier.clickable(onClick = onClick)
+        onAvatarClick != null && user?.avatar != null -> Modifier.clickable(onClick = onAvatarClick)
+        else -> Modifier
+    }
     Box(
         modifier = Modifier
             .size(76.dp)
             .clip(CircleShape)
-            .background(Color(0xFFD4EAE0))
-            .then(if (editable) Modifier.clickable(onClick = onClick) else Modifier),
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .then(clickModifier),
         contentAlignment = Alignment.Center,
     ) {
         if (user?.avatar != null) {

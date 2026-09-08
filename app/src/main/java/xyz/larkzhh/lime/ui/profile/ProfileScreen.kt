@@ -78,6 +78,7 @@ import xyz.larkzhh.lime.domain.model.toFollowActionState
 import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.components.PagingWaterfallFeed
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
+import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.ui.profile.components.LikeFavStatsDialog
 import xyz.larkzhh.lime.ui.profile.components.ProfileHeader
 import xyz.larkzhh.lime.ui.profile.components.ProfileTabRow
@@ -94,6 +95,8 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import xyz.larkzhh.lime.ui.openVideo
 import xyz.larkzhh.lime.util.media.extractGradientColor
 import xyz.larkzhh.lime.util.showToast
@@ -129,6 +132,7 @@ fun ProfileScreen(
     val mutualFollowRequiredText = stringResource(R.string.profile_mutual_follow_required)
     var showUnfollowConfirm by remember { mutableStateOf(false) }
     var showLikeFavStats by remember { mutableStateOf(false) }
+    var avatarPreviewUrl by remember { mutableStateOf<String?>(null) }// 他人头像全屏预览
 
     val likeState by notesViewModel.likeState.collectAsState()
     val notesPagingItems = notesViewModel.notesPager.collectAsLazyPagingItems()
@@ -440,6 +444,7 @@ fun ProfileScreen(
                 isSelf = isSelf,
                 gradientEndColor = gradientEndColor,
                 onEditAvatar = { avatarPickerLauncher.launch("image/*") },
+                onAvatarClick = { user?.avatar?.let { avatarPreviewUrl = it } },
                 onBrowseHistory = { navController.navigate(Screen.BrowseHistory.route) },
                 onGroupChat = { navController.navigate(Screen.GroupList.route) },
                 onFollowClick = {
@@ -562,6 +567,21 @@ fun ProfileScreen(
                 likeCount = user.totalLikeCount ?: 0,
                 favCount = user.totalFavCount ?: 0,
                 onDismiss = { showLikeFavStats = false },
+            )
+        }
+    }
+
+    // 他人头像全屏预览
+    val avatarPreview = avatarPreviewUrl
+    if (avatarPreview != null) {
+        Dialog(
+            onDismissRequest = { avatarPreviewUrl = null },
+            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+        ) {
+            ImagePreviewOverlay(
+                images = listOf(avatarPreview),
+                initialIndex = 0,
+                onDismiss = { avatarPreviewUrl = null },
             )
         }
     }

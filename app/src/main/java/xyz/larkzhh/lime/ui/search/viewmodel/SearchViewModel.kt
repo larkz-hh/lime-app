@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.R
@@ -113,6 +114,7 @@ class SearchViewModel @Inject constructor(
 
     init {
         loadHotSearches()
+        observeModeReturnToHome()
         observeSuggestQuery()
         observeNoteEvents()
         // 详情页进入
@@ -132,6 +134,19 @@ class SearchViewModel @Inject constructor(
                 _uiState.update { it.copy(hotWords = hotWords) }
                 WidgetHotCache.write(hotWords)
                 runCatching { SearchWidget().updateAll(appContext) }
+            }
+        }
+    }
+
+    /// 结果页返回搜索主页时刷新热搜
+    private fun observeModeReturnToHome() {
+        viewModelScope.launch {
+            var prev: SearchMode? = null
+            _uiState.map { it.mode }.collect { mode ->
+                if (prev == SearchMode.Result && mode == SearchMode.Idle) {
+                    loadHotSearches()
+                }
+                prev = mode
             }
         }
     }

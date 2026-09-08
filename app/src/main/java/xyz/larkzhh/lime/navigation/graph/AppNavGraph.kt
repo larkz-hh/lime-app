@@ -636,11 +636,11 @@ fun AppNavGraph(
                         enterTransition = {
                             slideInHorizontally(animationSpec = tween(280), initialOffsetX = { it })
                         },
-                        exitTransition = {
+                        exitTransition = { ExitTransition.None },
+                        popEnterTransition = { EnterTransition.None },
+                        popExitTransition = {
                             slideOutHorizontally(animationSpec = tween(280), targetOffsetX = { it })
                         },
-                        popEnterTransition = { EnterTransition.None },
-                        popExitTransition = { ExitTransition.None },
                     ) { backStackEntry ->
                         val conversationId =
                             backStackEntry.arguments?.getString("conversationId") ?: return@composable

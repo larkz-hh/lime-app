@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.labelRes
 import xyz.larkzhh.lime.ui.auth.LoginGate
-import xyz.larkzhh.lime.ui.theme.LimeGray
 
 /**
  * 通用关注按钮
@@ -33,7 +32,8 @@ fun FollowButton(
     modifier: Modifier = Modifier,
 ) {
     val followed = state != FollowActionState.Follow
-    val borderColor = if (followed) LimeGray else MaterialTheme.colorScheme.primary
+    val borderColor =
+        if (followed) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(50))

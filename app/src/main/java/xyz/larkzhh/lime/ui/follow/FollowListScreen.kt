@@ -68,6 +68,7 @@ fun FollowListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val relations by viewModel.relations.collectAsState()
+    val selfUserId = viewModel.currentUserId
 
     var pendingUnfollow by remember { mutableStateOf<FollowListItem?>(null) }
 
@@ -162,6 +163,7 @@ fun FollowListScreen(
                             onFollowClick = { viewModel.follow(item) },
                             onUnfollowClick = { pendingUnfollow = item },
                             onUserClick = { navController.navigateToUserProfile(item.id) },
+                            selfUserId = selfUserId,
                         )
                         HorizontalDivider(
                             thickness = 0.5.dp,
@@ -249,8 +251,11 @@ private fun FollowUserCard(
     onFollowClick: () -> Unit,
     onUnfollowClick: () -> Unit,
     onUserClick: () -> Unit,
+    selfUserId: Long? = null,
 ) {
-    val state = relation?.toFollowActionState() ?: fallbackState
+    // 自己是目标用户
+    val state = if (selfUserId != null && item.id == selfUserId) null
+                else relation?.toFollowActionState() ?: fallbackState
 
     Row(
         modifier = Modifier
@@ -281,7 +286,7 @@ private fun FollowUserCard(
                 )
             } else {
                 Box(
-                    modifier = avatarModifier.background(MaterialTheme.colorScheme.secondaryContainer),
+                    modifier = avatarModifier.background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
@@ -320,10 +325,12 @@ private fun FollowUserCard(
         Spacer(Modifier.width(12.dp))
 
         // 关注按钮
-        FollowButton(
-            state = state,
-            onClick = if (state == FollowActionState.Follow) onFollowClick else onUnfollowClick,
-        )
+        if (state != null) {
+            FollowButton(
+                state = state,
+                onClick = if (state == FollowActionState.Follow) onFollowClick else onUnfollowClick,
+            )
+        }
     }
 }
 

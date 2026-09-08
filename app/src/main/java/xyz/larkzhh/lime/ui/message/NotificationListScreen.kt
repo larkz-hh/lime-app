@@ -197,6 +197,7 @@ fun NotificationListScreen(
                                 },
                                 onFollowClick = { item.senderId?.let { viewModel.follow(it) } },
                                 onUnfollowClick = { pendingUnfollow = item },
+                                selfUserId = viewModel.currentUserId,
                             )
                         }
                         HorizontalDivider(
@@ -246,6 +247,7 @@ private fun NotificationCard(
     onAvatarClick: () -> Unit,
     onFollowClick: () -> Unit,
     onUnfollowClick: () -> Unit,
+    selfUserId: Long? = null,
 ) {
     val type = NotificationType.fromCode(item.type)
     val time = formatRelativeTime(item.createTime.orEmpty())
@@ -288,7 +290,7 @@ private fun NotificationCard(
             )
         } else {
             Box(
-                modifier = avatarModifier.background(MaterialTheme.colorScheme.secondaryContainer),
+                modifier = avatarModifier.background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -357,11 +359,15 @@ private fun NotificationCard(
 
         // 笔记封面或关注按钮
         if (type == NotificationType.Follow) {
-            val followState = relation?.toFollowActionState() ?: FollowActionState.Follow
-            FollowButton(
-                state = followState,
-                onClick = if (followState == FollowActionState.Follow) onFollowClick else onUnfollowClick,
-            )
+            // 目标是自己时不渲染关注按钮
+            val isSelf = selfUserId != null && item.senderId == selfUserId
+            if (!isSelf) {
+                val followState = relation?.toFollowActionState() ?: FollowActionState.Follow
+                FollowButton(
+                    state = followState,
+                    onClick = if (followState == FollowActionState.Follow) onFollowClick else onUnfollowClick,
+                )
+            }
         } else {
             NoteCover(url = item.noteCover)
         }
