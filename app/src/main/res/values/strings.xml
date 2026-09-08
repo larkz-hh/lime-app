@@ -368,6 +368,7 @@
     <string name="group_quit">退出</string>
     <string name="group_quit_message">退出后你将不再接收该群消息。</string>
     <string name="group_save_failed">保存失败</string>
+    <string name="group_save_success">群资料已保存</string>
     <string name="group_avatar_save_failed">头像保存失败</string>
     <string name="group_avatar_upload_failed">头像上传失败</string>
     <string name="group_invite_failed">邀请失败</string>
@@ -412,7 +413,7 @@
     <string name="search_load_failed">加载失败</string>
     <string name="search_empty_notes">暂无相关笔记</string>
     <string name="search_empty_users">暂无相关用户</string>
-    <string name="search_followers_zero">粉丝 0</string>
+    <string name="search_followers">粉丝 %1$d</string>
     <string name="search_self_badge">我自己</string>
     <string name="search_sort_by">排序依据</string>
     <string name="search_publish_time">发布时间</string>

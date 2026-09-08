@@ -412,7 +412,7 @@
     <string name="search_load_failed">Failed to load</string>
     <string name="search_empty_notes">No related notes</string>
     <string name="search_empty_users">No related users</string>
-    <string name="search_followers_zero">0 followers</string>
+    <string name="search_followers">%1$d followers</string>
     <string name="search_self_badge">Me</string>
     <string name="search_sort_by">Sort by</string>
     <string name="search_publish_time">Publish time</string>

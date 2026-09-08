@@ -412,7 +412,7 @@
     <string name="search_load_failed">載入失敗</string>
     <string name="search_empty_notes">暫無相關筆記</string>
     <string name="search_empty_users">暫無相關使用者</string>
-    <string name="search_followers_zero">粉絲 0</string>
+    <string name="search_followers">粉絲 %1$d</string>
     <string name="search_self_badge">我自己</string>
     <string name="search_sort_by">排序依據</string>
     <string name="search_publish_time">發布時間</string>

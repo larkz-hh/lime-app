@@ -44,6 +44,7 @@ fun LimeTheme(
             onBackground = Color.White,
             onSurface = Color.White,
             onSurfaceVariant = Color(0xFFB0B0B0),
+            error = LimeRed,
         )
 
         else -> lightColorScheme(
@@ -60,6 +61,7 @@ fun LimeTheme(
             onBackground = LimeDark,
             onSurface = LimeDark,
             onSurfaceVariant = LimeGray,
+            error = LimeRed,
         )
     }
 

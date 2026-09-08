@@ -108,7 +108,6 @@ import xyz.larkzhh.lime.ui.components.chat.ChatInputImage
 import xyz.larkzhh.lime.ui.components.chat.ChatInputImageState
 import xyz.larkzhh.lime.ui.components.chat.ChatMessageList
 import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.text.formatRelativeTime
 import xyz.larkzhh.lime.util.showToast
@@ -319,7 +318,7 @@ fun AiChatScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .background(MaterialTheme.colorScheme.surface)
                         .imePadding(),
                 ) {
                     // 顶部栏
@@ -478,7 +477,8 @@ fun AiChatScreen(
                             messagesById[bubble.id]?.let { viewModel.retryMessage(it) }
                         },
                         onCopy = { bubble ->
-                            bubble.content.copyToClipboard(context)
+                            // 复制剥离 Markdown 的纯文本，避免把 **、`、[]() 等符号带出去
+                            bubble.content.stripMarkdown().copyToClipboard(context)
                             copiedToast.showToast(context)
                         },
                         onRegenerate = { bubble ->
@@ -572,7 +572,6 @@ fun AiChatScreen(
                         if (ok) conversationDeletedToast.showToast(context)
                     }
                     deleteTarget = null
-                    closeDrawer()
                 },
                 onDismissRequest = { deleteTarget = null },
             )

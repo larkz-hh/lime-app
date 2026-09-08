@@ -15,7 +15,7 @@ data class ChatBubbleColors(
 
 /// 浅色主题气泡色
 val LightChatBubbleColors = ChatBubbleColors(
-    grayBubble = Color(0xFFF1F1F1),
+    grayBubble = Color(0xFFE8E8E8),
     grayBubbleContent = Color(0xFF111111),
     blueBubble = Color(0xFF3D5AFE),
     blueBubbleContent = Color.White,
