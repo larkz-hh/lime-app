@@ -21,6 +21,7 @@ import xyz.larkzhh.lime.data.local.TranslateSettings
 import xyz.larkzhh.lime.data.local.TranslatorHolder
 import xyz.larkzhh.lime.domain.repository.AiRepository
 import xyz.larkzhh.lime.util.text.detectLanguageTag
+import xyz.larkzhh.lime.util.text.isNearlyIdentical
 import xyz.larkzhh.lime.work.TranslatePrefetchWorker
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -190,13 +191,22 @@ class TranslateViewModel @Inject constructor(
             TranslateMode.Offline -> offlineTranslate(text, source, allowAutoFlip)
 
             TranslateMode.Auto -> {
-                aiTranslate(text, source)?.takeIf { it.isNotBlank() && it != text }?.let { ai ->
-                    return TranslateOutcome(ai, source, if (source == "zh") "en" else "zh")
-                }
-                offlineTranslate(text, source, allowAutoFlip)
+                aiTranslateOutcome(text, source)?.let { return it }// 译文 ≈ 原文，翻转语向再试一次
+                aiTranslateOutcome(text, flipTag(source))?.let { return it }
+                offlineTranslate(text, source, allowAutoFlip)// 降级离线
             }
         }
     }
+
+    /// AI 翻译与结果验收
+    private suspend fun aiTranslateOutcome(text: String, source: String): TranslateOutcome? {
+        val result = aiTranslate(text, source) ?: return null
+        if (result.isBlank() || result == text || isNearlyIdentical(result, text)) return null
+        return TranslateOutcome(result, source, flipTag(source))
+    }
+
+    /// 反转方向
+    private fun flipTag(tag: String): String = if (tag == "zh") "en" else "zh"
 
     /// 离线翻译
     private suspend fun offlineTranslate(
@@ -210,7 +220,8 @@ class TranslateViewModel @Inject constructor(
         translatorHolder.ensureModel(src, tgt)
         _uiState.update { it.copy(phase = TranslatePhase.Translating) }
         var result = translatorHolder.translate(text, src, tgt)
-        if (allowAutoFlip && (result.isBlank() || result == text)) {
+        // 翻转语向重试
+        if (allowAutoFlip && (result.isBlank() || result == text || isNearlyIdentical(result, text))) {
             val flippedSrc = tgt
             val flippedTgt = src
             translatorHolder.ensureModel(flippedSrc, flippedTgt)
