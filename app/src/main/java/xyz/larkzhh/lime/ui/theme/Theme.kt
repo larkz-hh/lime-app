@@ -8,6 +8,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -66,9 +67,13 @@ fun LimeTheme(
     val fontOption = FontOption.fromTag(AppFont.currentTag())
     val fontFamily = fontFamilyOf(fontOption, LocalContext.current) ?: FontFamily.Default
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography.withFontFamily(fontFamily),
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalChatBubbleColors provides if (darkTheme) DarkChatBubbleColors else LightChatBubbleColors,
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography.withFontFamily(fontFamily),
+            content = content,
+        )
+    }
 }

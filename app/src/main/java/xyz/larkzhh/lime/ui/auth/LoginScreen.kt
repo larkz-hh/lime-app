@@ -80,6 +80,7 @@ fun LoginScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { },
@@ -91,6 +92,9 @@ fun LoginScreen(
                 expandedHeight = 56.dp,
                 windowInsets = TopAppBarDefaults.windowInsets,
                 // windowInsets = WindowInsets(0),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
             )
         },
     ) { innerPadding ->

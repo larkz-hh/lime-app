@@ -40,7 +40,6 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import kotlinx.coroutines.delay
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeTheme
-import xyz.larkzhh.lime.ui.AppSplashAnim
 import kotlin.time.Duration.Companion.milliseconds
 
 @SuppressLint("CustomSplashScreen")
@@ -67,7 +66,7 @@ private fun SplashContent() {
     var lottieFading by remember { mutableStateOf(false) }// 续播后开始淡出
     var showLogo by remember { mutableStateOf(false) }// 淡出结束后炸出 logo 出现
     var lottieP by remember { mutableFloatStateOf(0f) }// 当前播放进度
-    val acceleratingEasing: Easing = remember { Easing { t -> t * t }   }// 播放速度
+    val acceleratingEasing: Easing = remember { Easing { t -> t * t } }// 加速收尾
     LaunchedEffect(composition) {
         if (!animEnabled) return@LaunchedEffect
         val comp = composition ?: return@LaunchedEffect

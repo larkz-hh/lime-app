@@ -73,6 +73,7 @@ fun RegisterScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.auth_create_account)) },
@@ -84,6 +85,9 @@ fun RegisterScreen(
                 expandedHeight = 56.dp,
                 windowInsets = TopAppBarDefaults.windowInsets,
                 //windowInsets = WindowInsets(0.dp),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
             )
         },
     ) { innerPadding ->

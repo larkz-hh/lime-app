@@ -28,8 +28,11 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -41,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -54,10 +58,11 @@ import kotlin.math.roundToInt
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.ui.theme.LimeGray
+import xyz.larkzhh.lime.ui.theme.LocalChatBubbleColors
+import xyz.larkzhh.lime.ui.theme.DarkChatBubbleColors
+import xyz.larkzhh.lime.ui.theme.LightChatBubbleColors
 import xyz.larkzhh.lime.util.TtsManager
 
-/// 用户气泡色
-private val UserBubbleColor = Color(0xFFF1F1F1)
 /// 用户气泡最大宽度
 private const val USER_BUBBLE_MAX_WIDTH = 320
 
@@ -196,9 +201,11 @@ private fun SelfBubble(
             Spacer(Modifier.size(8.dp))
         }
         if (data.content.isNotBlank()) {
+            // 气泡颜色来自主题（LocalChatBubbleColors），深浅色无需页面判断
+            val bubbleColors = LocalChatBubbleColors.current
             Text(
                 text = data.content,
-                color = MaterialTheme.colorScheme.onBackground,
+                color = bubbleColors.grayBubbleContent,
                 style = MaterialTheme.typography.bodyLarge,
                 lineHeight = 22.sp,
                 modifier = Modifier
@@ -211,7 +218,7 @@ private fun SelfBubble(
                             bottomEnd = 4.dp,
                         )
                     )
-                    .background(UserBubbleColor)
+                    .background(bubbleColors.grayBubble)
                     .padding(horizontal = 12.dp, vertical = 10.dp),
             )
         }
@@ -230,12 +237,12 @@ private fun AiBubble(
     Column(modifier = Modifier.fillMaxWidth()) {
         if (data.content.isNotBlank()) {
             when {
-                // 流式 Markdown
-                data.renderMarkdown && data.status == ChatBubbleStatus.STREAMING ->
-                    StreamingMarkdown(data.content)
-                // 完整 Markdown
+                // Markdown：流式、结束分块渲染
                 data.renderMarkdown ->
-                    MarkdownMessageContent(content = data.content)
+                    StreamingMarkdown(
+                        content = data.content,
+                        renderTailAsMarkdown = data.status != ChatBubbleStatus.STREAMING,
+                    )
 
                 else ->
                     Text(
@@ -297,7 +304,10 @@ private fun BubbleActionIcon(
 
 /// 流式 Markdown 渲染
 @Composable
-private fun StreamingMarkdown(content: String) {
+private fun StreamingMarkdown(
+    content: String,
+    renderTailAsMarkdown: Boolean = false,
+) {
     val split = remember(content) { splitStreamingMarkdown(content) }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -308,12 +318,18 @@ private fun StreamingMarkdown(content: String) {
             }
         }
         if (split.tail.isNotBlank()) {
-            Text(
-                text = split.tail,
-                color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.bodyLarge,
-                lineHeight = 22.sp,
-            )
+            if (renderTailAsMarkdown) {
+                // 消息结束，Markdown 渲染最后一段
+                MarkdownMessageContent(content = split.tail)
+            } else {
+                // 流式未完成段落，纯文本追加
+                Text(
+                    text = split.tail,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyLarge,
+                    lineHeight = 22.sp,
+                )
+            }
         }
     }
 }
@@ -357,5 +373,82 @@ private fun NoteCardChip(
                 fontSize = 10.sp,
             )
         }
+    }
+}
+
+
+/// 浅色 AI 聊天页气泡预览
+@Preview(showBackground = true, name = "AI 聊天气泡 · 浅色", widthDp = 400)
+@Composable
+private fun AiChatBubblePreviewLight() {
+    ChatBubblePreviewTheme(dark = false) {
+        ChatBubbleSamples()
+    }
+}
+
+/// 深色 AI 聊天页气泡预览
+@Preview(showBackground = true, name = "AI 聊天气泡 · 深色", widthDp = 400)
+@Composable
+private fun AiChatBubblePreviewDark() {
+    ChatBubblePreviewTheme(dark = true) {
+        ChatBubbleSamples()
+    }
+}
+
+@Composable
+private fun ChatBubbleSamples() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        // 我的消息
+        ChatMessageBubble(
+            data = ChatBubbleData(
+                id = 1,
+                isSelf = true,
+                content = "你好，帮我看看这套气泡配色行不行？",
+                status = ChatBubbleStatus.DONE,
+            ),
+        )
+        // AI 回复
+        ChatMessageBubble(
+            data = ChatBubbleData(
+                id = 2,
+                isSelf = false,
+                content = "**可以**，这套方案挺稳的。\n\n- 我的气泡浅色浅灰、深色深灰\n- 深色模式下文字自动切白\n- IM 自己的气泡保持品牌蓝",
+                status = ChatBubbleStatus.DONE,
+                renderMarkdown = true,
+            ),
+            onCopy = {},
+            onRegenerate = {},
+            onSpeak = {},
+        )
+    }
+}
+
+/// 预览主题
+@Composable
+private fun ChatBubblePreviewTheme(
+    dark: Boolean,
+    content: @Composable () -> Unit,
+) {
+    val colorScheme = if (dark) {
+        darkColorScheme(
+            background = Color(0xFF000000),
+            surfaceVariant = Color(0xFF1B1B1B),
+        )
+    } else {
+        lightColorScheme(
+            background = Color(0xFFF5F5F5),
+            surfaceVariant = Color(0xFFF1F1F1),
+        )
+    }
+    CompositionLocalProvider(
+        LocalChatBubbleColors provides if (dark) DarkChatBubbleColors else LightChatBubbleColors,
+    ) {
+        MaterialTheme(colorScheme = colorScheme, content = content)
     }
 }

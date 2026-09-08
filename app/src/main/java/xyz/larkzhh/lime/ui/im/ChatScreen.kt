@@ -89,7 +89,7 @@ import xyz.larkzhh.lime.ui.detail.components.EmojiPanel
 import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.ui.im.viewmodel.ImChatViewModel
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
+import xyz.larkzhh.lime.ui.theme.LocalChatBubbleColors
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.media.copyUriToCache
 import xyz.larkzhh.lime.util.text.formatChatTime
@@ -417,7 +417,7 @@ private fun AvatarView(
 
 
 @Composable
-private fun MessageBubble(
+internal fun MessageBubble(
     message: ImMessage,
     avatar: String?,
     senderName: String? = null,
@@ -448,8 +448,9 @@ private fun MessageBubble(
     var longPressOffset by remember { mutableStateOf(Offset.Zero) }
     val canRevoke = message.isSelf &&
         (System.currentTimeMillis() / 1000 - message.timestamp) <= 120
-    val bubbleColor = if (message.isSelf) Color(0xFF3D5AFE) else Color(0xFFF1F1F1)
-    val contentColor = if (message.isSelf) Color.White else Color(0xFF111111)
+    val bubbleColors = LocalChatBubbleColors.current
+    val bubbleColor = if (message.isSelf) bubbleColors.blueBubble else bubbleColors.grayBubble
+    val contentColor = if (message.isSelf) bubbleColors.blueBubbleContent else bubbleColors.grayBubbleContent
 
     Box {
         Row(
