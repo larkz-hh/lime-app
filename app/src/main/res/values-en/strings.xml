@@ -367,6 +367,7 @@
     <string name="group_quit_group">Leave Group</string>
     <string name="group_quit">Leave</string>
     <string name="group_quit_message">After leaving, you will no longer receive messages from this group.</string>
+    <string name="group_save_success">Group info saved</string>
     <string name="group_save_failed">Failed to save</string>
     <string name="group_avatar_save_failed">Failed to save avatar</string>
     <string name="group_avatar_upload_failed">Failed to upload avatar</string>

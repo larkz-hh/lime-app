@@ -47,15 +47,6 @@ class ImRepositoryImpl @Inject constructor(
     private val lastVisiblePreview = ConcurrentHashMap<String, String>()
     private val previewScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    init {
-        previewScope.launch {
-            newMessages.collect { msg ->
-                val convId = msg.groupId?.let { "group_$it" } ?: "c2c_${msg.senderId}"
-                lastVisiblePreview[convId] = msg.text ?: "[图片]"
-            }
-        }
-    }
-
     /// IM 会话未读数合计
     @OptIn(ExperimentalCoroutinesApi::class)
     override val conversationUnreadFlow: Flow<Int> = merge(
@@ -291,5 +282,15 @@ class ImRepositoryImpl @Inject constructor(
             .associate { info ->
                 info.userID to ImUserProfile(nickname = info.nickName, faceUrl = info.faceUrl)
             }
+    }
+
+    /// 监听新消息
+    init {
+        previewScope.launch {
+            newMessages.collect { msg ->
+                val convId = msg.groupId?.let { "group_$it" } ?: "c2c_${msg.senderId}"
+                lastVisiblePreview[convId] = msg.text ?: "[图片]"
+            }
+        }
     }
 }
