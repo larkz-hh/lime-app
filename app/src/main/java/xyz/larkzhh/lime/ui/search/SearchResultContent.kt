@@ -458,7 +458,7 @@ private fun UserResultCard(
                 )
                 // 粉丝数
                 Text(
-                    text = stringResource(R.string.search_followers_zero),
+                    text = stringResource(R.string.search_followers, user.followerCount ?: 0L),
                     fontSize = 12.sp,
                     lineHeight = 14.sp,
                     color = LimeGray,

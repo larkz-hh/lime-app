@@ -414,12 +414,34 @@ class SearchViewModel @Inject constructor(
 
     /// 关注用户
     fun followUser(userId: Long) {
-        viewModelScope.launch { followRepository.follow(userId) }
+        updateFollowerCount(userId, 1)
+        viewModelScope.launch {
+            followRepository.follow(userId).onFailure { updateFollowerCount(userId, -1) }
+        }
     }
 
     /// 取消关注
     fun unfollowUser(userId: Long) {
-        viewModelScope.launch { followRepository.unfollow(userId) }
+        updateFollowerCount(userId, -1)
+        viewModelScope.launch {
+            followRepository.unfollow(userId).onFailure { updateFollowerCount(userId, 1) }
+        }
+    }
+
+    /// 更新搜索结果粉丝数
+    private fun updateFollowerCount(userId: Long, delta: Int) {
+        _uiState.update { state ->
+            if (state.userItems.none { it.id == userId && !it.isMe }) return@update state
+            state.copy(
+                userItems = state.userItems.map {
+                    if (it.id == userId && !it.isMe) {
+                        it.copy(followerCount = ((it.followerCount ?: 0L) + delta).coerceAtLeast(0L))
+                    } else {
+                        it
+                    }
+                },
+            )
+        }
     }
 
     /// 写入共享关注关系
