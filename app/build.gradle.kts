@@ -20,6 +20,13 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // ABI 裁剪开关
+        // ./gradlew assembleRelease -PslimAbi=true
+        val slimAbi = (project.findProperty("slimAbi") as String?)?.toBoolean() ?: false
+        if (slimAbi) {
+            ndk { abiFilters += listOf("arm64-v8a") }
+        }
     }
 
     buildTypes {
@@ -151,7 +158,7 @@ dependencies {
     implementation(libs.markdown.renderer.coil3)
 
     // Splash Screen
-    implementation(libs.androidx.core.splashscreen)
+//    implementation(libs.androidx.core.splashscreen)
 
     // Widget
     implementation(libs.androidx.glance.appwidget)
