@@ -62,8 +62,6 @@ import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
-import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.generateGradientQrBitmap
 import xyz.larkzhh.lime.util.limeUserQrContent
@@ -247,7 +245,7 @@ fun AddFriendScreen(
                         Icon(
                             Icons.Filled.QrCodeScanner,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(22.dp),
                         )
                     },
@@ -264,7 +262,7 @@ fun AddFriendScreen(
                         Icon(
                             Icons.Outlined.Download,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(22.dp),
                         )
                     },

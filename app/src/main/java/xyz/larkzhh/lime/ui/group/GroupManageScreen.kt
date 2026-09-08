@@ -63,7 +63,6 @@ import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.util.showToast
 
 private val CheckBorderGray = Color(0xFFCCCCCC)
@@ -78,6 +77,7 @@ fun GroupManageScreen(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val inviteSentText = stringResource(R.string.group_invite_sent)
+    val saveSuccessText = stringResource(R.string.group_save_success)
     var name by remember { mutableStateOf("") }
     var introduction by remember { mutableStateOf("") }
     var nameInitialized by remember { mutableStateOf(false) }
@@ -87,6 +87,10 @@ fun GroupManageScreen(
 
     LaunchedEffect(groupId) {
         viewModel.load(groupId)
+    }
+    // 保存成功提示
+    LaunchedEffect(Unit) {
+        viewModel.saved.collect { saveSuccessText.showToast(context) }
     }
     LaunchedEffect(state.group) {
         val g = state.group

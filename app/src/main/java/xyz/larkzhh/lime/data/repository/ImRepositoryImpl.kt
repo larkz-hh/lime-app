@@ -1,6 +1,9 @@
 package xyz.larkzhh.lime.data.repository
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -9,6 +12,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.data.im.ImException
 import xyz.larkzhh.lime.data.im.ImManager
 import xyz.larkzhh.lime.data.network.im.ImApi
@@ -22,6 +26,7 @@ import xyz.larkzhh.lime.domain.model.toImGroup
 import xyz.larkzhh.lime.domain.model.toImMessage
 import xyz.larkzhh.lime.domain.repository.ImRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,11 +43,24 @@ class ImRepositoryImpl @Inject constructor(
     /// 手动刷新未读数
     private val refreshTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
+    /// 会话最新可见消息预览缓存
+    private val lastVisiblePreview = ConcurrentHashMap<String, String>()
+    private val previewScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    init {
+        previewScope.launch {
+            newMessages.collect { msg ->
+                val convId = msg.groupId?.let { "group_$it" } ?: "c2c_${msg.senderId}"
+                lastVisiblePreview[convId] = msg.text ?: "[图片]"
+            }
+        }
+    }
+
     /// IM 会话未读数合计
     @OptIn(ExperimentalCoroutinesApi::class)
     override val conversationUnreadFlow: Flow<Int> = merge(
         refreshTrigger,
-        imManager.conversationChanges.map { Unit },
+        imManager.conversationChanges.map { },
     ).flatMapLatest {
         flow {
             runCatching { imManager.getConversationList() }
@@ -107,18 +125,47 @@ class ImRepositoryImpl @Inject constructor(
         val groupIds = list.mapNotNull { c ->
             if (c.conversationId.startsWith("group_")) c.conversationId.removePrefix("group_") else null
         }
-        if (groupIds.isEmpty()) return list
-        val groupMap = runCatching {
-            imManager.getGroupsInfo(groupIds).associateBy { it.groupID }
-        }.getOrDefault(emptyMap())
-        return list.map { c ->
-            if (!c.conversationId.startsWith("group_")) return@map c
-            val g = groupMap[c.conversationId.removePrefix("group_")] ?: return@map c
-            c.copy(
-                showName = c.showName.ifBlank { g.groupName ?: "" },
-                faceUrl = c.faceUrl ?: g.faceUrl,
-            )
+        val base = if (groupIds.isEmpty()) {
+            list
+        } else {
+            val groupMap = runCatching {
+                imManager.getGroupsInfo(groupIds).associateBy { it.groupID }
+            }.getOrDefault(emptyMap())
+            list.map { c ->
+                if (!c.conversationId.startsWith("group_")) return@map c
+                val g = groupMap[c.conversationId.removePrefix("group_")] ?: return@map c
+                c.copy(
+                    showName = c.showName.ifBlank { g.groupName ?: "" },
+                    faceUrl = c.faceUrl ?: g.faceUrl,
+                )
+            }
         }
+        // 预览兜底
+        base.filter { it.lastMessageText.isBlank() && !lastVisiblePreview.containsKey(it.conversationId) }
+            .forEach { conv ->
+                runCatching { fetchLastVisiblePreview(conv.conversationId) }
+                    .getOrNull()
+                    ?.let { lastVisiblePreview[conv.conversationId] = it }
+            }
+        return base.map { conv ->
+            if (conv.lastMessageText.isNotBlank()) {
+                lastVisiblePreview[conv.conversationId] = conv.lastMessageText
+                conv
+            } else {
+                lastVisiblePreview[conv.conversationId]?.let { conv.copy(lastMessageText = it) } ?: conv
+            }
+        }
+    }
+
+    /// 拉取某会话最近一条可见消息
+    private suspend fun fetchLastVisiblePreview(conversationId: String): String? {
+        val history = getHistoryMessages(conversationId)
+        for (m in history.asReversed()) {
+            if (m.isRevoked) continue
+            m.text?.takeIf { it.isNotBlank() }?.let { return it }
+            if (m.isImage) return "[图片]"
+        }
+        return null
     }
 
     /// 撤回一条消息

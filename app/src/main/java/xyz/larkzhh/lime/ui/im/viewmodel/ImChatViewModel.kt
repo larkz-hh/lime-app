@@ -144,34 +144,39 @@ class ImChatViewModel @Inject constructor(
 
     /// 进入会话时加载历史消息
     fun load(conversationId: String) {
-        if (this.conversationId == conversationId) return
-        this.conversationId = conversationId
         val isGroup = conversationId.startsWith("group_")
         val groupId = if (isGroup) conversationId.removePrefix("group_") else null
-        _state.update { it.copy(isGroup = isGroup, groupId = groupId, memberProfiles = emptyMap()) }
-        viewModelScope.launch {
-            imRepository.ensureImLogin().fold(
-                onSuccess = {
-                    val history = imRepository.getHistoryMessages(conversationId)
-                    _state.update { it.copy(messages = history) }
-                    // 历史图片下载到本地
-                    history.forEach { ensureImageLocal(it) }
-                    // 清除会话列表未读数
-                    imRepository.markRead(conversationId)
-                    // 群消息补充发送者资料
-                    if (isGroup) {
-                        resolveMemberProfiles(history)
-                    }
-                },
-                onFailure = { e ->
-                    _state.update { it.copy(errorMessage = e.message ?: context.getString(R.string.im_login_failed)) }
-                },
-            )
+        val isNewConversation = this.conversationId != conversationId
+        if (isNewConversation) {
+            this.conversationId = conversationId
+            _state.update { it.copy(isGroup = isGroup, groupId = groupId, memberProfiles = emptyMap()) }
+            viewModelScope.launch {
+                imRepository.ensureImLogin().fold(
+                    onSuccess = {
+                        val history = imRepository.getHistoryMessages(conversationId)
+                        _state.update { it.copy(messages = history) }
+                        // 历史图片下载到本地
+                        history.forEach { ensureImageLocal(it) }
+                        // 群消息补充发送者资料
+                        if (isGroup) {
+                            resolveMemberProfiles(history)
+                        }
+                    },
+                    onFailure = { e ->
+                        _state.update { it.copy(errorMessage = e.message ?: context.getString(R.string.im_login_failed)) }
+                    },
+                )
+            }
         }
+        // 刷新资料
         if (groupId != null) {
             loadGroupProfile(groupId)
         } else {
             loadPeerProfile(conversationId)
+        }
+        // 清空未读
+        viewModelScope.launch {
+            runCatching { imRepository.markRead(conversationId) }
         }
     }
 

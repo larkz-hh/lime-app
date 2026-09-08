@@ -6,8 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -42,6 +45,10 @@ class GroupManageViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(GroupManageUiState())
     val uiState: StateFlow<GroupManageUiState> = _uiState.asStateFlow()
 
+    /// 保存成功
+    private val _saved = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val saved: SharedFlow<Unit> = _saved.asSharedFlow()
+
     /// 拉取群资料、当前角色、互关好友列表
     fun load(groupId: String) {
         if (_uiState.value.groupId == groupId) return
@@ -74,6 +81,7 @@ class GroupManageViewModel @Inject constructor(
                 introduction = introduction.trim().takeIf { it.isNotBlank() },
             ).onSuccess {
                 reloadGroup(groupId)
+                _saved.tryEmit(Unit)
             }.onFailure { e ->
                 _uiState.update { it.copy(isSaving = false, error = e.message ?: context.getString(R.string.group_save_failed)) }
             }
@@ -88,7 +96,10 @@ class GroupManageViewModel @Inject constructor(
             _uiState.update { it.copy(isSaving = true, error = null) }
             userRepository.uploadGroupAvatar(uri).onSuccess { url ->
                 imRepository.updateGroupInfo(groupId, faceUrl = url)
-                    .onSuccess { reloadGroup(groupId) }
+                    .onSuccess {
+                        reloadGroup(groupId)
+                        _saved.tryEmit(Unit)
+                    }
                     .onFailure { e -> _uiState.update { it.copy(isSaving = false, error = e.message ?: context.getString(R.string.group_avatar_save_failed)) } }
             }.onFailure { e ->
                 _uiState.update { it.copy(isSaving = false, error = e.message ?: context.getString(R.string.group_avatar_upload_failed)) }
