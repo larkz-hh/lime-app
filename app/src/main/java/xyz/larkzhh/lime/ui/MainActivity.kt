@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -57,6 +59,8 @@ class MainActivity : ComponentActivity() {
     /// 上次账号 id
     private var lastSeenUserId: Long? = null
 
+    private val mainHandler = Handler(Looper.getMainLooper())
+
     /// 快捷入口
     private val shortcutAction = mutableStateOf<String?>(null)
     /// 快捷入口携带关键词
@@ -84,7 +88,11 @@ class MainActivity : ComponentActivity() {
                         lastSeenUserId = uid
                     }
                     if (uid != null) {
-                        NotificationService.start(this@MainActivity)
+                        mainHandler.postDelayed({
+                            if (tokenStorage.isLoggedIn()) {
+                                NotificationService.start(this@MainActivity)
+                            }
+                        }, 1000L)
                     }
                 }
             }

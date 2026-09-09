@@ -63,6 +63,7 @@ import xyz.larkzhh.lime.ui.auth.LoginScreen
 import xyz.larkzhh.lime.ui.auth.RegisterScreen
 import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
 import xyz.larkzhh.lime.domain.ForceLogoutBus
+import xyz.larkzhh.lime.domain.LoginRedirectBus
 import xyz.larkzhh.lime.util.showToast
 import xyz.larkzhh.lime.ui.components.ForceLogoutDialog
 import xyz.larkzhh.lime.ui.detail.comment.CommentPhotoPickerScreen
@@ -166,6 +167,17 @@ fun AppNavGraph(
         }
         LoginGate.onRequireLogin = gate
         gate
+    }
+
+    // 本地 token 被清后强制回登录页
+    LaunchedEffect(currentRoute) {
+        val route = currentRoute ?: return@LaunchedEffect
+        if (LoginRedirectBus.consume() && !authViewModel.isLoggedIn() && route !in authRoutes) {
+            navController.navigate(Screen.Login.route) {
+                popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
     }
 
     // 强制下线本地清理
@@ -365,11 +377,7 @@ fun AppNavGraph(
                     composable(Screen.Register.route) {
                         RegisterScreen(
                             onRegisterSuccess = {
-                                val target = pendingRedirect ?: Screen.Home.route
-                                pendingRedirect = null
-                                navController.navigate(target) {
-                                    popUpTo(Screen.Login.route) { inclusive = true }
-                                }
+                                navController.popBackStack()
                             },
                             onNavigateToLogin = {
                                 navController.popBackStack()
@@ -747,11 +755,7 @@ fun AppNavGraph(
                 onPasswordChanged = {
                     showAccountPrivacy = false
                     scope.launch { drawerState.close() }
-                    imViewModel.logout()
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    // 新后端契约：改密返回的新 token 已覆盖本地凭证，保持当前登录，无需登出重登
                 },
                 onLogout = {
                     showAccountPrivacy = false

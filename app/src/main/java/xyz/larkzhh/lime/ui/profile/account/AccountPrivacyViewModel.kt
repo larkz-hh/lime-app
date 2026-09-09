@@ -186,6 +186,9 @@ class AccountPrivacyViewModel @Inject constructor(
         }
     }
 
+    /// 消费修改成功标志
+    fun clearSuccess() = _uiState.update { it.copy(success = false) }
+
     /// 提交修改密码
     fun submitChangePassword() {
         val s = _uiState.value
@@ -206,9 +209,7 @@ class AccountPrivacyViewModel @Inject constructor(
             try {
                 val oldPassword = s.oldPassword.takeIf { s.verifyMode == VerifyMode.OldPassword }
                 val code = s.code.takeIf { s.verifyMode == VerifyMode.Code }
-                // 清空本地用户缓存，重新登录
                 authRepository.changePassword(oldPassword, code, s.newPassword).getOrThrow()
-                userRepository.clearUser()
                 _uiState.update { it.copy(isSubmitting = false, success = true) }
             } catch (e: Exception) {
                 _uiState.update {

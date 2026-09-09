@@ -1,6 +1,7 @@
 package xyz.larkzhh.lime.data.network
 
 import com.google.gson.Gson
+import com.google.gson.JsonParser
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -49,7 +50,13 @@ fun notificationUnreadFlow(
                         val payload = line.removePrefix("data:").trim()
                         if (payload.isEmpty()) continue
                         if (eventName == "kick") {
-                            ForceLogoutBus.emit()
+                            // 后端 kick 事件，异地登陆强制下线，改密码静默
+                            val reason = runCatching {
+                                JsonParser.parseString(payload).asJsonObject.get("reason")?.asString
+                            }.getOrNull()
+                            if (reason != "password_changed") {
+                                ForceLogoutBus.emit()
+                            }
                             return@flow
                         }
                         val data = runCatching {

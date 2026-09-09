@@ -223,7 +223,7 @@
     <string name="account_password_rule">Password must be 6-32 characters long and contain both letters and numbers</string>
     <string name="account_change_password_submit">Confirm</string>
     <string name="account_password_changed_title">Password Changed</string>
-    <string name="account_password_changed_message">Your password has been changed. Please sign in again with your new password.</string>
+    <string name="account_password_changed_message">Password updated</string>
     <string name="account_ok">OK</string>
     <string name="account_password_hide">Hide password</string>
     <string name="account_password_show">Show password</string>
@@ -312,6 +312,7 @@
     <string name="auth_error_send_failed">Failed to send</string>
     <string name="auth_error_login_failed">Login failed</string>
     <string name="auth_error_register_failed">Registration failed</string>
+    <string name="auth_register_success">Registered successfully, please sign in</string>
     <string name="auth_error_password_required">Please enter a password</string>
     <string name="auth_error_code_required">Please enter the verification code</string>
     <string name="auth_error_password_length">Password must be 6-32 characters</string>

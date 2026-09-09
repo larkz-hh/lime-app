@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
  * @param onFirstButtonClick 点击左侧按钮时的回调
  * @param onSecondButtonClick 点击右侧按钮时回调
  * @param onDismissRequest 当用户点击弹窗外部区域或按下返回键时触发的回调
- * @param firstButtonText 左侧按钮的文本，默认为 "取消"。
+ * @param firstButtonText 左侧按钮的文本，默认为 "取消"
  * @param secondButtonText 右侧按钮的文本，默认为 "确定"。
  * @param secondButtonColor 右侧按钮颜色，默认为主色
  */
@@ -41,11 +41,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun LimeAlertDialog(
     title: String,
-    onFirstButtonClick: () -> Unit,
+    onFirstButtonClick: () -> Unit = {},
     onSecondButtonClick: () -> Unit,
     onDismissRequest: () -> Unit,
     text: String? = null,
-    firstButtonText: String = "取消",
+    firstButtonText: String? = "取消",
     secondButtonText: String = "确定",
     secondButtonColor: Color? = null,
 ) {
@@ -69,7 +69,7 @@ fun LimeAlertDialog(
 private fun LimeAlertDialogContent(
     title: String,
     text: String?,
-    firstButtonText: String,
+    firstButtonText: String?,
     secondButtonText: String,
     secondButtonColor: Color,
     onFirstButtonClick: () -> Unit,
@@ -106,13 +106,15 @@ private fun LimeAlertDialogContent(
                     .fillMaxWidth()
                     .height(IntrinsicSize.Min),
             ) {
-                TextButton(
-                    onClick = onFirstButtonClick,
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                ) {
-                    Text(firstButtonText, color = MaterialTheme.colorScheme.onSurface)
+                if (firstButtonText != null) {
+                    TextButton(
+                        onClick = onFirstButtonClick,
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                    ) {
+                        Text(firstButtonText, color = MaterialTheme.colorScheme.onSurface)
+                    }
+                    VerticalDivider()
                 }
-                VerticalDivider()
                 TextButton(
                     onClick = onSecondButtonClick,
                     modifier = Modifier.weight(1f).fillMaxHeight(),

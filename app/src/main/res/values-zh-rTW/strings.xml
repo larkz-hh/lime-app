@@ -223,7 +223,7 @@
     <string name="account_password_rule">新密碼需為 6-32 位，且需同時包含字母和數字</string>
     <string name="account_change_password_submit">確認修改</string>
     <string name="account_password_changed_title">修改成功</string>
-    <string name="account_password_changed_message">密碼已修改，請使用新密碼重新登入</string>
+    <string name="account_password_changed_message">密碼已修改</string>
     <string name="account_ok">確定</string>
     <string name="account_password_hide">隱藏密碼</string>
     <string name="account_password_show">顯示密碼</string>
@@ -312,6 +312,7 @@
     <string name="auth_error_send_failed">傳送失敗</string>
     <string name="auth_error_login_failed">登入失敗</string>
     <string name="auth_error_register_failed">註冊失敗</string>
+    <string name="auth_register_success">註冊成功，請登入</string>
     <string name="auth_error_password_required">請輸入密碼</string>
     <string name="auth_error_code_required">請輸入驗證碼</string>
     <string name="auth_error_password_length">密碼需為 6-32 個字元</string>

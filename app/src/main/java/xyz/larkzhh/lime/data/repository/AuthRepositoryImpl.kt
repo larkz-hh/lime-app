@@ -77,7 +77,13 @@ class AuthRepositoryImpl @Inject constructor(
             ChangePasswordRequest(oldPassword = oldPassword, code = code, newPassword = newPassword),
         )
         check(response.code == 200) { response.message }
-        tokenStorage.clearTokens()
+        val data = response.data
+        if (data != null) {
+            // 改密成功返回新的双 token
+            tokenStorage.saveTokens(data.accessToken, data.refreshToken, data.expiresIn)
+        } else {
+            tokenStorage.clearTokens()
+        }
     }
 
     /// 登陆状态判断

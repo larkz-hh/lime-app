@@ -43,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -53,6 +54,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.util.showToast
 import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,10 +66,12 @@ fun RegisterScreen(
 ) {
     val state by viewModel.registerState.collectAsState()
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             viewModel.clearRegisterSuccess()
+            context.getString(R.string.auth_register_success).showToast(context)
             onRegisterSuccess()
         }
     }

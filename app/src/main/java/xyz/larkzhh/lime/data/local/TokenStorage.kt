@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.json.JSONObject
 import xyz.larkzhh.lime.domain.ForceLogoutBus
+import xyz.larkzhh.lime.domain.LoginRedirectBus
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,38 +19,52 @@ class TokenStorage @Inject constructor() {
 
     private val mmkv by lazy { MMKV.defaultMMKV() }
 
-    /// 当前登录账号 id（仅当 refresh token 能正常解出时才认为有登录态，防止升级后残留旧 uid）
-    private val _currentUserId = MutableStateFlow(
-        if (refreshToken.isNullOrEmpty()) null else readCurrentUserId()
-    )
+    /// 解密结果内存缓存
+    private var cachedAccess: String? = null
+    private var cachedRefresh: String? = null
+
+    /// 当前登录账号 id
+    private val _currentUserId = MutableStateFlow(readCurrentUserId())
     val currentUserId: Long? get() = _currentUserId.value
 
     /// 当前账号变化流
     val currentUserIdFlow: StateFlow<Long?> = _currentUserId.asStateFlow()
 
     /// 登录状态
-    private val _isLoggedIn = MutableStateFlow(!refreshToken.isNullOrEmpty())
+    private val _isLoggedIn = MutableStateFlow(mmkv.containsKey(KEY_REFRESH_TOKEN))
     val isLoggedInFlow: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
 
     /// 访问令牌
     var accessToken: String?
-        get() = mmkv.decodeString(KEY_ACCESS_TOKEN)?.let { TokenCipher.decrypt(it) }
+        get() = cachedAccess ?: mmkv.decodeString(KEY_ACCESS_TOKEN)
+            ?.let { TokenCipher.decrypt(it) }
+            ?.also { cachedAccess = it }
         set(value) {
             if (value == null) {
                 mmkv.removeValueForKey(KEY_ACCESS_TOKEN)
+                cachedAccess = null
             } else {
-                TokenCipher.encrypt(value)?.let { mmkv.encode(KEY_ACCESS_TOKEN, it) }
+                TokenCipher.encrypt(value)?.let { encoded ->
+                    mmkv.encode(KEY_ACCESS_TOKEN, encoded)
+                    cachedAccess = value
+                }
             }
         }
 
     /// 刷新令牌
     var refreshToken: String?
-        get() = mmkv.decodeString(KEY_REFRESH_TOKEN)?.let { TokenCipher.decrypt(it) }
+        get() = cachedRefresh ?: mmkv.decodeString(KEY_REFRESH_TOKEN)
+            ?.let { TokenCipher.decrypt(it) }
+            ?.also { cachedRefresh = it }
         set(value) {
             if (value == null) {
                 mmkv.removeValueForKey(KEY_REFRESH_TOKEN)
+                cachedRefresh = null
             } else {
-                TokenCipher.encrypt(value)?.let { mmkv.encode(KEY_REFRESH_TOKEN, it) }
+                TokenCipher.encrypt(value)?.let { encoded ->
+                    mmkv.encode(KEY_REFRESH_TOKEN, encoded)
+                    cachedRefresh = value
+                }
             }
         }
 
@@ -70,10 +85,14 @@ class TokenStorage @Inject constructor() {
         _isLoggedIn.value = true
         // 登录、刷新成功
         ForceLogoutBus.clearPending()
+        LoginRedirectBus.clear()
     }
 
     /// 清除所有本地保存的 Token 信息
     fun clearTokens() {
+        LoginRedirectBus.mark()
+        cachedAccess = null
+        cachedRefresh = null
         mmkv.removeValueForKey(KEY_ACCESS_TOKEN)
         mmkv.removeValueForKey(KEY_REFRESH_TOKEN)
         mmkv.removeValueForKey(KEY_EXPIRES_AT)
@@ -82,8 +101,8 @@ class TokenStorage @Inject constructor() {
         _isLoggedIn.value = false
     }
 
-    /// 通过刷新令牌是否存在来判断用户是否处于登录状态
-    fun isLoggedIn(): Boolean = !refreshToken.isNullOrEmpty()
+    /// 通过刷新令牌是否存在来判断用户是否处于登录状态（优先走内存缓存，不触发解密）
+    fun isLoggedIn(): Boolean = cachedRefresh != null || mmkv.containsKey(KEY_REFRESH_TOKEN)
 
     /// 判断当前的访问令牌是否有效
     fun isAccessTokenValid(): Boolean =

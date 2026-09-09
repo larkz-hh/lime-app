@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,7 +41,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -541,17 +539,19 @@ private fun ChangePasswordPage(
         }
     }
 
-    // 修改成功，重新登录
+    // 修改成功
     if (state.success) {
-        AlertDialog(
-            onDismissRequest = onPasswordChanged,
-            title = { Text(stringResource(R.string.account_password_changed_title)) },
-            text = { Text(stringResource(R.string.account_password_changed_message)) },
-            confirmButton = {
-                TextButton(onClick = onPasswordChanged) {
-                    Text(stringResource(R.string.account_ok), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-                }
-            },
+        val dismiss = {
+            viewModel.clearSuccess()
+            onPasswordChanged()
+        }
+        LimeAlertDialog(
+            title = stringResource(R.string.account_password_changed_title),
+            text = stringResource(R.string.account_password_changed_message),
+            firstButtonText = null,
+            secondButtonText = stringResource(R.string.account_ok),
+            onSecondButtonClick = dismiss,
+            onDismissRequest = dismiss,
         )
     }
 }

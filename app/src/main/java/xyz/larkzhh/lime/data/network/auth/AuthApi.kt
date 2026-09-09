@@ -35,5 +35,5 @@ interface AuthApi {
 
     /// 修改密码
     @PUT("api/user/me/password")
-    suspend fun changePassword(@Body request: ChangePasswordRequest): ApiResponse<Unit>
+    suspend fun changePassword(@Body request: ChangePasswordRequest): ApiResponse<TokenData>
 }

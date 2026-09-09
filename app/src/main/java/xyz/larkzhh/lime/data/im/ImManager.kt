@@ -89,6 +89,7 @@ class ImManager @Inject constructor(
     /// SDK 全局监听被踢下线
     private val sdkListener = object : V2TIMSDKListener() {
         override fun onKickedOffline() {
+            if (tokenStorage.refreshToken.isNullOrEmpty()) return
             tokenStorage.clearTokens()
             ForceLogoutBus.emit()
         }

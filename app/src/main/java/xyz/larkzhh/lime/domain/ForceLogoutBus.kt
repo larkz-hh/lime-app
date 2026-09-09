@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 /**
  * 强制下线事件
  *
- * 触发 AuthInterceptor 401、通知 SSE 收到 kick 事件、IM
+ * 触发 SSE 收到 reason=login_elsewhere 的 kick、IM KickedOffline、refresh 凭证失效。
  */
 object ForceLogoutBus {
 
