@@ -219,13 +219,13 @@ cd lime-app
 
 #### 2️⃣ 配置后端地址
 
-在项目根目录 `local.properties` 中配置（构建时注入 `BuildConfig.API_BASE_URL`，未配置则用默认地址）：
+在项目根目录 `local.properties` 中配置（构建时注入 `BuildConfig.API_BASE_URL`）。仓库内默认是占位地址（`127.0.0.1`），**未配置时无法连接真实后端，运行或打 release 前必须配置**：
 
 ```properties
 BASE_URL=http://<your-server>:8080/
 ```
 
-> 地址在编译时打进 APK，修改后需重新构建。
+> 地址在编译时打进 APK，修改后需重新构建。`local.properties` 已被 gitignore，服务器地址不会进入仓库。
 
 #### 3️⃣ 编译运行
 

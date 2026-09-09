@@ -19,7 +19,7 @@ val localBuildProps = Properties().apply {
 }
 val apiBaseUrl: String =
     (localBuildProps.getProperty("BASE_URL")?.trim()?.takeIf { it.isNotBlank() }
-        ?: "http://192.168.124.31:8080/")
+        ?: "http://127.0.0.1:8080/") // 占位地址
         .let { if (it.endsWith("/")) it else "$it/" }
 
 // release 正式签名
@@ -41,8 +41,8 @@ android {
         applicationId = "xyz.larkzhh.lime"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
