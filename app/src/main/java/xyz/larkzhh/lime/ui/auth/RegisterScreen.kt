@@ -67,11 +67,12 @@ fun RegisterScreen(
     val state by viewModel.registerState.collectAsState()
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
+    val successToastText = stringResource(R.string.auth_register_success)
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             viewModel.clearRegisterSuccess()
-            context.getString(R.string.auth_register_success).showToast(context)
+            successToastText.showToast(context)
             onRegisterSuccess()
         }
     }
