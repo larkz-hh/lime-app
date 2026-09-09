@@ -18,8 +18,10 @@ class TokenStorage @Inject constructor() {
 
     private val mmkv by lazy { MMKV.defaultMMKV() }
 
-    /// 当前登录账号 id
-    private val _currentUserId = MutableStateFlow(readCurrentUserId())
+    /// 当前登录账号 id（仅当 refresh token 能正常解出时才认为有登录态，防止升级后残留旧 uid）
+    private val _currentUserId = MutableStateFlow(
+        if (refreshToken.isNullOrEmpty()) null else readCurrentUserId()
+    )
     val currentUserId: Long? get() = _currentUserId.value
 
     /// 当前账号变化流
@@ -31,13 +33,25 @@ class TokenStorage @Inject constructor() {
 
     /// 访问令牌
     var accessToken: String?
-        get() = mmkv.decodeString(KEY_ACCESS_TOKEN)
-        set(value) = if (value != null) mmkv.encode(KEY_ACCESS_TOKEN, value).let {} else mmkv.removeValueForKey(KEY_ACCESS_TOKEN)
+        get() = mmkv.decodeString(KEY_ACCESS_TOKEN)?.let { TokenCipher.decrypt(it) }
+        set(value) {
+            if (value == null) {
+                mmkv.removeValueForKey(KEY_ACCESS_TOKEN)
+            } else {
+                TokenCipher.encrypt(value)?.let { mmkv.encode(KEY_ACCESS_TOKEN, it) }
+            }
+        }
 
     /// 刷新令牌
     var refreshToken: String?
-        get() = mmkv.decodeString(KEY_REFRESH_TOKEN)
-        set(value) = if (value != null) mmkv.encode(KEY_REFRESH_TOKEN, value).let {} else mmkv.removeValueForKey(KEY_REFRESH_TOKEN)
+        get() = mmkv.decodeString(KEY_REFRESH_TOKEN)?.let { TokenCipher.decrypt(it) }
+        set(value) {
+            if (value == null) {
+                mmkv.removeValueForKey(KEY_REFRESH_TOKEN)
+            } else {
+                TokenCipher.encrypt(value)?.let { mmkv.encode(KEY_REFRESH_TOKEN, it) }
+            }
+        }
 
     /// Token 过期时间戳
     private var expiresAt: Long
