@@ -5,6 +5,9 @@ import com.google.gson.reflect.TypeToken
 import com.tencent.mmkv.MMKV
 import xyz.larkzhh.lime.data.network.model.HotSearchItem
 
+/**
+ * 小组件热词缓存
+ */
 object WidgetHotCache {
 
     /// 热搜最多展示条数

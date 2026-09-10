@@ -10,9 +10,8 @@ import javax.inject.Singleton
 @Singleton
 class UserPreferences @Inject constructor(
     private val tokenStorage: TokenStorage,
+    private val mmkv: MMKV,
 ) {
-
-    private val mmkv by lazy { MMKV.defaultMMKV() }
 
     private fun key(name: String): String {
         val uid = tokenStorage.currentUserId

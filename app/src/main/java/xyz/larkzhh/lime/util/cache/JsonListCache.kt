@@ -3,13 +3,17 @@ package xyz.larkzhh.lime.util.cache
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import java.lang.reflect.Type
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
- * 列表 JSON 缓存。
+ * 列表 JSON 缓存
  */
-object JsonListCache {
-    private val gson = Gson()
-    private val mmkv: MMKV by lazy { MMKV.defaultMMKV() }
+@Singleton
+class JsonListCache @Inject constructor(
+    private val gson: Gson,
+    private val mmkv: MMKV,
+) {
 
     fun <T> save(key: String, list: List<T>) {
         mmkv.encode(key, gson.toJson(list))

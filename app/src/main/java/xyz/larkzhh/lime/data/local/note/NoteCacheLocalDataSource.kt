@@ -17,9 +17,8 @@ import javax.inject.Singleton
 @Singleton
 class NoteCacheLocalDataSource @Inject constructor(
     private val userDatabases: UserDatabases,
+    private val gson: Gson,
 ) {
-
-    private val gson = Gson()
 
     private fun dao(): NoteCacheDao = userDatabases.noteCacheDao()
 

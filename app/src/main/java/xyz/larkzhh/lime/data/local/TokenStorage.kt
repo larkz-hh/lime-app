@@ -15,9 +15,9 @@ import javax.inject.Singleton
  * 本地 Token 存储管理器
  */
 @Singleton
-class TokenStorage @Inject constructor() {
-
-    private val mmkv by lazy { MMKV.defaultMMKV() }
+class TokenStorage @Inject constructor(
+    private val mmkv: MMKV,
+) {
 
     /// 解密结果内存缓存
     private var cachedAccess: String? = null

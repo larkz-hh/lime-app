@@ -12,10 +12,10 @@ import javax.inject.Singleton
 @Singleton
 class SearchHistoryStorage @Inject constructor(
     private val tokenStorage: TokenStorage,
+    private val mmkv: MMKV,
+    private val gson: Gson,
 ) {
 
-    private val mmkv by lazy { MMKV.defaultMMKV() }
-    private val gson by lazy { Gson() }
     private val caches = mutableMapOf<Long?, MutableList<String>>()
 
     private fun cacheKey(): Long? = tokenStorage.currentUserId

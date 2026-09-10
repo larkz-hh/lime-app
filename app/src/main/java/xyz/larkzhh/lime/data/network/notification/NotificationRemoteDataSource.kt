@@ -1,10 +1,8 @@
 package xyz.larkzhh.lime.data.network.notification
 
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import okhttp3.OkHttpClient
-import xyz.larkzhh.lime.data.local.TokenStorage
-import xyz.larkzhh.lime.data.network.notification.NotificationApi
 import xyz.larkzhh.lime.data.network.model.NotificationListResponse
 import xyz.larkzhh.lime.data.network.model.UnreadCountData
 import xyz.larkzhh.lime.data.network.notificationUnreadFlow
@@ -18,9 +16,9 @@ import javax.inject.Singleton
 @Singleton
 class NotificationRemoteDataSource @Inject constructor(
     private val apiService: NotificationApi,
-    private val tokenStorage: TokenStorage,
     @Named("base_url") private val baseUrl: String,
     @Named("sse") private val sseClient: OkHttpClient,
+    private val gson: Gson,
 ) {
 
     /// 通知列表
@@ -66,12 +64,10 @@ class NotificationRemoteDataSource @Inject constructor(
     }
 
     /// SSE 分组未读推送流
-    fun unreadStream(): Flow<UnreadCountData> {
-        val token = tokenStorage.accessToken
-        if (token.isNullOrBlank()) return emptyFlow()
-        return notificationUnreadFlow(
+    fun unreadStream(): Flow<UnreadCountData> =
+        notificationUnreadFlow(
             client = sseClient,
-            url = "${baseUrl}api/notifications/subscribe?access_token=$token",
+            url = "${baseUrl}api/notifications/subscribe",
+            gson = gson,
         )
-    }
 }

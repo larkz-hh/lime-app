@@ -21,9 +21,8 @@ class AiRepositoryImpl @Inject constructor(
     private val apiService: AiApi,
     @Named("sse") private val sseClient: OkHttpClient,
     @Named("base_url") private val baseUrl: String,
+    private val gson: Gson,
 ) : AiRepository {
-
-    private val gson = Gson()
 
     /// AI 翻译
     override suspend fun translate(
@@ -52,6 +51,7 @@ class AiRepositoryImpl @Inject constructor(
             client = sseClient,
             url = "${baseUrl}api/ai/write/assist",
             jsonBody = gson.toJson(AiWriteAssistRequest(action, content, imageUrls, model)),
+            gson = gson,
         ) { dto ->
             when (dto.type) {
                 "delta" -> dto.content?.let { AiWriteEvent.Delta(it) }

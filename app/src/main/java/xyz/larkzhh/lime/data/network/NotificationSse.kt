@@ -22,8 +22,8 @@ private const val RECONNECT_DELAY_MS = 5_000L
 fun notificationUnreadFlow(
     client: OkHttpClient,
     url: String,
+    gson: Gson,
 ): Flow<UnreadCountData> = flow {
-    val gson = Gson()
     var eventName: String? = null
     while (true) {
         val request = Request.Builder()

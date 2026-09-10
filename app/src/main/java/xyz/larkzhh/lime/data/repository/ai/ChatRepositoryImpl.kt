@@ -5,6 +5,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import xyz.larkzhh.lime.data.local.ai.ChatLocalDataSource
@@ -28,6 +29,7 @@ import javax.inject.Singleton
 class ChatRepositoryImpl @Inject constructor(
     private val remote: ChatRemoteDataSource,
     private val local: ChatLocalDataSource,
+    private val gson: Gson,
 ) : ChatRepository {
 
     /// AI 聊天 SSE 流
@@ -79,7 +81,7 @@ class ChatRepositoryImpl @Inject constructor(
             } else null
             if (byClient != null) {
                 local.updateMessageFull(
-                    byClient.localId, serverId, r.content, r.images.toJson(),
+                    byClient.localId, serverId, r.content, r.images.toJson(gson),
                     mergeMessageStatus(byClient.status, r.status).name,
                 )
                 anchorLocalId = byClient.localId
@@ -95,7 +97,7 @@ class ChatRepositoryImpl @Inject constructor(
                         placeholder.status == ChatMessageStatus.STREAMING.name)
                 ) {
                     local.updateMessageFull(
-                        placeholder.localId, serverId, r.content, r.images.toJson(),
+                        placeholder.localId, serverId, r.content, r.images.toJson(gson),
                         mergeMessageStatus(placeholder.status, r.status).name,
                     )
                     anchorLocalId = placeholder.localId
@@ -104,7 +106,7 @@ class ChatRepositoryImpl @Inject constructor(
             }
 
             // 新远端消息
-            local.upsertMessage(r.toEntity())
+            local.upsertMessage(r.toEntity(gson))
             anchorLocalId = null
         }
 
@@ -140,7 +142,7 @@ class ChatRepositoryImpl @Inject constructor(
                 initialLoadSize = CONVERSATION_PAGE_SIZE * 2,
                 enablePlaceholders = false,
             ),
-            remoteMediator = ChatConversationsRemoteMediator(remote, local),
+            remoteMediator = ChatConversationsRemoteMediator(remote, local, gson),
             pagingSourceFactory = { local.conversationsPagingSource() },
         )
     }
@@ -151,7 +153,7 @@ class ChatRepositoryImpl @Inject constructor(
 
     /// 观察实时信息
     override fun observeLocalMessages(conversationId: String): Flow<List<ChatMessage>> =
-        local.observeMessages(conversationId).map { list -> list.map { it.toDomain() } }
+        local.observeMessages(conversationId).map { list -> list.map { it.toDomain(gson) } }
 
     /// 读取本地会话
     override suspend fun getLocalConversation(conversationId: String): ChatConversation? =
@@ -163,14 +165,14 @@ class ChatRepositoryImpl @Inject constructor(
 
     /// 写入会话、消息
     override suspend fun saveMessage(message: ChatMessage): Long =
-        local.upsertMessage(message.toEntity())
+        local.upsertMessage(message.toEntity(gson))
 
     override suspend fun saveMessages(messages: List<ChatMessage>) {
-        local.upsertMessages(messages.map { it.toEntity() })
+        local.upsertMessages(messages.map { it.toEntity(gson) })
     }
 
     override suspend fun saveConversation(conversation: ChatConversation) {
-        local.upsertConversation(conversation.toEntity())
+        local.upsertConversation(conversation.toEntity(gson))
     }
 
     /// 更新消息
@@ -194,7 +196,7 @@ class ChatRepositoryImpl @Inject constructor(
         images: List<String>?,
         status: ChatMessageStatus,
     ) {
-        local.updateMessageFull(localId, serverId, content, images?.toJson(), status.name)
+        local.updateMessageFull(localId, serverId, content, images?.toJson(gson), status.name)
     }
 
     /// 删除本地会话、消息

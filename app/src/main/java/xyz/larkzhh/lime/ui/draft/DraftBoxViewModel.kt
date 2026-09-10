@@ -37,6 +37,7 @@ data class DraftBoxUiState(
 class DraftBoxViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
     userRepository: UserRepository,
+    private val jsonListCache: JsonListCache,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DraftBoxUiState())
@@ -61,7 +62,7 @@ class DraftBoxViewModel @Inject constructor(
         val userId = selfUserId ?: return
         viewModelScope.launch {
             cursor = null
-            val cached = JsonListCache.read<FeedItem>(
+            val cached = jsonListCache.read<FeedItem>(
                 cacheKey(userId),
                 object : TypeToken<List<FeedItem>>() {}.type,
             )
@@ -78,7 +79,7 @@ class DraftBoxViewModel @Inject constructor(
                     onSuccess = { response ->
                         cursor = response.nextCursor
                         // 缓存
-                        JsonListCache.save(cacheKey(userId), response.items)
+                        jsonListCache.save(cacheKey(userId), response.items)
                         _uiState.update {
                             it.copy(
                                 isLoading = false,

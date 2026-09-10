@@ -35,10 +35,9 @@ class UserRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val imManager: ImManager,
     private val tokenStorage: TokenStorage,
+    private val mmkv: MMKV,
+    private val gson: Gson,
 ) : UserRepository {
-
-    private val mmkv by lazy { MMKV.defaultMMKV() }
-    private val gson = Gson()
 
     private val userByIdCache = LruCache<Long, UserData>(maxSize = 50)
 

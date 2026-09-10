@@ -27,9 +27,8 @@ class ChatRemoteDataSource @Inject constructor(
     private val apiService: AiApi,
     @Named("sse") private val sseClient: OkHttpClient,
     @Named("base_url") private val baseUrl: String,
+    private val gson: Gson,
 ) {
-
-    private val gson = Gson()
 
     /// 流式聊天
     fun chatStream(
@@ -55,6 +54,7 @@ class ChatRemoteDataSource @Inject constructor(
                     search = search,
                 )
             ),
+            gson = gson,
         ) { dto ->
             when (dto.type) {
                 "delta" -> dto.content?.let { ChatStreamEvent.Delta(it) }

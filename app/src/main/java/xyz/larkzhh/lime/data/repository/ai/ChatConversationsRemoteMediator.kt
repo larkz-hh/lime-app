@@ -4,6 +4,7 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
+import com.google.gson.Gson
 import xyz.larkzhh.lime.data.local.ai.ChatLocalDataSource
 import xyz.larkzhh.lime.data.local.ai.ConversationEntity
 import xyz.larkzhh.lime.data.mapper.toEntity
@@ -16,6 +17,7 @@ import xyz.larkzhh.lime.data.network.ai.ChatRemoteDataSource
 class ChatConversationsRemoteMediator(
     private val remote: ChatRemoteDataSource,
     private val local: ChatLocalDataSource,
+    private val gson: Gson,
 ) : RemoteMediator<Int, ConversationEntity>() {
 
     private var nextCursor: String? = null
@@ -48,9 +50,9 @@ class ChatConversationsRemoteMediator(
             nextCursor = newCursor
 
             if (loadType == LoadType.REFRESH) {
-                local.replaceConversations(items.map { it.toEntity() })
+                local.replaceConversations(items.map { it.toEntity(gson) })
             } else {
-                local.upsertConversations(items.map { it.toEntity() })
+                local.upsertConversations(items.map { it.toEntity(gson) })
             }
 
             MediatorResult.Success(endOfPaginationReached = endOfPagination)

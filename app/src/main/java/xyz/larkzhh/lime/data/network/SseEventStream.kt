@@ -34,9 +34,9 @@ suspend fun <T> FlowCollector<T>.collectSse(
     client: OkHttpClient,
     url: String,
     jsonBody: String,
+    gson: Gson,
     parseEvent: suspend (AiSseEventDto) -> T?,
 ) {
-    val gson = Gson()
     val request = Request.Builder()
         .url(url)
         .header("Accept", "text/event-stream")
@@ -58,14 +58,14 @@ suspend fun <T> FlowCollector<T>.collectSse(
         response.use { resp ->
             // http 层错误
             if (!resp.isSuccessful) {
-                val message = parseErrorMessage(resp.body?.string())
+                val message = parseErrorMessage(resp.body?.string(), gson)
                 parseEvent(AiSseEventDto(type = "error", message = message))?.let { emit(it) }
                 return@use
             }
             // 非 SSE
             val contentType = resp.header("Content-Type").orEmpty()
             if (!contentType.contains("text/event-stream")) {
-                val message = parseErrorMessage(resp.body?.string())
+                val message = parseErrorMessage(resp.body?.string(), gson)
                 parseEvent(AiSseEventDto(type = "error", message = message))?.let { emit(it) }
                 return@use
             }
@@ -77,7 +77,7 @@ suspend fun <T> FlowCollector<T>.collectSse(
             while (!ended) {
                 val line = runInterruptible(Dispatchers.IO) { source.readUtf8Line() } ?: break
                 if (line.startsWith("{")) {
-                    val message = parseErrorMessage(line)
+                    val message = parseErrorMessage(line, gson)
                     parseEvent(AiSseEventDto(type = "error", message = message))?.let { emit(it) }
                     ended = true
                     continue
@@ -105,11 +105,11 @@ suspend fun <T> FlowCollector<T>.collectSse(
 }
 
 /// 解析 http 错误响应体
-private fun parseErrorMessage(body: String?): String {
+private fun parseErrorMessage(body: String?, gson: Gson): String {
     if (body.isNullOrBlank()) return "AI 服务暂时不可用"
     return runCatching {
         val type = object : TypeToken<ApiResponse<Any?>>() {}.type
-        val parsed: ApiResponse<Any?> = Gson().fromJson(body, type)
+        val parsed: ApiResponse<Any?> = gson.fromJson(body, type)
         parsed.message.ifBlank { "AI 服务暂时不可用" }
     }.getOrDefault("AI 服务暂时不可用")
 }

@@ -40,9 +40,8 @@ class NoteRepositoryImpl @Inject constructor(
     private val feedLocalDataSource: FeedLocalDataSource,
     private val noteCacheLocalDataSource: NoteCacheLocalDataSource,
     private val noteRemoteDataSource: NoteRemoteDataSource,
+    private val gson: Gson,
 ) : NoteRepository {
-
-    private val gson = Gson()
 
     /// 上传笔记图片
     override suspend fun uploadImage(uri: Uri): Result<String> {
@@ -138,6 +137,7 @@ class NoteRepositoryImpl @Inject constructor(
             remoteMediator = FeedRemoteMediator(
                 feedKey = feedKey,
                 local = feedLocalDataSource,
+                gson = gson,
                 fetch = fetch,
             ),
             pagingSourceFactory = { feedLocalDataSource.pagingSource(feedKey) },

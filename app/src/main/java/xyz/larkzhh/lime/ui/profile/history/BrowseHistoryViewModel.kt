@@ -41,6 +41,7 @@ class BrowseHistoryViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
     private val eventBus: NoteEventBus,
     userRepository: UserRepository,
+    private val jsonListCache: JsonListCache,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BrowseHistoryUiState(isLoading = true))
@@ -87,7 +88,7 @@ class BrowseHistoryViewModel @Inject constructor(
         val uid = userId ?: return
         viewModelScope.launch {
             cursor = null
-            val cached = JsonListCache.read<HistoryFeedItem>(
+            val cached = jsonListCache.read<HistoryFeedItem>(
                 cacheKey(uid),
                 object : TypeToken<List<HistoryFeedItem>>() {}.type,
             )
@@ -107,7 +108,7 @@ class BrowseHistoryViewModel @Inject constructor(
             noteRepository.getHistory(cursor = null).fold(
                 onSuccess = { response ->
                     cursor = response.nextCursor
-                    JsonListCache.save(cacheKey(uid), response.items)
+                    jsonListCache.save(cacheKey(uid), response.items)
                     _uiState.update {
                         it.copy(
                             isLoading = false,

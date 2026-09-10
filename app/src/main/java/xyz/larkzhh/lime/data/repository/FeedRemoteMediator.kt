@@ -16,10 +16,9 @@ import xyz.larkzhh.lime.data.network.model.FeedResponse
 class FeedRemoteMediator(
     private val feedKey: String,
     private val local: FeedLocalDataSource,
+    private val gson: Gson,
     private val fetch: suspend (cursor: Long?) -> Result<FeedResponse>,
 ) : RemoteMediator<Int, FeedItemEntity>() {
-
-    private val gson = Gson()
 
     override suspend fun load(
         loadType: LoadType,

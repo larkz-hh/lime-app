@@ -27,9 +27,9 @@ import javax.inject.Singleton
 class AuthInterceptor @Inject constructor(
     private val tokenStorage: TokenStorage,
     @param:Named("base_url") private val baseUrl: String,
+    private val gson: Gson,
 ) : Interceptor {
     private val refreshClient by lazy { OkHttpClient() }
-    private val gson = Gson()
     private var lastRefreshRevoked = false
 
     override fun intercept(chain: Interceptor.Chain): Response {

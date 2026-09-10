@@ -17,7 +17,6 @@ import java.time.ZoneId
 /**
  * AI 聊天数据层映射
  */
-private val chatGson = Gson()
 
 /// 会话
 
@@ -35,7 +34,7 @@ internal fun ConversationEntity.toDomain(): ChatConversation = ChatConversation(
     updateTime = updateTime,
 )
 
-internal fun ChatConversation.toEntity(): ConversationEntity = ConversationEntity(
+internal fun ChatConversation.toEntity(gson: Gson): ConversationEntity = ConversationEntity(
     id = id,
     title = title,
     updateTime = updateTime,
@@ -59,29 +58,29 @@ internal fun ChatMessageDto.toDomain(conversationId: String): ChatMessage = Chat
     createTime = createTime.toEpochMillis().ifPositive() ?: System.currentTimeMillis(),
 )
 
-internal fun MessageEntity.toDomain(): ChatMessage = ChatMessage(
+internal fun MessageEntity.toDomain(gson: Gson): ChatMessage = ChatMessage(
     localId = localId,
     conversationId = conversationId,
     serverId = serverId,
     clientId = clientId,
     role = if (role == "user") ChatRole.USER else ChatRole.ASSISTANT,
     content = content,
-    images = images.fromJson(),
-    localImageUris = localImageUris.fromJson(),
+    images = images.fromJson(gson),
+    localImageUris = localImageUris.fromJson(gson),
     note = noteId?.let { ChatNote(it, noteTitle, noteCover) },
     status = runCatching { ChatMessageStatus.valueOf(status) }.getOrDefault(ChatMessageStatus.DONE),
     createTime = createTime,
 )
 
-internal fun ChatMessage.toEntity(): MessageEntity = MessageEntity(
+internal fun ChatMessage.toEntity(gson: Gson): MessageEntity = MessageEntity(
     localId = localId,
     conversationId = conversationId,
     serverId = serverId,
     clientId = clientId,
     role = if (role == ChatRole.USER) "user" else "assistant",
     content = content,
-    images = images.toJson(),
-    localImageUris = localImageUris.toJson(),
+    images = images.toJson(gson),
+    localImageUris = localImageUris.toJson(gson),
     noteId = note?.id,
     noteTitle = note?.title,
     noteCover = note?.cover,
@@ -89,13 +88,13 @@ internal fun ChatMessage.toEntity(): MessageEntity = MessageEntity(
     createTime = createTime,
 )
 
-internal fun List<String>.toJson(): String =
-    chatGson.toJson(this)
+internal fun List<String>.toJson(gson: Gson): String =
+    gson.toJson(this)
 
-internal fun String?.fromJson(): List<String> =
+internal fun String?.fromJson(gson: Gson): List<String> =
     this?.let {
         runCatching {
-            chatGson.fromJson<List<String>>(it, object : TypeToken<List<String>>() {}.type)
+            gson.fromJson<List<String>>(it, object : TypeToken<List<String>>() {}.type)
         }.getOrDefault(emptyList())
     } ?: emptyList()
 

@@ -17,9 +17,9 @@ enum class TranslateMode(val label: String) {
  * 翻译方式设置
  */
 @Singleton
-class TranslateSettings @Inject constructor() {
-
-    private val mmkv by lazy { MMKV.defaultMMKV() }
+class TranslateSettings @Inject constructor(
+    private val mmkv: MMKV,
+) {
 
     private val _mode = MutableStateFlow(load())
     val mode: StateFlow<TranslateMode> = _mode.asStateFlow()
