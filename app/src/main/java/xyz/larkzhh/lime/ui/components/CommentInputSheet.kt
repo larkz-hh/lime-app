@@ -70,10 +70,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.navigation.component.blockPageSwipe
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.VoiceRecord
 import xyz.larkzhh.lime.ui.detail.components.EmojiPanel
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.util.showToast
 
 /**
@@ -87,6 +87,8 @@ import xyz.larkzhh.lime.util.showToast
  * @param onRemoveImage 移除指定图片回调
  * @param onVoiceRecordRequest 点击麦克风回调
  * @param onRemoveVoice 移除语音回调
+ * @param prefillText 需要回填的文本
+ * @param onPrefillConsumed 回填完成回调
  * @param onSubmit 提交评论回调
  * @param onDismiss 关闭面板回调
  */
@@ -101,6 +103,8 @@ fun CommentInputSheet(
     onRemoveImage: (Uri) -> Unit = {},
     onVoiceRecordRequest: (sheetTotalHeightDp: Int) -> Unit = {},
     onRemoveVoice: () -> Unit = {},
+    prefillText: String? = null,
+    onPrefillConsumed: () -> Unit = {},
     onSubmit: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -140,6 +144,18 @@ fun CommentInputSheet(
         focusRequester.requestFocus()
     }
 
+    // 语音转文字结果回填到光标处
+    LaunchedEffect(prefillText) {
+        val text = prefillText?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
+        val cursor = textValue.selection.end.coerceIn(0, textValue.text.length)
+        val prefix = textValue.text.substring(0, cursor)
+        val suffix = textValue.text.substring(cursor)
+        val separator = if (prefix.isEmpty() || prefix.endsWith(" ") || prefix.endsWith("\n")) "" else " "
+        val insertion = separator + text
+        textValue = TextFieldValue(prefix + insertion + suffix, TextRange(cursor + insertion.length))
+        onPrefillConsumed()
+    }
+
     BackHandler {
         if (showEmojiPanel) {
             pendingKeyboard = true
@@ -154,6 +170,7 @@ fun CommentInputSheet(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.4f))
+            .blockPageSwipe()
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() },

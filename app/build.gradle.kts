@@ -22,6 +22,11 @@ val apiBaseUrl: String =
         ?: "http://127.0.0.1:8080/") // 占位地址
         .let { if (it.endsWith("/")) it else "$it/" }
 
+// 端侧语音识别模型包地址
+val speechModelUrl: String =
+    localBuildProps.getProperty("SPEECH_MODEL_URL")?.trim()?.takeIf { it.isNotBlank() }
+        ?: "https://alphacephei.com/vosk/models/vosk-model-small-cn-0.22.zip"
+
 // release 正式签名
 val keystoreProps = Properties().apply {
     val f = rootProject.file("keystore.properties")
@@ -47,6 +52,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        buildConfigField("String", "SPEECH_MODEL_URL", "\"$speechModelUrl\"")
 
         if (slimAbi) {
             ndk { abiFilters += listOf("arm64-v8a") }
@@ -152,6 +158,9 @@ dependencies {
     // ML Kit
     implementation(libs.mlkit.translate)
     implementation(libs.mlkit.barcode.scanning)
+
+    // 端侧语音识别（语音转文字）
+    implementation(libs.vosk.android)
 
     // QRCode generate
     implementation(libs.zxing.core)

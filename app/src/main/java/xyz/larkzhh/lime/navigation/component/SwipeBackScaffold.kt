@@ -278,6 +278,31 @@ fun SwipeBackScaffold(
 /// 锁定后的处理方式
 private enum class LockMode { ACT, CONSUME, RELEASE }
 
+
+/// 拦截弹层横滑
+fun Modifier.blockPageSwipe(enabled: Boolean = true): Modifier =
+    if (!enabled) {
+        this
+    } else {
+        pointerInput(Unit) {
+            val touchSlop = viewConfiguration.touchSlop
+            awaitEachGesture {
+                val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Main)
+                var totalX = 0f
+                var totalY = 0f
+                while (true) {
+                    val event = awaitPointerEvent(PointerEventPass.Main)
+                    val change = event.changes.firstOrNull { it.id == down.id }
+                    if (change == null || !change.pressed) break
+                    val delta = change.positionChangeIgnoreConsumed()
+                    totalX += delta.x
+                    totalY += delta.y
+                    if (abs(totalX) > touchSlop && abs(totalX) > abs(totalY)) change.consume()
+                }
+            }
+        }
+    }
+
 private suspend fun PointerInputScope.detectLockingHorizontalDrag(
     interceptAtDown: (Offset) -> Boolean,
     bypassAtDown: (Offset) -> Boolean = { false },

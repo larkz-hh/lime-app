@@ -47,6 +47,7 @@ data class CommentUiState(
     val pendingImages: List<Uri> = emptyList(),// 待发送的评论图片
     val pendingVoice: VoiceRecord? = null,// 待发送的语音
     val showVoiceSheet: Boolean = false,
+    val recognizedText: String? = null,// 语音转文字结果
 )
 
 /// 单条评论回复展开
@@ -408,6 +409,18 @@ class CommentViewModel @Inject constructor(
     fun removePendingVoice() {
         _uiState.value.pendingVoice?.file?.delete()
         _uiState.update { it.copy(pendingVoice = null) }
+    }
+
+    /// 语音转文字，回填评论输入框
+    fun setRecognizedText(text: String) {
+        _uiState.update {
+            it.copy(recognizedText = text, showVoiceSheet = false, showInputSheet = true)
+        }
+    }
+
+    /// 输入框已消费回填文本
+    fun consumeRecognizedText() {
+        _uiState.update { it.copy(recognizedText = null) }
     }
 
     /// 删除评论，乐观移除
