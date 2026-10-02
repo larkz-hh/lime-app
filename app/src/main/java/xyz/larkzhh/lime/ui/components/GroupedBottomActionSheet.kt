@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import xyz.larkzhh.lime.navigation.component.blockPageSwipe
 
 data class GroupedSheetAction(
     val label: String,
@@ -68,7 +69,7 @@ fun GroupedBottomActionSheet(
     sheetColor: Color = Color(0xFFF2F2F7),
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize().blockPageSwipe(visible)) {
         AnimatedVisibility(
             visible = visible,
             enter = fadeIn(animationSpec = tween(200)),

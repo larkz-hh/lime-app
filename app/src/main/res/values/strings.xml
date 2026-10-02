@@ -30,6 +30,7 @@
 
     <!-- 我的页抽屉 -->
     <string name="drawer_translate">翻译</string>
+    <string name="drawer_offline">离线</string>
     <string name="drawer_drafts">草稿箱</string>
     <string name="drawer_account_privacy">账号与隐私</string>
     <string name="drawer_general">通用</string>
@@ -436,11 +437,11 @@
     <string name="search_lime_id">Lime ID</string>
 
     <!-- 翻译设置 -->
-    <string name="translate_settings_title">翻译设置</string>
+    <string name="translate_settings_title">离线</string>
     <string name="translate_offline_pack">离线包</string>
     <string name="translate_pack_name">中英互译语言包</string>
     <string name="translate_mode_section">翻译方式</string>
-    <string name="translate_pack_tips">• 语言包下载后即可离线翻译\n• 第一次需要联网下载\n• 语言包由 Google 提供</string>
+    <string name="translate_pack_tips">• 语言包下载后即可离线翻译\n• 语音包下载后即可离线语音转文字\n• 第一次需要联网下载\n• 语言包由 Google 提供，语音包由 Vosk 提供</string>
     <string name="translate_delete_pack_confirm_title">删除中英语言包？\n删除后再次翻译需重新下载</string>
     <string name="translate_checking">检查中…</string>
     <string name="translate_downloading">下载中…</string>
@@ -450,6 +451,9 @@
     <string name="translate_downloaded">已下载</string>
     <string name="translate_mode_auto">自动</string>
     <string name="translate_mode_offline">离线</string>
+    <string name="speech_pack_name">中文语音识别包</string>
+    <string name="speech_delete_pack_confirm_title">删除中文语音识别包？\n删除后再次语音转文字需重新下载</string>
+    <string name="pack_downloading_percent">下载中 %1$d%%</string>
 
     <!-- 聊天组件 -->
     <string name="chat_send_failed_retry">发送失败，点击重发</string>
@@ -475,6 +479,15 @@
     <string name="voice_release_cancel">松开取消</string>
     <string name="voice_release_send">%1$d\" · 松手保存</string>
     <string name="voice_hold_to_record">按住麦克风开始录音</string>
+    <string name="voice_to_text">转文字</string>
+    <string name="voice_release_to_text">松手转文字到评论框</string>
+    <string name="voice_transcribing">正在识别…</string>
+    <string name="voice_transcribe_empty">没有听清，再说一次试试</string>
+    <string name="voice_record_failed">录音失败，请重试</string>
+    <string name="voice_processing">处理中…</string>
+    <string name="voice_downloading_pack">正在下载语音包 %1$d%%</string>
+    <string name="voice_pack_missing">语音识别包未下载</string>
+    <string name="voice_pack_download">下载语音包</string>
 
     <!-- 笔记管理 -->
     <string name="note_manage_title">设置</string>

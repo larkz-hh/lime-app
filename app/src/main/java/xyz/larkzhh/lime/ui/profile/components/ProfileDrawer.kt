@@ -86,7 +86,7 @@ fun ProfileDrawerContent(
             SheetGroup(cardColor = MaterialTheme.colorScheme.surface) {
                 DrawerRow(
                     icon = Icons.Outlined.Translate,
-                    labelRes = R.string.drawer_translate,
+                    labelRes = R.string.drawer_offline,
                     onClick = onTranslateClick,
                 )
             }

@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import xyz.larkzhh.lime.navigation.component.blockPageSwipe
 
 data class SheetAction(
     val label: String,
@@ -52,7 +53,7 @@ fun BottomActionSheet(
     modifier: Modifier = Modifier,
     backgroundColor: Color = Color.White,
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize().blockPageSwipe(visible)) {
         // 蒙层，淡入淡出，点击关闭
         AnimatedVisibility(
             visible = visible,

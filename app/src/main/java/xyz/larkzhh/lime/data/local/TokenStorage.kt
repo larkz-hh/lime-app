@@ -108,6 +108,7 @@ class TokenStorage @Inject constructor(
     fun isAccessTokenValid(): Boolean =
         !accessToken.isNullOrEmpty() && System.currentTimeMillis() < expiresAt
 
+    /// 读取当前用户 ID
     private fun readCurrentUserId(): Long? {
         val uid = mmkv.decodeLong(KEY_CURRENT_USER_ID, -1L)
         return uid.takeIf { it > 0 }

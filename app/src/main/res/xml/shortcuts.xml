@@ -8,7 +8,7 @@
         <intent
             android:action="xyz.larkzhh.lime.action.SEARCH"
             android:targetPackage="xyz.larkzhh.lime"
-            android:targetClass="xyz.larkzhh.lime.MainActivity" />
+            android:targetClass="xyz.larkzhh.lime.ui.MainActivity" />
     </shortcut>
     <shortcut
         android:shortcutId="ai_chat"
@@ -19,7 +19,7 @@
         <intent
             android:action="xyz.larkzhh.lime.action.AI_CHAT"
             android:targetPackage="xyz.larkzhh.lime"
-            android:targetClass="xyz.larkzhh.lime.MainActivity" />
+            android:targetClass="xyz.larkzhh.lime.ui.MainActivity" />
     </shortcut>
     <shortcut
         android:shortcutId="qr_scan"
@@ -30,6 +30,6 @@
         <intent
             android:action="xyz.larkzhh.lime.action.QR_SCAN"
             android:targetPackage="xyz.larkzhh.lime"
-            android:targetClass="xyz.larkzhh.lime.MainActivity" />
+            android:targetClass="xyz.larkzhh.lime.ui.MainActivity" />
     </shortcut>
 </shortcuts>

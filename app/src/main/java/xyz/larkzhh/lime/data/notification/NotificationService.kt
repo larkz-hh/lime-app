@@ -1,5 +1,6 @@
 package xyz.larkzhh.lime.data.notification
 
+import android.app.ForegroundServiceStartNotAllowedException
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -8,6 +9,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -139,15 +141,25 @@ class NotificationService : Service() {
     }
 
     companion object {
+        private const val TAG = "NotificationService"
         const val CHANNEL_ID = "lime_message_service"
         const val NOTIFICATION_ID = 3001
         private const val HEARTBEAT_INTERVAL_MS = 90_000L
 
         /// 启动保活服务
-        fun start(context: Context) {
-            try {
+        fun start(context: Context): Boolean {
+            return try {
                 context.startForegroundService(Intent(context, NotificationService::class.java))
-            } catch (_: Exception) {
+                true
+            } catch (e: Exception) {
+                when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                        e is ForegroundServiceStartNotAllowedException ->
+                        Log.w(TAG, "前台服务启动被系统拒绝", e)
+
+                    else -> Log.w(TAG, "前台服务启动失败", e)
+                }
+                false
             }
         }
 

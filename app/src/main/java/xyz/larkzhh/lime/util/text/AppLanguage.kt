@@ -18,17 +18,20 @@ object AppLanguage {
 
     private val mmkv: MMKV by lazy { MMKV.defaultMMKV() }
 
+    /// 获取当前语言
     fun currentTag(): String = mmkv.decodeString(KEY, TAG_SYSTEM) ?: TAG_SYSTEM
 
+    /// 设置当前语言
     fun setTag(tag: String) {
         mmkv.encode(KEY, tag)
     }
 
+    /// 包装 Context
     fun wrap(context: Context): Context {
         val tag = currentTag()
         if (tag == TAG_SYSTEM) return context
         val locale = Locale.forLanguageTag(tag)
-        val configuration = Configuration(context.resources.configuration)
+        val configuration = Configuration(context.resources.configuration)// 复制当前 context 系统配置
         configuration.setLocale(locale)
         return context.createConfigurationContext(configuration)
     }

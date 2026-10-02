@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.KeyboardVoice
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,19 +40,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.delay
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.data.local.SpeechPackStatus
 import xyz.larkzhh.lime.data.local.TranslateMode
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.translate.TranslateModelInfo
+import kotlin.time.Duration.Companion.milliseconds
+
+/// 离线包状态轮询间隔
+private const val WATCH_INTERVAL_MS = 2_000L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,12 +67,21 @@ fun TranslatePackScreen(
     viewModel: TranslatePackViewModel = hiltViewModel(),
 ) {
     // 进入页面时刷新语言包状态
-    LaunchedEffect(Unit) { viewModel.refresh() }
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+        while (true) {
+            delay(WATCH_INTERVAL_MS.milliseconds)
+            viewModel.refreshQuietly()
+        }
+    }
 
     val uiState by viewModel.uiState.collectAsState()
     val mode by viewModel.mode.collectAsState()
+    val speechState by viewModel.speechState.collectAsState()
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showSpeechDeleteConfirm by remember { mutableStateOf(false) }
     val packSizeLabel = TranslateModelInfo.downloadSizeLabel()
+    val speechPackSizeLabel = TranslateModelInfo.speechPackSizeLabel()
 
     Scaffold(
         topBar = {
@@ -113,41 +129,25 @@ fun TranslatePackScreen(
                     .clip(RoundedCornerShape(14.dp))
                     .background(MaterialTheme.colorScheme.surface),
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Translate,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(24.dp),
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.translate_pack_name),
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = packSizeLabel,
-                            fontSize = 12.sp,
-                            color = LimeGray,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    PackAction(
-                        status = uiState.status,
-                        onDownload = viewModel::download,
-                        onDelete = { showDeleteConfirm = true },
-                    )
-                }
+                PackRow(
+                    icon = Icons.Outlined.Translate,
+                    name = stringResource(R.string.translate_pack_name),
+                    sizeLabel = packSizeLabel,
+                    status = uiState.status,
+                    progress = 0,
+                    onDownload = viewModel::download,
+                    onDelete = { showDeleteConfirm = true },
+                )
+                SheetRowDivider(startIndent = 16.dp)
+                PackRow(
+                    icon = Icons.Outlined.KeyboardVoice,
+                    name = stringResource(R.string.speech_pack_name),
+                    sizeLabel = speechPackSizeLabel,
+                    status = speechState.status.toPackStatus(),
+                    progress = speechState.progress,
+                    onDownload = viewModel::downloadSpeech,
+                    onDelete = { showSpeechDeleteConfirm = true },
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -220,18 +220,98 @@ fun TranslatePackScreen(
             onDismissRequest = { showDeleteConfirm = false },
         )
     }
+
+    // 语音包删除确认弹窗
+    if (showSpeechDeleteConfirm) {
+        LimeAlertDialog(
+            title = stringResource(R.string.speech_delete_pack_confirm_title),
+            firstButtonText = stringResource(R.string.cancel),
+            secondButtonText = stringResource(R.string.delete),
+            onFirstButtonClick = { showSpeechDeleteConfirm = false },
+            onSecondButtonClick = {
+                showSpeechDeleteConfirm = false
+                viewModel.deleteSpeech()
+            },
+            onDismissRequest = { showSpeechDeleteConfirm = false },
+        )
+    }
+}
+
+/// 离线包单行
+@Composable
+private fun PackRow(
+    icon: ImageVector,
+    name: String,
+    sizeLabel: String,
+    status: PackStatus,
+    progress: Int,
+    onDownload: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(24.dp),
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = name,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = sizeLabel,
+                fontSize = 12.sp,
+                color = LimeGray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        PackAction(
+            status = status,
+            progress = progress,
+            onDownload = onDownload,
+            onDelete = onDelete,
+        )
+    }
+}
+
+/// 语音包状态转换
+private fun SpeechPackStatus.toPackStatus(): PackStatus = when (this) {
+    SpeechPackStatus.Checking -> PackStatus.Checking
+    SpeechPackStatus.NotDownloaded -> PackStatus.NotDownloaded
+    SpeechPackStatus.Downloading -> PackStatus.Downloading
+    SpeechPackStatus.Downloaded -> PackStatus.Downloaded
+    SpeechPackStatus.Failed -> PackStatus.Failed
 }
 
 /// 状态展示与操作按钮
 @Composable
 private fun PackAction(
     status: PackStatus,
+    progress: Int = 0,
     onDownload: () -> Unit,
     onDelete: () -> Unit,
 ) {
     when (status) {
         PackStatus.Checking -> LoadingLabel(stringResource(R.string.translate_checking))
-        PackStatus.Downloading -> LoadingLabel(stringResource(R.string.translate_downloading))
+        PackStatus.Downloading -> LoadingLabel(
+            if (progress > 0) {
+                stringResource(R.string.pack_downloading_percent, progress)
+            } else {
+                stringResource(R.string.translate_downloading)
+            },
+        )
         PackStatus.NotDownloaded -> Chip(
             text = stringResource(R.string.translate_download),
             background = MaterialTheme.colorScheme.primary,

@@ -381,6 +381,8 @@ fun DetailScreen(
                     commentViewModel.openVoiceSheet()
                 },
                 onRemoveVoice = commentViewModel::removePendingVoice,
+                prefillText = commentUiState.recognizedText,
+                onPrefillConsumed = commentViewModel::consumeRecognizedText,
                 onSubmit = commentViewModel::submitComment,
                 onDismiss = commentViewModel::closeInputSheet,
             )
@@ -391,6 +393,7 @@ fun DetailScreen(
             VoiceRecordSheet(
                 sheetTotalHeightDp = voiceSheetHeightDp,
                 onVoiceRecorded = commentViewModel::setPendingVoice,
+                onTextRecognized = commentViewModel::setRecognizedText,
                 onDismiss = commentViewModel::closeVoiceSheet,
             )
         }

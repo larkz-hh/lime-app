@@ -30,6 +30,7 @@
 
     <!-- Profile drawer -->
     <string name="drawer_translate">Translate</string>
+    <string name="drawer_offline">Offline</string>
     <string name="drawer_drafts">Drafts</string>
     <string name="drawer_account_privacy">Account &amp; Privacy</string>
     <string name="drawer_general">General</string>
@@ -436,11 +437,11 @@
     <string name="search_lime_id">Lime ID</string>
 
     <!-- Translation settings -->
-    <string name="translate_settings_title">Translation Settings</string>
+    <string name="translate_settings_title">Offline</string>
     <string name="translate_offline_pack">Offline Pack</string>
     <string name="translate_pack_name">ZH ⇄ EN</string>
     <string name="translate_mode_section">Translation Mode</string>
-    <string name="translate_pack_tips">• Offline translation works after the pack is downloaded\n• First download requires internet\n• Language packs are provided by Google</string>
+    <string name="translate_pack_tips">• Offline translation works after the language pack is downloaded\n• Voice-to-text works offline after the speech pack is downloaded\n• First download requires internet\n• Language pack by Google, speech pack by Vosk</string>
     <string name="translate_delete_pack_confirm_title">Delete the Chinese-English language pack?\nIt will need to be downloaded again for future translation</string>
     <string name="translate_checking">Checking…</string>
     <string name="translate_downloading">Downloading…</string>
@@ -450,6 +451,9 @@
     <string name="translate_downloaded">Downloaded</string>
     <string name="translate_mode_auto">Auto</string>
     <string name="translate_mode_offline">Offline</string>
+    <string name="speech_pack_name">Chinese Speech Pack</string>
+    <string name="speech_delete_pack_confirm_title">Delete the Chinese speech pack?\nIt will need to be downloaded again for voice-to-text</string>
+    <string name="pack_downloading_percent">Downloading %1$d%%</string>
 
     <!-- Chat components -->
     <string name="chat_send_failed_retry">Send failed, tap to resend</string>
@@ -475,6 +479,15 @@
     <string name="voice_release_cancel">Release to cancel</string>
     <string name="voice_release_send">%1$d\" · Release to save</string>
     <string name="voice_hold_to_record">Press and hold the mic to record</string>
+    <string name="voice_to_text">To text</string>
+    <string name="voice_release_to_text">Release to insert text</string>
+    <string name="voice_transcribing">Transcribing…</string>
+    <string name="voice_transcribe_empty">Didn\'t catch that, please try again</string>
+    <string name="voice_record_failed">Recording failed, please retry</string>
+    <string name="voice_processing">Processing…</string>
+    <string name="voice_downloading_pack">Downloading speech pack %1$d%%</string>
+    <string name="voice_pack_missing">Speech pack not downloaded</string>
+    <string name="voice_pack_download">Download speech pack</string>
 
     <!-- Note manage -->
     <string name="note_manage_title">Settings</string>

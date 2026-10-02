@@ -82,7 +82,8 @@
             android:exported="false"
             android:supportsPictureInPicture="true"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
-            android:theme="@style/Theme.Lime.VideoFeed" />
+            android:theme="@style/Theme.Lime.VideoFeed"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
@@ -126,6 +127,11 @@
             android:name=".data.notification.NotificationService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+        <!-- WorkManager 前台任务（语音包等离线包下载）：Android 14+ 必须声明前台服务类型 -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
         <!-- 桌面搜索栏组件 -->
         <receiver
             android:name=".ui.widget.SearchWidgetReceiver"
