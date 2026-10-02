@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -59,8 +57,6 @@ class MainActivity : ComponentActivity() {
     /// 上次账号 id
     private var lastSeenUserId: Long? = null
 
-    private val mainHandler = Handler(Looper.getMainLooper())
-
     /// 快捷入口
     private val shortcutAction = mutableStateOf<String?>(null)
     /// 快捷入口携带关键词
@@ -80,19 +76,22 @@ class MainActivity : ComponentActivity() {
         notificationCenter.ensureStarted()
         // 账号切换后重建界面，启动消息保活前台服务
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                var startJob: Job? = null
                 tokenStorage.currentUserIdFlow.collect { uid ->
                     if (lastSeenUserId != null && lastSeenUserId != uid) {
                         recreate()
                     } else {
                         lastSeenUserId = uid
                     }
+                    startJob?.cancel()// 避免重复排队
                     if (uid != null) {
-                        mainHandler.postDelayed({
+                        startJob = launch {
+                            delay(1000L.milliseconds)
                             if (tokenStorage.isLoggedIn()) {
-                                NotificationService.start(this@MainActivity)
+                                NotificationService.start(applicationContext)
                             }
-                        }, 1000L)
+                        }
                     }
                 }
             }
@@ -133,6 +132,7 @@ class MainActivity : ComponentActivity() {
                     shortcutAction = shortcutAction.value,
                     shortcutKeyword = shortcutKeyword.value,
                     shortcutConversationId = shortcutConversationId.value,
+                    // 处理完快捷方式后，清空状态
                     onShortcutHandled = {
                         shortcutAction.value = null
                         shortcutKeyword.value = null

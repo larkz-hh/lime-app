@@ -54,7 +54,6 @@ import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentSort
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentUiState
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
 import xyz.larkzhh.lime.ui.theme.LimeGray
-import xyz.larkzhh.lime.ui.theme.LimeLightGray
 
 /// 视频页评论抽屉
 @Composable

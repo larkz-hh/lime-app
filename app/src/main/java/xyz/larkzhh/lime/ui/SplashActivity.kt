@@ -1,7 +1,6 @@
 package xyz.larkzhh.lime.ui
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -40,6 +39,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import kotlinx.coroutines.delay
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.theme.LimeTheme
+import xyz.larkzhh.lime.util.system.findActivity
 import kotlin.time.Duration.Companion.milliseconds
 
 @SuppressLint("CustomSplashScreen")
@@ -57,10 +57,10 @@ class SplashActivity : ComponentActivity() {
 @Composable
 private fun SplashContent() {
     val context = LocalContext.current
-    val animEnabled = remember { AppSplashAnim.enabled() }
+    val animEnabled = remember { AppSplashAnim.enabled() }// 动画开关
     val gotoMain: () -> Unit = {
         context.startActivity(Intent(context, MainActivity::class.java))
-        (context as? Activity)?.finish()// 结束启动页
+        (context.findActivity())?.finish()// 结束启动页
     }
     val composition by rememberLottieComposition(LottieCompositionSpec.Asset("lottie/lime.lottie"))
     var lottieFading by remember { mutableStateOf(false) }// 续播后开始淡出

@@ -1,11 +1,10 @@
 package xyz.larkzhh.lime
 
-import android.app.Activity
 import android.app.Application
 import android.content.Context
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.media3.common.util.UnstableApi
 import coil3.ImageLoader
 import coil3.PlatformContext
@@ -43,28 +42,14 @@ class LimeApplication : Application(), SingletonImageLoader.Factory {
         // 桌面小组件热搜定时刷新
         WidgetHotRefreshWorker.ensureScheduled(this)
         // 跟踪应用前后台
-        var startedCount = 0// 可见数量
-        val handler = Handler(Looper.getMainLooper())
-        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
-            override fun onActivityStarted(activity: Activity) {
-                handler.removeCallbacksAndMessages(null)
-                startedCount++
+        ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) {
                 playerManager.onAppForegroundChanged(true)// 通知播放器管理器
             }
 
-            override fun onActivityStopped(activity: Activity) {
-                startedCount--
-                handler.removeCallbacksAndMessages(null)
-                handler.postDelayed({
-                    if (startedCount <= 0) playerManager.onAppForegroundChanged(false)
-                }, 600L)
+            override fun onStop(owner: LifecycleOwner) {
+                playerManager.onAppForegroundChanged(false)// 通知播放器管理器
             }
-
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
-            override fun onActivityResumed(activity: Activity) = Unit
-            override fun onActivityPaused(activity: Activity) = Unit
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
-            override fun onActivityDestroyed(activity: Activity) = Unit
         })
     }
 

@@ -21,18 +21,20 @@ class VideoCache @Inject constructor(
     @ApplicationContext context: Context,
 ) {
 
+    /// Exoplayer 本地缓存配置
     private val simpleCache: SimpleCache by lazy {
         SimpleCache(
             File(context.cacheDir, "video_cache"),
             LeastRecentlyUsedCacheEvictor(512L * 1024 * 1024),
-            StandaloneDatabaseProvider(context),
+            StandaloneDatabaseProvider(context),//
         )
     }
 
+    // 缓存功能的网络数据源工厂
     val dataSourceFactory: CacheDataSource.Factory by lazy {
         CacheDataSource.Factory()
             .setCache(simpleCache)
-            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)// // 读取失败回退网络
+            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)// 读取失败回退网络
             .setUpstreamDataSourceFactory(DefaultHttpDataSource.Factory())
     }
 }

@@ -14,3 +14,4 @@ local.properties
 *.jks
 keystore.properties
 .kotlin/
+/docs/

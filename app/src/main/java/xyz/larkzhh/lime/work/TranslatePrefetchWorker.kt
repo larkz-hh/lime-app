@@ -34,7 +34,7 @@ class TranslatePrefetchWorker(
             val holder = TranslatorHolder()
             holder.ensureModel("zh", "en", conditions)
             holder.ensureModel("en", "zh", conditions)
-            // 打上一次性标记：以后启动不再重复唤醒
+            // 标记，不重复唤醒
             MMKV.defaultMMKV().encode(KEY_PREFETCH_DONE, true)
             Result.success()
         } catch (ce: CancellationException) {

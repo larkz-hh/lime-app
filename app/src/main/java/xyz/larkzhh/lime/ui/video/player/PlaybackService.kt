@@ -25,7 +25,7 @@ class PlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        setShowNotificationForIdlePlayer(SHOW_NOTIFICATION_FOR_IDLE_PLAYER_ALWAYS)
+        setShowNotificationForIdlePlayer(SHOW_NOTIFICATION_FOR_IDLE_PLAYER_ALWAYS)// 播放暂停仍显示
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider.Builder(this)
                 .setChannelId(CHANNEL_ID)
@@ -41,6 +41,7 @@ class PlaybackService : MediaSessionService() {
         playerManager.sessionForService()?.let { addSession(it) }
     }
 
+    /// 强制前台
     override fun onUpdateNotificationAsync(
         session: MediaSession,
         startInForegroundRequired: Boolean,
