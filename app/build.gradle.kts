@@ -111,36 +111,39 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.collection)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.process)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
     implementation(libs.swipe.back)
-    implementation(libs.androidx.profileinstaller)
+
+    // Baseline Profile：只在运行期靠 manifest 里的 initializer 生效，代码不引用
+    runtimeOnly(libs.androidx.profileinstaller)
 
     // 弹幕渲染
     implementation(libs.compose.danmaku)
 
     // DI
     implementation(libs.hilt.android)
+    implementation(libs.javax.inject)
     "baselineProfile"(project(":baselineprofile"))
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
     // Paging
-    implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
 
     // Room
     implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.paging)
 
     // Network
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
+    implementation(libs.gson)
     implementation(libs.okhttp3)
     implementation(libs.okhttp3.logging.interceptor)
     implementation(libs.okio)
@@ -156,7 +159,7 @@ dependencies {
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.coroutines.android)
+    runtimeOnly(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
 
     // ML Kit
@@ -171,7 +174,7 @@ dependencies {
 
     // CameraX
     implementation(libs.androidx.camera.core)
-    implementation(libs.androidx.camera.camera2)
+    runtimeOnly(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
 
@@ -183,16 +186,13 @@ dependencies {
 
     // Media3 ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.common.ktx)
-    implementation(libs.androidx.media3.ui.compose)
-    implementation(libs.androidx.media3.ui.compose.material3)
     implementation(libs.androidx.media3.session)
 
     // Permissions
     implementation(libs.accompanist.permissions)
 
     // WorkManager
-    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.work.runtime)
 
     // Image Crop
     implementation(libs.ucrop)
@@ -215,7 +215,6 @@ dependencies {
 
     // Widget
     implementation(libs.androidx.glance.appwidget)
-    implementation(libs.androidx.glance.material3)
     implementation(libs.androidx.glance.appwidget.preview)
     implementation(libs.androidx.glance.preview)
 
@@ -230,6 +229,6 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    debugRuntimeOnly(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
