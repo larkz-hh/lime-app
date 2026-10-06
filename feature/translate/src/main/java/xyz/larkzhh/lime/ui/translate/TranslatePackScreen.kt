@@ -52,9 +52,9 @@ import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.feature.translate.R
 import xyz.larkzhh.lime.data.local.SpeechPackStatus
 import xyz.larkzhh.lime.data.local.TranslateMode
-import xyz.larkzhh.lime.ui.components.LimeAlertDialog
-import xyz.larkzhh.lime.ui.components.SheetGroup
-import xyz.larkzhh.lime.ui.components.SheetRowDivider
+import xyz.larkzhh.lime.core.designsystem.components.LimeAlertDialog
+import xyz.larkzhh.lime.core.designsystem.components.SheetGroup
+import xyz.larkzhh.lime.core.designsystem.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import kotlin.time.Duration.Companion.milliseconds
 

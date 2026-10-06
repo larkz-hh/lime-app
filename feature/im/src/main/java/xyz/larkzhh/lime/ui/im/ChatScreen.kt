@@ -84,7 +84,7 @@ import xyz.larkzhh.lime.feature.im.R
 import xyz.larkzhh.lime.domain.model.ImMessage
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.navigation.route.navigateToUserProfile
-import xyz.larkzhh.lime.ui.components.LimeAlertDialog
+import xyz.larkzhh.lime.core.designsystem.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.chat.ChatInputBar
 import xyz.larkzhh.lime.ui.components.EmojiPanel
 import xyz.larkzhh.lime.ui.components.ImagePreviewOverlay

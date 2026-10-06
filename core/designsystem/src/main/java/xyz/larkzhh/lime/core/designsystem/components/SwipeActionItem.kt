@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.components
+package xyz.larkzhh.lime.core.designsystem.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background

@@ -48,12 +48,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.feature.video.R
-import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet
-import xyz.larkzhh.lime.ui.components.GroupedSheetAction
-import xyz.larkzhh.lime.ui.components.LimeSwitch
-import xyz.larkzhh.lime.ui.components.SheetActionRow
-import xyz.larkzhh.lime.ui.components.SheetGroup
-import xyz.larkzhh.lime.ui.components.SheetRowDivider
+import xyz.larkzhh.lime.core.designsystem.components.GroupedBottomActionSheet
+import xyz.larkzhh.lime.core.designsystem.components.GroupedSheetAction
+import xyz.larkzhh.lime.core.designsystem.components.LimeSwitch
+import xyz.larkzhh.lime.core.designsystem.components.SheetActionRow
+import xyz.larkzhh.lime.core.designsystem.components.SheetGroup
+import xyz.larkzhh.lime.core.designsystem.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
 
 /// 倍速选项

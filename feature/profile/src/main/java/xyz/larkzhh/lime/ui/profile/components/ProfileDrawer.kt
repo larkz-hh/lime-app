@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.annotation.StringRes
 import xyz.larkzhh.lime.feature.profile.R
-import xyz.larkzhh.lime.ui.components.SheetGroup
+import xyz.larkzhh.lime.core.designsystem.components.SheetGroup
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 
 /**

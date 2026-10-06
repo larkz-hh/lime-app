@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.components
+package xyz.larkzhh.lime.core.designsystem.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize

@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.components
+package xyz.larkzhh.lime.core.designsystem.components
 
 import android.icu.text.BreakIterator
 import androidx.compose.foundation.background

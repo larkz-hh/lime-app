@@ -63,7 +63,7 @@ import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.navigation.route.navigateToUserProfile
 import xyz.larkzhh.lime.navigation.VideoOpener
 import xyz.larkzhh.lime.ui.components.FollowButton
-import xyz.larkzhh.lime.ui.components.SwipeActionItem
+import xyz.larkzhh.lime.core.designsystem.components.SwipeActionItem
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeTheme

@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.components.chat
+package xyz.larkzhh.lime.core.designsystem.components.chat
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode

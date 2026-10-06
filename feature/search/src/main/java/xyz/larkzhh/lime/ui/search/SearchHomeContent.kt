@@ -47,7 +47,7 @@ import androidx.compose.ui.res.stringResource
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.feature.search.R
 import xyz.larkzhh.lime.data.network.model.HotSearchItem
-import xyz.larkzhh.lime.ui.components.LimeAlertDialog
+import xyz.larkzhh.lime.core.designsystem.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 

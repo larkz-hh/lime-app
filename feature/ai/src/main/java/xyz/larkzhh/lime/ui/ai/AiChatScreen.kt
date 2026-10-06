@@ -100,7 +100,7 @@ import xyz.larkzhh.lime.domain.model.ChatMessage
 import xyz.larkzhh.lime.domain.model.ChatMessageStatus
 import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.domain.model.ChatRole
-import xyz.larkzhh.lime.ui.components.LimeAlertDialog
+import xyz.larkzhh.lime.core.designsystem.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.chat.ChatAddSheet
 import xyz.larkzhh.lime.ui.components.chat.ChatBubbleData
 import xyz.larkzhh.lime.ui.components.chat.ChatBubbleStatus

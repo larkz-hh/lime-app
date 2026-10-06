@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.components
+package xyz.larkzhh.lime.core.designsystem.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState

@@ -47,6 +47,7 @@ import xyz.larkzhh.lime.ui.theme.LimeWhite
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import xyz.larkzhh.lime.core.designsystem.components.chat.TypingIndicator
 
 private const val timeDividerThresholdMs = 5 * 60 * 1000L
 

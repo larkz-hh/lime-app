@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.components.chat
+package xyz.larkzhh.lime.core.designsystem.components.chat
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll

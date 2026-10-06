@@ -52,10 +52,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import xyz.larkzhh.lime.feature.settings.R
-import xyz.larkzhh.lime.ui.components.LimeAlertDialog
-import xyz.larkzhh.lime.ui.components.LimeSwitch
-import xyz.larkzhh.lime.ui.components.SheetGroup
-import xyz.larkzhh.lime.ui.components.SheetRowDivider
+import xyz.larkzhh.lime.core.designsystem.components.LimeAlertDialog
+import xyz.larkzhh.lime.core.designsystem.components.LimeSwitch
+import xyz.larkzhh.lime.core.designsystem.components.SheetGroup
+import xyz.larkzhh.lime.core.designsystem.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.util.text.AppLanguage
 import xyz.larkzhh.lime.ui.text.languageDisplayName

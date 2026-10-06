@@ -63,6 +63,9 @@ import xyz.larkzhh.lime.ui.theme.LocalChatBubbleColors
 import xyz.larkzhh.lime.ui.theme.DarkChatBubbleColors
 import xyz.larkzhh.lime.ui.theme.LightChatBubbleColors
 import xyz.larkzhh.lime.util.TtsManager
+import xyz.larkzhh.lime.core.designsystem.components.chat.HorizontalImageRow
+import xyz.larkzhh.lime.core.designsystem.components.chat.ImageMessageGrid
+import xyz.larkzhh.lime.core.designsystem.components.chat.MarkdownMessageContent
 
 /// 用户气泡最大宽度
 private const val USER_BUBBLE_MAX_WIDTH = 320

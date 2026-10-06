@@ -6,6 +6,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.core.ui.R
+import xyz.larkzhh.lime.core.designsystem.components.LimeAlertDialog
 
 /**
  * 强制下线弹窗

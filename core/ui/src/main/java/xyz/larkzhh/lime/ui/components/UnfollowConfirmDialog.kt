@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.core.ui.R
+import xyz.larkzhh.lime.core.designsystem.components.LimeAlertDialog
 
 /// 取消关注确认弹窗
 @Composable

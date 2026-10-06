@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
-import xyz.larkzhh.lime.ui.components.BottomActionSheet
-import xyz.larkzhh.lime.ui.components.SheetAction
+import xyz.larkzhh.lime.core.designsystem.components.BottomActionSheet
+import xyz.larkzhh.lime.core.designsystem.components.SheetAction
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.util.media.saveImageToGallery
 import xyz.larkzhh.lime.util.showToast

@@ -61,8 +61,8 @@ import xyz.larkzhh.lime.feature.message.R
 import xyz.larkzhh.lime.domain.model.ImConversation
 import xyz.larkzhh.lime.domain.model.NotificationCategory
 import xyz.larkzhh.lime.navigation.route.Screen
-import xyz.larkzhh.lime.ui.components.LimeAlertDialog
-import xyz.larkzhh.lime.ui.components.SwipeActionItem
+import xyz.larkzhh.lime.core.designsystem.components.LimeAlertDialog
+import xyz.larkzhh.lime.core.designsystem.components.SwipeActionItem
 import xyz.larkzhh.lime.ui.im.viewmodel.ImConversationViewModel
 import xyz.larkzhh.lime.util.text.formatConversationTime
 import xyz.larkzhh.lime.ui.theme.LimeGray

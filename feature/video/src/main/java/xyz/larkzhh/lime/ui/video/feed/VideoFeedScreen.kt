@@ -102,9 +102,9 @@ import xyz.larkzhh.lime.ui.video.components.DanmakuHost
 import xyz.larkzhh.lime.ui.components.video.FollowButton
 import xyz.larkzhh.lime.ui.video.components.VideoActionPanel
 import xyz.larkzhh.lime.ui.video.components.VideoSideActionBar
-import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet
-import xyz.larkzhh.lime.ui.components.GroupedSheetAction
-import xyz.larkzhh.lime.ui.components.LimeAlertDialog
+import xyz.larkzhh.lime.core.designsystem.components.GroupedBottomActionSheet
+import xyz.larkzhh.lime.core.designsystem.components.GroupedSheetAction
+import xyz.larkzhh.lime.core.designsystem.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.NoteManageSheet
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.comment.components.VoiceRecordSheet
