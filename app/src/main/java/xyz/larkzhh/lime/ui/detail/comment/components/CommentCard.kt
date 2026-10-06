@@ -129,9 +129,10 @@ fun CommentCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 // 评论文字内容
-                if (!comment.content.isNullOrBlank()) {
+                val content = comment.content
+                if (!content.isNullOrBlank()) {
                     Text(
-                        text = comment.content,
+                        text = content,
                         fontSize = 15.sp,
                         color = MaterialTheme.colorScheme.onSurface,
                         lineHeight = 22.sp,
@@ -176,9 +177,10 @@ fun CommentCard(
                         fontSize = 12.sp,
                         color = LimeGray,
                     )
-                    if (!comment.ipLocation.isNullOrBlank()) {
+                    val ipLocation = comment.ipLocation
+                    if (!ipLocation.isNullOrBlank()) {
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text(text = comment.ipLocation, fontSize = 12.sp, color = LimeGray)
+                        Text(text = ipLocation, fontSize = 12.sp, color = LimeGray)
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
@@ -463,9 +465,10 @@ private fun ReplyItem(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(text = formatRelativeTime(reply.createTime), fontSize = 11.sp, color = LimeGray)
-                if (!reply.ipLocation.isNullOrBlank()) {
+                val replyIpLocation = reply.ipLocation
+                if (!replyIpLocation.isNullOrBlank()) {
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text(text = reply.ipLocation, fontSize = 11.sp, color = LimeGray)
+                    Text(text = replyIpLocation, fontSize = 11.sp, color = LimeGray)
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(

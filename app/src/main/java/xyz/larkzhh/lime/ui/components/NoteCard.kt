@@ -62,9 +62,11 @@ fun NoteCard(
     modifier: Modifier = Modifier,
 ) {
     // 封面宽高比
-    val imageRatio = remember(item.id, item.coverWidth, item.coverHeight) {
-        if (item.coverWidth != null && item.coverHeight != null && item.coverHeight > 0) {
-            item.coverWidth.toFloat() / item.coverHeight
+    val coverWidth = item.coverWidth
+    val coverHeight = item.coverHeight
+    val imageRatio = remember(item.id, coverWidth, coverHeight) {
+        if (coverWidth != null && coverHeight != null && coverHeight > 0) {
+            coverWidth.toFloat() / coverHeight
         } else 0.75f
     }
 //    val imageRatio = remember(item.id) {
@@ -106,7 +108,8 @@ fun NoteCard(
                     CoverPlaceholder(imageRatio, item.title)// 无封面占位
                 }
                 // 浏览数角标
-                if (item.viewCount != null) {
+                val viewCount = item.viewCount
+                if (viewCount != null) {
                     Row(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
@@ -123,7 +126,7 @@ fun NoteCard(
                         )
                         Spacer(Modifier.width(5.dp))
                         Text(
-                            text = formatViewCount(item.viewCount),
+                            text = formatViewCount(viewCount),
                             fontSize = 10.sp,
                             color = Color.White,
                         )
@@ -132,10 +135,11 @@ fun NoteCard(
             }
 
             // 标题与作者
+            val title = item.title
             Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)) {
-                if (!item.title.isNullOrBlank()) {
+                if (!title.isNullOrBlank()) {
                     Text(
-                        text = item.title,
+                        text = title,
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Medium,
                         maxLines = 2,

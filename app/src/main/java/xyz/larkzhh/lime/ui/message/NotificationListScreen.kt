@@ -321,9 +321,10 @@ private fun NotificationCard(
                 color = LimeGray,
                 modifier = Modifier.padding(top = 2.dp),
             )
-            if (!item.content.isNullOrBlank()) {
+            val content = item.content
+            if (!content.isNullOrBlank()) {
                 Text(
-                    text = item.content,
+                    text = content,
                     fontSize = 14.sp,
                     lineHeight = 19.sp,
                     color = if (type == NotificationType.Reply) {
@@ -337,9 +338,10 @@ private fun NotificationCard(
                 )
             }
             // 回复通知
-            if (type == NotificationType.Reply && !item.replyToContent.isNullOrBlank()) {
+            val replyToContent = item.replyToContent
+            if (type == NotificationType.Reply && !replyToContent.isNullOrBlank()) {
                 Text(
-                    text = item.replyToContent,
+                    text = replyToContent,
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
                     color = LimeGray,

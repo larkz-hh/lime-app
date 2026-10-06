@@ -28,15 +28,17 @@ class NotificationRemoteDataSource @Inject constructor(
         type: String?
     ): Result<NotificationListResponse> = runCatching {
         val response = apiService.getNotifications(cursor = cursor, size = size, type = type)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 分组未读通知数
     suspend fun getUnreadCount(): Result<UnreadCountData> = runCatching {
         val response = apiService.getUnreadCount()
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 标记单条已读

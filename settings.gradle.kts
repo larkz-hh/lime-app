@@ -41,3 +41,4 @@ rootProject.name = "Lime"
 include(":app")
 include(":baselineprofile")
 include(":core:designsystem")
+include(":core:model")

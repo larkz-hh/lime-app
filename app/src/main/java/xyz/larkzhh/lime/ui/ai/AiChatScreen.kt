@@ -399,9 +399,10 @@ fun AiChatScreen(
                                                             FontWeight.Normal
                                                         },
                                                     )
-                                                    if (!model.description.isNullOrBlank()) {
+                                                    val description = model.description
+                                                    if (!description.isNullOrBlank()) {
                                                         Text(
-                                                            text = model.description,
+                                                            text = description,
                                                             fontSize = 11.sp,
                                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                         )

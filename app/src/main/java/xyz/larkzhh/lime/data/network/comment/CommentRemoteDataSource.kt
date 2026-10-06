@@ -27,8 +27,9 @@ class CommentRemoteDataSource @Inject constructor(
         size: Int,
     ): Result<CommentListResponse> = runCatching {
         val response = apiService.getComments(noteId = noteId, sort = sort, cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 发布评论
@@ -40,15 +41,17 @@ class CommentRemoteDataSource @Inject constructor(
         voiceDuration: Int?,
     ): Result<CommentData> = runCatching {
         val response = apiService.postComment(noteId, PostCommentRequest(content, images, voiceUrl, voiceDuration))
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 获取回复
     suspend fun getReplies(commentId: Long, cursor: Long?, size: Int): Result<ReplyListResponse> = runCatching {
         val response = apiService.getReplies(commentId = commentId, cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 发布回复
@@ -65,8 +68,9 @@ class CommentRemoteDataSource @Inject constructor(
             noteId, commentId,
             PostReplyRequest(content, replyToUserId, images, voiceUrl, voiceDuration),
         )
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 点赞评论、回复
@@ -90,14 +94,16 @@ class CommentRemoteDataSource @Inject constructor(
     /// 上传评论图片
     suspend fun uploadCommentImage(part: MultipartBody.Part): Result<String> = runCatching {
         val response = apiService.uploadCommentImage(part)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data.url
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data.url
     }
 
     /// 上传评论语音
     suspend fun uploadCommentVoice(part: MultipartBody.Part): Result<String> = runCatching {
         val response = apiService.uploadCommentVoice(part)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data.url
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data.url
     }
 }

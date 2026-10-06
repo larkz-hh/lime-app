@@ -68,8 +68,9 @@ class ChatRemoteDataSource @Inject constructor(
     /// 获取模型
     suspend fun fetchModels(): Result<List<AiModelInfo>> = runCatching {
         val response = apiService.getAiModels()
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data.map {
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data.map {
             AiModelInfo(it.name, it.displayName, it.description, it.supportsVision)
         }
     }
@@ -86,16 +87,17 @@ class ChatRemoteDataSource @Inject constructor(
         size: Int,
     ): Result<Pair<List<ChatConversation>, String?>> = runCatching {
         val response = apiService.getConversations(cursor, size)
-        check(response.code == 200 && response.data != null) { response.message }
         val data = response.data
+        check(response.code == 200 && data != null) { response.message }
         data.items.map { it.toDomain() } to data.nextCursor
     }
 
     /// 获取会话历史消息
     suspend fun fetchMessages(conversationId: String): Result<List<ChatMessage>> = runCatching {
         val response = apiService.getConversationMessages(conversationId)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data.map { it.toDomain(conversationId) }
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data.map { it.toDomain(conversationId) }
     }
 
     /// 删除会话

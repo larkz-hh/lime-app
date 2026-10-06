@@ -25,29 +25,33 @@ class NoteRemoteDataSource @Inject constructor(
     /// 上传笔记图片
     suspend fun uploadNoteImage(part: MultipartBody.Part): Result<String> = runCatching {
         val response = apiService.uploadNoteImage(part)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data.url
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data.url
     }
 
     /// 上传笔记视频
     suspend fun uploadNoteVideo(part: MultipartBody.Part): Result<String> = runCatching {
         val response = apiService.uploadNoteVideo(part)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data.url
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data.url
     }
 
     /// 获取信息流
     suspend fun getFeed(cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
         val response = apiService.getFeed(cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 获取关注动态
     suspend fun getFollowingFeed(cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
         val response = apiService.getFollowingFeed(cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 获取视频信息流
@@ -63,8 +67,9 @@ class NoteRemoteDataSource @Inject constructor(
             orientation = orientation,
             size = size,
         )
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 获取指定用户的笔记列表
@@ -75,22 +80,25 @@ class NoteRemoteDataSource @Inject constructor(
         status: String = "published",
     ): Result<FeedResponse> = runCatching {
         val response = apiService.getUserNotes(userId = userId, status = status, cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 获取指定用户的点赞笔记列表
     suspend fun getUserLikes(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
         val response = apiService.getUserLikes(userId = userId, cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 获取指定用户的收藏笔记列表
     suspend fun getUserFavorites(userId: Long, cursor: Long?, size: Int): Result<FeedResponse> = runCatching {
         val response = apiService.getUserFavorites(userId = userId, cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 点赞笔记
@@ -120,15 +128,17 @@ class NoteRemoteDataSource @Inject constructor(
     /// 获取笔记详情
     suspend fun getNoteDetail(id: Long, noView: Boolean): Result<NoteDetailData> = runCatching {
         val response = apiService.getNoteDetail(id, noView = noView)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 获取浏览历史
     suspend fun getHistory(cursor: Long?, size: Int): Result<HistoryResponse> = runCatching {
         val response = apiService.getHistory(cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 删除浏览历史条目

@@ -40,5 +40,9 @@ gradlePlugin {
             id = "lime.android.library.compose"
             implementationClass = "xyz.larkzhh.lime.buildlogic.LimeAndroidLibraryComposePlugin"
         }
+        register("kotlinLibrary") {
+            id = "lime.kotlin.library"
+            implementationClass = "xyz.larkzhh.lime.buildlogic.LimeKotlinLibraryPlugin"
+        }
     }
 }

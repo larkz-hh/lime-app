@@ -49,15 +49,17 @@ class FollowRepositoryImpl @Inject constructor(
     override suspend fun getFollowing(userId: Long, cursor: Long?, size: Int): Result<FollowListResponse> =
         runCatching {
             val response = apiService.getFollowing(userId, cursor, size)
-            check(response.code == 200 && response.data != null) { response.message }
-            response.data
+            val data = response.data
+            check(response.code == 200 && data != null) { response.message }
+            data
         }
 
     /// 获取粉丝列表
     override suspend fun getFollowers(userId: Long, cursor: Long?, size: Int): Result<FollowListResponse> =
         runCatching {
             val response = apiService.getFollowers(userId, cursor, size)
-            check(response.code == 200 && response.data != null) { response.message }
-            response.data
+            val data = response.data
+            check(response.code == 200 && data != null) { response.message }
+            data
         }
 }

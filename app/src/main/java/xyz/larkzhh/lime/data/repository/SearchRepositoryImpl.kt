@@ -31,8 +31,9 @@ class SearchRepositoryImpl @Inject constructor(
             cursor = cursor,
             size = size,
         )
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 搜索用户
@@ -42,22 +43,25 @@ class SearchRepositoryImpl @Inject constructor(
         size: Int,
     ): Result<UserSearchResponse> = runCatching {
         val response = apiService.searchUsers(keyword = keyword, cursor = cursor, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 搜索联想
     override suspend fun getSuggestions(q: String, size: Int): Result<List<String>> = runCatching {
         val response = apiService.getSearchSuggestions(q = q, size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 热搜榜
     override suspend fun getHotSearches(size: Int): Result<List<HotSearchItem>> = runCatching {
         val response = apiService.getHotSearches(size = size)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 上报搜索

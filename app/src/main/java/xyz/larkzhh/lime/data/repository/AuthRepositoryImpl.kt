@@ -30,9 +30,10 @@ class AuthRepositoryImpl @Inject constructor(
     /// 用户登录
     override suspend fun login(email: String, password: String?, code: String?): Result<TokenData> = runCatching {
         val response = apiService.login(LoginRequest(email = email, password = password, code = code))
-        check(response.code == 200 && response.data != null) { response.message }
-        tokenStorage.saveTokens(response.data.accessToken, response.data.refreshToken, response.data.expiresIn)
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        tokenStorage.saveTokens(data.accessToken, data.refreshToken, data.expiresIn)
+        data
     }
 
     /// 用户注册
@@ -50,13 +51,14 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun refreshToken(): Result<TokenData> = runCatching {
         val refreshToken = tokenStorage.refreshToken ?: error("未登录")
         val response = apiService.refreshToken(RefreshTokenRequest(refreshToken))
-        if (response.code != 200 || response.data == null) {
+        val data = response.data
+        if (response.code != 200 || data == null) {
             tokenStorage.clearTokens()
             error(response.message)  // 刷新失败需要先清除本地 Token 再抛出
         }
         // 刷新成功后，用新的 Token 覆盖本地旧凭证
-        tokenStorage.saveTokens(response.data.accessToken, response.data.refreshToken, response.data.expiresIn)
-        response.data // 返回新的 Token 数据
+        tokenStorage.saveTokens(data.accessToken, data.refreshToken, data.expiresIn)
+        data // 返回新的 Token 数据
     }
 
     /**

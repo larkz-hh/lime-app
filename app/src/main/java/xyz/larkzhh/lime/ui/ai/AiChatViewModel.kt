@@ -381,8 +381,9 @@ class AiChatViewModel @Inject constructor(
         sendJob?.cancel()
         sendJob = viewModelScope.launch {
             // 删除旧 AI 回复
-            if (assistant.serverId != null) {
-                chatRepository.deleteMessageRemote(conversationId, assistant.serverId)
+            val serverId = assistant.serverId
+            if (serverId != null) {
+                chatRepository.deleteMessageRemote(conversationId, serverId)
             }
             chatRepository.deleteLocalMessage(assistant.localId)
             // 复用前置用户消息
@@ -420,8 +421,9 @@ class AiChatViewModel @Inject constructor(
 
         viewModelScope.launch {
             toDelete.forEach { m ->
-                if (m.serverId != null) {
-                    chatRepository.deleteMessageRemote(conversationId, m.serverId)
+                val serverId = m.serverId
+                if (serverId != null) {
+                    chatRepository.deleteMessageRemote(conversationId, serverId)
                 }
                 chatRepository.deleteLocalMessage(m.localId)
             }

@@ -33,8 +33,9 @@ class AiRepositoryImpl @Inject constructor(
         val response = apiService.aiTranslate(
             AiTranslateRequest(text = text, targetLang = targetLang, sourceLang = sourceLang)
         )
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data.translatedText.stripDataTags()
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data.translatedText.stripDataTags()
     }
 
     private fun String.stripDataTags(): String =

@@ -16,15 +16,17 @@ class DanmakuRepositoryImpl @Inject constructor(
     /// 拉取弹幕列表
     override suspend fun getDanmaku(noteId: Long, fromMs: Long?, toMs: Long?): Result<DanmakuListResponse> = runCatching {
         val response = apiService.getDanmaku(noteId, fromMs, toMs)
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 发弹幕
     override suspend fun postDanmaku(noteId: Long, content: String, videoTimeMs: Long, color: String?): Result<DanmakuData> = runCatching {
         val response = apiService.postDanmaku(noteId, PostDanmakuRequest(content, videoTimeMs, color))
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 删除弹幕

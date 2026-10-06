@@ -74,33 +74,37 @@ class UserRepositoryImpl @Inject constructor(
     /// 网络刷新
     override suspend fun refreshUser(): Result<UserData> = runCatching {
         val response = apiService.getMe()
-        check(response.code == 200 && response.data != null) { response.message }
-        updateUser(response.data)
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        updateUser(data)
+        data
     }
 
     /// 获取指定用户公开资料
     override suspend fun getUserById(userId: Long): Result<UserData> = runCatching {
         val response = apiService.getUserById(userId)
-        check(response.code == 200 && response.data != null) { response.message }
-        userByIdCache[userId] = response.data
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        userByIdCache[userId] = data
+        data
     }
 
     /// 获取指定用户公开资料
     override suspend fun getUserByHandle(handle: String): Result<UserData> = runCatching {
         val response = apiService.getUserByHandle(handle)
-        check(response.code == 200 && response.data != null) { response.message }
-        userByIdCache[response.data.id] = response.data
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        userByIdCache[data.id] = data
+        data
     }
 
     /// 获取指定用户公开资料
     override suspend fun getUserByUid(uid: String): Result<UserData> = runCatching {
         val response = apiService.getUserByUid(uid)
-        check(response.code == 200 && response.data != null) { response.message }
-        userByIdCache[response.data.id] = response.data
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        userByIdCache[data.id] = data
+        data
     }
 
     /// 同步读取指定用户已缓存的信息
@@ -112,18 +116,20 @@ class UserRepositoryImpl @Inject constructor(
             .getOrElse { return Result.failure(it) }
         return runCatching {
             val response = apiService.uploadAvatar(part)
-            check(response.code == 200 && response.data != null) { response.message }
-            updateUser(response.data)
-            syncImProfile(response.data)
-            response.data
+            val data = response.data
+            check(response.code == 200 && data != null) { response.message }
+            updateUser(data)
+            syncImProfile(data)
+            data
         }
     }
 
     /// 互关好友列表
     override suspend fun getMutualFriends(): Result<List<UserData>> = runCatching {
         val response = apiService.getMutualFriends()
-        check(response.code == 200 && response.data != null) { response.message }
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        data
     }
 
     /// 上传群头像
@@ -132,8 +138,9 @@ class UserRepositoryImpl @Inject constructor(
             .getOrElse { return Result.failure(it) }
         return runCatching {
             val response = apiService.uploadGroupAvatar(part)
-            check(response.code == 200 && response.data != null) { response.message }
-            response.data
+            val data = response.data
+            check(response.code == 200 && data != null) { response.message }
+            data
         }
     }
 
@@ -143,9 +150,10 @@ class UserRepositoryImpl @Inject constructor(
             .getOrElse { return Result.failure(it) }
         return runCatching {
             val response = apiService.uploadBackground(part)
-            check(response.code == 200 && response.data != null) { response.message }
-            updateUser(response.data)
-            response.data
+            val data = response.data
+            check(response.code == 200 && data != null) { response.message }
+            updateUser(data)
+            data
         }
     }
 
@@ -159,19 +167,21 @@ class UserRepositoryImpl @Inject constructor(
     ): Result<UserData> = runCatching {
         val request = UpdateProfileRequest(nickname, bio, gender, birthday, region)
         val response = apiService.updateMe(request)
-        check(response.code == 200 && response.data != null) { response.message }
-        updateUser(response.data)
-        syncImProfile(response.data)
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        updateUser(data)
+        syncImProfile(data)
+        data
     }
 
     /// 设置点赞、收藏列表隐私
     override suspend fun updatePrivacy(likePrivate: Boolean, favPrivate: Boolean): Result<UserData> = runCatching {
         val request = UpdateProfileRequest(likePrivate = likePrivate, favPrivate = favPrivate)
         val response = apiService.updateMe(request)
-        check(response.code == 200 && response.data != null) { response.message }
-        updateUser(response.data)
-        response.data
+        val data = response.data
+        check(response.code == 200 && data != null) { response.message }
+        updateUser(data)
+        data
     }
 
     /// 修改密码，清空当前账号的缓存用户资料

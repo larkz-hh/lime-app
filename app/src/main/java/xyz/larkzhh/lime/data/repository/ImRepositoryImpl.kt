@@ -63,8 +63,8 @@ class ImRepositoryImpl @Inject constructor(
     /// 确保 IM 已登录
     override suspend fun ensureImLogin(): Result<Unit> = runCatching {
         val response = apiService.getImUserSig()// 拉取 UserSig 并登录
-        check(response.code == 200 && response.data != null) { response.message }
         val data = response.data
+        check(response.code == 200 && data != null) { response.message }
         imManager.init(data.sdkAppId)
         // 已登录同一用户跳过
         if (imManager.getLoginUser() != data.userId) {
@@ -81,8 +81,9 @@ class ImRepositoryImpl @Inject constructor(
     /// 打开私信会话
     override suspend fun openConversation(targetUserId: Long): Result<String> {
         val response = apiService.openConversation(ConversationOpenRequest(targetUserId))
-        return if (response.code == 200 && response.data != null) {
-            Result.success(response.data.conversationId)
+        val data = response.data
+        return if (response.code == 200 && data != null) {
+            Result.success(data.conversationId)
         } else {
             // 403 未互关
             val message = if (response.code == 403) "需互相关注后才能私信哦" else response.message
