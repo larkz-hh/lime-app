@@ -8,4 +8,6 @@
     <string name="font_option_system">系统默认</string>
     <string name="back">返回</string>
     <string name="auth_login">登录</string>
+    <string name="friend_saved_to_album">已保存到相册</string>
+    <string name="friend_save_failed">保存失败</string>
 </resources>

@@ -346,19 +346,6 @@
     <string name="follow_bio_empty">还没有简介</string>
 
     <!-- 添加好友 -->
-    <string name="friend_add_friend">添加好友</string>
-    <string name="friend_loading">正在加载…</string>
-    <string name="friend_my_qr">我的二维码</string>
-    <string name="friend_qr_failed">二维码生成失败</string>
-    <string name="friend_lime_id_copied">已复制 Lime ID</string>
-    <string name="friend_copy_lime_id">复制 Lime ID</string>
-    <string name="friend_save_qr_hint">保存二维码，让好友扫一扫添加你</string>
-    <string name="friend_scan">扫一扫</string>
-    <string name="friend_save_qr">保存二维码</string>
-    <string name="friend_qr_not_ready">二维码尚未生成</string>
-    <string name="friend_saved_to_album">已保存到相册</string>
-    <string name="friend_save_failed">保存失败</string>
-    <string name="friend_lime_id">Lime ID</string>
 
     <!-- 搜索 -->
     <string name="search_history_title">历史记录</string>

@@ -59,7 +59,7 @@ import coil3.request.SuccessResult
 import coil3.request.allowHardware
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
-import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.feature.friend.R
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.util.copyToClipboard
@@ -81,8 +81,8 @@ fun AddFriendScreen(
 
     val limeIdCopiedToast = stringResource(R.string.friend_lime_id_copied)
     val qrNotReadyToast = stringResource(R.string.friend_qr_not_ready)
-    val savedToAlbumToast = stringResource(R.string.friend_saved_to_album)
-    val saveFailedToast = stringResource(R.string.friend_save_failed)
+    val savedToAlbumToast = stringResource(DesignSystemR.string.friend_saved_to_album)
+    val saveFailedToast = stringResource(DesignSystemR.string.friend_save_failed)
 
     val current = user
     val limeId = current?.handle

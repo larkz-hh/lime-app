@@ -346,19 +346,6 @@
     <string name="follow_bio_empty">No bio yet</string>
 
     <!-- Add friend -->
-    <string name="friend_add_friend">Add Friend</string>
-    <string name="friend_loading">Loading…</string>
-    <string name="friend_my_qr">My QR Code</string>
-    <string name="friend_qr_failed">Failed to generate QR code</string>
-    <string name="friend_lime_id_copied">Lime ID copied</string>
-    <string name="friend_copy_lime_id">Copy Lime ID</string>
-    <string name="friend_save_qr_hint">Save this QR code so friends can scan to add you</string>
-    <string name="friend_scan">Scan</string>
-    <string name="friend_save_qr">Save QR Code</string>
-    <string name="friend_qr_not_ready">QR code not ready yet</string>
-    <string name="friend_saved_to_album">Saved to album</string>
-    <string name="friend_save_failed">Failed to save</string>
-    <string name="friend_lime_id">Lime ID</string>
 
     <!-- Search -->
     <string name="search_history_title">History</string>

@@ -3,6 +3,7 @@ package xyz.larkzhh.lime.ui.video.feed
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /**
  * 视频流页 UI 文案
@@ -45,8 +46,8 @@ fun videoFeedTexts(): VideoFeedTexts = VideoFeedTexts(
     backgroundPlaybackOffText = stringResource(R.string.video_background_playback_off),
     backgroundPlaybackOnText = stringResource(R.string.video_background_playback_on),
     savingVideoText = stringResource(R.string.video_saving),
-    videoSavedToAlbumText = stringResource(R.string.friend_saved_to_album),
-    videoSaveFailedText = stringResource(R.string.friend_save_failed),
+    videoSavedToAlbumText = stringResource(DesignSystemR.string.friend_saved_to_album),
+    videoSaveFailedText = stringResource(DesignSystemR.string.friend_save_failed),
     videoNoteDeletedText = stringResource(R.string.video_note_deleted),
     videoNoteDeleteFailedText = stringResource(R.string.video_delete_note_failed),
     speedChangedFormat = stringResource(R.string.video_speed_changed),
