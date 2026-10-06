@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">通用</string>
+    <string name="settings_section_notify">通知</string>
+    <string name="settings_notify_reminders">通知提醒</string>
+    <string name="settings_splash_animation">启动动画</string>
+    <string name="settings_section_storage">存储</string>
+    <string name="settings_clear_cache">清空缓存</string>
+    <string name="settings_clear_cache_confirm_title">确定清除应用缓存吗？</string>
+    <string name="settings_clear">清空</string>
+    <string name="settings_cache_cleared">缓存已清理（剩余 %1$s）</string>
+    <string name="settings_language">语言</string>
+    <string name="settings_theme">主题</string>
+    <string name="theme_confirm_title">保存主题设置？</string>
+    <string name="theme_confirm_text">切换后界面会立即以新主题显示</string>
+    <string name="theme_switched">主题已切换</string>
+    <string name="font_settings_title">字体设置</string>
+    <string name="settings_font">字体</string>
+    <string name="font_confirm_title">保存字体设置？</string>
+    <string name="font_confirm_text">切换后界面会立即以新字体显示</string>
+    <string name="font_switched">字体已切换</string>
+    <string name="settings_section_display">显示</string>
+    <string name="settings_dark_mode">深色模式</string>
+    <string name="dark_mode_option_system">跟随系统</string>
+    <string name="dark_mode_option_dark">深色</string>
+    <string name="dark_mode_confirm_title">保存深色模式设置？</string>
+    <string name="dark_mode_confirm_text">切换后界面会立即应用新的外观模式</string>
+    <string name="dark_mode_switched">深色模式已切换</string>
+    <string name="lang_switched">语言已切换</string>
+    <string name="language_confirm_title">保存语言设置？</string>
+    <string name="language_confirm_text">切换后界面会立即以新语言显示</string>
+</resources>

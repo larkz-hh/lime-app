@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="draft_box_title">Drafts</string>
+    <string name="draft_manage">Manage</string>
+    <string name="draft_done">Done</string>
+    <string name="draft_selected_title">%1$d selected</string>
+    <string name="draft_selected_count">%1$d selected</string>
+    <string name="draft_empty">No drafts yet</string>
+    <string name="draft_delete_failed">Failed to delete: %1$s</string>
+    <string name="draft_deleting">Deleting…</string>
+    <string name="draft_cover_placeholder">Draft</string>
+    <string name="draft_unnamed">Untitled draft</string>
+    <string name="draft_selected">Selected</string>
+</resources>

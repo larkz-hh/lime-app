@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ai_new_chat">New chat</string>
+    <string name="ai_new_conversation_cd">New conversation</string>
+    <string name="ai_open_history_cd">Open history</string>
+    <string name="ai_clear_conversation">Clear conversation</string>
+    <string name="ai_delete_conversation_title">Delete conversation</string>
+    <string name="ai_delete_conversation_message">“%1$s” will be deleted and cannot be recovered.</string>
+    <string name="ai_clear_conversation_message">All messages in this conversation will be cleared. This cannot be undone.</string>
+    <string name="ai_delete_message_title">Delete message</string>
+    <string name="ai_delete_message_message">This message and its related question/reply will be deleted. This cannot be undone.</string>
+    <string name="ai_cleared">Cleared</string>
+    <string name="ai_conversation_deleted">Conversation deleted</string>
+    <string name="ai_copied">Copied</string>
+    <string name="ai_camera_file_failed">Failed to create camera file</string>
+    <string name="ai_offline_banner">No network connection. Showing cached messages.</string>
+    <string name="ai_select_text_title">Select text</string>
+    <string name="ai_history_title">Conversations</string>
+    <string name="ai_no_history">No conversation history yet</string>
+    <string name="ai_load_failed_retry">Failed to load. Tap to retry.</string>
+    <string name="ai_default_model">Default model</string>
+    <string name="ai_image_chat_title">Image chat</string>
+    <string name="ai_delete_failed">Failed to delete, please try again</string>
+    <string name="ai_clear_failed">Failed to clear, please try again</string>
+    <string name="ai_offline_cannot_send">No network. Unable to send.</string>
+    <string name="ai_image_upload_failed">Some images failed to upload. Tap to retry or remove them.</string>
+    <string name="ai_offline_cannot_resend">No network. Unable to resend.</string>
+    <string name="ai_offline_cannot_regenerate">No network. Unable to regenerate.</string>
+    <string name="note_picker_title">Select a note</string>
+    <string name="note_picker_confirm">Select</string>
+    <string name="note_picker_tab_favorites">Favorites</string>
+    <string name="note_picker_tab_likes">Likes</string>
+    <string name="note_picker_tab_published">Published</string>
+    <string name="load_failed_retry">Failed to load, tap to retry</string>
+    <string name="note_picker_empty">No image-text notes yet</string>
+    <string name="untitled">Untitled</string>
+</resources>

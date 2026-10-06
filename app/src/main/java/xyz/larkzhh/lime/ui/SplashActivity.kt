@@ -40,6 +40,7 @@ import kotlinx.coroutines.delay
 
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.ui.theme.AppLimeTheme
+import xyz.larkzhh.lime.ui.theme.AppSplashAnim
 import xyz.larkzhh.lime.util.system.findActivity
 import kotlin.time.Duration.Companion.milliseconds
 

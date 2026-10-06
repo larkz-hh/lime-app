@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="draft_box_title">草稿箱</string>
+    <string name="draft_manage">管理</string>
+    <string name="draft_done">完成</string>
+    <string name="draft_selected_title">已選%1$d</string>
+    <string name="draft_selected_count">已選 %1$d 項</string>
+    <string name="draft_empty">還沒有草稿</string>
+    <string name="draft_delete_failed">刪除失敗：%1$s</string>
+    <string name="draft_deleting">刪除中…</string>
+    <string name="draft_cover_placeholder">草稿</string>
+    <string name="draft_unnamed">未命名草稿</string>
+    <string name="draft_selected">已選</string>
+</resources>

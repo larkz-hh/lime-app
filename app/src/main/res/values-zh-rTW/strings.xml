@@ -1,10 +1,8 @@
 <resources>
-    <string name="app_name">Lime</string>
     <string name="pip_seek_back">後退15秒</string>
     <string name="pip_seek_forward">前進15秒</string>
     <string name="pip_pause">暫停</string>
     <string name="playback_channel_name">正在播放</string>
-    <string name="notification_service_running">正在接收互動與私訊通知</string>
     <string name="shortcut_search">搜尋</string>
     <string name="shortcut_scan">掃一掃</string>
     <string name="widget_search_name">Lime 搜尋</string>
@@ -15,48 +13,7 @@
     <string name="nav_profile">我</string>
     <string name="nav_publish_desc">發佈</string>
 
-    <string name="settings_title">一般</string>
-    <string name="settings_section_notify">通知</string>
-    <string name="settings_notify_reminders">通知提醒</string>
-    <string name="settings_splash_animation">啟動動畫</string>
     <string name="exit_again_hint">再按一次離開程式</string>
-    <string name="settings_section_storage">儲存空間</string>
-    <string name="settings_clear_cache">清除快取</string>
-    <string name="settings_clear_cache_confirm_title">確定清除應用程式快取嗎？</string>
-    <string name="settings_clear">清除</string>
-    <string name="settings_cache_cleared">快取已清除（剩餘 %1$s）</string>
-    <string name="settings_language">語言</string>
-    <string name="settings_theme">主題</string>
-    <string name="theme_confirm_title">儲存主題設定？</string>
-    <string name="theme_confirm_text">切換後介面會立即以新主題顯示</string>
-    <string name="theme_switched">主題已切換</string>
-    <string name="font_settings_title">字體設定</string>
-    <string name="settings_font">字體</string>
-    <string name="font_confirm_title">儲存字體設定？</string>
-    <string name="font_confirm_text">切換後介面會立即以新字體顯示</string>
-    <string name="font_switched">字體已切換</string>
-    <string name="settings_section_display">顯示</string>
-    <string name="settings_dark_mode">深色模式</string>
-    <string name="dark_mode_option_system">跟隨系統</string>
-    <string name="dark_mode_option_dark">深色</string>
-    <string name="dark_mode_confirm_title">儲存深色模式設定？</string>
-    <string name="dark_mode_confirm_text">切換後介面會立即套用新的外觀模式</string>
-    <string name="dark_mode_switched">深色模式已切換</string>
-    <string name="lang_switched">語言已切換</string>
-    <string name="language_confirm_title">儲存語言設定？</string>
-    <string name="language_confirm_text">切換後介面會立即以新語言顯示</string>
-
-    <string name="draft_box_title">草稿箱</string>
-    <string name="draft_manage">管理</string>
-    <string name="draft_done">完成</string>
-    <string name="draft_selected_title">已選%1$d</string>
-    <string name="draft_selected_count">已選 %1$d 項</string>
-    <string name="draft_empty">還沒有草稿</string>
-    <string name="draft_delete_failed">刪除失敗：%1$s</string>
-    <string name="draft_deleting">刪除中…</string>
-    <string name="draft_cover_placeholder">草稿</string>
-    <string name="draft_unnamed">未命名草稿</string>
-    <string name="draft_selected">已選</string>
 
     <!-- 登入/註冊 -->
 
@@ -123,33 +80,6 @@
     <string name="publish_camera">相機</string>
     <string name="publish_take_photo">拍攝</string>
 
-    <string name="ai_new_chat">新對話</string>
-    <string name="ai_new_conversation_cd">新建對話</string>
-    <string name="ai_open_history_cd">開啟歷史對話</string>
-    <string name="ai_clear_conversation">清空對話</string>
-    <string name="ai_delete_conversation_title">刪除對話</string>
-    <string name="ai_delete_conversation_message">「%1$s」將被刪除，且無法復原。</string>
-    <string name="ai_clear_conversation_message">將清空該對話的全部訊息，且無法復原。</string>
-    <string name="ai_delete_message_title">刪除訊息</string>
-    <string name="ai_delete_message_message">將刪除這則訊息及其關聯的提問/回覆，且無法復原。</string>
-    <string name="ai_cleared">已清空</string>
-    <string name="ai_conversation_deleted">對話已刪除</string>
-    <string name="ai_copied">已複製</string>
-    <string name="ai_camera_file_failed">無法建立拍照檔案</string>
-    <string name="ai_offline_banner">目前沒有網路，顯示快取訊息</string>
-    <string name="ai_select_text_title">選擇文字</string>
-    <string name="ai_history_title">對話紀錄</string>
-    <string name="ai_no_history">暫無歷史對話</string>
-    <string name="ai_load_failed_retry">載入失敗，點擊重試</string>
-    <string name="ai_default_model">預設模型</string>
-    <string name="ai_image_chat_title">圖片對話</string>
-    <string name="ai_delete_failed">刪除失敗，請重試</string>
-    <string name="ai_clear_failed">清空失敗，請重試</string>
-    <string name="ai_offline_cannot_send">目前沒有網路，無法傳送</string>
-    <string name="ai_image_upload_failed">有圖片上傳失敗，請點擊重試或移除</string>
-    <string name="ai_offline_cannot_resend">目前沒有網路，無法重傳</string>
-    <string name="ai_offline_cannot_regenerate">目前沒有網路，無法重新生成</string>
-
     <string name="video_save_to_album">儲存到相簿</string>
     <string name="video_clear_screen_playback">清屏播放</string>
     <string name="video_auto_play_next">自動連播</string>
@@ -170,15 +100,6 @@
     <string name="video_volume">音量</string>
     <string name="video_speed_boost">倍速中</string>
     <string name="video_danmaku_send_failed">彈幕發送失敗</string>
-
-    <string name="note_picker_title">選擇筆記</string>
-    <string name="note_picker_confirm">選擇筆記</string>
-    <string name="note_picker_tab_favorites">收藏</string>
-    <string name="note_picker_tab_likes">點讚</string>
-    <string name="note_picker_tab_published">發布</string>
-    <string name="load_failed_retry">載入失敗，點擊重試</string>
-    <string name="note_picker_empty">暫無圖文筆記</string>
-    <string name="untitled">無標題</string>
 
     <string name="search_placeholder">搜尋筆記和使用者</string>
     <string name="search_clear">清空</string>

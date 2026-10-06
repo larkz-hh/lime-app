@@ -2,6 +2,7 @@ package xyz.larkzhh.lime
 
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -16,7 +17,9 @@ import okio.Path.Companion.toOkioPath
 import com.tencent.mmkv.MMKV
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
+import xyz.larkzhh.lime.navigation.MainEntryPoint
 import xyz.larkzhh.lime.navigation.VideoOpener
+import xyz.larkzhh.lime.ui.MainActivity
 import xyz.larkzhh.lime.ui.openVideo
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.util.text.AppLanguage
@@ -40,6 +43,15 @@ class LimeApplication : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         MMKV.initialize(this)
         VideoOpener.open = { context, noteId, source -> context.openVideo(noteId, source) }
+        MainEntryPoint.intent = { context, action ->
+            Intent(context, MainActivity::class.java)
+                .setAction(action)
+                .addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+                )
+        }
         // 首次启动后台预下载
         TranslatePrefetchWorker.enqueueOnFirstLaunch(this)
         // 桌面小组件热搜定时刷新

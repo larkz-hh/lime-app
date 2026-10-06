@@ -1,10 +1,8 @@
 <resources>
-    <string name="app_name">Lime</string>
     <string name="pip_seek_back">Rewind 15s</string>
     <string name="pip_seek_forward">Forward 15s</string>
     <string name="pip_pause">Pause</string>
     <string name="playback_channel_name">Now playing</string>
-    <string name="notification_service_running">Receiving interactions and messages</string>
     <string name="shortcut_search">Search</string>
     <string name="shortcut_scan">Scan</string>
     <string name="widget_search_name">Lime Search</string>
@@ -15,48 +13,7 @@
     <string name="nav_profile">Me</string>
     <string name="nav_publish_desc">Publish</string>
 
-    <string name="settings_title">General</string>
-    <string name="settings_section_notify">Notifications</string>
-    <string name="settings_notify_reminders">Notification alerts</string>
-    <string name="settings_splash_animation">Splash Animation</string>
     <string name="exit_again_hint">Press back again to exit</string>
-    <string name="settings_section_storage">Storage</string>
-    <string name="settings_clear_cache">Clear cache</string>
-    <string name="settings_clear_cache_confirm_title">Clear app cache?</string>
-    <string name="settings_clear">Clear</string>
-    <string name="settings_cache_cleared">Cache cleared (%1$s left)</string>
-    <string name="settings_language">Language</string>
-    <string name="settings_theme">Theme</string>
-    <string name="theme_confirm_title">Save theme settings?</string>
-    <string name="theme_confirm_text">The interface will switch to the new theme immediately</string>
-    <string name="theme_switched">Theme switched</string>
-    <string name="font_settings_title">Font Settings</string>
-    <string name="settings_font">Font</string>
-    <string name="font_confirm_title">Save font settings?</string>
-    <string name="font_confirm_text">The app will immediately use the new font</string>
-    <string name="font_switched">Font switched</string>
-    <string name="settings_section_display">Display</string>
-    <string name="settings_dark_mode">Dark Mode</string>
-    <string name="dark_mode_option_system">Follow system</string>
-    <string name="dark_mode_option_dark">Dark</string>
-    <string name="dark_mode_confirm_title">Save dark mode settings?</string>
-    <string name="dark_mode_confirm_text">The new appearance will be applied immediately</string>
-    <string name="dark_mode_switched">Dark mode switched</string>
-    <string name="lang_switched">Language switched</string>
-    <string name="language_confirm_title">Save language settings?</string>
-    <string name="language_confirm_text">The interface will switch to the new language immediately</string>
-
-    <string name="draft_box_title">Drafts</string>
-    <string name="draft_manage">Manage</string>
-    <string name="draft_done">Done</string>
-    <string name="draft_selected_title">%1$d selected</string>
-    <string name="draft_selected_count">%1$d selected</string>
-    <string name="draft_empty">No drafts yet</string>
-    <string name="draft_delete_failed">Failed to delete: %1$s</string>
-    <string name="draft_deleting">Deleting…</string>
-    <string name="draft_cover_placeholder">Draft</string>
-    <string name="draft_unnamed">Untitled draft</string>
-    <string name="draft_selected">Selected</string>
 
     <!-- Auth -->
 
@@ -123,33 +80,6 @@
     <string name="publish_camera">Camera</string>
     <string name="publish_take_photo">Take Photo</string>
 
-    <string name="ai_new_chat">New chat</string>
-    <string name="ai_new_conversation_cd">New conversation</string>
-    <string name="ai_open_history_cd">Open history</string>
-    <string name="ai_clear_conversation">Clear conversation</string>
-    <string name="ai_delete_conversation_title">Delete conversation</string>
-    <string name="ai_delete_conversation_message">“%1$s” will be deleted and cannot be recovered.</string>
-    <string name="ai_clear_conversation_message">All messages in this conversation will be cleared. This cannot be undone.</string>
-    <string name="ai_delete_message_title">Delete message</string>
-    <string name="ai_delete_message_message">This message and its related question/reply will be deleted. This cannot be undone.</string>
-    <string name="ai_cleared">Cleared</string>
-    <string name="ai_conversation_deleted">Conversation deleted</string>
-    <string name="ai_copied">Copied</string>
-    <string name="ai_camera_file_failed">Failed to create camera file</string>
-    <string name="ai_offline_banner">No network connection. Showing cached messages.</string>
-    <string name="ai_select_text_title">Select text</string>
-    <string name="ai_history_title">Conversations</string>
-    <string name="ai_no_history">No conversation history yet</string>
-    <string name="ai_load_failed_retry">Failed to load. Tap to retry.</string>
-    <string name="ai_default_model">Default model</string>
-    <string name="ai_image_chat_title">Image chat</string>
-    <string name="ai_delete_failed">Failed to delete, please try again</string>
-    <string name="ai_clear_failed">Failed to clear, please try again</string>
-    <string name="ai_offline_cannot_send">No network. Unable to send.</string>
-    <string name="ai_image_upload_failed">Some images failed to upload. Tap to retry or remove them.</string>
-    <string name="ai_offline_cannot_resend">No network. Unable to resend.</string>
-    <string name="ai_offline_cannot_regenerate">No network. Unable to regenerate.</string>
-
     <string name="video_save_to_album">Save to album</string>
     <string name="video_clear_screen_playback">Clean Screen Playback</string>
     <string name="video_auto_play_next">Auto-play next</string>
@@ -170,15 +100,6 @@
     <string name="video_volume">Volume</string>
     <string name="video_speed_boost">Boosting speed</string>
     <string name="video_danmaku_send_failed">Failed to send danmaku</string>
-
-    <string name="note_picker_title">Select a note</string>
-    <string name="note_picker_confirm">Select</string>
-    <string name="note_picker_tab_favorites">Favorites</string>
-    <string name="note_picker_tab_likes">Likes</string>
-    <string name="note_picker_tab_published">Published</string>
-    <string name="load_failed_retry">Failed to load, tap to retry</string>
-    <string name="note_picker_empty">No image-text notes yet</string>
-    <string name="untitled">Untitled</string>
 
     <string name="search_placeholder">Search notes and users</string>
     <string name="search_clear">Clear</string>

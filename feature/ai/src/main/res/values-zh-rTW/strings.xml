@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ai_new_chat">新對話</string>
+    <string name="ai_new_conversation_cd">新建對話</string>
+    <string name="ai_open_history_cd">開啟歷史對話</string>
+    <string name="ai_clear_conversation">清空對話</string>
+    <string name="ai_delete_conversation_title">刪除對話</string>
+    <string name="ai_delete_conversation_message">「%1$s」將被刪除，且無法復原。</string>
+    <string name="ai_clear_conversation_message">將清空該對話的全部訊息，且無法復原。</string>
+    <string name="ai_delete_message_title">刪除訊息</string>
+    <string name="ai_delete_message_message">將刪除這則訊息及其關聯的提問/回覆，且無法復原。</string>
+    <string name="ai_cleared">已清空</string>
+    <string name="ai_conversation_deleted">對話已刪除</string>
+    <string name="ai_copied">已複製</string>
+    <string name="ai_camera_file_failed">無法建立拍照檔案</string>
+    <string name="ai_offline_banner">目前沒有網路，顯示快取訊息</string>
+    <string name="ai_select_text_title">選擇文字</string>
+    <string name="ai_history_title">對話紀錄</string>
+    <string name="ai_no_history">暫無歷史對話</string>
+    <string name="ai_load_failed_retry">載入失敗，點擊重試</string>
+    <string name="ai_default_model">預設模型</string>
+    <string name="ai_image_chat_title">圖片對話</string>
+    <string name="ai_delete_failed">刪除失敗，請重試</string>
+    <string name="ai_clear_failed">清空失敗，請重試</string>
+    <string name="ai_offline_cannot_send">目前沒有網路，無法傳送</string>
+    <string name="ai_image_upload_failed">有圖片上傳失敗，請點擊重試或移除</string>
+    <string name="ai_offline_cannot_resend">目前沒有網路，無法重傳</string>
+    <string name="ai_offline_cannot_regenerate">目前沒有網路，無法重新生成</string>
+    <string name="note_picker_title">選擇筆記</string>
+    <string name="note_picker_confirm">選擇筆記</string>
+    <string name="note_picker_tab_favorites">收藏</string>
+    <string name="note_picker_tab_likes">點讚</string>
+    <string name="note_picker_tab_published">發布</string>
+    <string name="load_failed_retry">載入失敗，點擊重試</string>
+    <string name="note_picker_empty">暫無圖文筆記</string>
+    <string name="untitled">無標題</string>
+</resources>
