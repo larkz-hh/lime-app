@@ -93,6 +93,7 @@ javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "j
 
 # Paging
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "pagingCompose" }
+androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "pagingCompose" }
 
 # Room
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }

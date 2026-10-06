@@ -21,9 +21,9 @@ import xyz.larkzhh.lime.domain.model.ImConversation
 import xyz.larkzhh.lime.domain.model.ImGroup
 import xyz.larkzhh.lime.domain.model.ImMessage
 import xyz.larkzhh.lime.domain.model.ImUserProfile
-import xyz.larkzhh.lime.domain.model.toImConversation
-import xyz.larkzhh.lime.domain.model.toImGroup
-import xyz.larkzhh.lime.domain.model.toImMessage
+import xyz.larkzhh.lime.data.im.toImConversation
+import xyz.larkzhh.lime.data.im.toImGroup
+import xyz.larkzhh.lime.data.im.toImMessage
 import xyz.larkzhh.lime.domain.repository.ImRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
 import java.util.concurrent.ConcurrentHashMap

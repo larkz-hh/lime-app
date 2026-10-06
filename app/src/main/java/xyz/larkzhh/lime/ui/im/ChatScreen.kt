@@ -508,8 +508,9 @@ internal fun MessageBubble(
             when {
                 message.isImage -> {
                     val localFile = message.imagePath?.let { File(it) }
-                    val remoteOk = !message.imageUrl.isNullOrBlank() &&
-                        (message.imageUrl.startsWith("http://") || message.imageUrl.startsWith("https://"))
+                    val imageUrl = message.imageUrl
+                    val remoteOk = !imageUrl.isNullOrBlank() &&
+                        (imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))
                     val ratio = if (localFile != null && localFile.exists()) imageAspectRatio(localFile) else 1f
                     val imageModifier = Modifier
                         .fillMaxWidth(0.5f)

@@ -19,7 +19,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.domain.model.FollowActionState
-import xyz.larkzhh.lime.domain.model.labelRes
 import xyz.larkzhh.lime.ui.auth.LoginGate
 
 /**

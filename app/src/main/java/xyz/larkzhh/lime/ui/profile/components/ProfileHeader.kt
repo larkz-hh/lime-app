@@ -46,7 +46,7 @@ import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.domain.model.FollowActionState
-import xyz.larkzhh.lime.domain.model.labelRes
+import xyz.larkzhh.lime.ui.components.labelRes
 import xyz.larkzhh.lime.ui.profile.viewmodel.ProfileUiState
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
