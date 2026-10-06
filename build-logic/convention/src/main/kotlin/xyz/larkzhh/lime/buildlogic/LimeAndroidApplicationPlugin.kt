@@ -29,6 +29,12 @@ class LimeAndroidApplicationPlugin : Plugin<Project> {
                 compose = true
                 buildConfig = true
             }
+            
+            testOptions {
+                unitTests {
+                    isReturnDefaultValues = true
+                }
+            }
         }
 
         configureKotlinAndroid()
