@@ -34,9 +34,9 @@ class VideoFeedTexts internal constructor(
 fun videoFeedTexts(): VideoFeedTexts = VideoFeedTexts(
     enableNotificationHint = stringResource(R.string.video_notify_settings_hint),
     replyMenuLabel = stringResource(R.string.video_reply),
-    copyMenuLabel = stringResource(R.string.chat_copy),
+    copyMenuLabel = stringResource(DesignSystemR.string.chat_copy),
     translateMenuLabel = stringResource(R.string.drawer_translate),
-    deleteMenuLabel = stringResource(R.string.delete),
+    deleteMenuLabel = stringResource(DesignSystemR.string.delete),
     copiedText = stringResource(R.string.copied),
     backgroundDownloadToastText = stringResource(R.string.translate_bg_download_toast),
     danmakuOffText = stringResource(R.string.video_danmaku_off),

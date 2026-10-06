@@ -66,7 +66,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.state.AuthorProfileSession
-import xyz.larkzhh.lime.ui.auth.LoginGate
+import xyz.larkzhh.lime.ui.components.LoginGate
 import xyz.larkzhh.lime.navigation.state.ProfileLayoutStore
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.video.feed.PersonalVideoPayload
@@ -78,7 +78,7 @@ import xyz.larkzhh.lime.domain.model.toFollowActionState
 import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.components.PagingWaterfallFeed
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
-import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
+import xyz.larkzhh.lime.ui.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.ui.profile.components.LikeFavStatsDialog
 import xyz.larkzhh.lime.ui.profile.components.ProfileHeader
 import xyz.larkzhh.lime.ui.profile.components.ProfileTabRow

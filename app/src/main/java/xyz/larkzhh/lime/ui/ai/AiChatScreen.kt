@@ -94,6 +94,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.domain.model.ChatConversation
 import xyz.larkzhh.lime.domain.model.ChatMessage
 import xyz.larkzhh.lime.domain.model.ChatMessageStatus
@@ -107,7 +108,7 @@ import xyz.larkzhh.lime.ui.components.chat.ChatInputBar
 import xyz.larkzhh.lime.ui.components.chat.ChatInputImage
 import xyz.larkzhh.lime.ui.components.chat.ChatInputImageState
 import xyz.larkzhh.lime.ui.components.chat.ChatMessageList
-import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
+import xyz.larkzhh.lime.ui.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.text.formatRelativeTime
 import xyz.larkzhh.lime.util.showToast
@@ -564,8 +565,8 @@ fun AiChatScreen(
             LimeAlertDialog(
                 title = stringResource(R.string.ai_delete_conversation_title),
                 text = stringResource(R.string.ai_delete_conversation_message, target.title),
-                firstButtonText = stringResource(R.string.cancel),
-                secondButtonText = stringResource(R.string.delete),
+                firstButtonText = stringResource(DesignSystemR.string.cancel),
+                secondButtonText = stringResource(DesignSystemR.string.delete),
                 secondButtonColor = MaterialTheme.colorScheme.error,
                 onFirstButtonClick = { deleteTarget = null },
                 onSecondButtonClick = {
@@ -582,8 +583,8 @@ fun AiChatScreen(
             LimeAlertDialog(
                 title = stringResource(R.string.ai_clear_conversation),
                 text = stringResource(R.string.ai_clear_conversation_message),
-                firstButtonText = stringResource(R.string.cancel),
-                secondButtonText = stringResource(R.string.chat_clear_action),
+                firstButtonText = stringResource(DesignSystemR.string.cancel),
+                secondButtonText = stringResource(DesignSystemR.string.chat_clear_action),
                 secondButtonColor = MaterialTheme.colorScheme.error,
                 onFirstButtonClick = viewModel::dismissClearDialog,
                 onSecondButtonClick = viewModel::clearConversation,
@@ -596,8 +597,8 @@ fun AiChatScreen(
             LimeAlertDialog(
                 title = stringResource(R.string.ai_delete_message_title),
                 text = stringResource(R.string.ai_delete_message_message),
-                firstButtonText = stringResource(R.string.cancel),
-                secondButtonText = stringResource(R.string.delete),
+                firstButtonText = stringResource(DesignSystemR.string.cancel),
+                secondButtonText = stringResource(DesignSystemR.string.delete),
                 secondButtonColor = MaterialTheme.colorScheme.error,
                 onFirstButtonClick = { pendingDeleteMessage = null },
                 onSecondButtonClick = {

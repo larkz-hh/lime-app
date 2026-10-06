@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.ui.theme.LimeGray
 
 /// 弹幕颜色选择
@@ -159,7 +160,7 @@ fun DanmakuInputSheet(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = stringResource(R.string.chat_send),
+                        text = stringResource(DesignSystemR.string.chat_send),
                         fontSize = 13.sp,
                         color = if (canSend) Color.White else LimeGray,
                     )

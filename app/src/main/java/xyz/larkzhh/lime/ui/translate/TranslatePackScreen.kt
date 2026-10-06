@@ -211,8 +211,8 @@ fun TranslatePackScreen(
     if (showDeleteConfirm) {
         LimeAlertDialog(
             title = stringResource(R.string.translate_delete_pack_confirm_title),
-            firstButtonText = stringResource(R.string.cancel),
-            secondButtonText = stringResource(R.string.delete),
+            firstButtonText = stringResource(DesignSystemR.string.cancel),
+            secondButtonText = stringResource(DesignSystemR.string.delete),
             onFirstButtonClick = { showDeleteConfirm = false },
             onSecondButtonClick = {
                 showDeleteConfirm = false
@@ -226,8 +226,8 @@ fun TranslatePackScreen(
     if (showSpeechDeleteConfirm) {
         LimeAlertDialog(
             title = stringResource(R.string.speech_delete_pack_confirm_title),
-            firstButtonText = stringResource(R.string.cancel),
-            secondButtonText = stringResource(R.string.delete),
+            firstButtonText = stringResource(DesignSystemR.string.cancel),
+            secondButtonText = stringResource(DesignSystemR.string.delete),
             onFirstButtonClick = { showSpeechDeleteConfirm = false },
             onSecondButtonClick = {
                 showSpeechDeleteConfirm = false
@@ -344,7 +344,7 @@ private fun PackAction(
                 fontWeight = FontWeight.Medium,
             )
             Text(
-                text = stringResource(R.string.delete),
+                text = stringResource(DesignSystemR.string.delete),
                 fontSize = 13.sp,
                 color = Color(0xFFFF3B30),
                 modifier = Modifier

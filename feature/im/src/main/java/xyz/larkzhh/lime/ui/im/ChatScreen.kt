@@ -1,0 +1,600 @@
+package xyz.larkzhh.lime.ui.im
+
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import kotlin.math.roundToInt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import coil3.compose.AsyncImage
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
+import xyz.larkzhh.lime.feature.im.R
+import xyz.larkzhh.lime.domain.model.ImMessage
+import xyz.larkzhh.lime.navigation.route.Screen
+import xyz.larkzhh.lime.navigation.route.navigateToUserProfile
+import xyz.larkzhh.lime.ui.components.LimeAlertDialog
+import xyz.larkzhh.lime.ui.components.chat.ChatInputBar
+import xyz.larkzhh.lime.ui.components.EmojiPanel
+import xyz.larkzhh.lime.ui.components.ImagePreviewOverlay
+import xyz.larkzhh.lime.ui.im.viewmodel.ImChatViewModel
+import xyz.larkzhh.lime.ui.theme.LimeGray
+import xyz.larkzhh.lime.ui.theme.LocalChatBubbleColors
+import xyz.larkzhh.lime.util.copyToClipboard
+import xyz.larkzhh.lime.util.media.copyUriToCache
+import xyz.larkzhh.lime.util.text.formatChatTime
+import xyz.larkzhh.lime.util.media.imageAspectRatio
+import xyz.larkzhh.lime.util.text.isSameChatDay
+import java.io.File
+
+private const val TIME_GROUP_GAP_SECONDS = 5 * 60L
+
+/// 聊天列表行
+private interface ChatRow {
+    val key: String
+}
+
+private data class TimeRow(val text: String, override val key: String) : ChatRow
+
+private data class MsgRow(val message: ImMessage) : ChatRow {
+    override val key: String = message.id
+}
+
+private fun buildChatRows(messages: List<ImMessage>): List<ChatRow> {
+    val rows = mutableListOf<ChatRow>()
+    var lastTime: Long? = null
+    for (msg in messages.asReversed()) {
+        val ts = msg.timestamp
+        val needHeader = lastTime == null || (ts - lastTime) > TIME_GROUP_GAP_SECONDS ||
+            !isSameChatDay(ts, lastTime)
+        if (needHeader) {
+            rows += TimeRow(text = formatChatTime(ts), key = "time_${msg.id}")
+        }
+        rows += MsgRow(msg)
+        lastTime = ts
+    }
+    return rows
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ChatScreen(
+    conversationId: String,
+    onBack: () -> Unit,
+    navController: NavHostController,
+    viewModel: ImChatViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var inputText by remember { mutableStateOf("") }
+    var showEmojiPanel by remember { mutableStateOf(false) }
+    var pendingKeyboard by remember { mutableStateOf(false) }
+    var showClearConfirm by remember { mutableStateOf(false) }
+    // 图片消息全屏预览
+    var previewImages by remember { mutableStateOf<List<String>>(emptyList()) }
+    var previewIndex by remember { mutableIntStateOf(0) }
+    val conversationImages = remember(state.messages) {
+        state.messages.mapNotNull { msg ->
+            if (!msg.isImage) null
+            else {
+                val localFile = msg.imagePath?.let { File(it) }
+                val model = if (localFile != null && localFile.exists()) {
+                    Uri.fromFile(localFile).toString()// 本地已下载
+                } else {
+                    msg.imageUrl
+                }
+                model?.let { msg.id to it }
+            }
+        }
+    }
+    val focusRequester = remember { FocusRequester() }
+    val listState = rememberLazyListState()
+    // 渲染行
+    val chatRows = remember(state.messages) { buildChatRows(state.messages) }
+    // 末尾消息 id
+    val lastMsgId = chatRows.lastOrNull()?.key
+    var listWasEmpty by remember { mutableStateOf(true) }
+    LaunchedEffect(lastMsgId) {
+        if (chatRows.isNotEmpty()) {
+            if (listWasEmpty) {
+                // 首次加载。定位到最新消息
+                listState.scrollToItem(chatRows.lastIndex)
+                listWasEmpty = false
+            } else {
+                // 新消息到达：平滑滚动到底
+                listState.animateScrollToItem(chatRows.lastIndex)
+            }
+        }
+    }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val density = LocalDensity.current
+    // 记忆键盘最大高度
+    var savedImeHeight by remember { mutableIntStateOf(0) }
+    val imeHeightPx = WindowInsets.ime.getBottom(density)
+    LaunchedEffect(imeHeightPx) {
+        val dp = with(density) { imeHeightPx.toDp().value.toInt() }
+        if (dp > savedImeHeight) savedImeHeight = dp
+        if (pendingKeyboard && savedImeHeight > 0 && dp >= savedImeHeight) {
+            showEmojiPanel = false
+            pendingKeyboard = false
+        }
+    }
+
+    LaunchedEffect(conversationId) {
+        viewModel.load(conversationId)
+    }
+
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
+
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val path = withContext(Dispatchers.IO) {
+                    context.copyUriToCache(uri, "im")
+                }
+                if (path != null) viewModel.sendImage(path)
+            }
+        }
+    }
+
+    if (showClearConfirm) {
+        LimeAlertDialog(
+            title = stringResource(R.string.chat_clear_history_title),
+            text = stringResource(R.string.chat_clear_history_message),
+            firstButtonText = stringResource(DesignSystemR.string.cancel),
+            secondButtonText = stringResource(DesignSystemR.string.chat_clear_action),
+            secondButtonColor = Color(0xFFFE2C55),
+            onFirstButtonClick = { showClearConfirm = false },
+            onSecondButtonClick = {
+                showClearConfirm = false
+                viewModel.clearHistory()
+            },
+            onDismissRequest = { showClearConfirm = false },
+        )
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            TopAppBar(
+                title = { Text(state.peerNickname ?: if (state.isGroup) stringResource(DesignSystemR.string.profile_group_chat) else stringResource(R.string.chat_private_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(DesignSystemR.string.back))
+                    }
+                },
+                actions = {
+                    if (state.isGroup) {
+                        IconButton(
+                            onClick = {
+                                state.groupId?.let { navController.navigate(Screen.GroupManage.createRoute(it)) }
+                            },
+                        ) {
+                            Icon(
+                                Icons.Filled.Group,
+                                contentDescription = stringResource(DesignSystemR.string.group_manage_title),
+                                tint = LimeGray,
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = { showClearConfirm = true }) {
+                            Icon(
+                                Icons.Outlined.Delete,
+                                contentDescription = stringResource(R.string.chat_clear_history_title),
+                                tint = LimeGray,
+                            )
+                        }
+                    }
+                },
+            )
+        },
+        bottomBar = {
+            val emojiHeight = savedImeHeight.dp.coerceAtLeast(260.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .let { if (!showEmojiPanel && !pendingKeyboard) it.imePadding() else it },
+            ) {
+                ChatInputBar(
+                    text = inputText,
+                    onTextChange = { inputText = it },
+                    focusRequester = focusRequester,
+                    placeholder = stringResource(R.string.chat_input_hint),
+                    canSend = inputText.isNotBlank(),
+                    onAddClick = { imagePicker.launch("image/*") },
+                    onSend = {
+                        val text = inputText
+                        inputText = ""
+                        if (text.isNotBlank()) viewModel.sendText(text)
+                    },
+                    showEmojiToggle = true,
+                    emojiActive = showEmojiPanel,
+                    onEmojiClick = {
+                        if (showEmojiPanel) {
+                            pendingKeyboard = true
+                            focusRequester.requestFocus()
+                            keyboardController?.show()
+                        } else {
+                            focusManager.clearFocus()
+                            showEmojiPanel = true
+                        }
+                    },
+                )
+                when {
+                    showEmojiPanel -> EmojiPanel(
+                        onEmojiClick = { emoji -> inputText += emoji },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(emojiHeight),
+                    )
+
+                    pendingKeyboard -> Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(emojiHeight),
+                    )
+                }
+            }
+        },
+    ) { padding ->
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            items(chatRows, key = { it.key }) { row ->
+                when (row) {
+                    is TimeRow -> Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = row.text,
+                            color = LimeGray,
+                            fontSize = 11.sp,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(horizontal = 10.dp, vertical = 3.dp),
+                        )
+                    }
+
+                    is MsgRow -> {
+                        val msg = row.message
+                        val memberProfile = if (state.isGroup && !msg.isSelf) {
+                            state.memberProfiles[msg.senderId]
+                        } else null
+                        MessageBubble(
+                            message = msg,
+                            avatar = if (msg.isSelf) state.selfAvatar
+                            else if (state.isGroup) memberProfile?.faceUrl
+                            else state.peerAvatar,
+                            senderName = if (state.isGroup && !msg.isSelf) {
+                                memberProfile?.nickname ?: msg.senderId.removePrefix("lime_")
+                            } else null,
+                            avatarFallback = when {
+                                msg.isSelf -> "我"
+                                state.isGroup -> memberProfile?.nickname ?: msg.senderId.removePrefix("lime_")
+                                else -> state.peerNickname
+                            },
+                            onAvatarClick = {
+                                val target = when {
+                                    msg.isSelf -> state.selfUserId
+                                    state.isGroup -> msg.senderId.removePrefix("lime_").toLongOrNull()
+                                    else -> state.peerUserId
+                                }
+                                target?.let { navController.navigateToUserProfile(it, state.selfUserId) }
+                            },
+                            onCopy = { msg.text.orEmpty().copyToClipboard(context) },
+                            onRevoke = { viewModel.revokeMessage(msg) },
+                            onDelete = { viewModel.deleteMessage(msg) },
+                            onImageClick = {
+                                val idx = conversationImages.indexOfFirst { it.first == msg.id }
+                                if (idx >= 0) {
+                                    val ordered = conversationImages.map { it.second }.asReversed()
+                                    previewImages = ordered
+                                    previewIndex = ordered.lastIndex - idx
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // 图片消息全屏预览浮层
+    if (previewImages.isNotEmpty()) {
+        Dialog(
+            onDismissRequest = { previewImages = emptyList() },
+            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+        ) {
+            ImagePreviewOverlay(
+                images = previewImages,
+                initialIndex = previewIndex,
+                onDismiss = { previewImages = emptyList() },
+            )
+        }
+    }
+}
+
+/// 头像：有图显示图片，无图显示昵称首字占位
+@Composable
+private fun AvatarView(
+    avatar: String?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    fallbackText: String? = null,
+) {
+    Box(
+        modifier = modifier
+            .size(36.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (!avatar.isNullOrBlank()) {
+            AsyncImage(
+                model = avatar,
+                contentDescription = stringResource(DesignSystemR.string.profile_avatar),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            Text(
+                text = fallbackText?.take(1) ?: "?",
+                style = MaterialTheme.typography.titleMedium,
+                color = LimeGray,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun MessageBubble(
+    message: ImMessage,
+    avatar: String?,
+    senderName: String? = null,
+    avatarFallback: String? = null,
+    onAvatarClick: () -> Unit,
+    onCopy: () -> Unit,
+    onRevoke: () -> Unit,
+    onDelete: () -> Unit,
+    onImageClick: () -> Unit = {},
+) {
+    // 撤回消息提示
+    if (message.isRevoked) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = if (message.isSelf) stringResource(R.string.chat_revoked_self) else stringResource(R.string.chat_revoked_other),
+                color = LimeGray,
+                fontSize = 12.sp,
+            )
+        }
+        return
+    }
+
+    var showMenu by remember { mutableStateOf(false) }
+    var longPressOffset by remember { mutableStateOf(Offset.Zero) }
+    val canRevoke = message.isSelf &&
+        (System.currentTimeMillis() / 1000 - message.timestamp) <= 120
+    val bubbleColors = LocalChatBubbleColors.current
+    val bubbleColor = if (message.isSelf) bubbleColors.blueBubble else bubbleColors.grayBubble
+    val contentColor = if (message.isSelf) bubbleColors.blueBubbleContent else bubbleColors.grayBubbleContent
+
+    Box {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {},
+                        onLongPress = { offset ->
+                            longPressOffset = offset
+                            showMenu = true
+                        },
+                    )
+                },
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = if (message.isSelf) Arrangement.End else Arrangement.Start,
+        ) {
+            if (!message.isSelf) {
+                Column(
+                    modifier = Modifier.padding(end = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    if (!senderName.isNullOrBlank()) {
+                        Text(
+                            text = senderName,
+                            color = LimeGray,
+                            fontSize = 10.sp,
+                            maxLines = 1,
+                            modifier = Modifier.padding(bottom = 2.dp),
+                        )
+                    }
+                    AvatarView(avatar, onAvatarClick, fallbackText = senderName ?: avatarFallback)
+                }
+            }
+            when {
+                message.isImage -> {
+                    val localFile = message.imagePath?.let { File(it) }
+                    val imageUrl = message.imageUrl
+                    val remoteOk = !imageUrl.isNullOrBlank() &&
+                        (imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))
+                    val ratio = if (localFile != null && localFile.exists()) imageAspectRatio(localFile) else 1f
+                    val imageModifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .aspectRatio(ratio)
+                        .clip(RoundedCornerShape(12.dp))
+                    when {
+                        localFile != null && localFile.exists() -> AsyncImage(
+                            model = localFile,
+                            contentDescription = stringResource(R.string.chat_image_message_desc),
+                            modifier = imageModifier.clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() },
+                            ) { onImageClick() },
+                            contentScale = ContentScale.Crop,
+                        )
+
+                        remoteOk -> AsyncImage(
+                            model = message.imageUrl,
+                            contentDescription = stringResource(R.string.chat_image_message_desc),
+                            modifier = imageModifier.clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() },
+                            ) { onImageClick() },
+                            contentScale = ContentScale.Crop,
+                        )
+
+                        // 加载占位
+                        else -> Box(
+                            modifier = imageModifier.background(Color(0xFFEEEEEE)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(stringResource(R.string.chat_image_loading), color = LimeGray, fontSize = 12.sp)
+                        }
+                    }
+                }
+                else -> Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(bubbleColor)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                ) {
+                    Text(message.text.orEmpty(), color = contentColor)
+                }
+            }
+            if (message.isSelf) {
+                AvatarView(avatar, onAvatarClick, Modifier.padding(start = 6.dp), fallbackText = avatarFallback ?: "我")
+            }
+        }
+
+        // 长按菜单
+        Box(
+            modifier = Modifier.offset {
+                IntOffset(longPressOffset.x.roundToInt(), longPressOffset.y.roundToInt())
+            },
+        ) {
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false },
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                modifier = Modifier,
+            ) {
+                if (!message.text.isNullOrBlank()) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(DesignSystemR.string.chat_copy)) },
+                        leadingIcon = { Icon(Icons.Filled.ContentCopy, contentDescription = null) },
+                        onClick = { showMenu = false; onCopy() },
+                    )
+                }
+                if (canRevoke) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.chat_revoke)) },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = null) },
+                        onClick = { showMenu = false; onRevoke() },
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text(stringResource(DesignSystemR.string.delete)) },
+                    leadingIcon = {
+                        Icon(Icons.Outlined.Delete, contentDescription = null)
+                    },
+                    onClick = { showMenu = false; onDelete() },
+                )
+            }
+        }
+    }
+}
+

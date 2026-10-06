@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_private_title">Direct Message</string>
+    <string name="chat_clear_history_title">Clear Chat History</string>
+    <string name="chat_clear_history_message">Clear the chat history with this contact? This cannot be undone.</string>
+    <string name="chat_input_hint">Type a message…</string>
+    <string name="chat_image_message_desc">Image message</string>
+    <string name="chat_image_loading">Loading image…</string>
+    <string name="chat_revoked_self">You recalled a message</string>
+    <string name="chat_revoked_other">The other person recalled a message</string>
+    <string name="chat_revoke">Recall</string>
+    <string name="im_revoke_failed">Failed to revoke</string>
+    <string name="im_delete_failed">Failed to delete</string>
+    <string name="im_clear_failed">Failed to clear history</string>
+    <string name="im_login_failed">IM login failed</string>
+    <string name="im_send_failed">Failed to send</string>
+    <string name="im_open_conversation_failed">Could not open the conversation</string>
+</resources>

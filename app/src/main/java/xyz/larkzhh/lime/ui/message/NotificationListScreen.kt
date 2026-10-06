@@ -166,7 +166,7 @@ fun NotificationListScreen(
                         SwipeActionItem(
                             actionContent = {
                                 Text(
-                                    text = stringResource(R.string.delete),
+                                    text = stringResource(DesignSystemR.string.delete),
                                     color = Color.White,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Medium,
@@ -417,11 +417,6 @@ private fun previewItem(
     senderNickname = nickname,
     senderAvatar = null,
 )
-
-
-
-
-
 
 @Composable
 private fun PreviewInbox(

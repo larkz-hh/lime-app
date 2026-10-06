@@ -1,33 +1,22 @@
 <resources>
     <string name="app_name">Lime</string>
-    <!-- Picture-in-picture controls -->
     <string name="pip_seek_back">Rewind 15s</string>
     <string name="pip_seek_forward">Forward 15s</string>
     <string name="pip_pause">Pause</string>
-    <string name="pip_play">Play</string>
-    <!-- Background playback notification channel -->
     <string name="playback_channel_name">Now playing</string>
-    <!-- Message keep-alive foreground service -->
     <string name="notification_service_running">Receiving interactions and messages</string>
-    <!-- App shortcuts -->
     <string name="shortcut_search">Search</string>
     <string name="shortcut_ai">Ask AI</string>
     <string name="shortcut_scan">Scan</string>
-    <!-- Home screen widget -->
     <string name="widget_search_name">Lime Search</string>
     <string name="widget_search_description">Search box + trending today</string>
 
-    <!-- ===== Common ===== -->
-    <string name="cancel">Cancel</string>
-
-    <!-- Bottom navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_video">Video</string>
     <string name="nav_message">Messages</string>
     <string name="nav_profile">Me</string>
     <string name="nav_publish_desc">Publish</string>
 
-    <!-- Profile drawer -->
     <string name="drawer_translate">Translate</string>
     <string name="drawer_offline">Offline</string>
     <string name="drawer_drafts">Drafts</string>
@@ -35,7 +24,6 @@
     <string name="drawer_general">General</string>
     <string name="drawer_about">About</string>
 
-    <!-- General settings screen -->
     <string name="settings_title">General</string>
     <string name="settings_section_notify">Notifications</string>
     <string name="settings_notify_reminders">Notification alerts</string>
@@ -65,38 +53,9 @@
     <string name="dark_mode_switched">Dark mode switched</string>
     <string name="lang_system">Follow system</string>
     <string name="lang_switched">Language switched</string>
-    <string name="save">Save</string>
     <string name="language_confirm_title">Save language settings?</string>
     <string name="language_confirm_text">The interface will switch to the new language immediately</string>
 
-    <!-- About screen -->
-    <string name="about_title">About</string>
-    <string name="about_app_icon">App icon</string>
-    <string name="about_check_update">Check for updates</string>
-    <string name="about_latest">Already up to date</string>
-    <string name="about_check_failed">Check failed. Please check your network or repository config</string>
-    <string name="about_new_version_found">New version %1$s available</string>
-    <string name="about_update_prompt">Download and update now?</string>
-    <string name="about_update_later">Not now</string>
-    <string name="about_update_now">Update now</string>
-    <string name="about_repo">Repository</string>
-    <string name="about_author_github">Author GitHub</string>
-    <string name="about_qq_email">QQ Email</string>
-    <string name="about_homepage">Website</string>
-    <string name="about_email_copied">Email copied</string>
-    <string name="about_open_url_failed">Cannot open link</string>
-    <string name="about_install_permission_needed">Please allow installing apps from unknown sources first</string>
-    <string name="about_download_start_failed">Failed to start download, please retry</string>
-
-    <!-- Emoji panel groups -->
-    <string name="emoji_smiley">Smiley</string>
-    <string name="emoji_gestures">Gestures</string>
-    <string name="emoji_hearts">Hearts</string>
-    <string name="emoji_celebration">Celebration</string>
-    <string name="emoji_animals">Animals</string>
-    <string name="emoji_food">Food</string>
-
-    <!-- Home -->
     <string name="home_tab_follow">Following</string>
     <string name="home_tab_discover">Discover</string>
     <string name="home_chat_cd">Chat</string>
@@ -105,22 +64,10 @@
     <string name="home_follow_login_hint">Log in to see who you follow</string>
     <string name="home_refresh_action">Refresh</string>
 
-    <!-- Force logout dialog -->
-    <string name="force_logout_title">Session Expired</string>
-    <string name="force_logout_message">Your account was logged in on another device. Please sign in again.</string>
-    <string name="force_logout_login_again">Sign in again</string>
-
-    <!-- Unfollow confirm -->
-    <string name="unfollow_title">Stop following this user?</string>
-    <string name="unfollow_confirm">Unfollow</string>
-
-    <!-- Messages / Notifications -->
-    <string name="delete">Delete</string>
     <string name="msg_entry_likes">Likes &amp; favorites</string>
     <string name="msg_entry_follows">New followers</string>
     <string name="msg_entry_comments">Comments &amp; @</string>
     <string name="msg_more">More</string>
-    <string name="msg_create_group">Create group chat</string>
     <string name="msg_add_friend">Add friend</string>
     <string name="msg_scan">Scan</string>
     <string name="msg_empty">No private messages yet</string>
@@ -140,7 +87,6 @@
     <string name="notif_action_comment_note">Commented on your note</string>
     <string name="notif_action_reply_comment">Replied to your comment</string>
 
-    <!-- Profile -->
     <string name="profile_tab_notes">Notes</string>
     <string name="profile_tab_likes">Likes</string>
     <string name="profile_tab_favorites">Favorites</string>
@@ -152,10 +98,8 @@
     <string name="profile_age_years">%1$d y/o</string>
     <string name="profile_browse_history">History</string>
     <string name="profile_browse_history_desc">Viewed</string>
-    <string name="profile_group_chat">Group Chat</string>
     <string name="profile_group_chat_desc">View Details</string>
     <string name="profile_send_message">Send Message</string>
-    <string name="profile_avatar">Avatar</string>
     <string name="profile_upload_avatar">Upload Avatar</string>
     <string name="profile_nickname_unset">No nickname set</string>
     <string name="profile_menu">Menu</string>
@@ -169,16 +113,6 @@
     <string name="profile_selected_notes_count">%1$d selected</string>
     <string name="profile_delete">Delete</string>
 
-    <!-- Follow button -->
-    <string name="follow_action_follow">Follow</string>
-    <string name="follow_action_following">Following</string>
-    <string name="follow_action_mutual">Mutual</string>
-
-    <!-- Status components -->
-    <string name="error_load_failed">Failed to load</string>
-    <string name="retry">Tap to retry</string>
-
-    <!-- Drafts -->
     <string name="draft_box_title">Drafts</string>
     <string name="draft_manage">Manage</string>
     <string name="draft_done">Done</string>
@@ -191,7 +125,6 @@
     <string name="draft_unnamed">Untitled draft</string>
     <string name="draft_selected">Selected</string>
 
-    <!-- Account & Privacy -->
     <string name="account_section_account">Account</string>
     <string name="account_section_security">Account Security</string>
     <string name="account_section_privacy">Privacy</string>
@@ -230,7 +163,6 @@
     <string name="account_password_mismatch">The two new passwords you entered don\'t match</string>
     <string name="account_change_password_failed">Failed to change the password. Please try again.</string>
 
-    <!-- Edit Profile -->
     <string name="edit_title">Edit Profile</string>
     <string name="edit_name">Name</string>
     <string name="edit_nickname_title">Edit Name</string>
@@ -256,7 +188,6 @@
     <string name="edit_network_error">Network error</string>
     <string name="edit_save_failed">Failed to save</string>
 
-    <!-- Browsing History -->
     <string name="history_done">Done</string>
     <string name="history_manage">Manage</string>
     <string name="history_load_failed">Failed to load</string>
@@ -266,13 +197,11 @@
     <string name="history_this_week">Past week</string>
     <string name="history_earlier">Earlier</string>
 
-    <!-- Date picker -->
     <string name="date_picker_birthday_title">Select Your Birthday</string>
     <string name="date_format_year">%1$d</string>
     <string name="date_format_month">%1$d</string>
     <string name="date_format_day">%1$d</string>
 
-    <!-- Profile messages -->
     <string name="profile_load_failed">Failed to load</string>
     <string name="profile_network_error">Network error</string>
     <string name="profile_avatar_upload_failed">Avatar upload failed: %1$s</string>
@@ -281,7 +210,6 @@
 
     <!-- Auth -->
 
-    <!-- QR scan -->
     <string name="qr_title">Scan QR Code</string>
     <string name="qr_album">Album</string>
     <string name="qr_permission_required">Camera permission is required to scan QR codes</string>
@@ -290,64 +218,8 @@
     <string name="qr_none_detected">No QR code detected</string>
     <string name="qr_scan_failed">Scan failed, please try again</string>
 
-    <!-- IM chat -->
-    <string name="chat_private_title">Direct Message</string>
-    <string name="chat_clear_history_title">Clear Chat History</string>
-    <string name="chat_clear_history_message">Clear the chat history with this contact? This cannot be undone.</string>
-    <string name="chat_clear_action">Clear</string>
-    <string name="chat_input_hint">Type a message…</string>
-    <string name="chat_image_message_desc">Image message</string>
-    <string name="chat_image_loading">Loading image…</string>
-    <string name="chat_revoked_self">You recalled a message</string>
-    <string name="chat_revoked_other">The other person recalled a message</string>
-    <string name="chat_copy">Copy</string>
-    <string name="chat_revoke">Recall</string>
-
-    <!-- Group -->
-    <string name="group_manage_title">Group Management</string>
-    <string name="group_list_tab_created">Created</string>
-    <string name="group_list_tab_joined">Joined</string>
-    <string name="group_list_empty_created">No group chats created yet</string>
-    <string name="group_list_empty_joined">No group chats joined yet</string>
-    <string name="group_member_count">%1$d members</string>
-    <string name="group_name">Group Name</string>
-    <string name="group_name_hint">Enter a group name</string>
-    <string name="group_manage_intro">Group Introduction</string>
-    <string name="group_manage_intro_hint">Describe this group</string>
-    <string name="group_create_intro">Group Introduction</string>
-    <string name="group_create_intro_hint">Tell us what you want to discuss in the group and who you would like to invite</string>
-    <string name="group_create_action">Create</string>
-    <string name="group_avatar_change_hint">Tap to change the avatar</string>
-    <string name="group_invite_friends">Invite friends to the group</string>
-    <string name="group_invite">Invite</string>
-    <string name="group_invite_sent">Invitation sent</string>
-    <string name="group_pick_friends_title">Select mutual friends</string>
-    <string name="group_no_mutual_friends">No mutual friends yet. Follow each other first.</string>
-    <string name="group_dismiss_group">Dissolve Group</string>
-    <string name="group_dismiss">Dissolve</string>
-    <string name="group_dismiss_message">All members will be removed and this cannot be undone.</string>
-    <string name="group_quit_group">Leave Group</string>
-    <string name="group_quit">Leave</string>
-    <string name="group_quit_message">After leaving, you will no longer receive messages from this group.</string>
-    <string name="group_save_success">Group info saved</string>
-    <string name="group_save_failed">Failed to save</string>
-    <string name="group_avatar_save_failed">Failed to save avatar</string>
-    <string name="group_avatar_upload_failed">Failed to upload avatar</string>
-    <string name="group_invite_failed">Failed to send the invitation</string>
-    <string name="group_dismiss_failed">Failed to dissolve the group</string>
-    <string name="group_quit_failed">Failed to leave the group</string>
-    <string name="group_create_failed">Failed to create the group</string>
-
-    <!-- Follow list -->
-    <string name="follow_tab_following">Following</string>
-    <string name="follow_tab_followers">Followers</string>
-    <string name="follow_empty_following">No one you follow yet~</string>
-    <string name="follow_empty_followers">No followers yet~</string>
-    <string name="follow_bio_empty">No bio yet</string>
-
     <!-- Add friend -->
 
-    <!-- Search -->
     <string name="search_history_title">History</string>
     <string name="search_delete_all">Delete all</string>
     <string name="search_done">Done</string>
@@ -383,7 +255,6 @@
     <string name="search_type_video">Video</string>
     <string name="search_lime_id">Lime ID</string>
 
-    <!-- Translation settings -->
     <string name="translate_settings_title">Offline</string>
     <string name="translate_offline_pack">Offline Pack</string>
     <string name="translate_pack_name">ZH ⇄ EN</string>
@@ -402,25 +273,6 @@
     <string name="speech_delete_pack_confirm_title">Delete the Chinese speech pack?\nIt will need to be downloaded again for voice-to-text</string>
     <string name="pack_downloading_percent">Downloading %1$d%%</string>
 
-    <!-- Chat components -->
-    <string name="chat_send_failed_retry">Send failed, tap to resend</string>
-    <string name="chat_stopped">Stopped</string>
-    <string name="chat_select_text">Select text</string>
-    <string name="chat_regenerate">Regenerate</string>
-    <string name="chat_speak">Read aloud</string>
-    <string name="chat_stop_speak">Stop reading</string>
-    <string name="chat_quote_note">Quoted note</string>
-    <string name="chat_scroll_to_bottom">Back to bottom</string>
-    <string name="chat_time_format_same_year">MMM d, HH:mm</string>
-    <string name="chat_time_format_other_year">MMM d, yyyy HH:mm</string>
-    <string name="chat_take_photo">Take photo</string>
-    <string name="chat_album">Album</string>
-    <string name="chat_attach_note">Note</string>
-    <string name="chat_web_search">Web search</string>
-    <string name="chat_web_search_auto">Auto</string>
-    <string name="chat_web_search_off">Off</string>
-
-    <!-- Voice -->
     <string name="voice_close">Close</string>
     <string name="voice_record">Record</string>
     <string name="voice_release_cancel">Release to cancel</string>
@@ -436,12 +288,6 @@
     <string name="voice_pack_missing">Speech pack not downloaded</string>
     <string name="voice_pack_download">Download speech pack</string>
 
-    <!-- Note manage -->
-    <string name="note_manage_title">Settings</string>
-    <string name="note_manage_close">Close</string>
-    <string name="note_manage_edit">Edit</string>
-
-    <!-- Video -->
     <string name="video_feed_empty">No videos yet</string>
     <string name="video_notify_settings_hint">Please enable notifications in Settings</string>
     <string name="video_reply">Reply</string>
@@ -466,90 +312,16 @@
     <string name="copied">Copied</string>
     <string name="translate_bg_download_toast">Added to background download. Offline translation will be ready when it finishes</string>
 
-    <!-- Chat input bar -->
-    <string name="chat_ask_hint">Ask me anything — images are welcome too</string>
-    <string name="chat_add">Add</string>
-    <string name="chat_keyboard">Keyboard</string>
-    <string name="chat_emoji">Emoji</string>
-    <string name="chat_stop_generating">Stop generating</string>
-    <string name="chat_send">Send</string>
-    <string name="chat_remove_image">Remove image</string>
-    <string name="chat_referenced_note">Referenced note</string>
-    <string name="chat_remove_note">Remove note</string>
-
-    <!-- Scan overlay -->
     <string name="qr_torch_off">Turn off flashlight</string>
     <string name="qr_torch_on">Turn on flashlight</string>
     <string name="qr_torch_tap_off">Tap to turn off</string>
     <string name="qr_torch_tap_on">Tap to light</string>
     <string name="qr_align_prompt">Center the QR code in the scan frame</string>
 
-    <!-- IM -->
-    <string name="im_revoke_failed">Failed to revoke</string>
-    <string name="im_delete_failed">Failed to delete</string>
-    <string name="im_clear_failed">Failed to clear history</string>
-    <string name="im_login_failed">IM login failed</string>
-    <string name="im_send_failed">Failed to send</string>
-    <string name="im_open_conversation_failed">Could not open the conversation</string>
-
-    <!-- Photo picker -->
-    <string name="picker_title_select">Select</string>
-    <string name="picker_title_replace_video">Replace Video</string>
     <string name="picker_title_select_photo">Select Photos</string>
-    <string name="picker_close">Close</string>
-    <string name="picker_selected">Selected</string>
-    <string name="picker_selected_count">%1$d/9 selected</string>
-    <string name="picker_tab_photo">Photos</string>
-    <string name="picker_tab_video">Videos</string>
-    <string name="picker_permission_required">Photo library access is required to select</string>
     <string name="picker_permission_required_photo">Photo library access is required to select photos</string>
-    <string name="picker_permission_grant">Allow access</string>
-    <string name="picker_video_constraint">Videos must be MP4, under 200 MB and no longer than 10 minutes</string>
-    <string name="picker_done">Done</string>
     <string name="picker_done_count">Done (%1$d)</string>
-    <string name="picker_next">Next</string>
-    <string name="picker_next_count">Next (%1$d)</string>
 
-    <!-- Cover picker -->
-    <string name="cover_title">Select Cover</string>
-    <string name="cover_preview">Cover preview</string>
-    <string name="cover_exit">Exit</string>
-    <string name="cover_done">Done</string>
-    <string name="cover_pinch_hint">Pinch with two fingers to zoom</string>
-
-    <!-- AI writing -->
-    <string name="ai_write_title">AI Writing</string>
-    <string name="ai_write_close">Close</string>
-    <string name="ai_write_action_caption">Write from images</string>
-    <string name="ai_write_action_title">Title ideas</string>
-    <string name="ai_write_action_polish">Polish</string>
-    <string name="ai_write_action_continue">Continue</string>
-    <string name="ai_write_action_condense">Condense</string>
-    <string name="ai_write_uploading_images">Uploading images…</string>
-    <string name="ai_write_generating">Generating…</string>
-    <string name="ai_write_status_uploading">Uploading images — you can stop anytime</string>
-    <string name="ai_write_status_generating">Generating — you can stop anytime</string>
-    <string name="ai_write_status_pick_title">Tap a title to fill the title field</string>
-    <string name="ai_write_status_fill_body">The text will be inserted into the body</string>
-    <string name="ai_write_status_continue_append">The continuation will be appended to the end of the body</string>
-    <string name="ai_write_status_summary">%1$d characters · Replacing the body will overwrite your current content</string>
-    <string name="ai_write_stop">Stop</string>
-    <string name="ai_write_stop_generating">Stop generating</string>
-    <string name="ai_write_regenerate">Regenerate</string>
-    <string name="ai_write_copy">Copy</string>
-    <string name="ai_write_copied">Copied</string>
-    <string name="ai_write_append_to_body">Append to body</string>
-    <string name="ai_write_fill_body">Insert into body</string>
-    <string name="ai_write_replace_body">Replace body</string>
-    <string name="ai_write_hint_caption_need_image">Please add an image first to write a caption from it</string>
-    <string name="ai_write_hint_title_need_input">Type a little content or add an image, then let AI suggest titles</string>
-    <string name="ai_write_min_text_polish">Please make the text at least %1$d characters long so I can polish it</string>
-    <string name="ai_write_min_text_continue">Please make the text at least %1$d characters long so I can continue writing</string>
-    <string name="ai_write_min_text_condense">Please make the text at least %1$d characters long so I can condense it</string>
-    <string name="ai_write_error_upload_failed">Failed to upload images. Please try again</string>
-    <string name="ai_write_uploading_progress">Uploading image %1$d/%2$d…</string>
-
-    <!-- Translation result -->
     <string name="translate_title">Translate</string>
     <string name="translate_close">Close</string>
     <string name="translate_switch_direction">Switch direction</string>
@@ -561,49 +333,10 @@
     <string name="translate_result_missing">(っ °Д °;)っ Too bad — the translation was stolen away</string>
     <string name="translate_copy_result">Copy translation</string>
 
-    <!-- Image preview -->
-    <string name="image_preview_close">Close preview</string>
-    <string name="image_preview_save_image">Save image</string>
-    <string name="image_preview_saved_to_album">Saved to album</string>
-    <string name="image_preview_save_failed">Failed to save</string>
-
-    <!-- Publish sheet -->
     <string name="publish_from_album">Choose from Album</string>
     <string name="publish_camera">Camera</string>
     <string name="publish_take_photo">Take Photo</string>
 
-    <!-- Publish -->
-    <string name="publish_title_new_note">Publish Note</string>
-    <string name="publish_title_edit_note">Edit Note</string>
-    <string name="publish_title_new_video">Publish Video Note</string>
-    <string name="publish_title_edit_video">Edit Video Note</string>
-    <string name="publish_add_title_hint">Add a title</string>
-    <string name="publish_add_content_hint">Add text</string>
-    <string name="publish_action_draft">Save draft</string>
-    <string name="publish_action_publish">Publish Note</string>
-    <string name="publish_confirm_draft_title">Save this note to your drafts?</string>
-    <string name="publish_saved_edit">Changes saved</string>
-    <string name="publish_draft_saved">Draft saved</string>
-    <string name="publish_uploading_images">Uploading image %1$d/%2$d...</string>
-    <string name="publish_uploading_phase">%1$s...</string>
-    <string name="publish_phase_upload_video">Uploading video</string>
-    <string name="publish_phase_upload_cover">Uploading cover</string>
-    <string name="publish_cover_cd">Cover</string>
-    <string name="publish_cover_pick">Choose a cover</string>
-    <string name="publish_cover_change">Change cover</string>
-    <string name="publish_change_video">Replace video</string>
-    <string name="publish_add_image">Add image</string>
-    <string name="publish_ai_write">AI assist</string>
-    <string name="publish_error_no_image">Add at least one image</string>
-    <string name="publish_error_need_content">Fill in at least a title or text</string>
-    <string name="publish_error_load_note">Failed to load note</string>
-    <string name="publish_error_not_video">This note is not a video note</string>
-    <string name="publish_error_no_video">Please select a video first</string>
-    <string name="publish_error_draft">Failed to save draft, please try again</string>
-    <string name="publish_error_save">Failed to save, please try again</string>
-    <string name="publish_error_publish">Failed to publish, please try again</string>
-
-    <!-- Detail -->
     <string name="detail_copied">Copied</string>
     <string name="detail_note_delete_confirm_title">Permanently delete this note?\nThis cannot be undone</string>
     <string name="detail_note_deleted">Note deleted</string>
@@ -619,7 +352,6 @@
     <string name="detail_translate_full">Translate all</string>
     <string name="detail_end_of_list">- The End -</string>
 
-    <!-- Comment -->
     <string name="comment_input_hint">Say something…</string>
     <string name="comment_reply_to_hint">Reply to @%1$s</string>
     <string name="comment_reply_action">Reply</string>
@@ -642,7 +374,6 @@
     <string name="comment_author_badge">Author</string>
     <string name="comment_empty_hint">No comments yet</string>
 
-    <!-- AI chat -->
     <string name="ai_new_chat">New chat</string>
     <string name="ai_new_conversation_cd">New conversation</string>
     <string name="ai_open_history_cd">Open history</string>
@@ -670,7 +401,6 @@
     <string name="ai_offline_cannot_resend">No network. Unable to resend.</string>
     <string name="ai_offline_cannot_regenerate">No network. Unable to regenerate.</string>
 
-    <!-- Video panel -->
     <string name="video_save_to_album">Save to album</string>
     <string name="video_clear_screen_playback">Clean Screen Playback</string>
     <string name="video_auto_play_next">Auto-play next</string>
@@ -692,14 +422,7 @@
     <string name="video_speed_boost">Boosting speed</string>
     <string name="video_danmaku_send_failed">Failed to send danmaku</string>
 
-    <!-- Shared widgets -->
-    <string name="like">Like</string>
-    <string name="unlike">Unlike</string>
-    <string name="favorite">Favorite</string>
-    <string name="unfavorite">Unfavorite</string>
     <string name="comment">Comment</string>
-    <string name="view_count">Views</string>
-    <string name="note_type_image_text">Image and text</string>
     <string name="note_manage_entry">Edit settings ></string>
     <string name="comment_count">%1$d comments</string>
     <string name="sort">Sort</string>
@@ -713,15 +436,10 @@
     <string name="load_failed_retry">Failed to load, tap to retry</string>
     <string name="note_picker_empty">No image-text notes yet</string>
     <string name="untitled">Untitled</string>
-    <string name="album_cover">Album cover</string>
-    <string name="remove_album_cover">Remove album cover</string>
 
-    <!-- Extra -->
     <string name="search_placeholder">Search notes and users</string>
     <string name="search_clear">Clear</string>
     <string name="search_action">Search</string>
-    <string name="updater_notify_title">Lime Update</string>
-    <string name="updater_notify_desc">Downloading the new version…</string>
     <string name="comment_load_failed">Failed to load comments. Please try again.</string>
     <string name="search_fill_suggestion">Fill</string>
 </resources>

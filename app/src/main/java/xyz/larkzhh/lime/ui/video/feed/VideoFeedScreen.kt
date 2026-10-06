@@ -84,6 +84,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import xyz.larkzhh.danmaku.DanmakuSelection
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.DanmakuData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
@@ -110,14 +111,14 @@ import xyz.larkzhh.lime.ui.components.VoiceRecordSheet
 import xyz.larkzhh.lime.ui.detail.AuthorSessionHost
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentViewModel
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
-import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
+import xyz.larkzhh.lime.ui.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.ui.detail.components.NoteBottomBar
 import xyz.larkzhh.lime.ui.detail.translate.TranslateResultSheet
 import xyz.larkzhh.lime.ui.detail.translate.TranslateViewModel
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
 import xyz.larkzhh.lime.ui.video.components.LikeBurst
-import xyz.larkzhh.lime.ui.video.components.ScrubBar
-import xyz.larkzhh.lime.ui.video.components.formatTime
+import xyz.larkzhh.lime.ui.components.ScrubBar
+import xyz.larkzhh.lime.ui.components.formatTime
 import xyz.larkzhh.lime.ui.video.feed.components.CommentDrawer
 import xyz.larkzhh.lime.ui.video.player.VideoPage
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
@@ -128,7 +129,6 @@ import xyz.larkzhh.lime.util.media.saveBitmapToGallery
 import xyz.larkzhh.lime.util.media.saveVideoToGallery
 import xyz.larkzhh.lime.util.showToast
 import kotlin.time.Duration.Companion.milliseconds
-import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /// 竖屏视频页
 @UnstableApi
@@ -648,8 +648,8 @@ private fun VideoFeedContent(
         if (pendingDeleteAction != null) {
             LimeAlertDialog(
                 title = stringResource(R.string.video_delete_comment_confirm),
-                firstButtonText = stringResource(R.string.cancel),
-                secondButtonText = stringResource(R.string.delete),
+                firstButtonText = stringResource(DesignSystemR.string.cancel),
+                secondButtonText = stringResource(DesignSystemR.string.delete),
                 secondButtonColor = Color(0xFFFF3B30),
                 onDismissRequest = { pendingDeleteAction = null },
                 onFirstButtonClick = { pendingDeleteAction = null },
@@ -775,8 +775,8 @@ private fun VideoFeedContent(
         if (showDeleteNoteConfirm) {
             LimeAlertDialog(
                 title = stringResource(R.string.video_delete_note_confirm),
-                firstButtonText = stringResource(R.string.cancel),
-                secondButtonText = stringResource(R.string.delete),
+                firstButtonText = stringResource(DesignSystemR.string.cancel),
+                secondButtonText = stringResource(DesignSystemR.string.delete),
                 secondButtonColor = Color(0xFFFF3B30),
                 onDismissRequest = { showDeleteNoteConfirm = false },
                 onFirstButtonClick = { showDeleteNoteConfirm = false },
@@ -797,8 +797,8 @@ private fun VideoFeedContent(
             LimeAlertDialog(
                 title = stringResource(R.string.detail_save_qr_title),
                 text = stringResource(R.string.detail_save_qr_message),
-                firstButtonText = stringResource(R.string.cancel),
-                secondButtonText = stringResource(R.string.save),
+                firstButtonText = stringResource(DesignSystemR.string.cancel),
+                secondButtonText = stringResource(DesignSystemR.string.save),
                 onDismissRequest = { shareQrNoteId = null },
                 onFirstButtonClick = { shareQrNoteId = null },
                 onSecondButtonClick = {

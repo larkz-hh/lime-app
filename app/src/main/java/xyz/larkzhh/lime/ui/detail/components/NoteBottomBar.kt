@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.ui.components.FavoriteButton
 import xyz.larkzhh.lime.ui.components.LikeButton
@@ -122,7 +123,7 @@ fun NoteBottomBar(
                         inactiveColor = contentColor,
                     )
                     Text(
-                        text = if (note.likeCount > 0) note.likeCount.toString() else stringResource(R.string.like),
+                        text = if (note.likeCount > 0) note.likeCount.toString() else stringResource(DesignSystemR.string.like),
                         fontSize = 12.sp,
                         color = contentColor,
                         maxLines = 1,
@@ -147,7 +148,7 @@ fun NoteBottomBar(
                         inactiveColor = contentColor,
                     )
                     Text(
-                        text = if (note.favCount > 0) note.favCount.toString() else stringResource(R.string.favorite),
+                        text = if (note.favCount > 0) note.favCount.toString() else stringResource(DesignSystemR.string.favorite),
                         fontSize = 12.sp,
                         color = contentColor,
                         maxLines = 1,

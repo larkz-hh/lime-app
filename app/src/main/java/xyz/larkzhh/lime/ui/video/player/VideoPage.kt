@@ -41,7 +41,8 @@ import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import xyz.larkzhh.lime.R
+
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /// 单页视频
 @UnstableApi
@@ -194,7 +195,7 @@ fun VideoPage(
             ) {
                 Icon(
                     Icons.Filled.PlayArrow,
-                    contentDescription = stringResource(R.string.pip_play),
+                    contentDescription = stringResource(DesignSystemR.string.pip_play),
                     tint = Color.White,
                     modifier = Modifier.size(40.dp),
                 )

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_private_title">私信</string>
+    <string name="chat_clear_history_title">清空聊天记录</string>
+    <string name="chat_clear_history_message">确定要清空与对方的历史消息吗？此操作不可恢复。</string>
+    <string name="chat_input_hint">发消息…</string>
+    <string name="chat_image_message_desc">图片消息</string>
+    <string name="chat_image_loading">图片加载中…</string>
+    <string name="chat_revoked_self">你撤回了一条消息</string>
+    <string name="chat_revoked_other">对方撤回了一条消息</string>
+    <string name="chat_revoke">撤回</string>
+    <string name="im_revoke_failed">撤回失败</string>
+    <string name="im_delete_failed">删除失败</string>
+    <string name="im_clear_failed">清空失败</string>
+    <string name="im_login_failed">IM 登录失败</string>
+    <string name="im_send_failed">发送失败</string>
+    <string name="im_open_conversation_failed">无法打开私信</string>
+</resources>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="force_logout_login_again">重新登入</string>
+    <string name="unfollow_title">不再追蹤 TA？</string>
+    <string name="unfollow_confirm">不再追蹤</string>
+    <string name="follow_action_follow">追蹤</string>
+    <string name="follow_action_following">已追蹤</string>
+    <string name="follow_action_mutual">互相追蹤</string>
+    <string name="error_load_failed">載入失敗</string>
+    <string name="retry">點擊重試</string>
+    <string name="chat_send_failed_retry">傳送失敗，點擊重傳</string>
+    <string name="chat_stopped">已停止</string>
+    <string name="chat_select_text">選取文字</string>
+    <string name="chat_regenerate">重新產生</string>
+    <string name="chat_speak">朗讀</string>
+    <string name="chat_stop_speak">停止朗讀</string>
+    <string name="chat_quote_note">引用筆記</string>
+    <string name="chat_scroll_to_bottom">回到最底部</string>
+    <string name="chat_time_format_same_year">M月d日 HH:mm</string>
+    <string name="chat_time_format_other_year">yyyy年M月d日 HH:mm</string>
+    <string name="chat_take_photo">拍照</string>
+    <string name="chat_attach_note">筆記</string>
+    <string name="chat_web_search">連網搜尋</string>
+    <string name="chat_web_search_auto">自動</string>
+    <string name="chat_web_search_off">關閉</string>
+    <string name="note_manage_title">設定</string>
+    <string name="note_manage_close">關閉</string>
+    <string name="note_manage_edit">編輯</string>
+    <string name="chat_ask_hint">儘管問，帶圖也行</string>
+    <string name="chat_add">新增</string>
+    <string name="chat_keyboard">鍵盤</string>
+    <string name="chat_emoji">表情</string>
+    <string name="chat_stop_generating">停止生成</string>
+    <string name="chat_remove_image">移除圖片</string>
+    <string name="chat_referenced_note">引用筆記</string>
+    <string name="chat_remove_note">移除筆記</string>
+    <string name="unlike">取消點讚</string>
+    <string name="unfavorite">取消收藏</string>
+    <string name="view_count">瀏覽人數</string>
+    <string name="note_type_image_text">圖文</string>
+</resources>

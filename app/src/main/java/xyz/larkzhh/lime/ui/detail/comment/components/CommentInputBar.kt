@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 
@@ -102,7 +103,7 @@ fun CommentInputBar(
             IconButton(onClick = onAlbumClick, modifier = Modifier.size(32.dp)) {
                 Icon(
                     Icons.Outlined.Image,
-                    contentDescription = stringResource(R.string.chat_album),
+                    contentDescription = stringResource(DesignSystemR.string.chat_album),
                     tint = LimeGray,
                     modifier = Modifier.size(20.dp)
                 )

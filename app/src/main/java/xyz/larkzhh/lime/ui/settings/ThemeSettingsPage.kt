@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.theme.AppTheme
@@ -47,7 +48,6 @@ import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.ThemeOption
 import xyz.larkzhh.lime.ui.theme.themeColorMap
 import xyz.larkzhh.lime.util.showToast
-import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /// 主题设置子页
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,7 +91,7 @@ fun ThemeSettingsPage(
                         },
                     ) {
                         Text(
-                            text = stringResource(R.string.save),
+                            text = stringResource(DesignSystemR.string.save),
                             fontSize = 15.sp,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Medium,
@@ -163,8 +163,8 @@ fun ThemeSettingsPage(
         LimeAlertDialog(
             title = stringResource(R.string.theme_confirm_title),
             text = stringResource(R.string.theme_confirm_text),
-            firstButtonText = stringResource(R.string.cancel),
-            secondButtonText = stringResource(R.string.save),
+            firstButtonText = stringResource(DesignSystemR.string.cancel),
+            secondButtonText = stringResource(DesignSystemR.string.save),
             onFirstButtonClick = { showConfirm = false },
             onSecondButtonClick = {
                 showConfirm = false

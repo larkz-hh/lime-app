@@ -36,7 +36,8 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.components.ImagePickerGrid
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
+import xyz.larkzhh.lime.ui.publish.components.ImagePickerGrid
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ImagePickerViewModel
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
@@ -77,7 +78,7 @@ fun CommentPhotoPickerScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.picker_close))
+                Icon(Icons.Filled.Close, contentDescription = stringResource(DesignSystemR.string.picker_close))
             }
             Text(
                 text = stringResource(R.string.picker_title_select_photo),
@@ -88,7 +89,7 @@ fun CommentPhotoPickerScreen(
             val count = uiState.selectedUris.size
             if (count > 0) {
                 Text(
-                    text = stringResource(R.string.picker_selected_count, count),
+                    text = stringResource(DesignSystemR.string.picker_selected_count, count),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(end = 16.dp),
@@ -111,7 +112,7 @@ fun CommentPhotoPickerScreen(
                             onClick = { permissionState.launchPermissionRequest() },
                             modifier = Modifier.padding(top = 12.dp),
                         ) {
-                            Text(stringResource(R.string.picker_permission_grant))
+                            Text(stringResource(DesignSystemR.string.picker_permission_grant))
                         }
                     }
                 }
@@ -164,7 +165,7 @@ fun CommentPhotoPickerScreen(
             ) {
                 Text(
                     text = if (count > 0) stringResource(R.string.picker_done_count, count)
-                    else stringResource(R.string.picker_done),
+                    else stringResource(DesignSystemR.string.picker_done),
                     fontWeight = FontWeight.Medium,
                 )
             }

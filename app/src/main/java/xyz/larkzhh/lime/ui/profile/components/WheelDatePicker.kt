@@ -44,6 +44,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import kotlin.math.abs
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 private val ITEM_H = 52.dp  // 每个选项项的高度
@@ -103,7 +104,7 @@ fun WheelDatePicker(
             ) {
                 TextButton(onClick = onDismiss) {
                     Text(
-                        stringResource(R.string.cancel),
+                        stringResource(DesignSystemR.string.cancel),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                 }
@@ -116,7 +117,7 @@ fun WheelDatePicker(
                     onConfirm("%04d-%02d-%02d".format(year, displayMonth, displayDay))
                 }) {
                     Text(
-                        stringResource(R.string.save),
+                        stringResource(DesignSystemR.string.save),
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,

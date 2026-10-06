@@ -70,9 +70,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.ui.components.VoiceMessageCard
 import xyz.larkzhh.swipeback.blockPageSwipe
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.VoiceRecord
-import xyz.larkzhh.lime.ui.detail.components.EmojiPanel
+import xyz.larkzhh.lime.ui.components.EmojiPanel
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.util.showToast
 

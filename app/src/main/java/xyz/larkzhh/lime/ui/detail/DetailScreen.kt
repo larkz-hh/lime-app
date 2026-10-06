@@ -54,13 +54,14 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.compose.ui.graphics.Color
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.domain.model.ChatNote
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.toFollowActionState
-import xyz.larkzhh.lime.ui.auth.LoginGate
+import xyz.larkzhh.lime.ui.components.LoginGate
 import xyz.larkzhh.lime.navigation.state.PendingNoteEdit
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.swipeback.SwipeBackScaffold
@@ -85,7 +86,7 @@ import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentSort
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentUiState
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentViewModel
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
-import xyz.larkzhh.lime.ui.detail.components.ImagePreviewOverlay
+import xyz.larkzhh.lime.ui.components.ImagePreviewOverlay
 import xyz.larkzhh.lime.ui.detail.components.NoteBottomBar
 import xyz.larkzhh.lime.ui.detail.components.NoteImagePager
 import xyz.larkzhh.lime.ui.detail.translate.FullTextUiState
@@ -500,8 +501,8 @@ fun DetailScreen(
         if (pendingDeleteAction != null) {
             LimeAlertDialog(
                 title = stringResource(R.string.comment_delete_confirm_title),
-                firstButtonText = stringResource(R.string.cancel),
-                secondButtonText = stringResource(R.string.delete),
+                firstButtonText = stringResource(DesignSystemR.string.cancel),
+                secondButtonText = stringResource(DesignSystemR.string.delete),
                 secondButtonColor = Color(0xFFFF3B30),
                 onDismissRequest = { pendingDeleteAction = null },
                 onFirstButtonClick = { pendingDeleteAction = null },
@@ -532,8 +533,8 @@ fun DetailScreen(
         if (showDeleteNoteConfirm) {
             LimeAlertDialog(
                 title = stringResource(R.string.detail_note_delete_confirm_title),
-                firstButtonText = stringResource(R.string.cancel),
-                secondButtonText = stringResource(R.string.delete),
+                firstButtonText = stringResource(DesignSystemR.string.cancel),
+                secondButtonText = stringResource(DesignSystemR.string.delete),
                 secondButtonColor = Color(0xFFFF3B30),
                 onDismissRequest = { showDeleteNoteConfirm = false },
                 onFirstButtonClick = { showDeleteNoteConfirm = false },
@@ -556,8 +557,8 @@ fun DetailScreen(
             LimeAlertDialog(
                 title = stringResource(R.string.detail_save_qr_title),
                 text = stringResource(R.string.detail_save_qr_message),
-                firstButtonText = stringResource(R.string.cancel),
-                secondButtonText = stringResource(R.string.save),
+                firstButtonText = stringResource(DesignSystemR.string.cancel),
+                secondButtonText = stringResource(DesignSystemR.string.save),
                 onDismissRequest = { showQrSaveConfirm = false },
                 onFirstButtonClick = { showQrSaveConfirm = false },
                 onSecondButtonClick = {
@@ -624,7 +625,7 @@ private fun NoteContent(
     val context = LocalContext.current
     val chatActionPainter = painterResource(R.drawable.ic_chat)
     // 本地化文案（长按菜单与 Toast 使用）
-    val copyActionText = stringResource(R.string.chat_copy)
+    val copyActionText = stringResource(DesignSystemR.string.chat_copy)
     val searchActionText = stringResource(R.string.home_search_cd)
     val translateActionText = stringResource(R.string.drawer_translate)
     val askAiActionText = stringResource(R.string.shortcut_ai)

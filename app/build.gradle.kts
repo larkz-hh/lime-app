@@ -80,6 +80,7 @@ android {
 
 dependencies {
     implementation(project(":core:designsystem"))
+    implementation(project(":core:ui"))
     implementation(project(":core:model"))
     implementation(project(":core:domain"))
     implementation(project(":core:common"))
@@ -87,6 +88,11 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":feature:auth"))
     implementation(project(":feature:friend"))
+    implementation(project(":feature:about"))
+    implementation(project(":feature:group"))
+    implementation(project(":feature:publish"))
+    implementation(project(":feature:im"))
+    implementation(project(":feature:follow"))
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

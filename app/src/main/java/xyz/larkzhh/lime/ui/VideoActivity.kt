@@ -19,6 +19,7 @@ import androidx.media3.session.R as Media3R
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.navigation.graph.VideoNavGraph
 import xyz.larkzhh.lime.ui.theme.AppLimeTheme
@@ -119,8 +120,8 @@ class VideoActivity : ComponentActivity() {
                                 Media3R.drawable.media3_icon_pause
                             },
                         ),
-                        getString(if (pipPaused) R.string.pip_play else R.string.pip_pause),
-                        getString(if (pipPaused) R.string.pip_play else R.string.pip_pause),
+                        getString(if (pipPaused) DesignSystemR.string.pip_play else R.string.pip_pause),
+                        getString(if (pipPaused) DesignSystemR.string.pip_play else R.string.pip_pause),
                         pipActionPendingIntent(PipMediaActionReceiver.ACTION_TOGGLE_PLAY),
                     ),
                     RemoteAction(

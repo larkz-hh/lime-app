@@ -3,6 +3,7 @@ package xyz.larkzhh.lime.ui.detail
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /**
  * 笔记详情页 UI 文案
@@ -35,7 +36,7 @@ fun detailTexts(): DetailTexts = DetailTexts(
     qrGenFailedToast = stringResource(R.string.detail_qr_generate_failed),
     bgDownloadAddedToast = stringResource(R.string.detail_translate_bg_download),
     replyMenuLabel = stringResource(R.string.comment_reply_action),
-    copyMenuLabel = stringResource(R.string.chat_copy),
+    copyMenuLabel = stringResource(DesignSystemR.string.chat_copy),
     translateMenuLabel = stringResource(R.string.drawer_translate),
-    deleteMenuLabel = stringResource(R.string.delete),
+    deleteMenuLabel = stringResource(DesignSystemR.string.delete),
 )

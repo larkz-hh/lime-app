@@ -56,15 +56,16 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.util.UnstableApi
 import kotlinx.coroutines.delay
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.ui.components.FavoriteButton
 import xyz.larkzhh.lime.ui.components.LikeButton
 import xyz.larkzhh.lime.ui.video.components.DanmakuInputSheet
 import xyz.larkzhh.lime.ui.video.components.DanmakuHost
-import xyz.larkzhh.lime.ui.video.components.ScrubBar
+import xyz.larkzhh.lime.ui.components.ScrubBar
 import xyz.larkzhh.lime.ui.video.components.SpeedDrawer
 import xyz.larkzhh.lime.ui.video.components.VerticalSlider
 import xyz.larkzhh.lime.ui.video.components.formatSpeed
-import xyz.larkzhh.lime.ui.video.components.formatTime
+import xyz.larkzhh.lime.ui.components.formatTime
 import xyz.larkzhh.lime.ui.video.player.VideoPage
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.util.system.LockLandscapeImmersive
@@ -332,7 +333,7 @@ fun LandscapeFullscreenHost(
                         ) {
                             Icon(
                                 imageVector = if (userPaused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
-                                contentDescription = if (userPaused) stringResource(R.string.pip_play) else stringResource(R.string.pip_pause),
+                                contentDescription = if (userPaused) stringResource(DesignSystemR.string.pip_play) else stringResource(R.string.pip_pause),
                                 tint = Color.White.copy(alpha = 0.5f),
                                 modifier = Modifier.size(40.dp),
                             )

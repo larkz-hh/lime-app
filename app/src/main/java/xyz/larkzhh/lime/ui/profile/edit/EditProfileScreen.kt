@@ -65,11 +65,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.yalantis.ucrop.UCrop
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import java.io.File
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.profile.components.WheelDatePicker
-import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -176,7 +176,7 @@ fun EditProfileScreen(navController: NavHostController) {
                                 strokeWidth = 2.dp,
                             )
                         } else {
-                            Text(stringResource(R.string.save), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
+                            Text(stringResource(DesignSystemR.string.save), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
                         }
                     }
                 },
@@ -229,7 +229,7 @@ fun EditProfileScreen(navController: NavHostController) {
                             if (form.avatarUrl != null) {
                                 AsyncImage(
                                     model = form.avatarUrl,
-                                    contentDescription = stringResource(R.string.profile_avatar),
+                                    contentDescription = stringResource(DesignSystemR.string.profile_avatar),
                                     modifier = Modifier.fillMaxSize(),
                                     contentScale = ContentScale.Crop,
                                 )
@@ -378,7 +378,7 @@ fun EditProfileScreen(navController: NavHostController) {
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showNicknameDialog = false }) { Text(stringResource(R.string.cancel)) }
+                            TextButton(onClick = { showNicknameDialog = false }) { Text(stringResource(DesignSystemR.string.cancel)) }
                         },
                     )
                 }
@@ -404,7 +404,7 @@ fun EditProfileScreen(navController: NavHostController) {
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showBioDialog = false }) { Text(stringResource(R.string.cancel)) }
+                            TextButton(onClick = { showBioDialog = false }) { Text(stringResource(DesignSystemR.string.cancel)) }
                         },
                     )
                 }
@@ -440,7 +440,7 @@ fun EditProfileScreen(navController: NavHostController) {
                         },
                         confirmButton = {},
                         dismissButton = {
-                            TextButton(onClick = { showGenderDialog = false }) { Text(stringResource(R.string.cancel)) }
+                            TextButton(onClick = { showGenderDialog = false }) { Text(stringResource(DesignSystemR.string.cancel)) }
                         },
                     )
                 }
@@ -477,7 +477,7 @@ fun EditProfileScreen(navController: NavHostController) {
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showRegionDialog = false }) { Text(stringResource(R.string.cancel)) }
+                            TextButton(onClick = { showRegionDialog = false }) { Text(stringResource(DesignSystemR.string.cancel)) }
                         },
                     )
                 }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_title">About</string>
+    <string name="about_app_icon">App icon</string>
+    <string name="about_check_update">Check for updates</string>
+    <string name="about_latest">Already up to date</string>
+    <string name="about_check_failed">Check failed. Please check your network or repository config</string>
+    <string name="about_new_version_found">New version %1$s available</string>
+    <string name="about_update_prompt">Download and update now?</string>
+    <string name="about_update_later">Not now</string>
+    <string name="about_update_now">Update now</string>
+    <string name="about_repo">Repository</string>
+    <string name="about_author_github">Author GitHub</string>
+    <string name="about_qq_email">QQ Email</string>
+    <string name="about_homepage">Website</string>
+    <string name="about_email_copied">Email copied</string>
+    <string name="about_open_url_failed">Cannot open link</string>
+    <string name="about_install_permission_needed">Please allow installing apps from unknown sources first</string>
+    <string name="about_download_start_failed">Failed to start download, please retry</string>
+    <string name="updater_notify_title">Lime Update</string>
+    <string name="updater_notify_desc">Downloading the new version…</string>
+</resources>

@@ -148,7 +148,7 @@ fun GeneralSettingsScreen(
     if (showClearDialog) {
         LimeAlertDialog(
             title = stringResource(R.string.settings_clear_cache_confirm_title),
-            firstButtonText = stringResource(R.string.cancel),
+            firstButtonText = stringResource(DesignSystemR.string.cancel),
             secondButtonText = stringResource(R.string.settings_clear),
             secondButtonColor = Color(0xFFFF3B30),
             onFirstButtonClick = { showClearDialog = false },

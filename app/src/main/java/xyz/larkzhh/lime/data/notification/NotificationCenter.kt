@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import me.leolin.shortcutbadger.ShortcutBadger
 import androidx.media3.common.util.UnstableApi
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.ui.MainActivity
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.local.TokenStorage
@@ -192,8 +193,8 @@ class NotificationCenter @Inject constructor(
     /// 发送账号异地登录系统通知
     private fun postForcedLogout() {
         val notification = NotificationCompat.Builder(context, CHANNEL_IM)
-            .setContentTitle(context.getString(R.string.force_logout_title))
-            .setContentText(context.getString(R.string.force_logout_message))
+            .setContentTitle(context.getString(DesignSystemR.string.force_logout_title))
+            .setContentText(context.getString(DesignSystemR.string.force_logout_message))
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)

@@ -61,7 +61,7 @@ import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimeWhite
-import xyz.larkzhh.lime.ui.video.components.formatTime
+import xyz.larkzhh.lime.ui.components.formatTime
 import xyz.larkzhh.lime.util.showToast
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
@@ -91,7 +91,6 @@ fun DraftBoxScreen(
             viewModel.refresh()
         }
     }
-
 
     LaunchedEffect(gridState) {
         snapshotFlow { gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
@@ -252,7 +251,7 @@ fun DraftBoxScreen(
                         ) {
                             Text(
                                 text = if (uiState.isDeleting) stringResource(R.string.draft_deleting)
-                                else stringResource(R.string.delete),
+                                else stringResource(DesignSystemR.string.delete),
                                 color = Color(0xFFFF3B30),
                                 fontWeight = FontWeight.SemiBold,
                             )

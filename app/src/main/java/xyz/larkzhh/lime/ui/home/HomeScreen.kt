@@ -60,7 +60,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.FeedItem
-import xyz.larkzhh.lime.ui.auth.LoginGate
+import xyz.larkzhh.lime.ui.components.LoginGate
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.openVideo
 import xyz.larkzhh.lime.ui.components.ErrorState
@@ -70,7 +70,6 @@ import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 private const val PRELOAD_COUNT = 4
-
 
 private const val TAB_FOLLOW = 0// 关注
 private const val TAB_DISCOVER = 1// 发现

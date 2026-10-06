@@ -31,6 +31,7 @@ import xyz.larkzhh.danmaku.DanmakuOverlay
 import xyz.larkzhh.danmaku.DanmakuSelection
 import xyz.larkzhh.danmaku.DanmakuStyle
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.data.network.model.DanmakuData
 import xyz.larkzhh.lime.util.copyToClipboard
 import xyz.larkzhh.lime.util.showToast
@@ -117,7 +118,7 @@ fun DanmakuHost(
                 (currentUserId == data.author.id || currentUserId == noteAuthorId)
             DanmakuBubble(selection = resolved, style = LimeBubbleStyle) {
                 DanmakuBubbleItem(
-                    text = stringResource(R.string.chat_copy),
+                    text = stringResource(DesignSystemR.string.chat_copy),
                     leadingIcon = { BubbleIcon(Icons.Outlined.ContentCopy) },
                 ) {
                     data.content.copyToClipboard(context)
@@ -126,7 +127,7 @@ fun DanmakuHost(
                 }
                 if (canDelete) {
                     DanmakuBubbleItem(
-                        text = stringResource(R.string.delete),
+                        text = stringResource(DesignSystemR.string.delete),
                         leadingIcon = { BubbleIcon(Icons.Outlined.Delete) },
                     ) {
                         onDelete(data)

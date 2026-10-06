@@ -62,6 +62,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.data.local.SpeechEngine
 import xyz.larkzhh.lime.data.local.SpeechPackStatus
 import xyz.larkzhh.swipeback.blockPageSwipe
@@ -404,7 +405,7 @@ fun VoiceRecordSheet(
                     if (isRecording) {
                         GestureSideButton(
                             icon = Icons.Filled.Close,
-                            label = stringResource(R.string.cancel),
+                            label = stringResource(DesignSystemR.string.cancel),
                             active = isCancelling,
                             activeColor = Color(0xFFFF5252),
                             modifier = Modifier.align(Alignment.TopStart),

@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.data.network.model.HotSearchItem
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
@@ -145,7 +146,7 @@ fun SearchHomeContent(
     if (showClearDialog) {
         LimeAlertDialog(
             title = stringResource(R.string.search_clear_history_title),
-            firstButtonText = stringResource(R.string.cancel),
+            firstButtonText = stringResource(DesignSystemR.string.cancel),
             secondButtonText = stringResource(R.string.search_ok),
             onFirstButtonClick = { showClearDialog = false },
             onSecondButtonClick = {
@@ -254,7 +255,7 @@ private fun HistoryFlow(
                             if (editing) {
                                 Icon(
                                     imageVector = Icons.Filled.Close,
-                                    contentDescription = stringResource(R.string.delete),
+                                    contentDescription = stringResource(DesignSystemR.string.delete),
                                     tint = LimeGray,
                                     modifier = Modifier
                                         .padding(start = 4.dp)

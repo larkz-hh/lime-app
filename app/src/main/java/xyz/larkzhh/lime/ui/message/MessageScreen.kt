@@ -57,6 +57,7 @@ import androidx.navigation.NavHostController
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.domain.model.ImConversation
 import xyz.larkzhh.lime.domain.model.NotificationCategory
 import xyz.larkzhh.lime.navigation.route.Screen
@@ -129,8 +130,8 @@ fun MessageScreen(
             } else {
                 stringResource(R.string.msg_delete_conversation_hint)
             },
-            firstButtonText = stringResource(R.string.cancel),
-            secondButtonText = stringResource(R.string.delete),
+            firstButtonText = stringResource(DesignSystemR.string.cancel),
+            secondButtonText = stringResource(DesignSystemR.string.delete),
             secondButtonColor = Color(0xFFFE2C55),
             onFirstButtonClick = { deleteTarget = null },
             onSecondButtonClick = {
@@ -192,7 +193,7 @@ private fun MessagePageContent(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ) {
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.msg_create_group), color = MaterialTheme.colorScheme.onSurface) },
+                        text = { Text(stringResource(DesignSystemR.string.msg_create_group), color = MaterialTheme.colorScheme.onSurface) },
                         onClick = { showAddMenu = false; onCreateGroup() },
                     )
                     DropdownMenuItem(
@@ -258,7 +259,7 @@ private fun MessagePageContent(
                     SwipeActionItem(
                         actionContent = {
                             Text(
-                                text = stringResource(R.string.delete),
+                                text = stringResource(DesignSystemR.string.delete),
                                 color = Color.White,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium,

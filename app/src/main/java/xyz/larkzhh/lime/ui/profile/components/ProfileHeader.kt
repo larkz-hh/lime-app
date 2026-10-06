@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.ui.components.labelRes
@@ -205,7 +206,7 @@ fun ProfileHeader(
                     Spacer(Modifier.width(12.dp))
                     QuickCard(
                         icon = Icons.Default.Groups,
-                        label = stringResource(R.string.profile_group_chat),
+                        label = stringResource(DesignSystemR.string.profile_group_chat),
                         subtitle = stringResource(R.string.profile_group_chat_desc),
                         modifier = Modifier.weight(1f),
                         onClick = onGroupChat,
@@ -262,7 +263,7 @@ private fun AvatarSection(
         if (user?.avatar != null) {
             AsyncImage(
                 model = user.avatar,
-                contentDescription = stringResource(R.string.profile_avatar),
+                contentDescription = stringResource(DesignSystemR.string.profile_avatar),
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
             )

@@ -74,7 +74,6 @@ import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.util.showToast
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountPrivacyScreen(
@@ -302,7 +301,7 @@ private fun AccountPrivacyRootPage(
     if (showLogoutConfirm) {
         LimeAlertDialog(
             title = stringResource(R.string.account_logout_confirm_title),
-            firstButtonText = stringResource(R.string.cancel),
+            firstButtonText = stringResource(DesignSystemR.string.cancel),
             secondButtonText = stringResource(R.string.account_logout),
             secondButtonColor = Color(0xFFFF3B30),
             onFirstButtonClick = { showLogoutConfirm = false },

@@ -5,7 +5,7 @@ import xyz.larkzhh.swipeback.ScrimBox
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.navigation.component.PublishBottomSheet
 import xyz.larkzhh.lime.navigation.state.PendingNoteEdit
-import xyz.larkzhh.lime.ui.auth.LoginGate
+import xyz.larkzhh.lime.ui.components.LoginGate
 import xyz.larkzhh.lime.navigation.component.BottomNavBar
 import xyz.larkzhh.lime.navigation.state.AuthorProfileStore
 
@@ -97,7 +97,6 @@ import xyz.larkzhh.lime.ui.settings.GeneralSettingsScreen
 import xyz.larkzhh.lime.ui.translate.TranslatePackScreen
 import xyz.larkzhh.lime.ui.video.feed.VideoFeedScreen
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
-
 
 private val bottomNavRoutes = setOf(
     Screen.Home.route,
@@ -241,7 +240,6 @@ fun AppNavGraph(
             onShortcutHandled()
         }
     }
-
 
     LaunchedEffect(currentRoute) {
         SwipeBackNavState.suppressPopAnim = false

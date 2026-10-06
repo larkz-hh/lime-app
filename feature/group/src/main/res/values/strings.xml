@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="group_list_tab_created">我创建的</string>
+    <string name="group_list_tab_joined">我加入的</string>
+    <string name="group_list_empty_created">还没有创建群聊</string>
+    <string name="group_list_empty_joined">还没有加入群聊</string>
+    <string name="group_member_count">%1$d人</string>
+    <string name="group_name">群名称</string>
+    <string name="group_name_hint">请输入群名称</string>
+    <string name="group_manage_intro">群简介</string>
+    <string name="group_manage_intro_hint">介绍一下这个群</string>
+    <string name="group_create_intro">群介绍</string>
+    <string name="group_create_intro_hint">简单说说你想在群内讨论的话题、以及希望哪些人加入群聊</string>
+    <string name="group_create_action">创建</string>
+    <string name="group_avatar_change_hint">点击更换头像</string>
+    <string name="group_invite_friends">邀请好友入群</string>
+    <string name="group_invite">邀请</string>
+    <string name="group_invite_sent">已发送邀请</string>
+    <string name="group_pick_friends_title">选择互关好友</string>
+    <string name="group_no_mutual_friends">暂无互关好友，先去互相关注吧</string>
+    <string name="group_dismiss_group">解散群聊</string>
+    <string name="group_dismiss">解散</string>
+    <string name="group_dismiss_message">解散后所有成员将被移出，且不可恢复。</string>
+    <string name="group_quit_group">退出群聊</string>
+    <string name="group_quit">退出</string>
+    <string name="group_quit_message">退出后你将不再接收该群消息。</string>
+    <string name="group_save_failed">保存失败</string>
+    <string name="group_save_success">群资料已保存</string>
+    <string name="group_avatar_save_failed">头像保存失败</string>
+    <string name="group_avatar_upload_failed">头像上传失败</string>
+    <string name="group_invite_failed">邀请失败</string>
+    <string name="group_dismiss_failed">解散失败</string>
+    <string name="group_quit_failed">退出失败</string>
+    <string name="group_create_failed">创建失败</string>
+</resources>
