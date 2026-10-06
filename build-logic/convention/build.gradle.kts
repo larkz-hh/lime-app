@@ -48,5 +48,9 @@ gradlePlugin {
             id = "lime.android.feature"
             implementationClass = "xyz.larkzhh.lime.buildlogic.LimeAndroidFeaturePlugin"
         }
+        register("androidBaselineProfile") {
+            id = "lime.android.baselineprofile"
+            implementationClass = "xyz.larkzhh.lime.buildlogic.LimeAndroidBaselineProfilePlugin"
+        }
     }
 }

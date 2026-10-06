@@ -1,33 +1,11 @@
 import com.android.build.api.dsl.ManagedVirtualDevice
 
 plugins {
-    alias(libs.plugins.android.test)
-    alias(libs.plugins.android.built.in1.kotlin)
-    alias(libs.plugins.baselineprofile)
+    alias(libs.plugins.lime.android.baselineprofile)
 }
 
 android {
     namespace = "xyz.larkzhh.baselineprofile"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    defaultConfig {
-        minSdk = 28
-        targetSdk = 36
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // 允许在托管模拟器上跑基准
-        testInstrumentationRunnerArguments["androidx.benchmark.suppressErrors"] = "EMULATOR"
-    }
-
     targetProjectPath = ":app"
 
     // This code creates the gradle managed device used to generate baseline profiles.
@@ -49,8 +27,9 @@ baselineProfile {
 
 dependencies {
     implementation(libs.androidx.benchmark.macro.junit4)
-    implementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.test.runner)
     implementation(libs.androidx.junit)
+    implementation(libs.junit)
     implementation(libs.androidx.uiautomator)
 }
 

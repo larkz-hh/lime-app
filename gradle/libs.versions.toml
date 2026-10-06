@@ -47,6 +47,7 @@ zxing = "3.5.3"
 animatedNavigationBar = "1.0.0"
 uiautomator = "2.2.0"
 benchmarkMacroJunit4 = "1.2.4"
+testRunner = "1.7.0"
 androidBuiltInKotlin = "9.2.1"
 baselineprofile = "1.2.4"
 profileinstaller = "1.3.1"
@@ -191,6 +192,7 @@ shortcut-badger = { group = "me.leolin", name = "ShortcutBadger", version.ref = 
 # 动画底部导航
 exyte-animated-navigation-bar = { group = "com.exyte", name = "animated-navigation-bar", version.ref = "animatedNavigationBar" }
 androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "testRunner" }
 androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmarkMacroJunit4" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agpUser" }
@@ -217,3 +219,4 @@ lime-android-library = { id = "lime.android.library" }
 lime-android-library-compose = { id = "lime.android.library.compose" }
 lime-kotlin-library = { id = "lime.kotlin.library" }
 lime-android-feature = { id = "lime.android.feature" }
+lime-android-baselineprofile = { id = "lime.android.baselineprofile" }
