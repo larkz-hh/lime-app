@@ -16,15 +16,9 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+}
 
-    // convention plugin 的来源
-    includeBuild("build-logic")
-}
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-}
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         val useAliyunMirror = System.getenv("LIME_USE_ALIYUN")?.toBoolean() ?: true
         if (useAliyunMirror) {
@@ -33,10 +27,13 @@ dependencyResolutionManagement {
         }
         google()
         mavenCentral()
-        maven { url = uri("https://jitpack.io") }
+    }
+    versionCatalogs {
+        create("libs") {
+            from(files("../gradle/libs.versions.toml"))
+        }
     }
 }
 
-rootProject.name = "Lime"
-include(":app")
-include(":baselineprofile")
+rootProject.name = "build-logic"
+include(":convention")

@@ -1,11 +1,8 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.hilt)
+    alias(libs.plugins.lime.android.application)
+    alias(libs.plugins.lime.android.hilt)
     alias(libs.plugins.baselineprofile)
 }
 
@@ -40,16 +37,11 @@ val releaseSigningReady = listOf("storeFile", "storePassword", "keyAlias").all {
 
 android {
     namespace = "xyz.larkzhh.lime"
-    compileSdk = 37
 
     defaultConfig {
         applicationId = "xyz.larkzhh.lime"
-        minSdk = 26
-        targetSdk = 36
         versionCode = 3
         versionName = "1.0.2"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         buildConfigField("String", "SPEECH_MODEL_URL", "\"$speechModelUrl\"")
@@ -84,21 +76,6 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
-    buildFeatures {
-        compose = true
-        buildConfig = true
-    }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
-        freeCompilerArgs.add("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
-    }
 }
 
 dependencies {
@@ -126,10 +103,7 @@ dependencies {
     implementation(libs.compose.danmaku)
 
     // DI
-    implementation(libs.hilt.android)
-    implementation(libs.javax.inject)
     "baselineProfile"(project(":baselineprofile"))
-    ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
     // Paging

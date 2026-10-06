@@ -183,6 +183,8 @@ exyte-animated-navigation-bar = { group = "com.exyte", name = "animated-navigati
 androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmarkMacroJunit4" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
+android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agpUser" }
+kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlinUser" }
 
 swipe-back = { group = "com.github.larkz-hh", name = "compose-swipe-back", version.ref = "swipeBack" }
 compose-danmaku = { group = "com.github.larkz-hh", name = "compose-danmaku", version.ref = "danmaku" }
@@ -198,3 +200,6 @@ android-test = { id = "com.android.test", version.ref = "agpUser" }
 android-built-in1-kotlin = { id = "com.android.built-in-kotlin", version.ref = "androidBuiltInKotlin" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependencyAnalysis" }
+
+lime-android-application = { id = "lime.android.application" }
+lime-android-hilt = { id = "lime.android.hilt" }
