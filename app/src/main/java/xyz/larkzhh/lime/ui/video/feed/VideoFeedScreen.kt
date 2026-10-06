@@ -82,6 +82,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import xyz.larkzhh.danmaku.DanmakuSelection
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.DanmakuData
@@ -96,7 +97,7 @@ import xyz.larkzhh.lime.navigation.route.navigateToUserProfile
 import xyz.larkzhh.lime.ui.components.CommentInputSheet
 import xyz.larkzhh.lime.ui.video.components.ExpandableText
 import xyz.larkzhh.lime.ui.video.components.DanmakuInputSheet
-import xyz.larkzhh.lime.ui.video.components.DanmakuOverlay
+import xyz.larkzhh.lime.ui.video.components.DanmakuHost
 import xyz.larkzhh.lime.ui.video.components.FollowButton
 import xyz.larkzhh.lime.ui.video.components.VideoActionPanel
 import xyz.larkzhh.lime.ui.video.components.VideoSideActionBar
@@ -446,7 +447,10 @@ private fun VideoFeedContent(
                             player = player,
                             scrubbing = scrubbing,
                             clearScreen = uiState.clearScreen,
-                            onScrubbingChange = { scrubbing = it },
+                            onScrubbingChange = {
+                                scrubbing = it
+                                if (it) danmakuViewModel.dismissBubble()
+                            },
                             onBack = { if (!navController.popBackStack()) onExit() },
                             onShare = { shareQrNoteId = item.id },
                             onAuthorClick = { navController.navigateToUserProfile(item.author.id, selfUserId) },
@@ -460,16 +464,16 @@ private fun VideoFeedContent(
                             onToggleLike = viewModel::toggleLike,
                             onToggleFavorite = viewModel::toggleFavorite,
                             onCommentClick = { showCommentDrawer = true },
-                            danmakuList = danmakuUiState.danmakuByNote[item.id].orEmpty(),
+                            danmakuList = danmakuUiState.danmakuByNote[item.id]?.items.orEmpty(),
                             danmakuEnabled = danmakuUiState.enabled,
                             danmakuOpacity = uiState.danmakuOpacity,
                             currentUserId = danmakuViewModel.currentUserId,
-                            pausedDanmakuId = danmakuUiState.pausedDanmakuId,
-                            frozenDanmakuMs = danmakuUiState.frozenMs,
-                            onDanmakuClick = { id, nowMs -> danmakuViewModel.onDanmakuClick(id, nowMs) },
+                            selection = danmakuUiState.selection,
+                            onSelectionChange = danmakuViewModel::onSelectionChange,
                             onDismissBubble = { danmakuViewModel.dismissBubble() },
                             onSendDanmakuClick = { danmakuViewModel.openInput() },
                             onDeleteDanmaku = { danmakuViewModel.deleteDanmaku(item.id, it.id) },
+                            onPlayheadMoved = { danmakuViewModel.onPlayheadMoved(item.id, it) },
                             showFullscreenButton = item.isLandscape,
                             useSideActions = viewModel.isTabEntry,
                             onFullscreen = { viewModel.enterFullscreen() },
@@ -862,12 +866,12 @@ private fun VideoChrome(
     danmakuEnabled: Boolean = true,
     danmakuOpacity: Float = 1f,
     currentUserId: Long? = null,
-    pausedDanmakuId: Long? = null,
-    frozenDanmakuMs: Long = 0L,
-    onDanmakuClick: (danmakuId: Long, nowMs: Long) -> Unit = { _, _ -> },
+    selection: DanmakuSelection? = null,
+    onSelectionChange: (DanmakuSelection?) -> Unit = {},
     onDismissBubble: () -> Unit = {},
     onSendDanmakuClick: () -> Unit = {},
     onDeleteDanmaku: (DanmakuData) -> Unit = {},
+    onPlayheadMoved: (Long) -> Unit = {},
     showFullscreenButton: Boolean = false,
     useSideActions: Boolean = false,
     onFullscreen: () -> Unit = {},// 进入横屏全屏
@@ -877,10 +881,12 @@ private fun VideoChrome(
     // 播放进度轮询
     var positionMs by remember { mutableLongStateOf(0L) }
     var durationMs by remember { mutableLongStateOf(item.video.durationMs.coerceAtLeast(1L)) }
+    val currentOnPlayheadMoved by rememberUpdatedState(onPlayheadMoved)
     LaunchedEffect(player) {
         while (true) {
             player?.let {
                 positionMs = it.currentPosition
+                currentOnPlayheadMoved(it.currentPosition)
                 val d = it.duration
                 if (d > 0) durationMs = d
             }
@@ -968,16 +974,15 @@ private fun VideoChrome(
             }
             // 弹幕区
             if (!scrubbing) {
-                DanmakuOverlay(
+                DanmakuHost(
                     danmakuList = danmakuList,
                     player = player,
                     enabled = danmakuEnabled,
                     currentUserId = currentUserId,
                     noteAuthorId = item.author.id,
-                    pausedDanmakuId = pausedDanmakuId,
-                    frozenMs = frozenDanmakuMs,
+                    selection = selection,
                     opacity = danmakuOpacity,
-                    onDanmakuClick = onDanmakuClick,
+                    onSelectionChange = onSelectionChange,
                     onDismissBubble = onDismissBubble,
                     onDelete = onDeleteDanmaku,
                     modifier = Modifier

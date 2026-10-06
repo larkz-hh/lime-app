@@ -59,7 +59,7 @@ import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.components.FavoriteButton
 import xyz.larkzhh.lime.ui.components.LikeButton
 import xyz.larkzhh.lime.ui.video.components.DanmakuInputSheet
-import xyz.larkzhh.lime.ui.video.components.DanmakuOverlay
+import xyz.larkzhh.lime.ui.video.components.DanmakuHost
 import xyz.larkzhh.lime.ui.video.components.ScrubBar
 import xyz.larkzhh.lime.ui.video.components.SpeedDrawer
 import xyz.larkzhh.lime.ui.video.components.VerticalSlider
@@ -227,6 +227,7 @@ fun LandscapeFullscreenHost(
                         while (true) {
                             player?.let {
                                 positionMs = it.currentPosition
+                                danmakuViewModel.onPlayheadMoved(item.id, it.currentPosition)
                                 val d = it.duration
                                 if (d > 0) durationMs = d
                             }
@@ -236,16 +237,15 @@ fun LandscapeFullscreenHost(
                     val fraction = if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
 
                     // 顶部弹幕区
-                    DanmakuOverlay(
-                        danmakuList = danmakuUiState.danmakuByNote[item.id].orEmpty(),
+                    DanmakuHost(
+                        danmakuList = danmakuUiState.danmakuByNote[item.id]?.items.orEmpty(),
                         player = player,
                         enabled = danmakuUiState.enabled,
                         currentUserId = danmakuViewModel.currentUserId,
                         noteAuthorId = item.author.id,
-                        pausedDanmakuId = danmakuUiState.pausedDanmakuId,
-                        frozenMs = danmakuUiState.frozenMs,
+                        selection = danmakuUiState.selection,
                         opacity = uiState.danmakuOpacity,
-                        onDanmakuClick = { id, nowMs -> danmakuViewModel.onDanmakuClick(id, nowMs) },
+                        onSelectionChange = danmakuViewModel::onSelectionChange,
                         onDismissBubble = { danmakuViewModel.dismissBubble() },
                         onDelete = { danmakuViewModel.deleteDanmaku(item.id, it.id) },
                         modifier = Modifier
@@ -381,7 +381,10 @@ fun LandscapeFullscreenHost(
                             )
                             ScrubBar(
                                 fraction = fraction,
-                                onDragStart = { scrubbing = true },
+                                onDragStart = {
+                                    scrubbing = true
+                                    danmakuViewModel.dismissBubble()
+                                },
                                 onSeek = { v -> player?.seekTo((v * durationMs).toLong()) },
                                 onDragEnd = { v ->
                                     player?.seekTo((v * durationMs).toLong())

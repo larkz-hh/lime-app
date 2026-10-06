@@ -14,8 +14,8 @@ class DanmakuRepositoryImpl @Inject constructor(
 ) : DanmakuRepository {
 
     /// 拉取弹幕列表
-    override suspend fun getDanmaku(noteId: Long): Result<DanmakuListResponse> = runCatching {
-        val response = apiService.getDanmaku(noteId)
+    override suspend fun getDanmaku(noteId: Long, fromMs: Long?, toMs: Long?): Result<DanmakuListResponse> = runCatching {
+        val response = apiService.getDanmaku(noteId, fromMs, toMs)
         check(response.code == 200 && response.data != null) { response.message }
         response.data
     }

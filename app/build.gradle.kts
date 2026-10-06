@@ -119,6 +119,9 @@ dependencies {
     implementation(libs.swipe.back)
     implementation(libs.androidx.profileinstaller)
 
+    // 弹幕渲染
+    implementation(libs.compose.danmaku)
+
     // DI
     implementation(libs.hilt.android)
     "baselineProfile"(project(":baselineprofile"))

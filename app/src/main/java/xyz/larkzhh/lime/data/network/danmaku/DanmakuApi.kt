@@ -5,6 +5,7 @@ import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 import xyz.larkzhh.lime.data.network.model.ApiResponse
 import xyz.larkzhh.lime.data.network.model.DanmakuData
 import xyz.larkzhh.lime.data.network.model.DanmakuListResponse
@@ -21,7 +22,11 @@ interface DanmakuApi {
 
     /// 拉取弹幕列表
     @GET("api/notes/{noteId}/danmaku")
-    suspend fun getDanmaku(@Path("noteId") noteId: Long): ApiResponse<DanmakuListResponse>
+    suspend fun getDanmaku(
+        @Path("noteId") noteId: Long,
+        @Query("fromMs") fromMs: Long? = null,
+        @Query("toMs") toMs: Long? = null,
+    ): ApiResponse<DanmakuListResponse>
 
     /// 删除弹幕
     @DELETE("api/notes/{noteId}/danmaku/{danmakuId}")

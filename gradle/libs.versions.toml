@@ -55,6 +55,8 @@ dependencyAnalysis = "3.19.2"
 
 swipeBack = "0.3.0"
 
+danmaku = "0.4.0"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-collection = { group = "androidx.collection", name = "collection", version.ref = "collection" }
@@ -184,6 +186,7 @@ androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchm
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
 
 swipe-back = { group = "com.github.larkz-hh", name = "compose-swipe-back", version.ref = "swipeBack" }
+compose-danmaku = { group = "com.github.larkz-hh", name = "compose-danmaku", version.ref = "danmaku" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agpUser" }
