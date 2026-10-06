@@ -29,8 +29,6 @@ class LimeAndroidFeaturePlugin : Plugin<Project> {
             add("implementation", libs.findLibrary("androidx-compose-ui-graphics").get())
             add("implementation", libs.findLibrary("androidx-compose-material3").get())
             add("implementation", libs.findLibrary("androidx-compose-material-icons-extended").get())
-            add("implementation", libs.findLibrary("androidx-compose-ui-tooling-preview").get())
-            add("implementation", libs.findLibrary("androidx-lifecycle-viewmodel-compose").get())
             add("implementation", libs.findLibrary("androidx-hilt-navigation-compose").get())
             add("implementation", libs.findLibrary("kotlinx-coroutines-core").get())
             add("implementation", libs.findLibrary("coil-compose").get())

@@ -116,9 +116,6 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.collection)
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.process)
@@ -130,20 +127,13 @@ dependencies {
     // Baseline Profile：只在运行期靠 manifest 里的 initializer 生效，代码不引用
     runtimeOnly(libs.androidx.profileinstaller)
 
-    // 弹幕渲染
-    implementation(libs.compose.danmaku)
-
     // DI
     "baselineProfile"(project(":baselineprofile"))
     implementation(libs.androidx.hilt.navigation.compose)
 
-    // Paging
-    implementation(libs.androidx.paging.compose)
-
     // Room
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.paging)
 
     // Network
     implementation(libs.retrofit2)
@@ -154,9 +144,10 @@ dependencies {
     implementation(libs.okio)
 
     // Image & Video Loading
-    implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(libs.coil.video)
+    implementation(libs.coil.core)
+    implementation(libs.coil)
 //    implementation(libs.androidx.palette)
 
     // kv Storage
@@ -165,23 +156,17 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     runtimeOnly(libs.kotlinx.coroutines.android)
-    implementation(libs.kotlinx.coroutines.play.services)
 
     // ML Kit
-    implementation(libs.mlkit.translate)
-    implementation(libs.mlkit.barcode.scanning)
+    runtimeOnly(libs.mlkit.translate)
+    runtimeOnly(libs.mlkit.barcode.scanning)
 
     // 端侧语音识别（语音转文字）
-    implementation(libs.vosk.android)
-
-    // QRCode generate
-    implementation(libs.zxing.core)
+    runtimeOnly(libs.vosk.android)
 
     // CameraX
-    implementation(libs.androidx.camera.core)
+    runtimeOnly(libs.androidx.camera.core)
     runtimeOnly(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.view)
 
     // Lottie Compose
     implementation(libs.lottie.compose)
@@ -190,30 +175,17 @@ dependencies {
     implementation(libs.exyte.animated.navigation.bar)
 
     // Media3 ExoPlayer
-    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.common)
     implementation(libs.androidx.media3.session)
 
     // Permissions
     implementation(libs.accompanist.permissions)
 
     // WorkManager
-    implementation(libs.androidx.work.runtime)
-
-    // Image Crop
-    implementation(libs.ucrop)
-
-    // Drag-and-drop reorder
-    implementation(libs.reorderable)
+    runtimeOnly(libs.androidx.work.runtime)
 
     // Toast
     implementation(libs.toasty)
-
-    // Telephoto zoomable image
-    implementation(libs.telephoto.zoomable.image.coil3)
-
-    // Markdown
-    implementation(libs.markdown.renderer.m3)
-    implementation(libs.markdown.renderer.coil3)
 
     // Splash Screen
 //    implementation(libs.androidx.core.splashscreen)
@@ -221,13 +193,9 @@ dependencies {
     // Widget
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.appwidget.preview)
-    implementation(libs.androidx.glance.preview)
 
     // 腾讯云 IM
-    implementation(libs.tencent.imsdk.plus)
-
-    // 桌面角标（厂商聚合）
-    implementation(libs.shortcut.badger)
+    runtimeOnly(libs.tencent.imsdk.plus)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

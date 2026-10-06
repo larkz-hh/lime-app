@@ -14,6 +14,6 @@ dependencies {
     implementation(project(":core:designsystem"))
     implementation(project(":core:navigation"))
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.common)
     implementation(libs.shortcut.badger)
 }

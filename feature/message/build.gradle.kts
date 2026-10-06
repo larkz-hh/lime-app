@@ -7,6 +7,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.compose.ui.tooling.preview)
     api(project(":core:model"))
     implementation(project(":core:ui"))
     implementation(project(":core:domain"))
