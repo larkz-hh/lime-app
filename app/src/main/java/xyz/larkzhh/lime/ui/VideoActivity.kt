@@ -25,15 +25,17 @@ import xyz.larkzhh.lime.ui.theme.AppLimeTheme
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.util.text.AppLanguage
 
+/// 视频页意图
+fun videoIntent(context: Context, noteId: Long, source: String): Intent =
+    Intent(context, VideoActivity::class.java).apply {
+        putExtra(VideoActivity.EXTRA_NOTE_ID, noteId)
+        putExtra(VideoActivity.EXTRA_SOURCE, source)
+    }
+
 /// 打开视频页
 fun Context.openVideo(noteId: Long, source: String) {
     VideoActivity.instance?.finish()
-    startActivity(
-        Intent(this, VideoActivity::class.java).apply {
-            putExtra(VideoActivity.EXTRA_NOTE_ID, noteId)
-            putExtra(VideoActivity.EXTRA_SOURCE, source)
-        }
-    )
+    startActivity(videoIntent(this, noteId, source))
 }
 
 @androidx.annotation.OptIn(UnstableApi::class)

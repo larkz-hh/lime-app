@@ -21,6 +21,7 @@ import xyz.larkzhh.lime.navigation.MainEntryPoint
 import xyz.larkzhh.lime.navigation.VideoOpener
 import xyz.larkzhh.lime.ui.MainActivity
 import xyz.larkzhh.lime.ui.openVideo
+import xyz.larkzhh.lime.ui.videoIntent
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.util.text.AppLanguage
 import xyz.larkzhh.lime.work.TranslatePrefetchWorker
@@ -43,6 +44,7 @@ class LimeApplication : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         MMKV.initialize(this)
         VideoOpener.open = { context, noteId, source -> context.openVideo(noteId, source) }
+        VideoOpener.intent = { context, noteId, source -> videoIntent(context, noteId, source) }
         MainEntryPoint.intent = { context, action ->
             Intent(context, MainActivity::class.java)
                 .setAction(action)

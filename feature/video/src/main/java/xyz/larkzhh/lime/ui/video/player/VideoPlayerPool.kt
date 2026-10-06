@@ -14,7 +14,8 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import javax.inject.Inject
 import javax.inject.Singleton
-import xyz.larkzhh.lime.ui.VideoActivity
+import xyz.larkzhh.lime.navigation.VideoOpener
+import xyz.larkzhh.lime.navigation.route.Screen
 
 private const val PIP_SEEK_STEP_MS = 15_000L// 小窗跳转步长
 
@@ -74,16 +75,19 @@ class VideoPlayerManager @Inject constructor(
         val wrapper = sessionWrappers.getOrPut(id) { PipSeekPlayer(player) }
         ensureSession(wrapper).apply {
             this.player = wrapper
-            setSessionActivity(
-                PendingIntent.getActivity(
-                    context,
-                    0,
-                    Intent(context, VideoActivity::class.java)
-                        .putExtra(VideoActivity.EXTRA_NOTE_ID, id)
-                        .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-                ),
-            )
+            VideoOpener.intent
+                ?.invoke(context, id, Screen.VideoFeed.SOURCE_RECOMMENDATION)
+                ?.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                ?.let { sessionIntent ->
+                    setSessionActivity(
+                        PendingIntent.getActivity(
+                            context,
+                            0,
+                            sessionIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                        ),
+                    )
+                }
         }
     }
 
