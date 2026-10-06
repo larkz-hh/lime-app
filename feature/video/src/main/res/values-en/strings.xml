@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playback_channel_name">Now playing</string>
+    <string name="video_feed_empty">No videos yet</string>
+    <string name="video_notify_settings_hint">Please enable notifications in Settings</string>
+    <string name="video_reply">Reply</string>
+    <string name="video_reply_mention">Reply to @%1$s</string>
+    <string name="video_delete_comment_confirm">Delete this comment?</string>
+    <string name="video_danmaku_off">Danmaku off</string>
+    <string name="video_danmaku_on">Danmaku on</string>
+    <string name="video_speed_changed">Speed changed to %1$.1f×</string>
+    <string name="video_autoplay_off">Auto-play next off</string>
+    <string name="video_autoplay_on">Auto-play next on</string>
+    <string name="video_background_playback_off">Background playback off</string>
+    <string name="video_background_playback_on">Background playback on</string>
+    <string name="video_saving">Saving…</string>
+    <string name="video_delete_note_confirm">Delete this video note? This cannot be undone.</string>
+    <string name="video_note_deleted">Video note deleted</string>
+    <string name="video_delete_note_failed">Failed to delete. Please try again.</string>
+    <string name="video_pip">Picture-in-picture</string>
+    <string name="video_send_danmaku">Send danmaku</string>
+    <string name="video_fullscreen">Watch fullscreen</string>
+    <string name="copied">Copied</string>
+    <string name="translate_bg_download_toast">Added to background download. Offline translation will be ready when it finishes</string>
+    <string name="video_save_to_album">Save to album</string>
+    <string name="video_clear_screen_playback">Clean Screen Playback</string>
+    <string name="video_auto_play_next">Auto-play next</string>
+    <string name="video_background_playback">Background playback</string>
+    <string name="video_danmaku">Danmaku</string>
+    <string name="video_speed">Speed</string>
+    <string name="video_danmaku_opacity">Danmaku opacity</string>
+    <string name="video_like">Like</string>
+    <string name="video_comment">Comment</string>
+    <string name="video_favorite">Favorite</string>
+    <string name="video_more">More</string>
+    <string name="video_danmaku_disable">Turn off danmaku</string>
+    <string name="video_danmaku_enable">Turn on danmaku</string>
+    <string name="video_danmaku_input_hint">Send a danmaku… (∠・ω&lt; )⌒☆</string>
+    <string name="video_danmaku_send_prompt">Tap to send a danmaku</string>
+    <string name="video_exit_fullscreen">Exit Fullscreen</string>
+    <string name="video_brightness">Brightness</string>
+    <string name="video_volume">Volume</string>
+    <string name="video_speed_boost">Boosting speed</string>
+    <string name="video_danmaku_send_failed">Failed to send danmaku</string>
+</resources>

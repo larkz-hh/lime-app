@@ -1,8 +1,4 @@
 <resources>
-    <string name="pip_seek_back">Rewind 15s</string>
-    <string name="pip_seek_forward">Forward 15s</string>
-    <string name="pip_pause">Pause</string>
-    <string name="playback_channel_name">Now playing</string>
     <string name="shortcut_search">Search</string>
     <string name="shortcut_scan">Scan</string>
     <string name="widget_search_name">Lime Search</string>
@@ -19,90 +15,10 @@
 
     <!-- Add friend -->
 
-    <string name="search_history_title">History</string>
-    <string name="search_delete_all">Delete all</string>
-    <string name="search_done">Done</string>
-    <string name="search_manage_history">Manage history</string>
-    <string name="search_hot_words">Trending</string>
-    <string name="search_clear_history_title">Clear all search history?</string>
-    <string name="search_expand">Expand</string>
-    <string name="search_collapse">Collapse</string>
-    <string name="search_tab_all">All</string>
-    <string name="search_tab_users">Users</string>
-    <string name="search_filter">Filter</string>
     <string name="search_load_failed">Failed to load</string>
-    <string name="search_empty_notes">No related notes</string>
-    <string name="search_empty_users">No related users</string>
-    <string name="search_followers">%1$d followers</string>
-    <string name="search_self_badge">Me</string>
-    <string name="search_sort_by">Sort by</string>
-    <string name="search_publish_time">Publish time</string>
-    <string name="search_filter_reset">Reset</string>
-    <string name="search_ok">OK</string>
-    <string name="search_sort_composite">Recommended</string>
-    <string name="search_sort_latest">Latest</string>
-    <string name="search_sort_most_liked">Most liked</string>
-    <string name="search_sort_most_commented">Most commented</string>
-    <string name="search_sort_most_favored">Most favorited</string>
-    <string name="search_time_all">Any time</string>
-    <string name="search_time_day">Past 24h</string>
-    <string name="search_time_week">Past week</string>
-    <string name="search_time_half_year">Past 6 months</string>
-    <string name="search_filter_type">Type</string>
-    <string name="search_type_all">All</string>
-    <string name="search_type_image">Image</string>
-    <string name="search_type_video">Video</string>
-    <string name="search_lime_id">Lime ID</string>
-
-    <string name="video_feed_empty">No videos yet</string>
-    <string name="video_notify_settings_hint">Please enable notifications in Settings</string>
-    <string name="video_reply">Reply</string>
-    <string name="video_reply_mention">Reply to @%1$s</string>
-    <string name="video_delete_comment_confirm">Delete this comment?</string>
-    <string name="video_danmaku_off">Danmaku off</string>
-    <string name="video_danmaku_on">Danmaku on</string>
-    <string name="video_speed_changed">Speed changed to %1$.1f×</string>
-    <string name="video_autoplay_off">Auto-play next off</string>
-    <string name="video_autoplay_on">Auto-play next on</string>
-    <string name="video_background_playback_off">Background playback off</string>
-    <string name="video_background_playback_on">Background playback on</string>
-    <string name="video_saving">Saving…</string>
-    <string name="video_delete_note_confirm">Delete this video note? This cannot be undone.</string>
-    <string name="video_note_deleted">Video note deleted</string>
-    <string name="video_delete_note_failed">Failed to delete. Please try again.</string>
-    <string name="video_pip">Picture-in-picture</string>
-    <string name="video_send_danmaku">Send danmaku</string>
-    <string name="video_fullscreen">Watch fullscreen</string>
-    <string name="copied">Copied</string>
-    <string name="translate_bg_download_toast">Added to background download. Offline translation will be ready when it finishes</string>
 
     <string name="publish_from_album">Choose from Album</string>
     <string name="publish_camera">Camera</string>
     <string name="publish_take_photo">Take Photo</string>
 
-    <string name="video_save_to_album">Save to album</string>
-    <string name="video_clear_screen_playback">Clean Screen Playback</string>
-    <string name="video_auto_play_next">Auto-play next</string>
-    <string name="video_background_playback">Background playback</string>
-    <string name="video_danmaku">Danmaku</string>
-    <string name="video_speed">Speed</string>
-    <string name="video_danmaku_opacity">Danmaku opacity</string>
-    <string name="video_like">Like</string>
-    <string name="video_comment">Comment</string>
-    <string name="video_favorite">Favorite</string>
-    <string name="video_more">More</string>
-    <string name="video_danmaku_disable">Turn off danmaku</string>
-    <string name="video_danmaku_enable">Turn on danmaku</string>
-    <string name="video_danmaku_input_hint">Send a danmaku… (∠・ω&lt; )⌒☆</string>
-    <string name="video_danmaku_send_prompt">Tap to send a danmaku</string>
-    <string name="video_exit_fullscreen">Exit Fullscreen</string>
-    <string name="video_brightness">Brightness</string>
-    <string name="video_volume">Volume</string>
-    <string name="video_speed_boost">Boosting speed</string>
-    <string name="video_danmaku_send_failed">Failed to send danmaku</string>
-
-    <string name="search_placeholder">Search notes and users</string>
-    <string name="search_clear">Clear</string>
-    <string name="search_action">Search</string>
-    <string name="search_fill_suggestion">Fill</string>
 </resources>

@@ -82,4 +82,9 @@
     <string name="comment_emoji">Emoji</string>
     <string name="comment_send">Send</string>
     <string name="comment_empty_hint">No comments yet</string>
+    <string name="pip_seek_back">Rewind 15s</string>
+    <string name="pip_seek_forward">Forward 15s</string>
+    <string name="pip_pause">Pause</string>
+    <string name="search_expand">Expand</string>
+    <string name="search_collapse">Collapse</string>
 </resources>

@@ -24,7 +24,7 @@ import xyz.larkzhh.lime.ui.openVideo
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.util.text.AppLanguage
 import xyz.larkzhh.lime.work.TranslatePrefetchWorker
-import xyz.larkzhh.lime.work.WidgetHotRefreshWorker
+import xyz.larkzhh.lime.ui.widget.WidgetHotRefreshWorker
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @HiltAndroidApp

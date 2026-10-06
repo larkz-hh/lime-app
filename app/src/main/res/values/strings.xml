@@ -1,8 +1,4 @@
 <resources>
-    <string name="pip_seek_back">后退15秒</string>
-    <string name="pip_seek_forward">前进15秒</string>
-    <string name="pip_pause">暂停</string>
-    <string name="playback_channel_name">正在播放</string>
     <string name="shortcut_search">搜索</string>
     <string name="shortcut_scan">扫一扫</string>
     <string name="widget_search_name">Lime 搜索</string>
@@ -19,90 +15,10 @@
 
     <!-- 添加好友 -->
 
-    <string name="search_history_title">历史记录</string>
-    <string name="search_delete_all">全部删除</string>
-    <string name="search_done">完成</string>
-    <string name="search_manage_history">管理历史</string>
-    <string name="search_hot_words">热搜</string>
-    <string name="search_clear_history_title">确认清空全部搜索历史吗？</string>
-    <string name="search_expand">展开</string>
-    <string name="search_collapse">收起</string>
-    <string name="search_tab_all">全部</string>
-    <string name="search_tab_users">用户</string>
-    <string name="search_filter">筛选</string>
     <string name="search_load_failed">加载失败</string>
-    <string name="search_empty_notes">暂无相关笔记</string>
-    <string name="search_empty_users">暂无相关用户</string>
-    <string name="search_followers">粉丝 %1$d</string>
-    <string name="search_self_badge">我自己</string>
-    <string name="search_sort_by">排序依据</string>
-    <string name="search_publish_time">发布时间</string>
-    <string name="search_filter_reset">重置</string>
-    <string name="search_ok">确定</string>
-    <string name="search_sort_composite">综合</string>
-    <string name="search_sort_latest">最新</string>
-    <string name="search_sort_most_liked">最多点赞</string>
-    <string name="search_sort_most_commented">最多评论</string>
-    <string name="search_sort_most_favored">最多收藏</string>
-    <string name="search_time_all">不限</string>
-    <string name="search_time_day">一天内</string>
-    <string name="search_time_week">一周内</string>
-    <string name="search_time_half_year">半年内</string>
-    <string name="search_filter_type">笔记类型</string>
-    <string name="search_type_all">全部</string>
-    <string name="search_type_image">图文</string>
-    <string name="search_type_video">视频</string>
-    <string name="search_lime_id">Lime ID</string>
-
-    <string name="video_feed_empty">暂无视频</string>
-    <string name="video_notify_settings_hint">请在设置中开启通知</string>
-    <string name="video_reply">回复</string>
-    <string name="video_reply_mention">回复 @%1$s</string>
-    <string name="video_delete_comment_confirm">确认删除这条评论吗？</string>
-    <string name="video_danmaku_off">弹幕已关闭</string>
-    <string name="video_danmaku_on">弹幕已开启</string>
-    <string name="video_speed_changed">已切换 %1$.1f倍速</string>
-    <string name="video_autoplay_off">自动连播已关闭</string>
-    <string name="video_autoplay_on">自动连播已开启</string>
-    <string name="video_background_playback_off">后台播放已关闭</string>
-    <string name="video_background_playback_on">后台播放已开启</string>
-    <string name="video_saving">开始保存…</string>
-    <string name="video_delete_note_confirm">确认删除这条视频笔记吗？删除后不可恢复</string>
-    <string name="video_note_deleted">视频笔记已删除</string>
-    <string name="video_delete_note_failed">删除失败，请重试</string>
-    <string name="video_pip">小窗播放</string>
-    <string name="video_send_danmaku">发弹幕</string>
-    <string name="video_fullscreen">全屏观看</string>
-    <string name="copied">已复制</string>
-    <string name="translate_bg_download_toast">已加入后台下载，完成后即可离线翻译</string>
 
     <string name="publish_from_album">从相册选择</string>
     <string name="publish_camera">相机</string>
     <string name="publish_take_photo">拍摄</string>
 
-    <string name="video_save_to_album">保存到相册</string>
-    <string name="video_clear_screen_playback">清屏播放</string>
-    <string name="video_auto_play_next">自动连播</string>
-    <string name="video_background_playback">后台继续播放</string>
-    <string name="video_danmaku">弹幕</string>
-    <string name="video_speed">倍速</string>
-    <string name="video_danmaku_opacity">弹幕不透明度</string>
-    <string name="video_like">点赞</string>
-    <string name="video_comment">评论</string>
-    <string name="video_favorite">收藏</string>
-    <string name="video_more">更多</string>
-    <string name="video_danmaku_disable">关闭弹幕</string>
-    <string name="video_danmaku_enable">开启弹幕</string>
-    <string name="video_danmaku_input_hint">发个弹幕呗… (∠・ω&lt; )⌒☆</string>
-    <string name="video_danmaku_send_prompt">点我发弹幕</string>
-    <string name="video_exit_fullscreen">退出全屏</string>
-    <string name="video_brightness">亮度</string>
-    <string name="video_volume">音量</string>
-    <string name="video_speed_boost">倍速中</string>
-    <string name="video_danmaku_send_failed">弹幕发送失败</string>
-
-    <string name="search_placeholder">搜索笔记和用户</string>
-    <string name="search_clear">清空</string>
-    <string name="search_action">搜索</string>
-    <string name="search_fill_suggestion">补全</string>
 </resources>

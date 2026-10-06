@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_history_title">歷史紀錄</string>
+    <string name="search_delete_all">全部刪除</string>
+    <string name="search_done">完成</string>
+    <string name="search_manage_history">管理紀錄</string>
+    <string name="search_hot_words">熱搜</string>
+    <string name="search_clear_history_title">確認清空全部搜尋紀錄嗎？</string>
+    <string name="search_tab_all">全部</string>
+    <string name="search_tab_users">使用者</string>
+    <string name="search_filter">篩選</string>
+    <string name="search_empty_notes">暫無相關筆記</string>
+    <string name="search_empty_users">暫無相關使用者</string>
+    <string name="search_followers">粉絲 %1$d</string>
+    <string name="search_self_badge">我自己</string>
+    <string name="search_sort_by">排序依據</string>
+    <string name="search_publish_time">發布時間</string>
+    <string name="search_filter_reset">重置</string>
+    <string name="search_ok">確定</string>
+    <string name="search_sort_composite">綜合</string>
+    <string name="search_sort_latest">最新</string>
+    <string name="search_sort_most_liked">最多點讚</string>
+    <string name="search_sort_most_commented">最多留言</string>
+    <string name="search_sort_most_favored">最多收藏</string>
+    <string name="search_time_all">不限</string>
+    <string name="search_time_day">一天內</string>
+    <string name="search_time_week">一週內</string>
+    <string name="search_time_half_year">半年內</string>
+    <string name="search_filter_type">筆記類型</string>
+    <string name="search_type_all">全部</string>
+    <string name="search_type_image">圖文</string>
+    <string name="search_type_video">影片</string>
+    <string name="search_lime_id">Lime ID</string>
+    <string name="search_placeholder">搜尋筆記和使用者</string>
+    <string name="search_clear">清空</string>
+    <string name="search_action">搜尋</string>
+    <string name="search_fill_suggestion">補全</string>
+</resources>

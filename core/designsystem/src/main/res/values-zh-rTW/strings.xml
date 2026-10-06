@@ -82,4 +82,9 @@
     <string name="comment_emoji">表情</string>
     <string name="comment_send">傳送</string>
     <string name="comment_empty_hint">這裡還沒有留言</string>
+    <string name="pip_seek_back">後退15秒</string>
+    <string name="pip_seek_forward">前進15秒</string>
+    <string name="pip_pause">暫停</string>
+    <string name="search_expand">展開</string>
+    <string name="search_collapse">收起</string>
 </resources>
