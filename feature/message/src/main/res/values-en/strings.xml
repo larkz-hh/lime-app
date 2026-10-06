@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="msg_entry_likes">Likes &amp; favorites</string>
+    <string name="msg_entry_follows">New followers</string>
+    <string name="msg_entry_comments">Comments &amp; @</string>
+    <string name="msg_more">More</string>
+    <string name="msg_add_friend">Add friend</string>
+    <string name="msg_scan">Scan</string>
+    <string name="msg_empty">No private messages yet</string>
+    <string name="msg_start_chat">Start chatting</string>
+    <string name="msg_delete_conversation">Delete conversation</string>
+    <string name="msg_delete_group_hint">Remove this group? Its chat history will be cleared.</string>
+    <string name="msg_delete_conversation_hint">Delete this conversation? Its chat history will be cleared.</string>
+    <string name="notif_title_likes">Likes &amp; favorites</string>
+    <string name="notif_title_follows">New followers</string>
+    <string name="notif_title_comments">Comments &amp; replies</string>
+    <string name="notif_load_failed">Failed to load</string>
+    <string name="notif_empty">No new messages yet</string>
+    <string name="notif_action_like_note">Liked your note</string>
+    <string name="notif_action_favorite_note">Favorited your note</string>
+    <string name="notif_action_like_comment">Liked your comment</string>
+    <string name="notif_action_follow">Started following you</string>
+    <string name="notif_action_comment_note">Commented on your note</string>
+    <string name="notif_action_reply_comment">Replied to your comment</string>
+</resources>

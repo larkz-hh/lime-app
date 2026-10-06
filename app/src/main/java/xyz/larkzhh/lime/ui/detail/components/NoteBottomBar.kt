@@ -167,7 +167,7 @@ fun NoteBottomBar(
                 ) {
                     IconButton(onClick = onCommentClick, modifier = Modifier.size(32.dp)) {
                         Icon(
-                            painter = painterResource(R.drawable.ic_chat),
+                            painter = painterResource(DesignSystemR.drawable.ic_chat),
                             contentDescription = stringResource(R.string.comment),
                             tint = contentColor,
                             modifier = Modifier.size(22.dp),

@@ -99,7 +99,7 @@ import xyz.larkzhh.lime.ui.components.CommentInputSheet
 import xyz.larkzhh.lime.ui.video.components.ExpandableText
 import xyz.larkzhh.lime.ui.video.components.DanmakuInputSheet
 import xyz.larkzhh.lime.ui.video.components.DanmakuHost
-import xyz.larkzhh.lime.ui.video.components.FollowButton
+import xyz.larkzhh.lime.ui.components.video.FollowButton
 import xyz.larkzhh.lime.ui.video.components.VideoActionPanel
 import xyz.larkzhh.lime.ui.video.components.VideoSideActionBar
 import xyz.larkzhh.lime.ui.components.GroupedBottomActionSheet

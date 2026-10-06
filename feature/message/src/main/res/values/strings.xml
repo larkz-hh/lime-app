@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="msg_entry_likes">赞和收藏</string>
+    <string name="msg_entry_follows">新增关注</string>
+    <string name="msg_entry_comments">评论和@</string>
+    <string name="msg_more">更多</string>
+    <string name="msg_add_friend">添加好友</string>
+    <string name="msg_scan">扫一扫</string>
+    <string name="msg_empty">暂无私信</string>
+    <string name="msg_start_chat">开始聊天吧</string>
+    <string name="msg_delete_conversation">删除会话</string>
+    <string name="msg_delete_group_hint">是否移除群聊，移除后会清空聊天记录。</string>
+    <string name="msg_delete_conversation_hint">是否删除会话，删除会清空聊天记录。</string>
+    <string name="notif_title_likes">收到的赞和收藏</string>
+    <string name="notif_title_follows">新增关注</string>
+    <string name="notif_title_comments">收到的评论与回复</string>
+    <string name="notif_load_failed">加载失败</string>
+    <string name="notif_empty">暂时没有新消息~</string>
+    <string name="notif_action_like_note">赞了你的笔记</string>
+    <string name="notif_action_favorite_note">收藏了你的笔记</string>
+    <string name="notif_action_like_comment">赞了你的评论</string>
+    <string name="notif_action_follow">开始关注你了</string>
+    <string name="notif_action_comment_note">评论了你的笔记</string>
+    <string name="notif_action_reply_comment">回复了你的评论</string>
+</resources>

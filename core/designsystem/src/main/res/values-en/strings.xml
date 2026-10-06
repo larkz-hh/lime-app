@@ -40,4 +40,7 @@
     <string name="image_preview_save_image">Save image</string>
     <string name="image_preview_saved_to_album">Saved to album</string>
     <string name="image_preview_save_failed">Failed to save</string>
+    <string name="lang_system">Follow system</string>
+    <string name="nav_message">Messages</string>
+    <string name="home_search_cd">Search</string>
 </resources>

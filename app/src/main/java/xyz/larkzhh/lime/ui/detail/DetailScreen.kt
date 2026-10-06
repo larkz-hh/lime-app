@@ -623,10 +623,10 @@ private fun NoteContent(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val chatActionPainter = painterResource(R.drawable.ic_chat)
+    val chatActionPainter = painterResource(DesignSystemR.drawable.ic_chat)
     // 本地化文案（长按菜单与 Toast 使用）
     val copyActionText = stringResource(DesignSystemR.string.chat_copy)
-    val searchActionText = stringResource(R.string.home_search_cd)
+    val searchActionText = stringResource(DesignSystemR.string.home_search_cd)
     val translateActionText = stringResource(R.string.drawer_translate)
     val askAiActionText = stringResource(R.string.shortcut_ai)
     val copiedToastText = stringResource(R.string.detail_copied)

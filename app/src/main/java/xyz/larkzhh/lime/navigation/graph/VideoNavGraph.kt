@@ -2,7 +2,7 @@ package xyz.larkzhh.lime.navigation.graph
 import xyz.larkzhh.swipeback.SwipeBackNavState
 import xyz.larkzhh.swipeback.ScrimBox
 import xyz.larkzhh.lime.navigation.route.Screen
-import xyz.larkzhh.lime.navigation.state.AuthorProfileStore
+import xyz.larkzhh.lime.ui.profile.state.AuthorProfileStore
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition

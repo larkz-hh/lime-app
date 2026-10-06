@@ -43,6 +43,7 @@ import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.util.text.AppLanguage
+import xyz.larkzhh.lime.util.text.languageDisplayName
 import xyz.larkzhh.lime.util.showToast
 
 /// 语言设置子页
@@ -175,13 +176,4 @@ fun LanguageSettingsPage(
             onDismissRequest = { showConfirm = false },
         )
     }
-}
-
-/// 语言显示名
-@Composable
-fun languageDisplayName(tag: String): String = when (tag) {
-    AppLanguage.TAG_SIMPLIFIED -> "简体中文"
-    AppLanguage.TAG_TRADITIONAL -> "繁體中文"
-    AppLanguage.TAG_ENGLISH -> "English"
-    else -> stringResource(R.string.lang_system)
 }

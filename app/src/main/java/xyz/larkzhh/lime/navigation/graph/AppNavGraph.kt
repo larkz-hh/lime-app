@@ -7,7 +7,7 @@ import xyz.larkzhh.lime.navigation.component.PublishBottomSheet
 import xyz.larkzhh.lime.navigation.state.PendingNoteEdit
 import xyz.larkzhh.lime.ui.components.LoginGate
 import xyz.larkzhh.lime.navigation.component.BottomNavBar
-import xyz.larkzhh.lime.navigation.state.AuthorProfileStore
+import xyz.larkzhh.lime.ui.profile.state.AuthorProfileStore
 
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.BackHandler

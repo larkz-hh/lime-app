@@ -58,6 +58,7 @@ import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.util.text.AppLanguage
+import xyz.larkzhh.lime.util.text.languageDisplayName
 import xyz.larkzhh.lime.ui.AppSplashAnim
 import xyz.larkzhh.lime.util.showToast
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR

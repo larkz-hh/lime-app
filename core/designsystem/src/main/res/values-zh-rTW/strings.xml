@@ -40,4 +40,7 @@
     <string name="image_preview_save_image">儲存圖片</string>
     <string name="image_preview_saved_to_album">已儲存到相簿</string>
     <string name="image_preview_save_failed">儲存失敗</string>
+    <string name="lang_system">跟隨系統</string>
+    <string name="nav_message">訊息</string>
+    <string name="home_search_cd">搜尋</string>
 </resources>

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.ui.components.FavoriteButton
 import xyz.larkzhh.lime.ui.components.LikeButton
 
@@ -64,7 +65,7 @@ fun VideoSideActionBar(
             label = stringResource(R.string.video_comment),
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_chat),
+                painter = painterResource(DesignSystemR.drawable.ic_chat),
                 contentDescription = stringResource(R.string.video_comment),
                 tint = Color.White,
                 modifier = Modifier.size(iconSize),
