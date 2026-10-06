@@ -6,7 +6,6 @@
     <string name="playback_channel_name">正在播放</string>
     <string name="notification_service_running">正在接收互动与私信通知</string>
     <string name="shortcut_search">搜索</string>
-    <string name="shortcut_ai">问AI</string>
     <string name="shortcut_scan">扫一扫</string>
     <string name="widget_search_name">Lime 搜索</string>
     <string name="widget_search_description">搜索框 + 今日热搜</string>
@@ -15,8 +14,6 @@
     <string name="nav_video">视频</string>
     <string name="nav_profile">我</string>
     <string name="nav_publish_desc">发布</string>
-
-    <string name="drawer_translate">翻译</string>
 
     <string name="settings_title">通用</string>
     <string name="settings_section_notify">通知</string>
@@ -100,44 +97,10 @@
     <string name="search_type_video">视频</string>
     <string name="search_lime_id">Lime ID</string>
 
-    <string name="translate_settings_title">离线</string>
-    <string name="translate_offline_pack">离线包</string>
-    <string name="translate_pack_name">中英互译语言包</string>
-    <string name="translate_mode_section">翻译方式</string>
-    <string name="translate_pack_tips">• 语言包下载后即可离线翻译\n• 语音包下载后即可离线语音转文字\n• 第一次需要联网下载\n• 语言包由 Google 提供，语音包由 Vosk 提供</string>
-    <string name="translate_delete_pack_confirm_title">删除中英语言包？\n删除后再次翻译需重新下载</string>
-    <string name="translate_checking">检查中…</string>
-    <string name="translate_downloading">下载中…</string>
-    <string name="translate_download">下载</string>
-    <string name="translate_download_failed">下载失败</string>
-    <string name="translate_retry">重试</string>
-    <string name="translate_downloaded">已下载</string>
-    <string name="translate_mode_auto">自动</string>
-    <string name="translate_mode_offline">离线</string>
-    <string name="speech_pack_name">中文语音识别包</string>
-    <string name="speech_delete_pack_confirm_title">删除中文语音识别包？\n删除后再次语音转文字需重新下载</string>
-    <string name="pack_downloading_percent">下载中 %1$d%%</string>
-
-    <string name="voice_close">关闭</string>
-    <string name="voice_record">录音</string>
-    <string name="voice_release_cancel">松开取消</string>
-    <string name="voice_release_send">%1$d\" · 松手保存</string>
-    <string name="voice_hold_to_record">按住麦克风开始录音</string>
-    <string name="voice_to_text">转文字</string>
-    <string name="voice_release_to_text">松手转文字到评论框</string>
-    <string name="voice_transcribing">正在识别…</string>
-    <string name="voice_transcribe_empty">没有听清，再说一次试试</string>
-    <string name="voice_record_failed">录音失败，请重试</string>
-    <string name="voice_processing">处理中…</string>
-    <string name="voice_downloading_pack">正在下载语音包 %1$d%%</string>
-    <string name="voice_pack_missing">语音识别包未下载</string>
-    <string name="voice_pack_download">下载语音包</string>
-
     <string name="video_feed_empty">暂无视频</string>
     <string name="video_notify_settings_hint">请在设置中开启通知</string>
     <string name="video_reply">回复</string>
     <string name="video_reply_mention">回复 @%1$s</string>
-    <string name="video_comment_hint">说点什么…</string>
     <string name="video_delete_comment_confirm">确认删除这条评论吗？</string>
     <string name="video_danmaku_off">弹幕已关闭</string>
     <string name="video_danmaku_on">弹幕已开启</string>
@@ -151,67 +114,14 @@
     <string name="video_note_deleted">视频笔记已删除</string>
     <string name="video_delete_note_failed">删除失败，请重试</string>
     <string name="video_pip">小窗播放</string>
-    <string name="video_share">分享</string>
     <string name="video_send_danmaku">发弹幕</string>
     <string name="video_fullscreen">全屏观看</string>
     <string name="copied">已复制</string>
     <string name="translate_bg_download_toast">已加入后台下载，完成后即可离线翻译</string>
 
-    <string name="picker_title_select_photo">选择照片</string>
-    <string name="picker_permission_required_photo">需要相册访问权限才能选择照片</string>
-    <string name="picker_done_count">完成(%1$d)</string>
-
-    <string name="translate_title">翻译</string>
-    <string name="translate_close">关闭</string>
-    <string name="translate_switch_direction">切换方向</string>
-    <string name="translate_downloading_pack">正在联网下载中英离线语言包 %1$s…</string>
-    <string name="translate_translating">翻译中…</string>
-    <string name="translate_error_default">翻译失败，请稍后重试</string>
-    <string name="translate_error_network">翻译失败：请检查网络后重试</string>
-    <string name="translate_background_download">后台下载</string>
-    <string name="translate_result_missing">(っ °Д °;)っ 可惜，译文被偷走了</string>
-    <string name="translate_copy_result">复制译文</string>
-
     <string name="publish_from_album">从相册选择</string>
     <string name="publish_camera">相机</string>
     <string name="publish_take_photo">拍摄</string>
-
-    <string name="detail_copied">已复制</string>
-    <string name="detail_note_delete_confirm_title">确认永久删除作品？\n删除后不可恢复</string>
-    <string name="detail_note_deleted">笔记已删除</string>
-    <string name="detail_delete_failed">删除失败，请重试</string>
-    <string name="detail_save_qr_title">保存笔记二维码</string>
-    <string name="detail_save_qr_message">将生成这篇笔记的二维码保存到相册，好友扫一扫即可打开笔记。</string>
-    <string name="detail_qr_saved">二维码已保存到相册</string>
-    <string name="detail_save_failed">保存失败，请重试</string>
-    <string name="detail_qr_generate_failed">二维码生成失败</string>
-    <string name="detail_translate_bg_download">已加入后台下载，完成后即可离线翻译</string>
-    <string name="detail_translate_failed">翻译失败，请检查网络后重试</string>
-    <string name="detail_view_original">查看原文</string>
-    <string name="detail_translate_full">一键翻译</string>
-    <string name="detail_end_of_list">- 到底了 -</string>
-
-    <string name="comment_input_hint">说点什么…</string>
-    <string name="comment_reply_to_hint">回复 @%1$s</string>
-    <string name="comment_reply_action">回复</string>
-    <string name="comment_reply_prefix">"回复 "</string>
-    <string name="comment_image_voice_mutex">图片和语音不能同时添加</string>
-    <string name="comment_voice_single">只能添加一条语音</string>
-    <string name="comment_delete_image">删除图片</string>
-    <string name="comment_add_image">添加图片</string>
-    <string name="comment_delete_voice">删除语音</string>
-    <string name="comment_record_voice">录音</string>
-    <string name="comment_album">相册</string>
-    <string name="comment_camera">拍照</string>
-    <string name="comment_keyboard">键盘</string>
-    <string name="comment_emoji">表情</string>
-    <string name="comment_send">发送</string>
-    <string name="comment_delete_confirm_title">确认删除这条评论吗？</string>
-    <string name="comment_expand_more">展开更多回复</string>
-    <string name="comment_expand_replies_count">展开%1$d条回复</string>
-    <string name="comment_image_count">共%1$d张</string>
-    <string name="comment_author_badge">作者</string>
-    <string name="comment_empty_hint">这是一片荒草地</string>
 
     <string name="ai_new_chat">新对话</string>
     <string name="ai_new_conversation_cd">新建会话</string>
@@ -261,12 +171,6 @@
     <string name="video_speed_boost">倍速中</string>
     <string name="video_danmaku_send_failed">弹幕发送失败</string>
 
-    <string name="comment">评论</string>
-    <string name="note_manage_entry">编辑设置 ></string>
-    <string name="comment_count">共%1$d条评论</string>
-    <string name="sort">排序</string>
-    <string name="sort_by_hot">按热度</string>
-    <string name="sort_by_time">按时间</string>
     <string name="note_picker_title">选择笔记</string>
     <string name="note_picker_confirm">选择笔记</string>
     <string name="note_picker_tab_favorites">收藏</string>
@@ -279,6 +183,5 @@
     <string name="search_placeholder">搜索笔记和用户</string>
     <string name="search_clear">清空</string>
     <string name="search_action">搜索</string>
-    <string name="comment_load_failed">评论加载失败，请重试</string>
     <string name="search_fill_suggestion">补全</string>
 </resources>

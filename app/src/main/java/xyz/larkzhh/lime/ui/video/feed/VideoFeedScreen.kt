@@ -95,7 +95,7 @@ import xyz.larkzhh.lime.navigation.state.PendingNoteEdit
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.swipeback.SwipeBackScaffold
 import xyz.larkzhh.lime.navigation.route.navigateToUserProfile
-import xyz.larkzhh.lime.ui.components.CommentInputSheet
+import xyz.larkzhh.lime.ui.detail.components.CommentInputSheet
 import xyz.larkzhh.lime.ui.video.components.ExpandableText
 import xyz.larkzhh.lime.ui.video.components.DanmakuInputSheet
 import xyz.larkzhh.lime.ui.video.components.DanmakuHost
@@ -107,7 +107,7 @@ import xyz.larkzhh.lime.ui.components.GroupedSheetAction
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.NoteManageSheet
 import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
-import xyz.larkzhh.lime.ui.components.VoiceRecordSheet
+import xyz.larkzhh.lime.ui.detail.components.VoiceRecordSheet
 import xyz.larkzhh.lime.ui.detail.AuthorSessionHost
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentViewModel
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
@@ -546,7 +546,7 @@ private fun VideoFeedContent(
             val hint = if (replyTarget != null) {
                 stringResource(R.string.video_reply_mention, replyTarget.replyToNickname)
             } else {
-                stringResource(R.string.video_comment_hint)
+                stringResource(DesignSystemR.string.video_comment_hint)
             }
             CommentInputSheet(
                 hint = hint,
@@ -790,13 +790,13 @@ private fun VideoFeedContent(
         }
 
         // 分享
-        val qrSavedText = stringResource(R.string.detail_qr_saved)
-        val qrSaveFailedText = stringResource(R.string.detail_save_failed)
-        val qrGenFailedText = stringResource(R.string.detail_qr_generate_failed)
+        val qrSavedText = stringResource(DesignSystemR.string.detail_qr_saved)
+        val qrSaveFailedText = stringResource(DesignSystemR.string.detail_save_failed)
+        val qrGenFailedText = stringResource(DesignSystemR.string.detail_qr_generate_failed)
         shareQrNoteId?.let { noteId ->
             LimeAlertDialog(
-                title = stringResource(R.string.detail_save_qr_title),
-                text = stringResource(R.string.detail_save_qr_message),
+                title = stringResource(DesignSystemR.string.detail_save_qr_title),
+                text = stringResource(DesignSystemR.string.detail_save_qr_message),
                 firstButtonText = stringResource(DesignSystemR.string.cancel),
                 secondButtonText = stringResource(DesignSystemR.string.save),
                 onDismissRequest = { shareQrNoteId = null },
@@ -951,8 +951,8 @@ private fun VideoChrome(
                     }
                     Spacer(Modifier.weight(1f))
                     Icon(
-                        painter = painterResource(R.drawable.ic_share),
-                        contentDescription = stringResource(R.string.video_share),
+                        painter = painterResource(DesignSystemR.drawable.ic_share),
+                        contentDescription = stringResource(DesignSystemR.string.video_share),
                         tint = Color.White,
                         modifier = Modifier
                             .size(40.dp)

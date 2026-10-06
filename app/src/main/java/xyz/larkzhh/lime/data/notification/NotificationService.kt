@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.data.local.TokenStorage
 import xyz.larkzhh.lime.domain.repository.ImRepository
 import xyz.larkzhh.lime.domain.repository.NotificationRepository
@@ -111,7 +112,7 @@ class NotificationService : Service() {
             },
         )
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_stat_notification)
+            .setSmallIcon(DesignSystemR.drawable.ic_stat_notification)
             .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.notification_service_running))
             .setOngoing(true)

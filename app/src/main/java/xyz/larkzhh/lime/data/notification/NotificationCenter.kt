@@ -17,7 +17,7 @@ import me.leolin.shortcutbadger.ShortcutBadger
 import androidx.media3.common.util.UnstableApi
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.ui.MainActivity
-import xyz.larkzhh.lime.R
+
 import xyz.larkzhh.lime.data.local.TokenStorage
 import xyz.larkzhh.lime.data.local.UserPreferences
 import xyz.larkzhh.lime.domain.repository.ImRepository
@@ -172,7 +172,7 @@ class NotificationCenter @Inject constructor(
             .setNumber(count)
             .setAutoCancel(true)
             .setContentIntent(clickIntent(ShortcutActions.OPEN_MESSAGE, null))
-            .setSmallIcon(R.drawable.ic_stat_notification)
+            .setSmallIcon(DesignSystemR.drawable.ic_stat_notification)
             .build()
         nm.notify(INBOX_NOTIFICATION_ID, notification)
     }
@@ -185,7 +185,7 @@ class NotificationCenter @Inject constructor(
             .setContentText(preview)
             .setAutoCancel(true)
             .setContentIntent(clickIntent(ShortcutActions.OPEN_IM_CHAT, conversationId))
-            .setSmallIcon(R.drawable.ic_stat_notification)
+            .setSmallIcon(DesignSystemR.drawable.ic_stat_notification)
             .build()
         nm.notify(convNotificationId(conversationId), notification)
     }
@@ -199,7 +199,7 @@ class NotificationCenter @Inject constructor(
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setContentIntent(clickIntent(ShortcutActions.OPEN_MESSAGE, null))
-            .setSmallIcon(R.drawable.ic_stat_notification)
+            .setSmallIcon(DesignSystemR.drawable.ic_stat_notification)
             .build()
         nm.notify(FORCED_LOGOUT_NOTIFICATION_ID, notification)
     }

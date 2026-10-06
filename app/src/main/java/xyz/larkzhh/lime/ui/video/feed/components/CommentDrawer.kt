@@ -44,7 +44,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import xyz.larkzhh.lime.R
+
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.ReplyData
 import xyz.larkzhh.lime.ui.detail.comment.components.CommentCard
@@ -155,12 +156,12 @@ fun CommentDrawer(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 Image(
-                                    painter = painterResource(R.drawable.img_no_comments),
+                                    painter = painterResource(DesignSystemR.drawable.img_no_comments),
                                     contentDescription = null,
                                     modifier = Modifier.size(180.dp),
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text(text = stringResource(R.string.comment_empty_hint), fontSize = 13.sp, color = LimeGray)
+                                Text(text = stringResource(DesignSystemR.string.comment_empty_hint), fontSize = 13.sp, color = LimeGray)
                             }
                         }
                     }
@@ -208,7 +209,7 @@ fun CommentDrawer(
                                     .padding(vertical = 20.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Text(text = stringResource(R.string.detail_end_of_list), fontSize = 12.sp, color = LimeGray)
+                                Text(text = stringResource(DesignSystemR.string.detail_end_of_list), fontSize = 12.sp, color = LimeGray)
                             }
                         }
                     }
