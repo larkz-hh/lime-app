@@ -15,15 +15,15 @@ import androidx.compose.ui.text.font.FontFamily
 
 @Composable
 fun LimeTheme(
-    // 深浅色偏好
-    darkTheme: Boolean = AppDarkMode.effectiveDark(isSystemInDarkTheme()),
+    themeOption: ThemeOption = ThemeOption.GREEN,
+    fontOption: FontOption = FontOption.SYSTEM,
+    darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     // 当前主题
-    val themeColors = themeColorMap[ThemeOption.fromTag(AppTheme.currentTag())]
-        ?: themeColorMap.getValue(ThemeOption.GREEN)
+    val themeColors = themeColorMap[themeOption] ?: themeColorMap.getValue(ThemeOption.GREEN)
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
@@ -72,7 +72,6 @@ fun LimeTheme(
     }
 
     // 当前字体
-    val fontOption = FontOption.fromTag(AppFont.currentTag())
     val fontFamily = fontFamilyOf(fontOption, LocalContext.current) ?: FontFamily.Default
 
     CompositionLocalProvider(

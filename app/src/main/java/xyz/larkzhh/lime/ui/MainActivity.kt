@@ -28,7 +28,7 @@ import xyz.larkzhh.lime.data.notification.NotificationService
 import javax.inject.Inject
 import xyz.larkzhh.lime.navigation.graph.AppNavGraph
 import xyz.larkzhh.lime.navigation.action.ShortcutActions
-import xyz.larkzhh.lime.ui.theme.LimeTheme
+import xyz.larkzhh.lime.ui.theme.AppLimeTheme
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.ui.widget.WidgetHotCache
 import xyz.larkzhh.lime.ui.widget.WidgetHotRefresher
@@ -125,7 +125,7 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         setContent {
-            LimeTheme {
+            AppLimeTheme {
                 RequestNotificationPermission()
                 AppNavGraph(
                     playerManager = playerManager,

@@ -38,7 +38,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import kotlinx.coroutines.delay
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.theme.LimeTheme
+import xyz.larkzhh.lime.ui.theme.AppLimeTheme
 import xyz.larkzhh.lime.util.system.findActivity
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -47,7 +47,7 @@ class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            LimeTheme {
+            AppLimeTheme {
                 SplashContent()
             }
         }

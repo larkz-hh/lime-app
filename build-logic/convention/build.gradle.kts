@@ -32,5 +32,13 @@ gradlePlugin {
             id = "lime.android.hilt"
             implementationClass = "xyz.larkzhh.lime.buildlogic.LimeAndroidHiltPlugin"
         }
+        register("androidLibrary") {
+            id = "lime.android.library"
+            implementationClass = "xyz.larkzhh.lime.buildlogic.LimeAndroidLibraryPlugin"
+        }
+        register("androidLibraryCompose") {
+            id = "lime.android.library.compose"
+            implementationClass = "xyz.larkzhh.lime.buildlogic.LimeAndroidLibraryComposePlugin"
+        }
     }
 }

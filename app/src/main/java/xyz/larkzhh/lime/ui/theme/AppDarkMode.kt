@@ -3,7 +3,7 @@ package xyz.larkzhh.lime.ui.theme
 import com.tencent.mmkv.MMKV
 
 /**
- * 深色模式
+ * 深色模式偏好的本地读写
  */
 object AppDarkMode {
 
@@ -19,20 +19,5 @@ object AppDarkMode {
     }
 
     /// 是否深色
-    fun effectiveDark(systemDark: Boolean): Boolean = when (DarkModeOption.fromTag(currentTag())) {
-        DarkModeOption.SYSTEM -> systemDark
-        DarkModeOption.DARK -> true
-    }
-}
-
-/// 深色模式选项
-enum class DarkModeOption(val tag: String) {
-    SYSTEM("system"),
-    DARK("dark"),
-    ;
-
-    companion object {
-        fun fromTag(tag: String?): DarkModeOption =
-            entries.firstOrNull { it.tag == tag } ?: SYSTEM
-    }
+    fun effectiveDark(systemDark: Boolean): Boolean = DarkModeOption.fromTag(currentTag()).isDark(systemDark)
 }

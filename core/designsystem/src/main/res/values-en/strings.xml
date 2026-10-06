@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="theme_green">Lime Green</string>
+    <string name="theme_red">Xiaohongshu Red</string>
+    <string name="theme_orange">Vibrant Orange</string>
+    <string name="theme_blue">Klein Blue</string>
+    <string name="theme_purple">Classic Purple</string>
+    <string name="font_option_system">System Default</string>
+</resources>

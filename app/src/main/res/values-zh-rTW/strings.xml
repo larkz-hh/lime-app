@@ -49,15 +49,9 @@
     <string name="settings_cache_cleared">快取已清除（剩餘 %1$s）</string>
     <string name="settings_language">語言</string>
     <string name="settings_theme">主題</string>
-    <string name="theme_green">青檸綠</string>
-    <string name="theme_red">小紅書紅</string>
-    <string name="theme_orange">活力橙</string>
-    <string name="theme_blue">克萊因藍</string>
-    <string name="theme_purple">經典紫</string>
     <string name="theme_confirm_title">儲存主題設定？</string>
     <string name="theme_confirm_text">切換後介面會立即以新主題顯示</string>
     <string name="theme_switched">主題已切換</string>
-    <string name="font_option_system">系統預設</string>
     <string name="font_settings_title">字體設定</string>
     <string name="settings_font">字體</string>
     <string name="font_confirm_title">儲存字體設定？</string>

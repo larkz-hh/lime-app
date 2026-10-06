@@ -21,7 +21,7 @@ import javax.inject.Inject
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.navigation.graph.VideoNavGraph
-import xyz.larkzhh.lime.ui.theme.LimeTheme
+import xyz.larkzhh.lime.ui.theme.AppLimeTheme
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.util.text.AppLanguage
 
@@ -59,7 +59,7 @@ class VideoActivity : ComponentActivity() {
         instance = this
         enableEdgeToEdge()
         setContent {
-            LimeTheme {
+            AppLimeTheme {
                 VideoNavGraph(
                     noteId = intent.getLongExtra(EXTRA_NOTE_ID, 0L),
                     source = intent.getStringExtra(EXTRA_SOURCE)

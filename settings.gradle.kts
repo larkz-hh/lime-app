@@ -40,3 +40,4 @@ dependencyResolutionManagement {
 rootProject.name = "Lime"
 include(":app")
 include(":baselineprofile")
+include(":core:designsystem")

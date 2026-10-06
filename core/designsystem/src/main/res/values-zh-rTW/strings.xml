@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="theme_green">青檸綠</string>
+    <string name="theme_red">小紅書紅</string>
+    <string name="theme_orange">活力橙</string>
+    <string name="theme_blue">克萊因藍</string>
+    <string name="theme_purple">經典紫</string>
+    <string name="font_option_system">系統預設</string>
+</resources>

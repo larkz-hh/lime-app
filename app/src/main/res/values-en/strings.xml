@@ -49,15 +49,9 @@
     <string name="settings_cache_cleared">Cache cleared (%1$s left)</string>
     <string name="settings_language">Language</string>
     <string name="settings_theme">Theme</string>
-    <string name="theme_green">Lime Green</string>
-    <string name="theme_red">Xiaohongshu Red</string>
-    <string name="theme_orange">Vibrant Orange</string>
-    <string name="theme_blue">Klein Blue</string>
-    <string name="theme_purple">Classic Purple</string>
     <string name="theme_confirm_title">Save theme settings?</string>
     <string name="theme_confirm_text">The interface will switch to the new theme immediately</string>
     <string name="theme_switched">Theme switched</string>
-    <string name="font_option_system">System Default</string>
     <string name="font_settings_title">Font Settings</string>
     <string name="settings_font">Font</string>
     <string name="font_confirm_title">Save font settings?</string>
