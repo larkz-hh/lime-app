@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.theme
+package xyz.larkzhh.lime.core.theme
 
 import com.tencent.mmkv.MMKV
 

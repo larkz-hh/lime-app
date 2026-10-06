@@ -13,8 +13,5 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":core:common"))
     implementation(project(":core:data"))
-    implementation(project(":feature:detail"))
-    implementation(project(":feature:comment"))
-    implementation(project(":feature:publish"))
     implementation(libs.gson)
 }

@@ -69,8 +69,8 @@ import xyz.larkzhh.lime.ui.profile.state.AuthorProfileSession
 import xyz.larkzhh.lime.ui.components.LoginGate
 import xyz.larkzhh.lime.ui.profile.state.ProfileLayoutStore
 import xyz.larkzhh.lime.navigation.route.Screen
-import xyz.larkzhh.lime.ui.video.feed.PersonalVideoPayload
-import xyz.larkzhh.lime.ui.video.feed.VideoFeedSessionStore
+import xyz.larkzhh.lime.ui.video.PersonalVideoPayload
+import xyz.larkzhh.lime.ui.video.VideoFeedSessionStore
 import xyz.larkzhh.swipeback.SwipeBackScaffold
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.domain.model.FollowActionState

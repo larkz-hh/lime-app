@@ -1,6 +1,7 @@
-package xyz.larkzhh.lime.util.system
+package xyz.larkzhh.lime.ui.system
 
 import android.app.Activity
+import xyz.larkzhh.lime.util.system.findActivity
 import android.content.Context
 import android.content.pm.ActivityInfo
 import androidx.compose.runtime.Composable

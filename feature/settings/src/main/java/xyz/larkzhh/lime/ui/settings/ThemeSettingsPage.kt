@@ -43,7 +43,7 @@ import xyz.larkzhh.lime.feature.settings.R
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.ui.components.LimeAlertDialog
 import xyz.larkzhh.lime.ui.components.SheetGroup
-import xyz.larkzhh.lime.ui.theme.AppTheme
+import xyz.larkzhh.lime.core.theme.AppTheme
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.ThemeOption
 import xyz.larkzhh.lime.ui.theme.themeColorMap

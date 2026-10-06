@@ -44,7 +44,7 @@ import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.feature.translate.R
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.translate.TranslateModelInfo
-import xyz.larkzhh.lime.util.text.languageDisplayName
+import xyz.larkzhh.lime.ui.text.languageDisplayName
 
 /**
  * 选词翻译的译文弹窗

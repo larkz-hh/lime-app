@@ -1,7 +1,8 @@
-package xyz.larkzhh.lime.ui.theme
+package xyz.larkzhh.lime.core.theme
 
 import com.tencent.mmkv.MMKV
 import xyz.larkzhh.lime.data.local.TokenStorage
+import xyz.larkzhh.lime.ui.theme.FontOption
 import xyz.larkzhh.lime.data.local.UserPreferences
 
 /**

@@ -21,7 +21,7 @@ import javax.inject.Inject
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.navigation.graph.VideoNavGraph
-import xyz.larkzhh.lime.ui.theme.AppLimeTheme
+import xyz.larkzhh.lime.core.theme.AppLimeTheme
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.util.text.AppLanguage
 

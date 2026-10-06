@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.util.system
+package xyz.larkzhh.lime.ui.system
 
 import android.content.Context
 import android.media.AudioManager
@@ -6,6 +6,7 @@ import android.provider.Settings
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import xyz.larkzhh.lime.util.system.findActivity
 import androidx.compose.ui.platform.LocalContext
 
 /// 系统音量控制器

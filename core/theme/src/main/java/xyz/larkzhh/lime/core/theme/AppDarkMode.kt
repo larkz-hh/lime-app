@@ -1,5 +1,7 @@
-package xyz.larkzhh.lime.ui.theme
+package xyz.larkzhh.lime.core.theme
 
+import xyz.larkzhh.lime.ui.theme.DarkModeOption
+import xyz.larkzhh.lime.ui.theme.isDark
 import com.tencent.mmkv.MMKV
 
 /**

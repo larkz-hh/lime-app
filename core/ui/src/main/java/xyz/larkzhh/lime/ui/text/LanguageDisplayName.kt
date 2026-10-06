@@ -1,5 +1,6 @@
-package xyz.larkzhh.lime.util.text
+package xyz.larkzhh.lime.ui.text
 
+import xyz.larkzhh.lime.util.text.AppLanguage
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR

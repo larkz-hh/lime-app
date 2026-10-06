@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.draft
+package xyz.larkzhh.lime.navigation.graph
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
@@ -16,6 +16,8 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import xyz.larkzhh.lime.navigation.route.Screen
+import xyz.larkzhh.lime.ui.draft.DraftBoxScreen
+import xyz.larkzhh.lime.ui.draft.DraftListRefresh
 import xyz.larkzhh.lime.ui.comment.CommentPhotoPickerScreen
 import xyz.larkzhh.lime.ui.publish.CoverPickerScreen
 import xyz.larkzhh.lime.ui.publish.PhotoPickerScreen
@@ -25,10 +27,6 @@ import xyz.larkzhh.lime.ui.publish.viewmodel.PublishViewModel
 import xyz.larkzhh.lime.ui.publish.viewmodel.VideoPublishViewModel
 
 private const val DRAFT_LIST_ROUTE = "draft_list"
-
-object DraftListRefresh {
-    var pending: Boolean = false
-}
 
 /**
  * 草稿箱覆盖层。

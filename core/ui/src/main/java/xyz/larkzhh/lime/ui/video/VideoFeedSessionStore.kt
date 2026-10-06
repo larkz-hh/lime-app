@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.video.feed
+package xyz.larkzhh.lime.ui.video
 
 import xyz.larkzhh.lime.data.network.model.FeedItem
 

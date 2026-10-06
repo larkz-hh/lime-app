@@ -28,7 +28,7 @@ import xyz.larkzhh.lime.data.notification.NotificationService
 import javax.inject.Inject
 import xyz.larkzhh.lime.navigation.graph.AppNavGraph
 import xyz.larkzhh.lime.navigation.action.ShortcutActions
-import xyz.larkzhh.lime.ui.theme.AppLimeTheme
+import xyz.larkzhh.lime.core.theme.AppLimeTheme
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.ui.widget.WidgetHotCache
 import xyz.larkzhh.lime.ui.widget.WidgetHotRefresher
@@ -36,7 +36,6 @@ import xyz.larkzhh.lime.util.text.AppLanguage
 import xyz.larkzhh.lime.util.system.NetworkMonitor
 import xyz.larkzhh.lime.util.showToast
 import kotlin.time.Duration.Companion.milliseconds
-
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @AndroidEntryPoint

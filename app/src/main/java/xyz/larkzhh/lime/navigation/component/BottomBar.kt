@@ -53,7 +53,7 @@ import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
 import androidx.annotation.StringRes
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.theme.AppTheme
+import xyz.larkzhh.lime.core.theme.AppTheme
 import xyz.larkzhh.lime.ui.theme.ThemeOption
 import xyz.larkzhh.lime.ui.theme.themeColorMap
 
