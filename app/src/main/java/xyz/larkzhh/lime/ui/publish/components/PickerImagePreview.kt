@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.ui.publish.viewmodel.LocalImage
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /// 相册图片全屏预览浮层
 @Composable
@@ -81,7 +82,7 @@ fun PickerImagePreview(
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.back),
+                    contentDescription = stringResource(DesignSystemR.string.back),
                     tint = Color.White,
                 )
             }

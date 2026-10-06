@@ -128,6 +128,7 @@ import xyz.larkzhh.lime.util.media.saveBitmapToGallery
 import xyz.larkzhh.lime.util.media.saveVideoToGallery
 import xyz.larkzhh.lime.util.showToast
 import kotlin.time.Duration.Companion.milliseconds
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /// 竖屏视频页
 @UnstableApi
@@ -918,7 +919,7 @@ private fun VideoChrome(
                     if (!useSideActions) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
+                            contentDescription = stringResource(DesignSystemR.string.back),
                             tint = Color.White,
                             modifier = Modifier
                                 .size(40.dp)

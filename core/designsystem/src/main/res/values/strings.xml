@@ -6,4 +6,6 @@
     <string name="theme_blue">克莱因蓝</string>
     <string name="theme_purple">经典紫</string>
     <string name="font_option_system">系统默认</string>
+    <string name="back">返回</string>
+    <string name="auth_login">登录</string>
 </resources>

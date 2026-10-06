@@ -56,6 +56,7 @@ import xyz.larkzhh.lime.util.parseLimeNoteQr
 import xyz.larkzhh.lime.util.parseLimeUserQr
 import xyz.larkzhh.lime.util.parseLimeVideoQr
 import xyz.larkzhh.lime.util.showToast
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -192,7 +193,7 @@ fun QrScanScreen(navController: NavHostController) {
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.back),
+                    contentDescription = stringResource(DesignSystemR.string.back),
                     tint = Color.White,
                 )
             }

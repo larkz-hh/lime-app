@@ -43,6 +43,7 @@ import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.util.text.AppLanguage
 import xyz.larkzhh.lime.util.showToast
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /// 语言设置子页
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,7 +76,7 @@ fun LanguageSettingsPage(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
+                            contentDescription = stringResource(DesignSystemR.string.back),
                         )
                     }
                 },

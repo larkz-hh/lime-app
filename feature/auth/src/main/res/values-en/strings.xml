@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_slogan">Record every moment of life</string>
+    <string name="auth_register">Sign Up</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_code">Verification code</string>
+    <string name="auth_email_code">Email verification code</string>
+    <string name="auth_phone">Phone number</string>
+    <string name="auth_phone_optional">Phone number (optional)</string>
+    <string name="auth_password_hide">Hide password</string>
+    <string name="auth_password_show">Show password</string>
+    <string name="auth_send_code">Get Code</string>
+    <string name="auth_password_login">Password login</string>
+    <string name="auth_code_login">Code login</string>
+    <string name="auth_create_account">Create Account</string>
+    <string name="auth_register_welcome">Welcome to Lime</string>
+    <string name="auth_register_subtitle">Fill in the details below to sign up</string>
+    <string name="auth_password_placeholder">6-32 characters, including letters and numbers</string>
+    <string name="auth_has_account">Already have an account?</string>
+    <string name="auth_go_login">Log In</string>
+    <string name="auth_no_account">No account yet?</string>
+    <string name="auth_register_now">Sign Up Now</string>
+    <string name="auth_error_invalid_email">Please enter a valid email address</string>
+    <string name="auth_error_send_failed">Failed to send</string>
+    <string name="auth_error_login_failed">Login failed</string>
+    <string name="auth_error_register_failed">Registration failed</string>
+    <string name="auth_register_success">Registered successfully, please sign in</string>
+    <string name="auth_error_password_required">Please enter a password</string>
+    <string name="auth_error_code_required">Please enter the verification code</string>
+    <string name="auth_error_password_length">Password must be 6-32 characters</string>
+    <string name="auth_error_password_complexity">Password must contain both letters and numbers</string>
+    <string name="auth_error_email_code_required">Please enter the email verification code</string>
+    <string name="auth_error_phone_invalid">Invalid phone number format</string>
+</resources>

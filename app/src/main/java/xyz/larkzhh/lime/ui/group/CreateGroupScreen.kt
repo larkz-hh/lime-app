@@ -1,6 +1,7 @@
 package xyz.larkzhh.lime.ui.group
 
 import androidx.compose.foundation.layout.Column
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -67,7 +68,7 @@ fun CreateGroupScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
+                            contentDescription = stringResource(DesignSystemR.string.back),
                             tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }

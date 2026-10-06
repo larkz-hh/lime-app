@@ -36,6 +36,7 @@ import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.ui.components.FollowButton
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /// 顶部栏
 @Composable
@@ -57,7 +58,7 @@ fun AuthorBar(
         IconButton(onClick = onBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.back),
+                contentDescription = stringResource(DesignSystemR.string.back),
                 tint = MaterialTheme.colorScheme.onSurface,
             )
         }

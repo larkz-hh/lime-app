@@ -56,6 +56,7 @@ import xyz.larkzhh.lime.ui.publish.ai.AiWriteAction
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.util.system.findActivity
 import xyz.larkzhh.lime.util.showToast
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /**
  * 图文、视频发布页共享的表单骨架
@@ -167,7 +168,7 @@ fun NotePublishScaffold(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = goBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(DesignSystemR.string.back))
             }
             Text(
                 text = topBarTitle,

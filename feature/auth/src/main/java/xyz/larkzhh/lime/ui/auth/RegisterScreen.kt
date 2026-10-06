@@ -53,7 +53,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.feature.auth.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.util.showToast
 import xyz.larkzhh.lime.ui.auth.viewmodel.AuthViewModel
 
@@ -84,7 +85,7 @@ fun RegisterScreen(
                 title = { Text(stringResource(R.string.auth_create_account)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateToLogin) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(DesignSystemR.string.back))
                     }
                 },
                 expandedHeight = 56.dp,

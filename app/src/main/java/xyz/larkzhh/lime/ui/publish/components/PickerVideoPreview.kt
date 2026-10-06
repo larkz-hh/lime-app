@@ -52,6 +52,7 @@ import xyz.larkzhh.lime.ui.publish.viewmodel.LocalVideo
 import xyz.larkzhh.lime.ui.video.components.ScrubBar
 import xyz.larkzhh.lime.ui.video.components.formatTime
 import kotlin.time.Duration.Companion.milliseconds
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /// 视频全屏预览浮层
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -100,7 +101,7 @@ fun PickerVideoPreview(
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.back),
+                contentDescription = stringResource(DesignSystemR.string.back),
                 tint = Color.White,
                 modifier = Modifier
                     .align(Alignment.CenterStart)

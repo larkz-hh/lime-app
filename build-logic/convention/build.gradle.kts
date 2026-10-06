@@ -44,5 +44,9 @@ gradlePlugin {
             id = "lime.kotlin.library"
             implementationClass = "xyz.larkzhh.lime.buildlogic.LimeKotlinLibraryPlugin"
         }
+        register("androidFeature") {
+            id = "lime.android.feature"
+            implementationClass = "xyz.larkzhh.lime.buildlogic.LimeAndroidFeaturePlugin"
+        }
     }
 }

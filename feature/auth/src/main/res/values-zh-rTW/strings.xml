@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_slogan">記錄生活的每一刻</string>
+    <string name="auth_register">註冊</string>
+    <string name="auth_email">信箱</string>
+    <string name="auth_password">密碼</string>
+    <string name="auth_code">驗證碼</string>
+    <string name="auth_email_code">信箱驗證碼</string>
+    <string name="auth_phone">手機號碼</string>
+    <string name="auth_phone_optional">手機號碼（選填）</string>
+    <string name="auth_password_hide">隱藏密碼</string>
+    <string name="auth_password_show">顯示密碼</string>
+    <string name="auth_send_code">取得驗證碼</string>
+    <string name="auth_password_login">密碼登入</string>
+    <string name="auth_code_login">驗證碼登入</string>
+    <string name="auth_create_account">建立帳號</string>
+    <string name="auth_register_welcome">歡迎加入 Lime</string>
+    <string name="auth_register_subtitle">填寫以下資訊完成註冊</string>
+    <string name="auth_password_placeholder">6-32 位，須含字母和數字</string>
+    <string name="auth_has_account">已經有帳號了？</string>
+    <string name="auth_go_login">去登入</string>
+    <string name="auth_no_account">還沒有帳號？</string>
+    <string name="auth_register_now">立即註冊</string>
+    <string name="auth_error_invalid_email">請輸入有效的信箱地址</string>
+    <string name="auth_error_send_failed">傳送失敗</string>
+    <string name="auth_error_login_failed">登入失敗</string>
+    <string name="auth_error_register_failed">註冊失敗</string>
+    <string name="auth_register_success">註冊成功，請登入</string>
+    <string name="auth_error_password_required">請輸入密碼</string>
+    <string name="auth_error_code_required">請輸入驗證碼</string>
+    <string name="auth_error_password_length">密碼需為 6-32 個字元</string>
+    <string name="auth_error_password_complexity">密碼必須同時包含字母和數字</string>
+    <string name="auth_error_email_code_required">請輸入信箱驗證碼</string>
+    <string name="auth_error_phone_invalid">手機號碼格式不正確</string>
+</resources>

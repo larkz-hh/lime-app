@@ -63,6 +63,7 @@ import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 import xyz.larkzhh.lime.ui.video.components.formatTime
 import xyz.larkzhh.lime.util.showToast
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 @Composable
 fun DraftBoxScreen(
@@ -112,7 +113,7 @@ fun DraftBoxScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconButton(onClick = { if (!navController.popBackStack()) onClose() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(DesignSystemR.string.back))
                 }
                 Text(
                     text = if (uiState.isManaging) {

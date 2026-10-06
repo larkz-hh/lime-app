@@ -72,6 +72,7 @@ import xyz.larkzhh.lime.ui.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.util.showToast
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -150,7 +151,7 @@ private fun AccountPrivacyRootPage(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(DesignSystemR.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -371,7 +372,7 @@ private fun ChangePasswordPage(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(DesignSystemR.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

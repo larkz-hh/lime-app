@@ -43,6 +43,7 @@ import xyz.larkzhh.lime.data.network.model.UserData
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimePrimaryPale
 import xyz.larkzhh.lime.ui.theme.LimeWhite
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 @Composable
 fun ProfileTopBar(
@@ -74,7 +75,7 @@ fun ProfileTopBar(
                 .height(52.dp),
         ) {
             val leadingLabelRes =
-                if (leadingIcon == Icons.AutoMirrored.Filled.ArrowBack) R.string.back
+                if (leadingIcon == Icons.AutoMirrored.Filled.ArrowBack) DesignSystemR.string.back
                 else R.string.profile_menu
             val leadingLabel = stringResource(leadingLabelRes)
             IconButton(

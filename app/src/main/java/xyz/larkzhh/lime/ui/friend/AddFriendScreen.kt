@@ -67,6 +67,7 @@ import xyz.larkzhh.lime.util.generateGradientQrBitmap
 import xyz.larkzhh.lime.util.limeUserQrContent
 import xyz.larkzhh.lime.util.media.saveBitmapToGallery
 import xyz.larkzhh.lime.util.showToast
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -123,7 +124,7 @@ fun AddFriendScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
+                            contentDescription = stringResource(DesignSystemR.string.back),
                         )
                     }
                 },

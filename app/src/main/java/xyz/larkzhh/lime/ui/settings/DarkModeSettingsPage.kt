@@ -43,6 +43,7 @@ import xyz.larkzhh.lime.ui.theme.AppDarkMode
 import xyz.larkzhh.lime.ui.theme.DarkModeOption
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.util.showToast
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /// 深色模式设置子页
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,7 +70,7 @@ fun DarkModeSettingsPage(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
+                            contentDescription = stringResource(DesignSystemR.string.back),
                         )
                     }
                 },

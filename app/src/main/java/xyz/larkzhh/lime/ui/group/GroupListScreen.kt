@@ -50,6 +50,7 @@ import xyz.larkzhh.lime.domain.model.ImGroup
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 @Composable
 fun GroupListScreen(
@@ -78,7 +79,7 @@ fun GroupListScreen(
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.back),
+                    contentDescription = stringResource(DesignSystemR.string.back),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
             }

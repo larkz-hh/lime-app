@@ -47,6 +47,7 @@ import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.ThemeOption
 import xyz.larkzhh.lime.ui.theme.themeColorMap
 import xyz.larkzhh.lime.util.showToast
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /// 主题设置子页
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,7 +75,7 @@ fun ThemeSettingsPage(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
+                            contentDescription = stringResource(DesignSystemR.string.back),
                         )
                     }
                 },

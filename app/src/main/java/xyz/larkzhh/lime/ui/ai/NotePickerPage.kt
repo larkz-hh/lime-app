@@ -56,6 +56,7 @@ import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeLightGray
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 @Composable
 fun NotePickerPage(
@@ -90,7 +91,7 @@ fun NotePickerPage(
                     IconButton(onClick = onDismiss) {
                         Icon(
                             Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
+                            contentDescription = stringResource(DesignSystemR.string.back),
                             tint = MaterialTheme.colorScheme.onBackground,
                         )
                     }

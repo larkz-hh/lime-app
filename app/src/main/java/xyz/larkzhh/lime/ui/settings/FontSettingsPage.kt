@@ -47,6 +47,7 @@ import xyz.larkzhh.lime.ui.theme.LimeLightGray
 import xyz.larkzhh.lime.ui.theme.fontDisplayName
 import xyz.larkzhh.lime.ui.theme.fontFamilyOf
 import xyz.larkzhh.lime.util.showToast
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /// 字体设置子页
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,7 +75,7 @@ fun FontSettingsPage(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
+                            contentDescription = stringResource(DesignSystemR.string.back),
                         )
                     }
                 },

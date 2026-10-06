@@ -60,6 +60,7 @@ import xyz.larkzhh.lime.ui.components.UnfollowConfirmDialog
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeTheme
 import xyz.larkzhh.lime.ui.theme.LimeWhite
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 @Composable
 fun FollowListScreen(
@@ -89,7 +90,7 @@ fun FollowListScreen(
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.back),
+                    contentDescription = stringResource(DesignSystemR.string.back),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
             }

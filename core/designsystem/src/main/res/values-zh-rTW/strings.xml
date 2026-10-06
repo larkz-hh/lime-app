@@ -6,4 +6,6 @@
     <string name="theme_blue">克萊因藍</string>
     <string name="theme_purple">經典紫</string>
     <string name="font_option_system">系統預設</string>
+    <string name="back">返回</string>
+    <string name="auth_login">登入</string>
 </resources>

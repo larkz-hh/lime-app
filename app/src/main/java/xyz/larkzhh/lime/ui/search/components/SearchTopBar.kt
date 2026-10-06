@@ -1,6 +1,7 @@
 package xyz.larkzhh.lime.ui.search.components
 
 import androidx.compose.foundation.background
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -81,7 +82,7 @@ fun SearchTopBar(
         IconButton(onClick = onBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.back),
+                contentDescription = stringResource(DesignSystemR.string.back),
                 tint = MaterialTheme.colorScheme.onBackground,
             )
         }

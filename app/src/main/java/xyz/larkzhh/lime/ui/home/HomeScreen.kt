@@ -67,6 +67,7 @@ import xyz.larkzhh.lime.ui.components.ErrorState
 import xyz.larkzhh.lime.ui.components.FeedSkeleton
 import xyz.larkzhh.lime.ui.components.PagingWaterfallFeed
 import xyz.larkzhh.lime.ui.theme.LimeGray
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 private const val PRELOAD_COUNT = 4
 
@@ -241,7 +242,7 @@ private fun FollowLoginPrompt(onLogin: () -> Unit) {
             Spacer(Modifier.height(12.dp))
             TextButton(onClick = onLogin) {
                 Text(
-                    text = stringResource(R.string.auth_login),
+                    text = stringResource(DesignSystemR.string.auth_login),
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                 )

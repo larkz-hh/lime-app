@@ -56,6 +56,7 @@ import xyz.larkzhh.lime.ui.components.SheetGroup
 import xyz.larkzhh.lime.ui.components.SheetRowDivider
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import kotlin.time.Duration.Companion.milliseconds
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 /// 离线包状态轮询间隔
 private const val WATCH_INTERVAL_MS = 2_000L
@@ -95,7 +96,7 @@ fun TranslatePackScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(DesignSystemR.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

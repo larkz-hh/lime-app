@@ -96,6 +96,7 @@ import xyz.larkzhh.lime.util.text.formatChatTime
 import xyz.larkzhh.lime.util.media.imageAspectRatio
 import xyz.larkzhh.lime.util.text.isSameChatDay
 import java.io.File
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 private const val TIME_GROUP_GAP_SECONDS = 5 * 60L
 
@@ -238,7 +239,7 @@ fun ChatScreen(
                 title = { Text(state.peerNickname ?: if (state.isGroup) stringResource(R.string.profile_group_chat) else stringResource(R.string.chat_private_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(DesignSystemR.string.back))
                     }
                 },
                 actions = {

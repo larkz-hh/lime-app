@@ -213,3 +213,4 @@ lime-android-hilt = { id = "lime.android.hilt" }
 lime-android-library = { id = "lime.android.library" }
 lime-android-library-compose = { id = "lime.android.library.compose" }
 lime-kotlin-library = { id = "lime.kotlin.library" }
+lime-android-feature = { id = "lime.android.feature" }

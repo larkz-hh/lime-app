@@ -6,4 +6,6 @@
     <string name="theme_blue">Klein Blue</string>
     <string name="theme_purple">Classic Purple</string>
     <string name="font_option_system">System Default</string>
+    <string name="back">Back</string>
+    <string name="auth_login">Log In</string>
 </resources>

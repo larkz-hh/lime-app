@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.feature.auth.R
 import xyz.larkzhh.lime.domain.repository.AuthRepository
 import xyz.larkzhh.lime.domain.repository.UserRepository
 import javax.inject.Inject
