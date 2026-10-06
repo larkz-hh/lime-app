@@ -50,6 +50,9 @@ baselineprofile = "1.2.4"
 profileinstaller = "1.3.1"
 vosk = "0.3.75"
 
+# 构建期工具
+dependencyAnalysis = "3.19.2"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-collection = { group = "androidx.collection", name = "collection", version.ref = "collection" }
@@ -188,3 +191,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 android-test = { id = "com.android.test", version.ref = "agpUser" }
 android-built-in1-kotlin = { id = "com.android.built-in-kotlin", version.ref = "androidBuiltInKotlin" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
+dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependencyAnalysis" }
