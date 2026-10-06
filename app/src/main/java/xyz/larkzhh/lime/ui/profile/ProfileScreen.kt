@@ -71,7 +71,7 @@ import xyz.larkzhh.lime.navigation.state.ProfileLayoutStore
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.ui.video.feed.PersonalVideoPayload
 import xyz.larkzhh.lime.ui.video.feed.VideoFeedSessionStore
-import xyz.larkzhh.lime.navigation.component.SwipeBackScaffold
+import xyz.larkzhh.swipeback.SwipeBackScaffold
 import xyz.larkzhh.lime.data.network.model.FeedItem
 import xyz.larkzhh.lime.domain.model.FollowActionState
 import xyz.larkzhh.lime.domain.model.toFollowActionState

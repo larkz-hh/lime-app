@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import xyz.larkzhh.lime.navigation.component.blockPageSwipe
+import xyz.larkzhh.swipeback.blockPageSwipe
 
 data class SheetAction(
     val label: String,

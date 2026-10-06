@@ -64,7 +64,7 @@ import kotlinx.coroutines.launch
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.local.SpeechEngine
 import xyz.larkzhh.lime.data.local.SpeechPackStatus
-import xyz.larkzhh.lime.navigation.component.blockPageSwipe
+import xyz.larkzhh.swipeback.blockPageSwipe
 import xyz.larkzhh.lime.ui.detail.comment.viewmodel.VoiceRecord
 import xyz.larkzhh.lime.ui.speech.SpeechDictationViewModel
 import xyz.larkzhh.lime.ui.theme.LimeGray

@@ -1,13 +1,7 @@
 package xyz.larkzhh.lime.navigation.route
 
 import androidx.navigation.NavHostController
-
-/// 手势触发的导航动画抑制标志
-object SwipeBackNavState {
-    var suppressForwardEnter = false
-    var suppressPopAnim = false
-    var gestureDrivenPop = false// 自定义右滑返回手势驱动的pop才播放滑出动画
-}
+import xyz.larkzhh.swipeback.SwipeBackNavState
 
 /**
  * 导航到指定用户主页。

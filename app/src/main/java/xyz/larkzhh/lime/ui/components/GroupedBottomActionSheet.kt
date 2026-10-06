@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import xyz.larkzhh.lime.navigation.component.blockPageSwipe
+import xyz.larkzhh.swipeback.blockPageSwipe
 
 data class GroupedSheetAction(
     val label: String,

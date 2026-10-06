@@ -63,7 +63,7 @@ import xyz.larkzhh.lime.domain.model.toFollowActionState
 import xyz.larkzhh.lime.ui.auth.LoginGate
 import xyz.larkzhh.lime.navigation.state.PendingNoteEdit
 import xyz.larkzhh.lime.navigation.route.Screen
-import xyz.larkzhh.lime.navigation.component.SwipeBackScaffold
+import xyz.larkzhh.swipeback.SwipeBackScaffold
 import xyz.larkzhh.lime.navigation.route.navigateToUserProfile
 import xyz.larkzhh.lime.navigation.state.PendingChatStore
 import xyz.larkzhh.lime.ui.components.CommentInputSheet

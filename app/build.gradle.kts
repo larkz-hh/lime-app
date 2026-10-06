@@ -116,6 +116,7 @@ dependencies {
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.swipe.back)
     implementation(libs.androidx.profileinstaller)
 
     // DI

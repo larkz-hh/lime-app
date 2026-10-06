@@ -53,6 +53,8 @@ vosk = "0.3.75"
 # 构建期工具
 dependencyAnalysis = "3.19.2"
 
+swipeBack = "0.3.0"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-collection = { group = "androidx.collection", name = "collection", version.ref = "collection" }
@@ -180,6 +182,8 @@ exyte-animated-navigation-bar = { group = "com.exyte", name = "animated-navigati
 androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmarkMacroJunit4" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
+
+swipe-back = { group = "com.github.larkz-hh", name = "compose-swipe-back", version.ref = "swipeBack" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agpUser" }

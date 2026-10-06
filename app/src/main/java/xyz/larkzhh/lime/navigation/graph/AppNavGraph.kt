@@ -1,7 +1,7 @@
 package xyz.larkzhh.lime.navigation.graph
-import xyz.larkzhh.lime.navigation.route.SwipeBackNavState
+import xyz.larkzhh.swipeback.SwipeBackNavState
 import xyz.larkzhh.lime.navigation.action.ShortcutActions
-import xyz.larkzhh.lime.navigation.component.ScrimBox
+import xyz.larkzhh.swipeback.ScrimBox
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.navigation.component.PublishBottomSheet
 import xyz.larkzhh.lime.navigation.state.PendingNoteEdit
