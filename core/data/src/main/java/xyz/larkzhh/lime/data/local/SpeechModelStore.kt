@@ -19,8 +19,8 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
-import xyz.larkzhh.lime.BuildConfig
 
 /// 语音包状态
 enum class SpeechPackStatus { Checking, NotDownloaded, Downloading, Downloaded, Failed }
@@ -37,6 +37,7 @@ data class SpeechPackUiState(
 @Singleton
 class SpeechModelStore @Inject constructor(
     @ApplicationContext private val context: Context,
+    @param:Named("speech_model_url") private val modelUrl: String,
 ) {
 
     private val client = OkHttpClient.Builder()
@@ -123,7 +124,7 @@ class SpeechModelStore @Inject constructor(
                 }
             }
             val request = Request.Builder()
-                .url(BuildConfig.SPEECH_MODEL_URL)
+                .url(modelUrl)
                 .apply { if (existing > 0) header("Range", "bytes=$existing-") }
                 .build()
             var restart = false
@@ -186,7 +187,7 @@ class SpeechModelStore @Inject constructor(
 
     ///  探测远端 ETag
     private fun probeEtag(): String? = runCatching {
-        client.newCall(Request.Builder().url(BuildConfig.SPEECH_MODEL_URL).head().build())
+        client.newCall(Request.Builder().url(modelUrl).head().build())
             .execute()
             .use { it.header("ETag") }
     }.getOrNull()

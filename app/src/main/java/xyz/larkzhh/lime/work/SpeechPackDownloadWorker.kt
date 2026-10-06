@@ -17,6 +17,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import xyz.larkzhh.lime.BuildConfig
 import xyz.larkzhh.lime.R
 import xyz.larkzhh.lime.data.local.SpeechModelStore
 import xyz.larkzhh.lime.data.local.SpeechPackStatus
@@ -30,7 +31,7 @@ class SpeechPackDownloadWorker(
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
-        val store = SpeechModelStore(applicationContext)
+        val store = SpeechModelStore(applicationContext, BuildConfig.SPEECH_MODEL_URL)
         if (store.isReady()) return Result.success()
         // 前台通知
         runCatching { setForeground(foregroundInfo(0)) }

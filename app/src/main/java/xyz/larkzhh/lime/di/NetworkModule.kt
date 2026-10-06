@@ -46,6 +46,10 @@ object NetworkModule {
     fun provideBaseUrl(): String = BuildConfig.API_BASE_URL
 
     @Provides
+    @Named("speech_model_url")
+    fun provideSpeechModelUrl(): String = BuildConfig.SPEECH_MODEL_URL
+
+    @Provides
     @Singleton
     fun provideOkHttpClient(
         authInterceptor: AuthInterceptor,
