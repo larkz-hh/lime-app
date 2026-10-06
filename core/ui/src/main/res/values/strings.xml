@@ -38,4 +38,6 @@
     <string name="unfavorite">取消收藏</string>
     <string name="view_count">浏览人数</string>
     <string name="note_type_image_text">图文</string>
+<string name="comment">评论</string>
+<string name="note_manage_entry">编辑设置 ></string>
 </resources>

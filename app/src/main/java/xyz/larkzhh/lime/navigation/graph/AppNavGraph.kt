@@ -66,7 +66,7 @@ import xyz.larkzhh.lime.domain.ForceLogoutBus
 import xyz.larkzhh.lime.domain.LoginRedirectBus
 import xyz.larkzhh.lime.util.showToast
 import xyz.larkzhh.lime.ui.components.ForceLogoutDialog
-import xyz.larkzhh.lime.ui.detail.comment.CommentPhotoPickerScreen
+import xyz.larkzhh.lime.ui.comment.CommentPhotoPickerScreen
 import xyz.larkzhh.lime.ui.draft.DraftBoxOverlay
 import xyz.larkzhh.lime.ui.detail.DetailScreen
 import xyz.larkzhh.lime.ui.follow.FollowListScreen

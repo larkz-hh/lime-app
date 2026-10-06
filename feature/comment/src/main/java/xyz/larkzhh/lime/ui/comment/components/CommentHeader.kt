@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.detail.comment.components
+package xyz.larkzhh.lime.ui.comment.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,8 +25,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import xyz.larkzhh.lime.feature.detail.R
-import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentSort
+import xyz.larkzhh.lime.feature.comment.R
+import xyz.larkzhh.lime.ui.comment.viewmodel.CommentSort
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 

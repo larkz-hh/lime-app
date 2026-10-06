@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.video.feed.components
+package xyz.larkzhh.lime.ui.comment.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
@@ -48,12 +48,12 @@ import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.ReplyData
-import xyz.larkzhh.lime.ui.detail.comment.components.CommentCard
-import xyz.larkzhh.lime.ui.detail.comment.components.CommentHeader
-import xyz.larkzhh.lime.ui.detail.comment.components.CommentInputBar
-import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentSort
-import xyz.larkzhh.lime.ui.detail.comment.viewmodel.CommentUiState
-import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
+import xyz.larkzhh.lime.ui.comment.components.CommentCard
+import xyz.larkzhh.lime.ui.comment.components.CommentHeader
+import xyz.larkzhh.lime.ui.comment.components.CommentInputBar
+import xyz.larkzhh.lime.ui.comment.viewmodel.CommentSort
+import xyz.larkzhh.lime.ui.comment.viewmodel.CommentUiState
+import xyz.larkzhh.lime.ui.comment.viewmodel.ReplyTarget
 import xyz.larkzhh.lime.ui.theme.LimeGray
 
 /// 视频页评论抽屉

@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.detail
+package xyz.larkzhh.lime.ui.profile
 
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle

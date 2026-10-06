@@ -103,6 +103,7 @@ dependencies {
     implementation(project(":feature:translate"))
     implementation(project(":feature:speech"))
     implementation(project(":feature:detail"))
+    implementation(project(":feature:comment"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:ai"))
     implementation(project(":feature:draft"))

@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.detail.components
+package xyz.larkzhh.lime.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,7 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
-import xyz.larkzhh.lime.feature.detail.R
+import xyz.larkzhh.lime.core.ui.R
 import xyz.larkzhh.lime.data.network.model.NoteDetailData
 import xyz.larkzhh.lime.ui.components.FavoriteButton
 import xyz.larkzhh.lime.ui.components.LikeButton

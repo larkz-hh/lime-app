@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.detail.comment.viewmodel
+package xyz.larkzhh.lime.ui.comment.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import xyz.larkzhh.lime.feature.detail.R
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.CommentListResponse
 import xyz.larkzhh.lime.data.network.model.ReplyData
@@ -21,6 +20,7 @@ import xyz.larkzhh.lime.domain.repository.UserRepository
 import android.net.Uri
 import java.io.File
 import javax.inject.Inject
+import xyz.larkzhh.lime.feature.comment.R
 
 /// 排序方式： 热度、时间
 enum class CommentSort { HOT, TIME }

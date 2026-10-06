@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="picker_title_select_photo">選擇相片</string>
+<string name="picker_permission_required_photo">需要相簿存取權限才能選擇相片</string>
+<string name="picker_done_count">完成(%1$d)</string>
+<string name="comment_reply_prefix">"回覆 "</string>
+<string name="comment_expand_more">展開更多回覆</string>
+<string name="comment_expand_replies_count">展開%1$d則回覆</string>
+<string name="comment_image_count">共%1$d張</string>
+<string name="comment_author_badge">作者</string>
+<string name="comment_count">共%1$d則留言</string>
+<string name="sort">排序</string>
+<string name="sort_by_hot">按熱度</string>
+<string name="sort_by_time">按時間</string>
+<string name="comment_load_failed">留言載入失敗，請重試</string>
+</resources>

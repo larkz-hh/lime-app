@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.detail.comment
+package xyz.larkzhh.lime.ui.comment
 
 import android.Manifest
 import android.os.Build
@@ -35,10 +35,10 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import xyz.larkzhh.lime.feature.detail.R
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
+import xyz.larkzhh.lime.feature.comment.R
 import xyz.larkzhh.lime.ui.publish.components.ImagePickerGrid
-import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ImagePickerViewModel
+import xyz.larkzhh.lime.ui.comment.viewmodel.ImagePickerViewModel
 import xyz.larkzhh.lime.ui.theme.LimeWhite
 
 @OptIn(ExperimentalPermissionsApi::class)

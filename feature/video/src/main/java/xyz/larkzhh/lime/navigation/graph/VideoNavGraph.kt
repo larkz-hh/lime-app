@@ -23,7 +23,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import xyz.larkzhh.lime.ui.detail.DetailScreen
-import xyz.larkzhh.lime.ui.detail.comment.CommentPhotoPickerScreen
+import xyz.larkzhh.lime.ui.comment.CommentPhotoPickerScreen
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
 import xyz.larkzhh.lime.ui.publish.CoverPickerScreen
 import xyz.larkzhh.lime.ui.publish.PhotoPickerScreen

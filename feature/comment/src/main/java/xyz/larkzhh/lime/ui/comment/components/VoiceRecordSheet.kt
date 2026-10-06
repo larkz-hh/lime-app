@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.detail.components
+package xyz.larkzhh.lime.ui.comment.components
 
 import android.Manifest
 import android.content.Context
@@ -66,7 +66,7 @@ import xyz.larkzhh.lime.data.local.SpeechEngine
 import xyz.larkzhh.lime.data.local.SpeechPackStatus
 import xyz.larkzhh.lime.ui.components.SoundWaveAnimation
 import xyz.larkzhh.swipeback.blockPageSwipe
-import xyz.larkzhh.lime.ui.detail.comment.viewmodel.VoiceRecord
+import xyz.larkzhh.lime.ui.comment.viewmodel.VoiceRecord
 import xyz.larkzhh.lime.ui.speech.SpeechDictationViewModel
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.util.audio.M4aEncoder

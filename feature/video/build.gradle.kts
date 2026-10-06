@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:theme"))
     implementation(project(":feature:detail"))
+    implementation(project(":feature:comment"))
     implementation(project(":feature:profile"))
     implementation(project(":feature:publish"))
     implementation(project(":feature:qrscan"))

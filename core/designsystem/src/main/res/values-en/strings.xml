@@ -87,4 +87,5 @@
     <string name="pip_pause">Pause</string>
     <string name="search_expand">Expand</string>
     <string name="search_collapse">Collapse</string>
+<string name="comment_reply_action">Reply</string>
 </resources>

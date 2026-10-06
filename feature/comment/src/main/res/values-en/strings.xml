@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="picker_title_select_photo">Select Photos</string>
+<string name="picker_permission_required_photo">Photo library access is required to select photos</string>
+<string name="picker_done_count">Done (%1$d)</string>
+<string name="comment_reply_prefix">"Reply to "</string>
+<string name="comment_expand_more">Show more replies</string>
+<string name="comment_expand_replies_count">Show %1$d more replies</string>
+<string name="comment_image_count">%1$d images</string>
+<string name="comment_author_badge">Author</string>
+<string name="comment_count">%1$d comments</string>
+<string name="sort">Sort</string>
+<string name="sort_by_hot">By popularity</string>
+<string name="sort_by_time">By time</string>
+<string name="comment_load_failed">Failed to load comments. Please try again.</string>
+</resources>

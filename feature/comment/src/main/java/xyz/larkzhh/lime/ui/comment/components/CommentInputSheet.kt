@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.detail.components
+package xyz.larkzhh.lime.ui.comment.components
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -72,7 +72,7 @@ import coil3.compose.AsyncImage
 import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.ui.components.VoiceMessageCard
 import xyz.larkzhh.swipeback.blockPageSwipe
-import xyz.larkzhh.lime.ui.detail.comment.viewmodel.VoiceRecord
+import xyz.larkzhh.lime.ui.comment.viewmodel.VoiceRecord
 import xyz.larkzhh.lime.ui.components.EmojiPanel
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.util.showToast

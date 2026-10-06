@@ -38,4 +38,6 @@
     <string name="unfavorite">Unfavorite</string>
     <string name="view_count">Views</string>
     <string name="note_type_image_text">Image and text</string>
+<string name="comment">Comment</string>
+<string name="note_manage_entry">Edit settings ></string>
 </resources>

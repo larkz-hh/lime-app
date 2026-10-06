@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.detail.comment.viewmodel
+package xyz.larkzhh.lime.ui.comment.viewmodel
 
 import android.content.ContentUris
 import android.content.Context

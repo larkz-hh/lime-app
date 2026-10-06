@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.detail.comment.components
+package xyz.larkzhh.lime.ui.comment.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -45,13 +45,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import xyz.larkzhh.lime.feature.detail.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.data.network.model.CommentData
 import xyz.larkzhh.lime.data.network.model.ReplyData
+import xyz.larkzhh.lime.feature.comment.R
 import xyz.larkzhh.lime.ui.components.LikeButton
 import xyz.larkzhh.lime.ui.components.VoiceMessageCard
-import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ExpandedRepliesState
-import xyz.larkzhh.lime.ui.detail.comment.viewmodel.ReplyTarget
+import xyz.larkzhh.lime.ui.comment.viewmodel.ExpandedRepliesState
+import xyz.larkzhh.lime.ui.comment.viewmodel.ReplyTarget
 import xyz.larkzhh.lime.ui.theme.LimeGray
 import xyz.larkzhh.lime.util.text.formatRelativeTime
 import kotlin.time.Duration.Companion.milliseconds
@@ -184,7 +185,7 @@ fun CommentCard(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = stringResource(R.string.comment_reply_action),
+                        text = stringResource(DesignSystemR.string.comment_reply_action),
                         fontSize = 12.sp,
                         color = LimeGray,
                         modifier = Modifier.clickable(
@@ -472,7 +473,7 @@ private fun ReplyItem(
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = stringResource(R.string.comment_reply_action),
+                    text = stringResource(DesignSystemR.string.comment_reply_action),
                     fontSize = 11.sp,
                     color = LimeGray,
                 modifier = Modifier.clickable(

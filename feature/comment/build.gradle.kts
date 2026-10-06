@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "xyz.larkzhh.lime.feature.detail"
+    namespace = "xyz.larkzhh.lime.feature.comment"
 }
 
 dependencies {
@@ -13,10 +13,7 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":core:common"))
     implementation(project(":core:data"))
-    implementation(project(":feature:profile"))
     implementation(project(":feature:publish"))
-    implementation(project(":feature:translate"))
-    implementation(project(":feature:comment"))
-    implementation(libs.androidx.paging.compose)
+    implementation(project(":feature:speech"))
     implementation(libs.accompanist.permissions)
 }

@@ -1,4 +1,4 @@
-package xyz.larkzhh.lime.ui.detail.components
+package xyz.larkzhh.lime.ui.comment.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
