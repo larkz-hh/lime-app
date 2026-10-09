@@ -1,8 +1,6 @@
 <resources>
     <string name="shortcut_search">Search</string>
     <string name="shortcut_scan">Scan</string>
-    <string name="widget_search_name">Lime Search</string>
-    <string name="widget_search_description">Search box + trending today</string>
 
     <string name="nav_home">Home</string>
     <string name="nav_video">Video</string>

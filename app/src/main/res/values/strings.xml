@@ -1,8 +1,6 @@
 <resources>
     <string name="shortcut_search">搜索</string>
     <string name="shortcut_scan">扫一扫</string>
-    <string name="widget_search_name">Lime 搜索</string>
-    <string name="widget_search_description">搜索框 + 今日热搜</string>
 
     <string name="nav_home">首页</string>
     <string name="nav_video">视频</string>
