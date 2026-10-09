@@ -171,6 +171,7 @@
 | 异步 | Kotlinx Coroutines + Flow |
 | 序列化 | Gson（网络 / 本地缓存 / SSE 解析） |
 | 权限 | Accompanist Permissions |
+| 构建工具链 | AGP 9.2.1 · Gradle 9.4.1 · Kotlin 2.3.0 · JDK 21 |
 | 最低 SDK | 26（Android 8.0） |
 | 目标 SDK | 36 |
 
@@ -181,19 +182,29 @@
 ### 分层与模块
 
 ```
-app/src/main/java/xyz/larkzhh/lime/
-├── data/        # 数据层：Room 分库、网络接口与模型、仓储、IM、通知中心
-├── domain/      # 领域层：仓储接口、领域模型、事件总线
-├── di/          # Hilt 依赖注入
-├── navigation/  # 导航：路由、图、状态
-├── ui/          # 页面层：按功能分包，各功能内含 Screen 与 ViewModel
-├── util/        # 通用工具：cache / media / system / text
-└── work/        # WorkManager 后台任务
+core/designsystem   主题、通用组件、共享文案
+core/ui             通用 UI 组件、App 主题包装
+core/common         通用工具、领域事件总线
+core/model          纯 Kotlin 数据模型（无 Android 依赖）
+core/domain         仓储接口
+core/data           仓储实现、Room 分库、网络、本地存储
+core/navigation     路由表、跨模块注入点
+core/work           WorkManager 后台任务
+core/theme          主题偏好
+core/notification   系统通知与桌面角标
+feature/*           21 个业务模块：auth / friend / about / group / publish / im / follow /
+                    profile / home / message / qrscan / translate / speech / detail /
+                    comment / settings / ai / draft / widget / search / video
+app                 组装层：Application、Activity、导航图、Hilt 模块
+baselineprofile     Baseline Profile 生成与启动基准
 ```
+
+依赖单向流动：`app → feature:* → core:*`，模块之间无环；`:app` 只负责组装（导航图、Activity、DI），不含业务逻辑。
 
 ### 设计要点
 
-- **主界面单 Activity + Navigation Compose**（启动页 `SplashActivity`、全屏视频/PiP `VideoActivity` 等为独立 Activity），代码按 `ui / domain / data` 三层分包：`ui` 页面层（Screen + ViewModel）→ `domain` 领域层（仓储接口 / 领域模型）→ `data` 数据层（仓储实现 / 网络 / 本地库）；
+- **主界面单 Activity + Navigation Compose**（启动页 `SplashActivity`、全屏视频/PiP `VideoActivity` 等为独立 Activity），每个模块内部仍按 `ui / domain / data` 三层组织：`ui` 页面层（Screen + ViewModel）→ `domain` 领域层（仓储接口 / 领域模型）→ `data` 数据层（仓储实现 / 网络 / 本地库）；
+- **convention plugin**：`build-logic/` 提供 `lime.android.library`、`lime.android.feature`、`lime.android.baselineprofile` 等插件统一 SDK 版本、Java 版本与依赖配置，各模块只声明自己的差异部分；
 - **按功能分包**：网络接口按功能拆分为独立 `*Api`，数据仓储与本地库按功能对齐；
 - **多账号隔离**：Room 各库按当前账号分库，登出保留各账号库文件，登录态切换自动重建界面；
 - **性能工程**：独立 `:baselineprofile` 模块生成启动与关键路径 Baseline Profile，随 release 自动打包。
@@ -205,7 +216,7 @@ app/src/main/java/xyz/larkzhh/lime/
 ### 前置要求
 
 1. **Android Studio**（建议最新稳定版）
-2. **JDK 17+**（随项目 wrapper 管理）
+2. **JDK 21**（随项目 wrapper 管理）
 3. **后端服务**：[lime-server](https://github.com/larkz-hh/lime-server) 部署并启动（接口地址见下）
 
 ### 编译步骤
@@ -326,6 +337,7 @@ val db = builder("$name.db")
 - R8 混淆 + 资源压缩（`isMinifyEnabled` + `shrinkResources`）
 - ABI 裁剪：`-PslimAbi=true` 仅保留 arm64-v8a
 - Baseline Profile 随 release 打包，覆盖冷启动 / 首页 / 详情热路径
+- 1.0.3 实测 release 体积：universal 151.5 MB / arm64-v8a 52.1 MB
 
 ---
 ## 🔀 核心工作流
@@ -445,9 +457,9 @@ Lime 是一款图文 / 视频社区 App，展示基于 Kotlin + Jetpack Compose 
 - [x] SSE 通知、桌面角标与前台保活
 - [x] 多账号分库隔离
 - [x] Baseline Profile 启动优化（含 ABI 裁剪）
-- [ ] 多模块架构
+- [x] 多模块架构
 - [ ] Hero 共享元素转场
-- [ ] 封装发布通用组件库
+- [x] 封装发布通用组件库
 - [ ] 进一步性能优化
 - [ ] 单元测试与集成测试覆盖
 

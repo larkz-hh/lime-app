@@ -40,8 +40,8 @@ android {
 
     defaultConfig {
         applicationId = "xyz.larkzhh.lime"
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.0.3"
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         buildConfigField("String", "SPEECH_MODEL_URL", "\"$speechModelUrl\"")
