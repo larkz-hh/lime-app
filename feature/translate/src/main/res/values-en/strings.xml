@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="translate_settings_title">Offline</string>
+    <string name="translate_offline_pack">Offline Pack</string>
+    <string name="translate_pack_name">ZH ⇄ EN</string>
+    <string name="translate_mode_section">Translation Mode</string>
+    <string name="translate_pack_tips">• Offline translation works after the language pack is downloaded\n• Voice-to-text works offline after the speech pack is downloaded\n• First download requires internet\n• Language pack by Google, speech pack by Vosk</string>
+    <string name="translate_delete_pack_confirm_title">Delete the Chinese-English language pack?\nIt will need to be downloaded again for future translation</string>
+    <string name="translate_checking">Checking…</string>
+    <string name="translate_download">Download</string>
+    <string name="translate_download_failed">Download failed</string>
+    <string name="translate_retry">Retry</string>
+    <string name="translate_downloaded">Downloaded</string>
+    <string name="translate_mode_auto">Auto</string>
+    <string name="translate_mode_offline">Offline</string>
+    <string name="speech_delete_pack_confirm_title">Delete the Chinese speech pack?\nIt will need to be downloaded again for voice-to-text</string>
+    <string name="translate_title">Translate</string>
+    <string name="translate_close">Close</string>
+    <string name="translate_switch_direction">Switch direction</string>
+    <string name="translate_downloading_pack">Downloading the Chinese-English offline language pack %1$s…</string>
+    <string name="translate_translating">Translating…</string>
+    <string name="translate_error_default">Translation failed. Please try again later</string>
+    <string name="translate_error_network">Translation failed: please check your network and try again</string>
+    <string name="translate_background_download">Background download</string>
+    <string name="translate_result_missing">(っ °Д °;)っ Too bad — the translation was stolen away</string>
+    <string name="translate_copy_result">Copy translation</string>
+</resources>

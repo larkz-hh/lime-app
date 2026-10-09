@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 
 @Composable
 fun PublishBottomSheet(
@@ -40,7 +41,7 @@ fun PublishBottomSheet(
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Spacer(Modifier.height(8.dp))
         Text(
-            text = stringResource(R.string.cancel),
+            text = stringResource(DesignSystemR.string.cancel),
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
             color = Color.Gray,

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="group_list_tab_created">Created</string>
+    <string name="group_list_tab_joined">Joined</string>
+    <string name="group_list_empty_created">No group chats created yet</string>
+    <string name="group_list_empty_joined">No group chats joined yet</string>
+    <string name="group_member_count">%1$d members</string>
+    <string name="group_name">Group Name</string>
+    <string name="group_name_hint">Enter a group name</string>
+    <string name="group_manage_intro">Group Introduction</string>
+    <string name="group_manage_intro_hint">Describe this group</string>
+    <string name="group_create_intro">Group Introduction</string>
+    <string name="group_create_intro_hint">Tell us what you want to discuss in the group and who you would like to invite</string>
+    <string name="group_create_action">Create</string>
+    <string name="group_avatar_change_hint">Tap to change the avatar</string>
+    <string name="group_invite_friends">Invite friends to the group</string>
+    <string name="group_invite">Invite</string>
+    <string name="group_invite_sent">Invitation sent</string>
+    <string name="group_pick_friends_title">Select mutual friends</string>
+    <string name="group_no_mutual_friends">No mutual friends yet. Follow each other first.</string>
+    <string name="group_dismiss_group">Dissolve Group</string>
+    <string name="group_dismiss">Dissolve</string>
+    <string name="group_dismiss_message">All members will be removed and this cannot be undone.</string>
+    <string name="group_quit_group">Leave Group</string>
+    <string name="group_quit">Leave</string>
+    <string name="group_quit_message">After leaving, you will no longer receive messages from this group.</string>
+    <string name="group_save_success">Group info saved</string>
+    <string name="group_save_failed">Failed to save</string>
+    <string name="group_avatar_save_failed">Failed to save avatar</string>
+    <string name="group_avatar_upload_failed">Failed to upload avatar</string>
+    <string name="group_invite_failed">Failed to send the invitation</string>
+    <string name="group_dismiss_failed">Failed to dissolve the group</string>
+    <string name="group_quit_failed">Failed to leave the group</string>
+    <string name="group_create_failed">Failed to create the group</string>
+</resources>

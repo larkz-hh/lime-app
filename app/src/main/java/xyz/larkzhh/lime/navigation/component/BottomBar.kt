@@ -1,4 +1,5 @@
 package xyz.larkzhh.lime.navigation.component
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.navigation.route.Screen
 
 import androidx.compose.animation.core.spring
@@ -52,7 +53,7 @@ import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
 import androidx.annotation.StringRes
 import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.theme.AppTheme
+import xyz.larkzhh.lime.core.theme.AppTheme
 import xyz.larkzhh.lime.ui.theme.ThemeOption
 import xyz.larkzhh.lime.ui.theme.themeColorMap
 
@@ -65,7 +66,7 @@ private sealed class BottomNavItem(
     object Home : BottomNavItem(Screen.Home, Icons.Filled.Home, Icons.Outlined.Home, R.string.nav_home)
     object Video : BottomNavItem(Screen.Video, Icons.Filled.VideoLabel, Icons.Outlined.VideoLabel, R.string.nav_video)
     object Publish : BottomNavItem(Screen.Publish, Icons.Filled.Add, Icons.Filled.Add, null)
-    object Message : BottomNavItem(Screen.Message, Icons.Filled.Notifications, Icons.Outlined.Notifications, R.string.nav_message)
+    object Message : BottomNavItem(Screen.Message, Icons.Filled.Notifications, Icons.Outlined.Notifications, DesignSystemR.string.nav_message)
     object Profile : BottomNavItem(Screen.Profile, Icons.Filled.Person, Icons.Outlined.Person, R.string.nav_profile)
 }
 
@@ -173,7 +174,7 @@ fun BottomNavBar(
                         is BottomNavItem.Message -> {
                             Box {
                                 Icon(
-                                    painter = painterResource(R.drawable.ic_chat),
+                                    painter = painterResource(DesignSystemR.drawable.ic_chat),
                                     contentDescription = itemLabel,
                                     modifier = Modifier.size(24.dp),
                                 )
@@ -212,7 +213,6 @@ internal val BottomBarHeight = 60.dp
 @Composable
 private fun currentBallColor(): Color =
     themeColorMap[ThemeOption.fromTag(AppTheme.currentTag())]?.ballPrimary ?: Color(0xFFA8E743)
-
 
 /// 单个 tab
 @Composable

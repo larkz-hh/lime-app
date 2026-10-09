@@ -16,6 +16,9 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+
+    // convention plugin 的来源
+    includeBuild("build-logic")
 }
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
@@ -37,3 +40,34 @@ dependencyResolutionManagement {
 rootProject.name = "Lime"
 include(":app")
 include(":baselineprofile")
+include(":core:designsystem")
+include(":core:ui")
+include(":core:model")
+include(":core:domain")
+include(":core:common")
+include(":core:data")
+include(":core:navigation")
+include(":core:work")
+include(":core:theme")
+include(":core:notification")
+include(":feature:auth")
+include(":feature:friend")
+include(":feature:about")
+include(":feature:group")
+include(":feature:publish")
+include(":feature:im")
+include(":feature:follow")
+include(":feature:profile")
+include(":feature:home")
+include(":feature:message")
+include(":feature:qrscan")
+include(":feature:translate")
+include(":feature:speech")
+include(":feature:detail")
+include(":feature:comment")
+include(":feature:settings")
+include(":feature:ai")
+include(":feature:draft")
+include(":feature:widget")
+include(":feature:search")
+include(":feature:video")

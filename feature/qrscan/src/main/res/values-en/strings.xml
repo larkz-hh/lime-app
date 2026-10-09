@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="qr_title">Scan QR Code</string>
+    <string name="qr_album">Album</string>
+    <string name="qr_permission_required">Camera permission is required to scan QR codes</string>
+    <string name="qr_user_not_found">User not found</string>
+    <string name="qr_image_read_failed">Could not read the image</string>
+    <string name="qr_none_detected">No QR code detected</string>
+    <string name="qr_scan_failed">Scan failed, please try again</string>
+    <string name="qr_torch_off">Turn off flashlight</string>
+    <string name="qr_torch_on">Turn on flashlight</string>
+    <string name="qr_torch_tap_off">Tap to turn off</string>
+    <string name="qr_torch_tap_on">Tap to light</string>
+    <string name="qr_align_prompt">Center the QR code in the scan frame</string>
+</resources>

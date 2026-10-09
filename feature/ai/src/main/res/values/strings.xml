@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ai_new_chat">新对话</string>
+    <string name="ai_new_conversation_cd">新建会话</string>
+    <string name="ai_open_history_cd">打开历史会话</string>
+    <string name="ai_clear_conversation">清空对话</string>
+    <string name="ai_delete_conversation_title">删除会话</string>
+    <string name="ai_delete_conversation_message">「%1$s」将被删除，且不可恢复。</string>
+    <string name="ai_clear_conversation_message">将清空该会话的全部消息，且不可恢复。</string>
+    <string name="ai_delete_message_title">删除消息</string>
+    <string name="ai_delete_message_message">将删除这条消息及其关联的提问/回复，且不可恢复。</string>
+    <string name="ai_cleared">已清空</string>
+    <string name="ai_conversation_deleted">会话已删除</string>
+    <string name="ai_copied">已复制</string>
+    <string name="ai_camera_file_failed">无法创建拍照文件</string>
+    <string name="ai_offline_banner">当前无网络，显示缓存消息</string>
+    <string name="ai_select_text_title">选择文本</string>
+    <string name="ai_history_title">对话记录</string>
+    <string name="ai_no_history">暂无历史对话</string>
+    <string name="ai_load_failed_retry">加载失败，点击重试</string>
+    <string name="ai_default_model">默认模型</string>
+    <string name="ai_image_chat_title">图片对话</string>
+    <string name="ai_delete_failed">删除失败，请重试</string>
+    <string name="ai_clear_failed">清空失败，请重试</string>
+    <string name="ai_offline_cannot_send">当前无网络，无法发送</string>
+    <string name="ai_image_upload_failed">有图片上传失败，请点击重试或移除</string>
+    <string name="ai_offline_cannot_resend">当前无网络，无法重发</string>
+    <string name="ai_offline_cannot_regenerate">当前无网络，无法重新生成</string>
+    <string name="note_picker_title">选择笔记</string>
+    <string name="note_picker_confirm">选择笔记</string>
+    <string name="note_picker_tab_favorites">收藏</string>
+    <string name="note_picker_tab_likes">点赞</string>
+    <string name="note_picker_tab_published">发布</string>
+    <string name="load_failed_retry">加载失败，点击重试</string>
+    <string name="note_picker_empty">暂无图文笔记</string>
+    <string name="untitled">无标题</string>
+</resources>

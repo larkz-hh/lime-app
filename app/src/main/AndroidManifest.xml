@@ -84,12 +84,6 @@
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
             android:theme="@style/Theme.Lime.VideoFeed"
             android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name="com.yalantis.ucrop.UCropActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.UCrop.Fullscreen"
-            tools:ignore="LockedOrientationActivity"
-            />
         <!-- 应用内更新安装：通过 FileProvider 暴露下载的 APK -->
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -112,38 +106,6 @@
         <receiver
             android:name=".ui.PipMediaActionReceiver"
             android:exported="false" />
-        <!-- 后台播放服务-->
-        <service
-            android:name=".ui.video.player.PlaybackService"
-            android:exported="true"
-            android:foregroundServiceType="mediaPlayback"
-            tools:ignore="ExportedService">
-            <intent-filter>
-                <action android:name="androidx.media3.session.MediaSessionService" />
-            </intent-filter>
-        </service>
-        <!-- 消息保活前台服务 -->
-        <service
-            android:name=".data.notification.NotificationService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
-        <!-- WorkManager 前台任务（语音包等离线包下载）：Android 14+ 必须声明前台服务类型 -->
-        <service
-            android:name="androidx.work.impl.foreground.SystemForegroundService"
-            android:foregroundServiceType="dataSync"
-            tools:node="merge" />
-        <!-- 桌面搜索栏组件 -->
-        <receiver
-            android:name=".ui.widget.SearchWidgetReceiver"
-            android:exported="true"
-            android:label="@string/widget_search_name">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/lime_search_widget_info" />
-        </receiver>
     </application>
 
 </manifest>

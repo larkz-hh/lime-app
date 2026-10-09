@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="group_list_tab_created">我建立的</string>
+    <string name="group_list_tab_joined">我加入的</string>
+    <string name="group_list_empty_created">還沒有建立群組聊天</string>
+    <string name="group_list_empty_joined">還沒有加入群組聊天</string>
+    <string name="group_member_count">%1$d人</string>
+    <string name="group_name">群組名稱</string>
+    <string name="group_name_hint">請輸入群組名稱</string>
+    <string name="group_manage_intro">群組簡介</string>
+    <string name="group_manage_intro_hint">介紹一下這個群組</string>
+    <string name="group_create_intro">群組介紹</string>
+    <string name="group_create_intro_hint">簡單說說你想在群組裡討論的話題，以及希望哪些人加入群聊</string>
+    <string name="group_create_action">建立</string>
+    <string name="group_avatar_change_hint">點擊更換大頭貼</string>
+    <string name="group_invite_friends">邀請好友加入群組</string>
+    <string name="group_invite">邀請</string>
+    <string name="group_invite_sent">已送出邀請</string>
+    <string name="group_pick_friends_title">選擇互相追蹤的好友</string>
+    <string name="group_no_mutual_friends">暫無互相追蹤的好友，先去互相追蹤吧</string>
+    <string name="group_dismiss_group">解散群組</string>
+    <string name="group_dismiss">解散</string>
+    <string name="group_dismiss_message">解散後所有成員將被移出，且無法復原。</string>
+    <string name="group_quit_group">退出群組</string>
+    <string name="group_quit">退出</string>
+    <string name="group_quit_message">退出後你將不再收到該群組的訊息。</string>
+    <string name="group_save_success">群資料已儲存</string>
+    <string name="group_save_failed">儲存失敗</string>
+    <string name="group_avatar_save_failed">大頭貼儲存失敗</string>
+    <string name="group_avatar_upload_failed">大頭貼上傳失敗</string>
+    <string name="group_invite_failed">邀請失敗</string>
+    <string name="group_dismiss_failed">解散失敗</string>
+    <string name="group_quit_failed">退出失敗</string>
+    <string name="group_create_failed">建立失敗</string>
+</resources>

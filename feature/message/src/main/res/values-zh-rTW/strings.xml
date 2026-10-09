@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="msg_entry_likes">讚和收藏</string>
+    <string name="msg_entry_follows">新增追蹤</string>
+    <string name="msg_entry_comments">留言和@</string>
+    <string name="msg_more">更多</string>
+    <string name="msg_add_friend">新增好友</string>
+    <string name="msg_scan">掃一掃</string>
+    <string name="msg_empty">暫無私訊</string>
+    <string name="msg_start_chat">開始聊天吧</string>
+    <string name="msg_delete_conversation">刪除對話</string>
+    <string name="msg_delete_group_hint">是否移除群組？移除後會清空聊天紀錄。</string>
+    <string name="msg_delete_conversation_hint">是否刪除這個對話？刪除後會清空聊天紀錄。</string>
+    <string name="notif_title_likes">收到的讚和收藏</string>
+    <string name="notif_title_follows">新增追蹤</string>
+    <string name="notif_title_comments">收到的留言與回覆</string>
+    <string name="notif_load_failed">載入失敗</string>
+    <string name="notif_empty">暫時沒有新訊息～</string>
+    <string name="notif_action_like_note">讚了你的筆記</string>
+    <string name="notif_action_favorite_note">收藏了你的筆記</string>
+    <string name="notif_action_like_comment">讚了你的留言</string>
+    <string name="notif_action_follow">開始追蹤你了</string>
+    <string name="notif_action_comment_note">留言了你的筆記</string>
+    <string name="notif_action_reply_comment">回覆了你的留言</string>
+</resources>

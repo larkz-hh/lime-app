@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_ai">問AI</string>
+                <string name="detail_copied">已複製</string>
+    <string name="detail_note_delete_confirm_title">確認永久刪除作品？\n刪除後無法復原</string>
+    <string name="detail_note_deleted">筆記已刪除</string>
+    <string name="detail_delete_failed">刪除失敗，請重試</string>
+    <string name="detail_translate_bg_download">已加入背景下載，完成後即可離線翻譯</string>
+    <string name="detail_translate_failed">翻譯失敗，請檢查網路後重試</string>
+    <string name="detail_view_original">查看原文</string>
+    <string name="detail_translate_full">一鍵翻譯</string>
+    <string name="comment_reply_to_hint">回覆 @%1$s</string>
+            <string name="comment_delete_confirm_title">確認刪除這則留言嗎？</string>
+                                            </resources>

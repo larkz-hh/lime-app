@@ -37,8 +37,10 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import kotlinx.coroutines.delay
-import xyz.larkzhh.lime.R
-import xyz.larkzhh.lime.ui.theme.LimeTheme
+
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
+import xyz.larkzhh.lime.core.theme.AppLimeTheme
+import xyz.larkzhh.lime.core.theme.AppSplashAnim
 import xyz.larkzhh.lime.util.system.findActivity
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -47,7 +49,7 @@ class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            LimeTheme {
+            AppLimeTheme {
                 SplashContent()
             }
         }
@@ -138,7 +140,7 @@ private fun SplashContent() {
             }
             if (showLogo) {
                 Image(
-                    painter = painterResource(R.drawable.app_logo),
+                    painter = painterResource(DesignSystemR.drawable.app_logo),
                     contentDescription = null,
                     modifier = Modifier
                         .size(200.dp)
@@ -152,7 +154,7 @@ private fun SplashContent() {
         } else {
             // 关闭动画，静态展示图标
             Image(
-                painter = painterResource(R.drawable.app_logo),
+                painter = painterResource(DesignSystemR.drawable.app_logo),
                 contentDescription = null,
                 modifier = Modifier.size(200.dp),
             )

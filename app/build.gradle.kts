@@ -1,11 +1,8 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.hilt)
+    alias(libs.plugins.lime.android.application)
+    alias(libs.plugins.lime.android.hilt)
     alias(libs.plugins.baselineprofile)
 }
 
@@ -40,16 +37,11 @@ val releaseSigningReady = listOf("storeFile", "storePassword", "keyAlias").all {
 
 android {
     namespace = "xyz.larkzhh.lime"
-    compileSdk = 37
 
     defaultConfig {
         applicationId = "xyz.larkzhh.lime"
-        minSdk = 26
-        targetSdk = 36
-        versionCode = 3
-        versionName = "1.0.2"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        versionCode = 4
+        versionName = "1.0.3"
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         buildConfigField("String", "SPEECH_MODEL_URL", "\"$speechModelUrl\"")
@@ -84,67 +76,78 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
-    buildFeatures {
-        compose = true
-        buildConfig = true
-    }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
-        freeCompilerArgs.add("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
-    }
 }
 
 dependencies {
+    implementation(project(":core:designsystem"))
+    implementation(project(":core:ui"))
+    implementation(project(":core:model"))
+    implementation(project(":core:domain"))
+    implementation(project(":core:common"))
+    implementation(project(":core:data"))
+    implementation(project(":core:navigation"))
+    implementation(project(":core:work"))
+    implementation(project(":core:theme"))
+    implementation(project(":core:notification"))
+    implementation(project(":feature:auth"))
+    implementation(project(":feature:friend"))
+    implementation(project(":feature:about"))
+    implementation(project(":feature:group"))
+    implementation(project(":feature:publish"))
+    implementation(project(":feature:im"))
+    implementation(project(":feature:follow"))
+    implementation(project(":feature:profile"))
+    implementation(project(":feature:home"))
+    implementation(project(":feature:message"))
+    implementation(project(":feature:qrscan"))
+    implementation(project(":feature:translate"))
+    implementation(project(":feature:speech"))
+    implementation(project(":feature:detail"))
+    implementation(project(":feature:comment"))
+    implementation(project(":feature:settings"))
+    implementation(project(":feature:ai"))
+    implementation(project(":feature:draft"))
+    implementation(project(":feature:widget"))
+    implementation(project(":feature:search"))
+    implementation(project(":feature:video"))
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.collection)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.process)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.profileinstaller)
+    implementation(libs.swipe.back)
+
+    // Baseline Profile：只在运行期靠 manifest 里的 initializer 生效，代码不引用
+    runtimeOnly(libs.androidx.profileinstaller)
 
     // DI
-    implementation(libs.hilt.android)
     "baselineProfile"(project(":baselineprofile"))
-    ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
-
-    // Paging
-    implementation(libs.androidx.paging.runtime)
-    implementation(libs.androidx.paging.compose)
 
     // Room
     implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.paging)
 
     // Network
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
+    implementation(libs.gson)
     implementation(libs.okhttp3)
     implementation(libs.okhttp3.logging.interceptor)
     implementation(libs.okio)
 
     // Image & Video Loading
-    implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(libs.coil.video)
+    implementation(libs.coil.core)
+    implementation(libs.coil)
 //    implementation(libs.androidx.palette)
 
     // kv Storage
@@ -152,24 +155,18 @@ dependencies {
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.kotlinx.coroutines.play.services)
+    runtimeOnly(libs.kotlinx.coroutines.android)
 
     // ML Kit
-    implementation(libs.mlkit.translate)
-    implementation(libs.mlkit.barcode.scanning)
+    runtimeOnly(libs.mlkit.translate)
+    runtimeOnly(libs.mlkit.barcode.scanning)
 
     // 端侧语音识别（语音转文字）
-    implementation(libs.vosk.android)
-
-    // QRCode generate
-    implementation(libs.zxing.core)
+    runtimeOnly(libs.vosk.android)
 
     // CameraX
-    implementation(libs.androidx.camera.core)
-    implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.view)
+    runtimeOnly(libs.androidx.camera.core)
+    runtimeOnly(libs.androidx.camera.camera2)
 
     // Lottie Compose
     implementation(libs.lottie.compose)
@@ -178,54 +175,35 @@ dependencies {
     implementation(libs.exyte.animated.navigation.bar)
 
     // Media3 ExoPlayer
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.common.ktx)
-    implementation(libs.androidx.media3.ui.compose)
-    implementation(libs.androidx.media3.ui.compose.material3)
+    implementation(libs.androidx.media3.common)
     implementation(libs.androidx.media3.session)
 
     // Permissions
     implementation(libs.accompanist.permissions)
 
     // WorkManager
-    implementation(libs.androidx.work.runtime.ktx)
-
-    // Image Crop
-    implementation(libs.ucrop)
-
-    // Drag-and-drop reorder
-    implementation(libs.reorderable)
+    runtimeOnly(libs.androidx.work.runtime)
 
     // Toast
     implementation(libs.toasty)
-
-    // Telephoto zoomable image
-    implementation(libs.telephoto.zoomable.image.coil3)
-
-    // Markdown
-    implementation(libs.markdown.renderer.m3)
-    implementation(libs.markdown.renderer.coil3)
 
     // Splash Screen
 //    implementation(libs.androidx.core.splashscreen)
 
     // Widget
     implementation(libs.androidx.glance.appwidget)
-    implementation(libs.androidx.glance.material3)
     implementation(libs.androidx.glance.appwidget.preview)
-    implementation(libs.androidx.glance.preview)
 
     // 腾讯云 IM
-    implementation(libs.tencent.imsdk.plus)
-
-    // 桌面角标（厂商聚合）
-    implementation(libs.shortcut.badger)
+    runtimeOnly(libs.tencent.imsdk.plus)
 
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    debugRuntimeOnly(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

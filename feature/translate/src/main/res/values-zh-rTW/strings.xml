@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="translate_settings_title">離線</string>
+    <string name="translate_offline_pack">離線包</string>
+    <string name="translate_pack_name">中英互譯語言包</string>
+    <string name="translate_mode_section">翻譯方式</string>
+    <string name="translate_pack_tips">• 語言包下載後即可離線翻譯\n• 語音包下載後即可離線語音轉文字\n• 第一次需要連網下載\n• 語言包由 Google 提供，語音包由 Vosk 提供</string>
+    <string name="translate_delete_pack_confirm_title">刪除中英語言包？\n刪除後再次翻譯需重新下載</string>
+    <string name="translate_checking">檢查中…</string>
+    <string name="translate_download">下載</string>
+    <string name="translate_download_failed">下載失敗</string>
+    <string name="translate_retry">重試</string>
+    <string name="translate_downloaded">已下載</string>
+    <string name="translate_mode_auto">自動</string>
+    <string name="translate_mode_offline">離線</string>
+    <string name="speech_delete_pack_confirm_title">刪除中文語音辨識包？\n刪除後再次語音轉文字需重新下載</string>
+    <string name="translate_title">翻譯</string>
+    <string name="translate_close">關閉</string>
+    <string name="translate_switch_direction">切換方向</string>
+    <string name="translate_downloading_pack">正在連網下載中英離線語言包 %1$s…</string>
+    <string name="translate_translating">翻譯中…</string>
+    <string name="translate_error_default">翻譯失敗，請稍後再試</string>
+    <string name="translate_error_network">翻譯失敗：請檢查網路後重試</string>
+    <string name="translate_background_download">背景下載</string>
+    <string name="translate_result_missing">(っ °Д °;)っ 可惜，譯文被偷走了</string>
+    <string name="translate_copy_result">複製譯文</string>
+</resources>

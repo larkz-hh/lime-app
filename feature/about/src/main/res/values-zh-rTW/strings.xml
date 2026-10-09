@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_title">關於</string>
+    <string name="about_app_icon">應用程式圖示</string>
+    <string name="about_check_update">檢查更新</string>
+    <string name="about_latest">已是最新版本</string>
+    <string name="about_check_failed">檢查失敗，請檢查網路或儲存庫設定</string>
+    <string name="about_new_version_found">發現新版本 %1$s</string>
+    <string name="about_update_prompt">是否立即下載更新？</string>
+    <string name="about_update_later">暫不更新</string>
+    <string name="about_update_now">立即更新</string>
+    <string name="about_repo">專案儲存庫</string>
+    <string name="about_author_github">作者 GitHub</string>
+    <string name="about_qq_email">QQ 信箱</string>
+    <string name="about_homepage">網址</string>
+    <string name="about_email_copied">信箱已複製</string>
+    <string name="about_open_url_failed">無法開啟連結</string>
+    <string name="about_install_permission_needed">需要先允許安裝未知來源應用程式</string>
+    <string name="about_download_start_failed">下載啟動失敗，請重試</string>
+    <string name="updater_notify_title">Lime 更新</string>
+    <string name="updater_notify_desc">正在下載新版本…</string>
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="qr_title">扫描二维码</string>
+    <string name="qr_album">相册</string>
+    <string name="qr_permission_required">需要相机权限才能扫描二维码</string>
+    <string name="qr_user_not_found">未找到该用户</string>
+    <string name="qr_image_read_failed">无法读取图片</string>
+    <string name="qr_none_detected">未识别到二维码</string>
+    <string name="qr_scan_failed">识别失败，请重试</string>
+    <string name="qr_torch_off">关闭手电筒</string>
+    <string name="qr_torch_on">打开手电筒</string>
+    <string name="qr_torch_tap_off">轻触关闭</string>
+    <string name="qr_torch_tap_on">轻触照亮</string>
+    <string name="qr_align_prompt">请将二维码对准扫码框中心</string>
+</resources>

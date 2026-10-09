@@ -1,13 +1,13 @@
 package xyz.larkzhh.lime.navigation.graph
-import xyz.larkzhh.lime.navigation.route.SwipeBackNavState
+import xyz.larkzhh.swipeback.SwipeBackNavState
 import xyz.larkzhh.lime.navigation.action.ShortcutActions
-import xyz.larkzhh.lime.navigation.component.ScrimBox
+import xyz.larkzhh.swipeback.ScrimBox
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.navigation.component.PublishBottomSheet
 import xyz.larkzhh.lime.navigation.state.PendingNoteEdit
-import xyz.larkzhh.lime.ui.auth.LoginGate
+import xyz.larkzhh.lime.ui.components.LoginGate
 import xyz.larkzhh.lime.navigation.component.BottomNavBar
-import xyz.larkzhh.lime.navigation.state.AuthorProfileStore
+import xyz.larkzhh.lime.ui.profile.state.AuthorProfileStore
 
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.BackHandler
@@ -66,8 +66,7 @@ import xyz.larkzhh.lime.domain.ForceLogoutBus
 import xyz.larkzhh.lime.domain.LoginRedirectBus
 import xyz.larkzhh.lime.util.showToast
 import xyz.larkzhh.lime.ui.components.ForceLogoutDialog
-import xyz.larkzhh.lime.ui.detail.comment.CommentPhotoPickerScreen
-import xyz.larkzhh.lime.ui.draft.DraftBoxOverlay
+import xyz.larkzhh.lime.ui.comment.CommentPhotoPickerScreen
 import xyz.larkzhh.lime.ui.detail.DetailScreen
 import xyz.larkzhh.lime.ui.follow.FollowListScreen
 import xyz.larkzhh.lime.ui.friend.AddFriendScreen
@@ -97,7 +96,6 @@ import xyz.larkzhh.lime.ui.settings.GeneralSettingsScreen
 import xyz.larkzhh.lime.ui.translate.TranslatePackScreen
 import xyz.larkzhh.lime.ui.video.feed.VideoFeedScreen
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
-
 
 private val bottomNavRoutes = setOf(
     Screen.Home.route,
@@ -241,7 +239,6 @@ fun AppNavGraph(
             onShortcutHandled()
         }
     }
-
 
     LaunchedEffect(currentRoute) {
         SwipeBackNavState.suppressPopAnim = false

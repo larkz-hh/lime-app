@@ -18,22 +18,24 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.R as Media3R
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import xyz.larkzhh.lime.R
+import xyz.larkzhh.lime.core.designsystem.R as DesignSystemR
 import xyz.larkzhh.lime.navigation.route.Screen
 import xyz.larkzhh.lime.navigation.graph.VideoNavGraph
-import xyz.larkzhh.lime.ui.theme.LimeTheme
+import xyz.larkzhh.lime.core.theme.AppLimeTheme
 import xyz.larkzhh.lime.ui.video.player.VideoPlayerManager
 import xyz.larkzhh.lime.util.text.AppLanguage
+
+/// 视频页意图
+fun videoIntent(context: Context, noteId: Long, source: String): Intent =
+    Intent(context, VideoActivity::class.java).apply {
+        putExtra(VideoActivity.EXTRA_NOTE_ID, noteId)
+        putExtra(VideoActivity.EXTRA_SOURCE, source)
+    }
 
 /// 打开视频页
 fun Context.openVideo(noteId: Long, source: String) {
     VideoActivity.instance?.finish()
-    startActivity(
-        Intent(this, VideoActivity::class.java).apply {
-            putExtra(VideoActivity.EXTRA_NOTE_ID, noteId)
-            putExtra(VideoActivity.EXTRA_SOURCE, source)
-        }
-    )
+    startActivity(videoIntent(this, noteId, source))
 }
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -59,7 +61,7 @@ class VideoActivity : ComponentActivity() {
         instance = this
         enableEdgeToEdge()
         setContent {
-            LimeTheme {
+            AppLimeTheme {
                 VideoNavGraph(
                     noteId = intent.getLongExtra(EXTRA_NOTE_ID, 0L),
                     source = intent.getStringExtra(EXTRA_SOURCE)
@@ -106,8 +108,8 @@ class VideoActivity : ComponentActivity() {
                             this,
                             Media3R.drawable.media3_icon_skip_back_15,
                         ),
-                        getString(R.string.pip_seek_back),
-                        getString(R.string.pip_seek_back),
+                        getString(DesignSystemR.string.pip_seek_back),
+                        getString(DesignSystemR.string.pip_seek_back),
                         pipActionPendingIntent(PipMediaActionReceiver.ACTION_SEEK_BACK),
                     ),
                     RemoteAction(
@@ -119,8 +121,8 @@ class VideoActivity : ComponentActivity() {
                                 Media3R.drawable.media3_icon_pause
                             },
                         ),
-                        getString(if (pipPaused) R.string.pip_play else R.string.pip_pause),
-                        getString(if (pipPaused) R.string.pip_play else R.string.pip_pause),
+                        getString(if (pipPaused) DesignSystemR.string.pip_play else DesignSystemR.string.pip_pause),
+                        getString(if (pipPaused) DesignSystemR.string.pip_play else DesignSystemR.string.pip_pause),
                         pipActionPendingIntent(PipMediaActionReceiver.ACTION_TOGGLE_PLAY),
                     ),
                     RemoteAction(
@@ -128,8 +130,8 @@ class VideoActivity : ComponentActivity() {
                             this,
                             Media3R.drawable.media3_icon_skip_forward_15,
                         ),
-                        getString(R.string.pip_seek_forward),
-                        getString(R.string.pip_seek_forward),
+                        getString(DesignSystemR.string.pip_seek_forward),
+                        getString(DesignSystemR.string.pip_seek_forward),
                         pipActionPendingIntent(PipMediaActionReceiver.ACTION_SEEK_FORWARD),
                     ),
                 ),

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="friend_add_friend">新增好友</string>
+    <string name="friend_loading">正在載入…</string>
+    <string name="friend_my_qr">我的 QR Code</string>
+    <string name="friend_qr_failed">QR Code 產生失敗</string>
+    <string name="friend_lime_id_copied">已複製 Lime ID</string>
+    <string name="friend_copy_lime_id">複製 Lime ID</string>
+    <string name="friend_save_qr_hint">儲存 QR Code，讓好友掃一掃加你</string>
+    <string name="friend_scan">掃一掃</string>
+    <string name="friend_save_qr">儲存 QR Code</string>
+    <string name="friend_qr_not_ready">QR Code 尚未產生</string>
+    <string name="friend_lime_id">Lime ID</string>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_tab_follow">Following</string>
+    <string name="home_tab_discover">Discover</string>
+    <string name="home_chat_cd">Chat</string>
+    <string name="home_empty_following">People you follow haven\'t posted any notes yet</string>
+    <string name="home_follow_login_hint">Log in to see who you follow</string>
+    <string name="home_refresh_action">Refresh</string>
+</resources>

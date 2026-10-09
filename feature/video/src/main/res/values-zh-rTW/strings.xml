@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playback_channel_name">正在播放</string>
+    <string name="video_feed_empty">暫無影片</string>
+    <string name="video_notify_settings_hint">請在設定中開啟通知</string>
+    <string name="video_reply">回覆</string>
+    <string name="video_reply_mention">回覆 @%1$s</string>
+    <string name="video_delete_comment_confirm">確認刪除這則留言嗎？</string>
+    <string name="video_danmaku_off">彈幕已關閉</string>
+    <string name="video_danmaku_on">彈幕已開啟</string>
+    <string name="video_speed_changed">已切換為 %1$.1f倍速</string>
+    <string name="video_autoplay_off">自動連播已關閉</string>
+    <string name="video_autoplay_on">自動連播已開啟</string>
+    <string name="video_background_playback_off">背景播放已關閉</string>
+    <string name="video_background_playback_on">背景播放已開啟</string>
+    <string name="video_saving">開始儲存…</string>
+    <string name="video_delete_note_confirm">確認刪除這則影片筆記嗎？刪除後無法復原</string>
+    <string name="video_note_deleted">影片筆記已刪除</string>
+    <string name="video_delete_note_failed">刪除失敗，請重試</string>
+    <string name="video_pip">子母畫面</string>
+    <string name="video_send_danmaku">發送彈幕</string>
+    <string name="video_fullscreen">全螢幕觀看</string>
+    <string name="copied">已複製</string>
+    <string name="translate_bg_download_toast">已加入背景下載，完成後即可離線翻譯</string>
+    <string name="video_save_to_album">儲存到相簿</string>
+    <string name="video_clear_screen_playback">清屏播放</string>
+    <string name="video_auto_play_next">自動連播</string>
+    <string name="video_background_playback">背景繼續播放</string>
+    <string name="video_danmaku">彈幕</string>
+    <string name="video_speed">倍速</string>
+    <string name="video_danmaku_opacity">彈幕不透明度</string>
+    <string name="video_like">點讚</string>
+    <string name="video_comment">留言</string>
+    <string name="video_favorite">收藏</string>
+    <string name="video_more">更多</string>
+    <string name="video_danmaku_disable">關閉彈幕</string>
+    <string name="video_danmaku_enable">開啟彈幕</string>
+    <string name="video_danmaku_input_hint">發個彈幕吧… (∠・ω&lt; )⌒☆</string>
+    <string name="video_danmaku_send_prompt">點我發彈幕</string>
+    <string name="video_exit_fullscreen">退出全螢幕</string>
+    <string name="video_brightness">亮度</string>
+    <string name="video_volume">音量</string>
+    <string name="video_speed_boost">倍速中</string>
+    <string name="video_danmaku_send_failed">彈幕發送失敗</string>
+</resources>

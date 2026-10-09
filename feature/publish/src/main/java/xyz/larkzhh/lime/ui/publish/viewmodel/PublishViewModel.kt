@@ -1,0 +1,313 @@
+package xyz.larkzhh.lime.ui.publish.viewmodel
+
+import android.content.ContentResolver
+import android.content.ContentUris
+import android.content.Context
+import android.net.Uri
+import android.os.Bundle
+import android.provider.MediaStore
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import xyz.larkzhh.lime.feature.publish.R
+import xyz.larkzhh.lime.data.network.model.ImageSize
+import xyz.larkzhh.lime.data.network.model.NoteDetailData
+import xyz.larkzhh.lime.domain.repository.NoteRepository
+import xyz.larkzhh.lime.util.media.readImageDimensions
+import javax.inject.Inject
+import androidx.core.net.toUri
+
+data class LocalImage(val id: Long, val uri: Uri)
+
+data class PublishImage(
+    val uri: Uri,
+    val remote: Boolean = false,
+)
+
+/// 相册选择页 UI 状态
+data class PhotoPickerUiState(
+    val images: List<LocalImage> = emptyList(),
+    val selectedUris: List<Uri> = emptyList(),
+    val isLoading: Boolean = false,// 首次加载
+    val isLoadingMore: Boolean = false,// 分页加载更多
+    val hasMore: Boolean = true,
+)
+
+/// 笔记发布、编辑页 UI 状态
+data class PublishUiState(
+    val images: List<PublishImage> = emptyList(),
+    val title: String = "",
+    val content: String = "",
+    val editingNoteId: Long? = null,
+    val isLoadingEdit: Boolean = false,
+    val isPublishing: Boolean = false,
+    val publishProgress: Int = 0,  // 已上传图片数
+    val error: String? = null,
+    val isSuccess: Boolean = false,
+    val isDraftSuccess: Boolean = false,
+)
+
+/**
+ * 发布页与编辑页共享的 ViewModel。
+ * 负责管理相册选择状态、图片列表查询以及笔记发布、编辑、存草稿逻辑。
+ */
+@HiltViewModel
+class PublishViewModel @Inject constructor(
+    private val noteRepository: NoteRepository,
+    @param:ApplicationContext private val context: Context,
+) : ViewModel() {
+
+    private val _pickerState = MutableStateFlow(PhotoPickerUiState())
+    val pickerState: StateFlow<PhotoPickerUiState> = _pickerState.asStateFlow()
+
+    private val _publishState = MutableStateFlow(PublishUiState())
+    val publishState: StateFlow<PublishUiState> = _publishState.asStateFlow()
+
+    private val imagePageSize = 200
+
+    /// 加载设备图片列表
+    fun loadDeviceImages() {
+        viewModelScope.launch {
+            _pickerState.update { it.copy(isLoading = true) }
+            val images = queryImages(limit = imagePageSize, offset = 0)
+            _pickerState.update {
+                it.copy(images = images, isLoading = false, hasMore = images.size >= imagePageSize)
+            }
+        }
+    }
+
+    /// 滚动到底加载更多图片
+    fun loadMoreImages() {
+        val current = _pickerState.value
+        if (!current.hasMore || current.isLoading || current.isLoadingMore) return
+        viewModelScope.launch {
+            _pickerState.update { it.copy(isLoadingMore = true) }
+            val more = queryImages(limit = imagePageSize, offset = current.images.size)
+            _pickerState.update {
+                it.copy(
+                    images = it.images + more,
+                    isLoadingMore = false,
+                    hasMore = more.size >= imagePageSize,
+                )
+            }
+        }
+    }
+
+    /// 查询设备本地存储中的图片文件
+    private suspend fun queryImages(limit: Int, offset: Int): List<LocalImage> = withContext(Dispatchers.IO) {
+        val result = mutableListOf<LocalImage>()
+        val projection = arrayOf(MediaStore.Images.Media._ID)
+        val args = Bundle().apply {
+            putStringArray(
+                ContentResolver.QUERY_ARG_SORT_COLUMNS,
+                arrayOf(MediaStore.Images.Media.DATE_ADDED),
+            )
+            putInt(ContentResolver.QUERY_ARG_SORT_DIRECTION, ContentResolver.QUERY_SORT_DIRECTION_DESCENDING)
+            putInt(ContentResolver.QUERY_ARG_LIMIT, limit)
+            putInt(ContentResolver.QUERY_ARG_OFFSET, offset)
+        }
+        context.contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection, args, null
+        )?.use { cursor ->
+            val idCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)// 获取相应列索引
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(idCol)
+                val uri = ContentUris.withAppendedId(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id
+                )
+                result.add(LocalImage(id = id, uri = uri))
+            }
+        }
+        result
+    }
+
+    /// 切换图片选中状态（至多9张）
+    fun toggleImageSelection(uri: Uri) {
+        val current = _pickerState.value.selectedUris
+        val newList = if (current.contains(uri)) {
+            current - uri
+        } else if (current.size < 9) {
+            current + uri
+        } else {
+            current
+        }
+        _pickerState.update { it.copy(selectedUris = newList) }
+    }
+
+    /// 确认选择，将相册选中的图片同步到发布页的状态
+    fun confirmSelection() {
+        val uris = _pickerState.value.selectedUris
+        _publishState.update { state ->
+            state.copy(images = uris.map { uri -> PublishImage(uri) })
+        }
+    }
+
+    /// 从发布页返回选择器追加图片时，先把当前已选图片同步回选择器
+    fun addMore() {
+        val localUris = _publishState.value.images.filter { !it.remote }.map { it.uri }
+        _pickerState.update { it.copy(selectedUris = localUris) }
+    }
+
+    /// 追加新选图片
+    fun appendLocalImages(uris: List<Uri>) {
+        if (uris.isEmpty()) return
+        _publishState.update { state ->
+            val remain = 9 - state.images.size
+            if (remain <= 0) state
+            else state.copy(images = state.images + uris.take(remain).map { PublishImage(it) })
+        }
+    }
+
+    /// 移除发布页中某张图片
+    fun removeImage(uri: Uri) {
+        _publishState.update { it.copy(images = it.images.filterNot { p -> p.uri == uri }) }
+    }
+
+    /// 改变笔记标题或内容
+    fun onTitleChange(value: String) = _publishState.update { it.copy(title = value) }
+    fun onContentChange(value: String) = _publishState.update { it.copy(content = value) }
+
+    /// 进入编辑模式
+    fun startEdit(noteId: Long) {
+        if (_publishState.value.editingNoteId == noteId) return
+        _publishState.update {
+            it.copy(editingNoteId = noteId, isLoadingEdit = true, error = null)
+        }
+        viewModelScope.launch {
+            var shown = false
+            // 本地已缓存
+            noteRepository.getCachedNoteDetail(noteId)?.let { cached ->
+                shown = true
+                applyEditDetail(noteId, cached)
+            }
+            noteRepository.getNoteDetail(noteId, noView = true)
+                .onSuccess { note ->
+                    shown = true
+                    applyEditDetail(noteId, note)
+                }
+                .onFailure { e ->
+                    _publishState.update { s ->
+                        if (!shown) {
+                            s.copy(isLoadingEdit = false, error = e.message ?: context.getString(R.string.publish_error_load_note))
+                        } else {
+                            s.copy(isLoadingEdit = false, error = null)
+                        }
+                    }
+                }
+        }
+    }
+
+    private fun applyEditDetail(noteId: Long, note: NoteDetailData) {
+        if (_publishState.value.editingNoteId != noteId) return
+        _publishState.update {
+            it.copy(
+                title = note.title.orEmpty(),
+                content = note.content.orEmpty(),
+                images = note.images.map { img ->
+                    PublishImage(img.url.toUri(), remote = true)
+                },
+                isLoadingEdit = false,
+                error = null,
+            )
+        }
+    }
+
+    /// 提交笔记，status为 1=发布，0=草稿
+    private fun submitNote(status: Int) {
+        val state = _publishState.value
+        if (state.images.isEmpty()) {
+            _publishState.update { it.copy(error = context.getString(R.string.publish_error_no_image)) }
+            return
+        }
+        if (state.title.isBlank() && state.content.isBlank()) {
+            _publishState.update { it.copy(error = context.getString(R.string.publish_error_need_content)) }
+            return
+        }
+        viewModelScope.launch {
+            _publishState.update { it.copy(isPublishing = true, error = null, publishProgress = 0) }
+            try {
+                val uploadedUrls = mutableListOf<String>()
+                var coverSize: ImageSize? = null
+                var localCount = 0
+                state.images.forEachIndexed { index, image ->
+                    val url = if (image.remote) {
+                        image.uri.toString()
+                    } else {
+                        localCount++
+                        val url = noteRepository.uploadImage(image.uri).getOrThrow()// 逐张上传本地图片
+                        if (index == 0) {
+                            val dim = readImageDimensions(context, image.uri)
+                            coverSize = if (dim.width > 0 && dim.height > 0) ImageSize(dim.width, dim.height) else null
+                        }
+                        url
+                    }
+                    uploadedUrls.add(url)
+                    _publishState.update { it.copy(publishProgress = localCount) }
+                }
+                val editingId = state.editingNoteId
+                val result = if (editingId != null) {
+                    noteRepository.updateNote(
+                        id = editingId,
+                        title = state.title.ifBlank { null },
+                        content = state.content.ifBlank { null },
+                        imageUrls = uploadedUrls,
+                        coverSize = coverSize,
+                        status = status,
+                    )
+                } else {
+                    noteRepository.publishNote(
+                        title = state.title.ifBlank { null },
+                        content = state.content.ifBlank { null },
+                        imageUrls = uploadedUrls,
+                        coverSize = coverSize,
+                        status = status,
+                    )
+                }
+                result.getOrThrow()
+                // 服务端：已发布笔记存草稿=新建草稿副本（不覆盖线上版）；草稿存草稿=就地更新；都算“存草稿成功”
+                val isDraft = status == 0
+                _publishState.update {
+                    it.copy(
+                        isPublishing = false,
+                        isSuccess = !isDraft,
+                        isDraftSuccess = isDraft,
+                    )
+                }
+            } catch (e: Exception) {
+                val errorMsg = when {
+                    status == 0 -> context.getString(R.string.publish_error_draft)
+                    _publishState.value.editingNoteId != null -> context.getString(R.string.publish_error_save)
+                    else -> context.getString(R.string.publish_error_publish)
+                }
+                _publishState.update {
+                    it.copy(isPublishing = false, error = e.message ?: errorMsg)
+                }
+            }
+        }
+    }
+
+    /// 发布或保存修改
+    fun publish() = submitNote(1)
+
+    /// 存草稿
+    fun saveDraft() = submitNote(0)
+
+    /// 重排图片顺序
+    fun reorderImages(fromIndex: Int, toIndex: Int) {
+        val list = _publishState.value.images.toMutableList()
+        list.add(toIndex, list.removeAt(fromIndex))
+        _publishState.update { it.copy(images = list) }
+    }
+
+    fun clearSuccess() = _publishState.update { it.copy(isSuccess = false) }
+    fun clearDraftSuccess() = _publishState.update { it.copy(isDraftSuccess = false) }
+}

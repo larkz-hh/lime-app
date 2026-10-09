@@ -1,0 +1,14 @@
+plugins {
+    alias(libs.plugins.lime.android.feature)
+}
+
+android {
+    namespace = "xyz.larkzhh.lime.feature.friend"
+}
+
+dependencies {
+    implementation(project(":core:model"))
+    implementation(project(":core:domain"))
+    implementation(project(":core:navigation"))
+    implementation(project(":core:common"))
+}

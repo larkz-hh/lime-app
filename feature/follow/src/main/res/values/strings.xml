@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="follow_tab_following">关注</string>
+    <string name="follow_tab_followers">粉丝</string>
+    <string name="follow_empty_following">还没有关注的人~</string>
+    <string name="follow_empty_followers">还没有粉丝~</string>
+    <string name="follow_bio_empty">还没有简介</string>
+</resources>

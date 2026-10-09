@@ -1,8 +1,8 @@
 package xyz.larkzhh.lime.navigation.graph
-import xyz.larkzhh.lime.navigation.route.SwipeBackNavState
-import xyz.larkzhh.lime.navigation.component.ScrimBox
+import xyz.larkzhh.swipeback.SwipeBackNavState
+import xyz.larkzhh.swipeback.ScrimBox
 import xyz.larkzhh.lime.navigation.route.Screen
-import xyz.larkzhh.lime.navigation.state.AuthorProfileStore
+import xyz.larkzhh.lime.ui.profile.state.AuthorProfileStore
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition
@@ -23,7 +23,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import xyz.larkzhh.lime.ui.detail.DetailScreen
-import xyz.larkzhh.lime.ui.detail.comment.CommentPhotoPickerScreen
+import xyz.larkzhh.lime.ui.comment.CommentPhotoPickerScreen
 import xyz.larkzhh.lime.ui.profile.ProfileScreen
 import xyz.larkzhh.lime.ui.publish.CoverPickerScreen
 import xyz.larkzhh.lime.ui.publish.PhotoPickerScreen

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">一般</string>
+    <string name="settings_section_notify">通知</string>
+    <string name="settings_notify_reminders">通知提醒</string>
+    <string name="settings_splash_animation">啟動動畫</string>
+    <string name="settings_section_storage">儲存空間</string>
+    <string name="settings_clear_cache">清除快取</string>
+    <string name="settings_clear_cache_confirm_title">確定清除應用程式快取嗎？</string>
+    <string name="settings_clear">清除</string>
+    <string name="settings_cache_cleared">快取已清除（剩餘 %1$s）</string>
+    <string name="settings_language">語言</string>
+    <string name="settings_theme">主題</string>
+    <string name="theme_confirm_title">儲存主題設定？</string>
+    <string name="theme_confirm_text">切換後介面會立即以新主題顯示</string>
+    <string name="theme_switched">主題已切換</string>
+    <string name="font_settings_title">字體設定</string>
+    <string name="settings_font">字體</string>
+    <string name="font_confirm_title">儲存字體設定？</string>
+    <string name="font_confirm_text">切換後介面會立即以新字體顯示</string>
+    <string name="font_switched">字體已切換</string>
+    <string name="settings_section_display">顯示</string>
+    <string name="settings_dark_mode">深色模式</string>
+    <string name="dark_mode_option_system">跟隨系統</string>
+    <string name="dark_mode_option_dark">深色</string>
+    <string name="dark_mode_confirm_title">儲存深色模式設定？</string>
+    <string name="dark_mode_confirm_text">切換後介面會立即套用新的外觀模式</string>
+    <string name="dark_mode_switched">深色模式已切換</string>
+    <string name="lang_switched">語言已切換</string>
+    <string name="language_confirm_title">儲存語言設定？</string>
+    <string name="language_confirm_text">切換後介面會立即以新語言顯示</string>
+</resources>

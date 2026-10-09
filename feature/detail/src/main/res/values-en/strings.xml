@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_ai">Ask AI</string>
+                <string name="detail_copied">Copied</string>
+    <string name="detail_note_delete_confirm_title">Permanently delete this note?\nThis cannot be undone</string>
+    <string name="detail_note_deleted">Note deleted</string>
+    <string name="detail_delete_failed">Failed to delete, please try again</string>
+    <string name="detail_translate_bg_download">Added to background download; offline translation will be ready when finished</string>
+    <string name="detail_translate_failed">Translation failed. Check the network and try again.</string>
+    <string name="detail_view_original">View original</string>
+    <string name="detail_translate_full">Translate all</string>
+    <string name="comment_reply_to_hint">Reply to @%1$s</string>
+            <string name="comment_delete_confirm_title">Delete this comment?</string>
+                                            </resources>
